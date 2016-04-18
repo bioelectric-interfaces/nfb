@@ -3,7 +3,43 @@ from pynfb.experiment_parameters.defaults import *
 from pynfb.experiment_parameters.xml_io import *
 
 
+class ScalableGroup(pTypes.GroupParameter):
+    """ Class for scalable group in parameter tree
+    """
+    def __init__(self, **opts):
+        self.vector_name = opts['name']
+        opts['type'] = 'group'
+        opts['addText'] = "add one"
+        if self.vector_name == 'vSignals':
+            opts['addList'] = ['DerivedSignal']
+        if self.vector_name == 'vProtocols':
+            opts['addList'] = ['FeedbackProtocol']
+        if self.vector_name == 'vPSequence':
+            opts['addList'] = ['s']
+        pTypes.GroupParameter.__init__(self, **opts)
+
+    def addNew(self, type_, children=None):
+        if self.vector_name == 'vPSequence':
+            self.addChild(dict(name=type_ + str(len(self.childs) + 1),
+                               type='str', value='', removable=True, renamable=False))
+        else:
+            if children is None:
+                children = formatted_odict_to_params(vectors_defaults[self.vector_name][type_][0])
+            self.addChild(dict(name=type_ + str(len(self.childs) + 1),
+                               type='group', children=children, removable=True, renamable=False))
+
+    def addNewStr(self, s):
+        item = s
+        item['removable'] = True
+        item['name'] += str(len(self.childs) + 1)
+        self.addChild(item)
+
+
 def formatted_odict_to_params(odict):
+    """ Convert formatted ordered dict to params
+    :param odict: ordered dict of parameters
+    :return: list of params
+    """
     params = []
     for k, v in odict.items():
         if isinstance(v, OrderedDict):
@@ -21,39 +57,11 @@ def formatted_odict_to_params(odict):
     return params
 
 
-class ScalableGroup(pTypes.GroupParameter):
-    def __init__(self, **opts):
-        self.vector_name = opts['name']
-        opts['type'] = 'group'
-        opts['addText'] = "add one"
-        if self.vector_name == 'vSignals':
-            opts['addList'] = ['DerivedSignal']
-        if self.vector_name == 'vProtocols':
-            opts['addList'] = ['FeedbackProtocol']
-        if self.vector_name == 'vPSequence':
-            opts['addList'] = ['s']
-        pTypes.GroupParameter.__init__(self, **opts)
-
-    def addNew(self, type_, children=None):
-        # print(self.vector_name, type_, children)
-        # print(vectors_defaults[self.vector_name][type_])
-        if self.vector_name == 'vPSequence':
-            self.addChild(dict(name=type_ + str(len(self.childs) + 1),
-                               type='str', value='', removable=True, renamable=False))
-        else:
-            if children is None:
-                children = formatted_odict_to_params(vectors_defaults[self.vector_name][type_][0])
-            self.addChild(dict(name=type_ + str(len(self.childs) + 1),
-                               type='group', children=children, removable=True, renamable=False))
-
-    def addNewStr(self, s):
-        item = s
-        item['removable'] = True
-        item['name'] += str(len(self.childs) + 1)
-        self.addChild(item)
-
-
-def vector_odict_to_params(vdict):
+def vector_formatted_odict_to_params(vdict):
+    """ Convert formatted ordered dict of vector parameters to params
+        :param odict: ordered dict of vector parameters
+        :return: list of params
+    """
     print(len(vdict), vdict)
     params = []
     for key in vdict.keys():
@@ -69,6 +77,11 @@ def vector_odict_to_params(vdict):
 
 
 def format_odict_by_defaults(odict, defaults):
+    """ Format ordered dict of params by defaults ordered dicts of parameters
+    :param odict:  ordered dict
+    :param defaults: defaults
+    :return: ordered dict
+    """
     if not isinstance(odict, OrderedDict):
         return odict
     formatted_odict = OrderedDict()
@@ -77,7 +90,6 @@ def format_odict_by_defaults(odict, defaults):
             if isinstance(defaults[key], OrderedDict):
                 formatted_odict[key] = format_odict_by_defaults(odict[key], defaults[key])
             elif isinstance(defaults[key], list):
-                #print(odict[key], defaults[key])
                 formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
                                         for item in odict[key]]
             else:
@@ -86,7 +98,6 @@ def format_odict_by_defaults(odict, defaults):
                 else:
                     formatted_odict[key] = odict[key]
         else:
-            #print(key, defaults[key])
             formatted_odict[key] = defaults[key]
     return formatted_odict
 
@@ -97,13 +108,16 @@ if __name__ == '__main__':
     import sys
 
     app = QtGui.QApplication([])
+
+    # from defaults
+    # params = formatted_odict_to_params(general_defaults)
+    # params += vector_odict_to_params(vectors_defaults)
+
+    # from file
     odict = read_xml_to_dict('pynfb/experiment_parameters/settings/pilot.xml', True)
-    #print(odict)
-    params = formatted_odict_to_params(general_defaults)
     params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
-    #params += vector_odict_to_params(vectors_defaults)
-    print(formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults)))
-    params += vector_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
+    params += vector_formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
+
     # Create tree of Parameter objects
     p = Parameter.create(name='params', type='group', children=params)
 
@@ -132,8 +146,8 @@ if __name__ == '__main__':
     win.resize(800, 800)
 
     ## test save/restore
-    s = p.saveState()
-    p.restoreState(s)
+    # s = p.saveState()
+    # p.restoreState(s)
 
     ## Start Qt event loop unless running in interactive mode or using pyside.
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
