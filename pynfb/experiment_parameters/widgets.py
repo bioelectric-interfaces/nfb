@@ -1,17 +1,18 @@
 import pyqtgraph.parametertree.parameterTypes as pTypes
 from pynfb.experiment_parameters.defaults import *
+from pynfb.experiment_parameters.xml_io import *
 
 
-def ordered_dict_to_params(odict):
+def formatted_odict_to_params(odict):
     params = []
     for k, v in odict.items():
         if isinstance(v, OrderedDict):
-            params.append({'name': k, 'type': 'group', 'children': ordered_dict_to_params(v)})
+            params.append({'name': k, 'type': 'group', 'children': formatted_odict_to_params(v)})
         elif isinstance(v, list):
             children = []
             for i, ch in enumerate(v):
                 if isinstance(ch, OrderedDict):
-                    children.append({'name': k, 'type': 'group', 'children': ordered_dict_to_params(ch)})
+                    children.append({'name': k, 'type': 'group', 'children': formatted_odict_to_params(ch)})
                 else:
                     children.append({'name': k, 'type': 'str', 'value': str(ch)})
             params += children
@@ -41,7 +42,7 @@ class ScalableGroup(pTypes.GroupParameter):
                                type='str', value='', removable=True, renamable=False))
         else:
             if children is None:
-                children = ordered_dict_to_params(vectors_defaults[self.vector_name][type_][0])
+                children = formatted_odict_to_params(vectors_defaults[self.vector_name][type_][0])
             self.addChild(dict(name=type_ + str(len(self.childs) + 1),
                                type='group', children=children, removable=True, renamable=False))
 
@@ -52,12 +53,12 @@ class ScalableGroup(pTypes.GroupParameter):
         self.addChild(item)
 
 
-def vectors_dict_to_params(vdict):
+def vector_odict_to_params(vdict):
+    print(len(vdict), vdict)
     params = []
     for key in vdict.keys():
         group = ScalableGroup(name=key)
-        items = ordered_dict_to_params(vdict[key])
-        print(key, items)
+        items = formatted_odict_to_params(vdict[key])
         for item in items:
             if key == 'vPSequence':
                 group.addNewStr(item)
@@ -67,15 +68,42 @@ def vectors_dict_to_params(vdict):
     return params
 
 
+def format_odict_by_defaults(odict, defaults):
+    if not isinstance(odict, OrderedDict):
+        return odict
+    formatted_odict = OrderedDict()
+    for key in defaults.keys():
+        if key in odict.keys():
+            if isinstance(defaults[key], OrderedDict):
+                formatted_odict[key] = format_odict_by_defaults(odict[key], defaults[key])
+            elif isinstance(defaults[key], list):
+                #print(odict[key], defaults[key])
+                formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
+                                        for item in odict[key]]
+            else:
+                if isinstance(defaults[key], bool):
+                    formatted_odict[key] = bool(odict[key])
+                else:
+                    formatted_odict[key] = odict[key]
+        else:
+            #print(key, defaults[key])
+            formatted_odict[key] = defaults[key]
+    return formatted_odict
+
+
 if __name__ == '__main__':
     from pyqtgraph.Qt import QtCore, QtGui
     from pyqtgraph.parametertree import Parameter, ParameterTree
     import sys
 
     app = QtGui.QApplication([])
-    params = ordered_dict_to_params(general_defaults)
-    params += vectors_dict_to_params(vectors_defaults)
-
+    odict = read_xml_to_dict('pynfb/experiment_parameters/settings/pilot.xml', True)
+    #print(odict)
+    params = formatted_odict_to_params(general_defaults)
+    params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
+    #params += vector_odict_to_params(vectors_defaults)
+    print(formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults)))
+    params += vector_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
     # Create tree of Parameter objects
     p = Parameter.create(name='params', type='group', children=params)
 

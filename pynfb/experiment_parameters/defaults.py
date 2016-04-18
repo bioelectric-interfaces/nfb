@@ -14,7 +14,7 @@ general_defaults = OrderedDict([
 vectors_defaults = OrderedDict([
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
-            ('sSignalName', 'Raw'),
+            ('sSignalName', 'Untitled'),
             ('SpatialFilterMatrix', ''),
             ('fBandpassLowHz', ''),
             ('fBandpassHighHz', ''),
@@ -23,7 +23,7 @@ vectors_defaults = OrderedDict([
             ('sType', 'plain')])])])),
     ('vProtocols', OrderedDict([
         ('FeedbackProtocol', [OrderedDict([  # FeedbackProtocol is list!
-            ('sProtocolName', 'Baseline'),
+            ('sProtocolName', 'Untitled'),
             ('sSignalComposition', 'Simple'),
             ('nMSecondsPerWindow', ''),
             ('bUpdateStatistics', False),
@@ -37,5 +37,5 @@ vectors_defaults = OrderedDict([
             ('dBand', ''),
             ('cString', '')])])])),
     ('vPSequence', OrderedDict([
-        ('s', [])])),
+        ('s', ['Untitled'])])),
 ])

@@ -1,9 +1,10 @@
 import xmltodict
 
 
-def read_xml_to_dict(filename):
+def read_xml_to_dict(filename, skip_root=False):
     """ Read xml to ordered dict
     :param filename: path to file
+    :param skip_root: if True skip root
     :return: OrderedDict instance
     """
     # postprocessor convert to int if possible
@@ -17,6 +18,8 @@ def read_xml_to_dict(filename):
     # read and parse
     with open(filename, 'r') as f:
         d = xmltodict.parse(f.read(), postprocessor=postprocessor)
+    if skip_root:
+        d = list(d.values())[0]
     return d
 
 
