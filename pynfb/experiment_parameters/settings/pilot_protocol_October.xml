@@ -1,0 +1,148 @@
+<NeurofeedbackSignalSpecs>
+	<CompositeMontage>__</CompositeMontage>
+	<vSignals>
+		<DerivedSignal>
+			<sSignalName>Raw</sSignalName>
+			<SpatialFilterMatrix></SpatialFilterMatrix>
+			<sType>plain</sType>
+		</DerivedSignal>
+
+		<DerivedSignal>
+			<sSignalName>LEFT_MU</sSignalName>
+			<SpatialFilterMatrix>left_mu.xml</SpatialFilterMatrix>
+			<fBandpassLowHz>8</fBandpassLowHz>
+			<fBandpassHighHz>14</fBandpassHighHz>
+			<sType>plain</sType>
+		</DerivedSignal>
+
+		<DerivedSignal>
+			<sSignalName>RIGHT_MU</sSignalName>
+			<SpatialFilterMatrix>right_mu.xml</SpatialFilterMatrix>
+			<fBandpassLowHz>8</fBandpassLowHz>
+			<fBandpassHighHz>14</fBandpassHighHz>
+			<sType>plain</sType>
+		</DerivedSignal>	
+	</vSignals>
+
+	<vProtocols>
+		<FeedbackProtocol>
+			<sProtocolName>Baseline</sProtocolName>
+			<sSignalComposition>Simple</sSignalComposition>
+			<bUpdateStatistics>1</bUpdateStatistics>
+			<nMSecondsPerWindow>100</nMSecondsPerWindow>
+			<fDuration>60</fDuration>
+			<bStopAfter>0</bStopAfter>
+			<cString>Relax your hands</cString>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Baseline_last</sProtocolName>
+			<sSignalComposition>Simple</sSignalComposition>
+			<bUpdateStatistics>1</bUpdateStatistics>
+			<nMSecondsPerWindow>100</nMSecondsPerWindow>
+			<fDuration>50</fDuration>
+			<bStopAfter>1</bStopAfter>
+			<cString>Relax your hands</cString>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Feedback_color_last</sProtocolName>
+			<sSignalComposition>Simple</sSignalComposition>
+			<nMSecondsPerWindow>150</nMSecondsPerWindow>
+			<sFb_type>Color intensity</sFb_type>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<fDuration>50</fDuration>
+			<bStopAfter>1</bStopAfter>
+			<fThreshold>0</fThreshold>
+  			<bShowFBRect>0</bShowFBRect>
+			<cString></cString>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Feedback_color</sProtocolName>
+			<sSignalComposition>Simple</sSignalComposition>
+			<nMSecondsPerWindow>150</nMSecondsPerWindow>
+			<sFb_type>Color intensity</sFb_type>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<fDuration>50</fDuration>
+			<bStopAfter>0</bStopAfter>
+			<fThreshold>0</fThreshold>
+			<bShowFBRect>0</bShowFBRect>
+			<cString></cString>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>CSP_right</sProtocolName>	
+			<sSignalComposition>Simple</sSignalComposition>
+			<bUpdateStatistics>1</bUpdateStatistics>
+			<nMSecondsPerWindow>150</nMSecondsPerWindow>
+			<fDuration>60</fDuration>
+			<bStopAfter>0</bStopAfter>
+			<cString>Move your right hand</cString>
+			<iNComp>2</iNComp>
+			<dBand>1</dBand>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>CSP_left</sProtocolName>	
+			<sSignalComposition>Simple</sSignalComposition>
+			<bUpdateStatistics>1</bUpdateStatistics>
+			<nMSecondsPerWindow>150</nMSecondsPerWindow>
+			<fDuration>60</fDuration>
+			<bStopAfter>1</bStopAfter>
+			<cString>Move your left hand</cString>
+			<iNComp>2</iNComp>
+			<dBand>1</dBand>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Rest</sProtocolName>
+			<sSignalComposition>Simple</sSignalComposition>
+			<nMSecondsPerWindow>150</nMSecondsPerWindow>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<fDuration>50</fDuration>
+			<cString>Have a rest! You can move or stretch or use this time to communicate with the experimenter if there is any issue</cString>
+			<bStopAfter>0</bStopAfter>
+		</FeedbackProtocol>
+		<FeedbackProtocol> 
+			<sProtocolName>Mock_feedback</sProtocolName> 
+			<sSignalComposition>Simple</sSignalComposition> 
+			<nMSecondsPerWindow>120</nMSecondsPerWindow> 
+			<bUpdateStatistics>0</bUpdateStatistics> 
+			<sFb_type>Mock</sFb_type> 
+			<fbSource></fbSource> 
+			<fDuration>30</fDuration> 
+			<bStopAfter>0</bStopAfter>
+			<cString></cString>
+		</FeedbackProtocol>
+	</vProtocols>
+	<vPSequence>
+		<s>Baseline_last</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Rest</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Rest</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Rest</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Rest</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Feedback_color</s>
+		<s>Baseline_last</s>
+	</vPSequence>
+<CSPSettings>
+
+<iNComp>2</iNComp>
+
+<dInitBand>8 16</dInitBand>
+
+</CSPSettings>
+
+<bShowFBRect>0</bShowFBRect>
+<bShowFBCount>1</bShowFBCount>
+
+</NeurofeedbackSignalSpecs>
+
