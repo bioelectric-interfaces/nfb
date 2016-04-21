@@ -13,8 +13,8 @@ win = pg.GraphicsWindow(title="pyqtgraph example: Linked Views")
 win.resize(800,600)
 
 win.addLabel("Linked Views", colspan=2)
-nPlots = 3
-nSamples = 500
+nPlots = 2
+nSamples = 500*2
 data1 = np.zeros((nPlots, nSamples))
 
 curves = []
@@ -34,19 +34,6 @@ for j in range(nPlots):
     p_old.addItem(c)
     curves.append(c)
 
-#for i in range(nPlots):
-    #c = pg.PlotCurveItem(pen=(i,nPlots*1.3))
-    #p.addItem(c)
-    #c.setPos(0,i*6)
-    #curves.append(c)
-
-#p.setYRange(0, nPlots*6)
-#p.setXRange(0, nSamples)
-#p.resize(600,900)
-
-#rgn = pg.LinearRegionItem([nSamples/5., nSamples/3.])
-#p.addItem(rgn)
-
 
 data = np.random.normal(size=(nPlots*23, nSamples))
 
@@ -58,19 +45,23 @@ count = 0
 
 
 print("looking for an EEG stream...")
-streams = resolve_stream('type', 'EEG')
+streams = resolve_stream('name', 'example') #'AudioCaptureWin')
 
 # create a new inlet to read from the stream
-inlet = StreamInlet(streams[0])
+inlet = StreamInlet(streams[0], max_buflen=1)
 
 
 def update():
     global curve, data, ptr, p_old, lastTime, fps, nPlots, count
     count += 1
     #print "---------", count
-    sample, timestamp = inlet.pull_sample()
-    data1[:, :-1] = data1[:, 1:]
-    data1[:, -1] = sample[:nPlots]
+    #sample, timestamp = inlet.pull_sample(0.0)
+    max_samples = 1
+    if count%1==0:
+        chunk, timestamp1 = inlet.pull_chunk(0.0, max_samples=max_samples)
+        #print(len(chunk), len(chunk[0]))
+    data1[:, :-max_samples] = data1[:, max_samples:]
+    data1[:, -max_samples:] = np.array(chunk).T if chunk else np.nan*np.ones(nPlots)
 
     for i in range(nPlots):
         #curves[i].setData(data[(ptr+i)%data.shape[0]])
@@ -90,7 +81,7 @@ def update():
     #app.processEvents()  ## force complete redraw for every plot
 timer = QtCore.QTimer()
 timer.timeout.connect(update)
-timer.start(0)
+timer.start(1000*1./10000)
 
 
 
