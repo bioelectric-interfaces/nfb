@@ -10,7 +10,7 @@ app = QtGui.QApplication([])
 win = pg.GraphicsWindow(title="pyqtgraph example: Linked Views")
 win.resize(800, 600)
 win.addLabel("Linked Views", colspan=2)
-n_plots = 15
+n_plots = 20
 n_samples = 1000
 data = np.zeros((n_samples, n_plots))
 
@@ -28,7 +28,7 @@ for j in range(n_plots):
     p_old.addItem(c)
     curves.append(c)
 
-streams = resolve_stream('name', 'example')  # 'AudioCaptureWin')
+streams = resolve_stream('name', ['AudioCaptureWin','NVX136_Data', 'example'][1])  # 'AudioCaptureWin')
 inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=8)
 t0 = time.time()
 t = t0
@@ -46,15 +46,17 @@ def update():
     max_samples = len(chunk)
     if max_samples>0:
         data[:-max_samples] = data[max_samples:]
-        data[-max_samples:] = chunk
+        data[-max_samples:] = np.array(chunk)[:, :n_plots]
 
-        for i in range(c%2, n_plots, 2):
+        for i in range(c%1, n_plots, 1):
             curves[i].setData(data[:, i])
     if chunk_counter is None:
         none_counter += 1
     if len(chunk) > 0:
-        if len(chunk) != 8:
+        if len(chunk) > 8:
             print(len(chunk))
+            pass
+
         chunk_counter += 1
     else:
         zero_counter += 0
