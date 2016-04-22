@@ -14,19 +14,31 @@ n_plots = 15
 n_samples = 1000
 data = np.zeros((n_samples, n_plots))
 
-curves = []
-p_old = None
-p = None
-for j in range(n_plots):
-    win.nextRow()
-    p_new = win.addPlot(y=data[j])
-    if j == 0: p = p_new
-    if p_old:  p_new.setXLink(p_old)
-    if j < n_plots - 1: p_new.showAxis('bottom', show=False)
-    c = pg.PlotCurveItem(pen=(j, n_plots * 1.3))
-    p_old = p_new
-    p_old.addItem(c)
-    curves.append(c)
+if False:
+    curves = []
+    p_old = None
+    p = None
+    for j in range(n_plots):
+        win.nextRow()
+        p_new = win.addPlot(y=data[j])
+        if j == 0: p = p_new
+        if p_old:  p_new.setXLink(p_old)
+        if j < n_plots - 1: p_new.showAxis('bottom', show=False)
+        c = pg.PlotCurveItem(pen=(j, n_plots * 1.3))
+        p_old = p_new
+        p_old.addItem(c)
+        curves.append(c)
+
+
+else:
+    curves = []
+    p = win.addPlot()
+    for i in range(n_plots):
+        c = pg.PlotCurveItem(pen=(i,n_plots*1.3))
+        p.addItem(c)
+        c.setPos(0,i*6)
+        curves.append(c)
+
 
 streams = resolve_stream('name', ['AudioCaptureWin','NVX136_Data', 'example'][1])  # 'AudioCaptureWin')
 inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=8)
@@ -46,7 +58,7 @@ def update():
     max_samples = len(chunk)
     if max_samples>0:
         data[:-max_samples] = data[max_samples:]
-        data[-max_samples:] = np.array(chunk)[:, :n_plots]
+        data[-max_samples:] = np.array(chunk)[:, :n_plots]*10
 
         for i in range(c%1, n_plots, 1):
             curves[i].setData(data[:, i])
