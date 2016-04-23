@@ -22,6 +22,10 @@ from pylsl import StreamInlet
 from pylsl import resolve_stream
 
 
+from scipy.fftpack import rfft, irfft, fftfreq
+
+
+
 
 class LSLPlotDataItem(pg.PlotDataItem):
 
@@ -71,6 +75,7 @@ class LSLPlotWidget(pg.PlotWidget):
         self.t = self.t0
         self.time_counter = 1
         self.scaler = 1
+        self.w = fftfreq(self.n_samples, d=1./self.source_freq*2)
 
 
     def update(self):
@@ -80,6 +85,14 @@ class LSLPlotWidget(pg.PlotWidget):
         if max_samples > 0:
             self.data[:-max_samples] = self.data[max_samples:]
             self.data[-max_samples:] = chunk[:, :self.n_plots]
+
+            if False:
+                f_signal = rfft(self.data, axis=0)
+                cut_f_signal = f_signal.copy()
+                cut_f_signal[(self.w > 45) & (self.w < 60)] = 0
+                cut_signal = irfft(cut_f_signal, axis=0)
+                self.data = cut_signal
+
             for i in range(self.time_counter % 1, self.n_plots, 1):
                 self.curves[i].setData(self.x_mesh, self.data[:, i]/self.scaler)
 
