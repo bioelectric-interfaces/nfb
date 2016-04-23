@@ -23,7 +23,7 @@ def run_noise_sins():
     pass
 
 
-def run_eeg_sim(n_channels=15, freq=500, chunk_size=0):
+def run_eeg_sim(n_channels=50, freq=500, chunk_size=0):
     info = StreamInfo(name='example', type='EEG', channel_count=n_channels, nominal_srate=500,  # TODO: nominal_srate?
                       channel_format='float32', source_id='myuid34234')
     outlet = StreamOutlet(info, chunk_size=chunk_size)
@@ -31,10 +31,14 @@ def run_eeg_sim(n_channels=15, freq=500, chunk_size=0):
     t0 = time.time()
     t = t0
     c = 1
+    ampl = 1
+    freqs = np.arange(n_channels)
     while True:
-        sample = np.random.uniform(size=(n_channels, ))
-        if c % (freq * 5) == 0:
-            sample = np.ones(shape=(n_channels, ))*2
+        sample = np.random.uniform(-0.1, 0.1, size=(n_channels, ))
+        sample += np.sin(2*np.pi*time.time()*50)+sample + np.sin(2*np.pi*time.time()*freqs)
+        sample *= np.sin(2*np.pi*time.time()*0.1)*ampl
+        if c % (freq * 5) < 10:
+            sample += np.ones(shape=(n_channels, ))*5*ampl
         outlet.push_sample(sample)
 
         time.sleep(1./freq)
