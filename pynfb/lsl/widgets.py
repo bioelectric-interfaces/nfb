@@ -90,7 +90,7 @@ class LSLPlotWidget(pg.PlotWidget):
             if False:
                 f_signal = rfft(self.data, axis=0)
                 cut_f_signal = f_signal.copy()
-                cut_f_signal[(self.w > 45) & (self.w < 60)] = 0
+                cut_f_signal[(self.w < 7) | (self.w > 13)] = 0
                 cut_signal = irfft(cut_f_signal, axis=0)
                 self.data = cut_signal
 
@@ -109,32 +109,76 @@ class LSLPlotWidget(pg.PlotWidget):
         pass
 
 class FBWidget(QtGui.QDialog):
-    def __init__(self, n_samples=500, n_channels=3):
+    def __init__(self, n_samples=500, n_channels=50, source_freq=500, noise_scaler=100):
         super(FBWidget, self).__init__()
+        pg.setConfigOptions(antialias=True)
+        self.source_freq = source_freq
         self.fb_buffer = np.zeros((n_samples, ))
-        self.plot = LSLPlotWidget(n_plots=1)
-        self.plot.show()
-        self.weights = np.ones((n_channels, ))/n_channels
+        self.n_channels = n_channels
+        self.n_samples = n_samples
+        self.plt = pg.plot()
+        self.plt.setYRange(-5, 5)
+        self.plt.hideAxis('bottom')
+        self.plt.hideAxis('left')
+        self.noise_scaler = noise_scaler
+        #self.getPlotItem().getAxis('left')
+        self.plt.setXRange(-5, 5)
+        self.x = np.linspace(-np.pi/2, np.pi/2, 100)
+        self.noise = np.sin(15*self.x)*0.5#
+        self.noise = np.random.uniform(-0.5, 0.5, 100)
+        self.p1 = self.plt.plot(np.sin(self.x) * (1+self.noise), np.cos(self.x) * (1+self.noise), pen=pg.mkPen(None)).curve
+        self.p2 = self.plt.plot(np.sin(self.x)*(1+self.noise), -np.cos(self.x)*(1+self.noise), pen=pg.mkPen(None)).curve
+        #self.p1.curve.getPath()
+        #self.p2.curve.getPath()
+        fill = pg.FillBetweenItem(self.p1, self.p2, brush=(77, 144, 254, 255))
+        self.plt.addItem(fill)
+        #self.plot.show()
+        self.weights = np.zeros((n_channels, ))
+        self.weights[0] = 1
+        self.plot_stream()
 
-    def update_fb(self):
-        y = np.dot(self.plot.data, self.weights)
+    def plot_stream(self):
+        streams = resolve_stream('name', ['AudioCaptureWin', 'NVX136_Data', 'example'][2])  # 'AudioCaptureWin')
+        self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=8)
+        self.t0 = time.time()
+        self.t = self.t0
+        self.time_counter = 1
+        self.scaler = 1
+        self.w = fftfreq(self.n_samples, d=1./self.source_freq*2)
+
+    def update_circle(self, noise_ampl):
+        noise = self.noise*noise_ampl
+        self.p1.setData(np.sin(self.x)*(1+noise), np.cos(self.x)*(1+noise))
+        self.p2.setData(np.sin(self.x) *(1+noise), -np.cos(self.x) * (1+noise))
         pass
 
-class App(QtGui.QMainWindow):
-    def __init__(self):
-        super(App, self).__init__()
-        self.widget = LSLPlotWidget(n_plots=50)
-        self.fb = FBWidget(n_channels=50)
-        self.widget.show()
+    def update(self):
+        chunk, timestamp = self.inlet.pull_chunk()
+        chunk = np.array(chunk)
+        max_samples = chunk.shape[0]
+        if max_samples > 0:
+            self.fb_buffer[:-max_samples] = self.fb_buffer[max_samples:]
+            self.fb_buffer[-max_samples:] = np.dot(chunk[:, :self.n_channels], self.weights)
+            f_signal = rfft(self.fb_buffer)
+            cut_f_signal = f_signal.copy()
+            cut_f_signal[(self.w < 8) | (self.w > 13)] = 0
+            cut_f_signal = np.abs(irfft(cut_f_signal))
+            noise_ampl = -np.tanh(sum(cut_f_signal)/self.noise_scaler)+1
+            self.update_circle(noise_ampl)
+        if self.time_counter % (10) == 0:
+            t_curr = time.time()
+            self.plt.setLabel('top', 't={:.1f}, f={:.2f}'.format(t_curr - self.t0, 1. / (t_curr - self.t) * 10))
+            self.t = t_curr
+        self.time_counter += 1
+        pass
 
-    def update_fb(self):
-        y = np.dot(self.widget.data, self.fb.weights)
-        f_signal = rfft(y)
-        cut_f_signal = f_signal.copy()
-        cut_f_signal[(self.fb.plot.w < 7) | (self.fb.plot.w > 13)] = 0
-        #print(cut_f_signal.shape)
-        cut_signal = np.abs(irfft(cut_f_signal))
-        self.fb.plot.curves[0].setData(self.fb.plot.x_mesh, np.abs(cut_f_signal))
+
+class MainWindow(QtGui.QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        self.raw_view = LSLPlotWidget(n_plots=50)
+        self.fb_view = FBWidget(n_samples=500, n_channels=1)
+        self.raw_view.show()
 
 
 def main():
@@ -143,14 +187,14 @@ def main():
     #widget = LSLPlotWidget(n_plots=50)
     #fb = FBWidget()
     #widget.show()
-    win = App()
+    win = MainWindow()
     timer = QtCore.QTimer()
-    timer.timeout.connect(win.widget.update)
-    timer.start(1000 * 1. / win.widget.plot_freq)
+    timer.timeout.connect(win.raw_view.update)
+    timer.start(1000 * 1. / win.raw_view.plot_freq)
 
     timer1 = QtCore.QTimer()
-    timer1.timeout.connect(win.update_fb)
-    timer1.start(1000 * 1. / 100)
+    timer1.timeout.connect(win.fb_view.update)
+    timer1.start(1000 * 1. / win.raw_view.plot_freq)
     sys.exit(app.exec_())
 
 
