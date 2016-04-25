@@ -32,13 +32,13 @@ class LSLPlotDataItem(pg.PlotDataItem):
     def getData(self):
         x, y = super(LSLPlotDataItem, self).getData()
         if self.opts['fftMode']:
-            return x, y/(max(y) - min(y))*0.75
+            return x, y/(max(y) - min(y) + 1e-20)*0.75
         return x, y
 
 
 class LSLPlotWidget(pg.PlotWidget):
 
-    def __init__(self, n_plots=1, n_samples=500, source_freq=500, plot_freq=120):
+    def __init__(self, n_plots=1, n_samples=500, source_freq=500, plot_freq=120, n_fb_channels=5):
         super(LSLPlotWidget, self).__init__()
         self.n_plots = n_plots
         self.n_samples = n_samples
@@ -46,6 +46,8 @@ class LSLPlotWidget(pg.PlotWidget):
         self.plot_freq = plot_freq
         self.x_mesh = np.linspace(0, self.n_samples / self.source_freq, self.n_samples)
         self.data = np.zeros((n_samples, n_plots))
+        self.fb_buffer = np.zeros((n_samples,))
+        self.weights = np.ones((n_fb_channels,)) / n_fb_channels
         self.init_ui()
 
 
@@ -65,7 +67,6 @@ class LSLPlotWidget(pg.PlotWidget):
             c.setPos(0, i + 1)
             self.curves.append(c)
         self.plot_stream()
-
 
 
     def plot_stream(self):
@@ -107,14 +108,49 @@ class LSLPlotWidget(pg.PlotWidget):
         self.time_counter += 1
         pass
 
+class FBWidget(QtGui.QDialog):
+    def __init__(self, n_samples=500, n_channels=3):
+        super(FBWidget, self).__init__()
+        self.fb_buffer = np.zeros((n_samples, ))
+        self.plot = LSLPlotWidget(n_plots=1)
+        self.plot.show()
+        self.weights = np.ones((n_channels, ))/n_channels
+
+    def update_fb(self):
+        y = np.dot(self.plot.data, self.weights)
+        pass
+
+class App(QtGui.QMainWindow):
+    def __init__(self):
+        super(App, self).__init__()
+        self.widget = LSLPlotWidget(n_plots=50)
+        self.fb = FBWidget(n_channels=50)
+        self.widget.show()
+
+    def update_fb(self):
+        y = np.dot(self.widget.data, self.fb.weights)
+        f_signal = rfft(y)
+        cut_f_signal = f_signal.copy()
+        cut_f_signal[(self.fb.plot.w < 7) | (self.fb.plot.w > 13)] = 0
+        #print(cut_f_signal.shape)
+        cut_signal = np.abs(irfft(cut_f_signal))
+        self.fb.plot.curves[0].setData(self.fb.plot.x_mesh, np.abs(cut_f_signal))
+
+
 def main():
 
     app = QtGui.QApplication(sys.argv)
-    widget = LSLPlotWidget(n_plots=50)
-    widget.show()
+    #widget = LSLPlotWidget(n_plots=50)
+    #fb = FBWidget()
+    #widget.show()
+    win = App()
     timer = QtCore.QTimer()
-    timer.timeout.connect(widget.update)
-    timer.start(1000 * 1. / widget.plot_freq)
+    timer.timeout.connect(win.widget.update)
+    timer.start(1000 * 1. / win.widget.plot_freq)
+
+    timer1 = QtCore.QTimer()
+    timer1.timeout.connect(win.update_fb)
+    timer1.start(1000 * 1. / 100)
     sys.exit(app.exec_())
 
 
