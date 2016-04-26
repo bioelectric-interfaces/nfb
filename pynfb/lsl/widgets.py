@@ -14,17 +14,19 @@ pg.setConfigOptions(antialias=True)
 LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
 
 
-class LSLViewer(QtGui.QWidget):
+class LSLViewer():
     def __init__(self, name='example', source_freq=500, buffer_shape=(1024, )):
         super(LSLViewer, self).__init__()
         self.source_freq = source_freq
-        streams = resolve_stream('name', name)  # 'AudioCaptureWin')
+        streams = resolve_stream('name', name)
         self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=8)
         self.buffer = np.zeros(buffer_shape)
         self.t0 = time.time()
         self.t = self.t0
         self.time_counter = 1
         self.w = fftfreq(buffer_shape[0], d=1. / source_freq * 2)
+        self.figure = None
+        self.n_channels = buffer_shape[0]
 
     def update_buffer(self, chunk):
         self.buffer[:-chunk.shape[0]] = self.buffer[chunk.shape[0]:]
@@ -38,9 +40,13 @@ class LSLViewer(QtGui.QWidget):
             self.update_action()
         if self.time_counter % 10 == 0:
             t_curr = time.time()
-            self.figure.setLabel('top', 't={:.1f}, f={:.2f}'.format(t_curr - self.t0, 1. / (t_curr - self.t) * 10))
+            if self.figure:
+                self.figure.setLabel('top', 't={:.1f}, f={:.2f}'.format(t_curr - self.t0, 1. / (t_curr - self.t) * 10))
             self.t = t_curr
         self.time_counter += 1
+        pass
+
+    def update_action(self):
         pass
 
 
@@ -48,7 +54,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
     def getData(self):
         x, y = super(LSLPlotDataItem, self).getData()
         if self.opts['fftMode']:
-            return x, y/(max(y) - min(y) + 1e-20)*0.75
+            return x, y#/(max(y) - min(y) + 1e-20)*0.75
         return x, y
 
 
@@ -90,9 +96,9 @@ class LSLRawDataWidget(LSLViewer):
 
 
 class LSLCircleFeedbackWidget(LSLViewer):
-    def __init__(self, n_samples=500, n_channels=50, source_freq=500, noise_scaler=100):
+    def __init__(self, n_samples=500, n_channels=50, source_freq=500, noise_scaler=100, plot_freq=120):
         super(LSLCircleFeedbackWidget, self).__init__(buffer_shape=(n_samples, ))
-
+        self.plot_freq = plot_freq
         self.source_freq = source_freq
         self.n_channels = n_channels
         self.n_samples = n_samples
@@ -103,14 +109,15 @@ class LSLCircleFeedbackWidget(LSLViewer):
         self.noise_scaler = noise_scaler
         self.figure.setXRange(-5, 5)
         self.x = np.linspace(-np.pi/2, np.pi/2, 100)
-        self.noise = np.sin(15*self.x)*0.5
-        # self.noise = np.random.uniform(-0.5, 0.5, 100)
+        self.noise = np.sin(15*self.x)*0.5-0.5
+        self.noise = np.random.uniform(-0.5, 0.5, 100)-0.5
         self.p1 = self.figure.plot(np.sin(self.x),  np.cos(self.x), pen=pg.mkPen(77, 144, 254)).curve
         self.p2 = self.figure.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(77, 144, 254)).curve
-        fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 10))
+        fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 100))
         self.figure.addItem(fill)
         self.weights = np.zeros((n_channels, ))
         self.weights[0] = 1
+        self.samples_weights = np.ones((n_samples, ))
 
     def update_circle(self, noise_ampl):
         noise = self.noise*noise_ampl
@@ -134,7 +141,7 @@ class LSLCircleFeedbackWidget(LSLViewer):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
-        self.raw_view = LSLRawDataWidget(n_channels=1)
+        self.raw_view = LSLRawDataWidget(n_channels=32)
         self.fb_view = LSLCircleFeedbackWidget(n_samples=500, n_channels=1)
 
 
