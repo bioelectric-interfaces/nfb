@@ -133,7 +133,7 @@ class LSLCircleFeedbackWidget(LSLViewer):
         f_signal = rfft(self.buffer)
         cut_f_signal = f_signal.copy()
         cut_f_signal[(self.w < 8) | (self.w > 13)] = 0
-        cut_f_signal = np.abs(irfft(cut_f_signal))
+        cut_f_signal = np.abs(cut_f_signal)
         noise_ampl = -np.tanh(sum(cut_f_signal) / self.noise_scaler) + 1
         self.update_circle(noise_ampl)
 
