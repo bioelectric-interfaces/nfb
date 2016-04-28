@@ -54,7 +54,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
     def getData(self):
         x, y = super(LSLPlotDataItem, self).getData()
         if self.opts['fftMode']:
-            return x, y#/(max(y) - min(y) + 1e-20)*0.75
+            return x, y/(max(y) - min(y) + 1e-20)*0.75
         return x, y
 
 

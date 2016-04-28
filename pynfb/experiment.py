@@ -18,7 +18,7 @@ class Experiment():
         if chunk is not None:
             self.signal.update(chunk)
             #print(self.signal.current_sample)
-            self.windows.main.redraw_signals(self.signal.current_sample)
+            self.windows.main.redraw_signals(self.signal.current_sample, chunk)
 
     def run(self):
         app = QtGui.QApplication(sys.argv)
