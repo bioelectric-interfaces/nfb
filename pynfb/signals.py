@@ -3,11 +3,12 @@ from scipy.fftpack import rfft, irfft, fftfreq
 
 
 class DerivedSignal():
-    def __init__(self, n_channels=50, n_samples=1024, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
-                 source_freq=500):
+    def __init__(self, n_channels=50, n_samples=500, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
+                 source_freq=500, scale=True):
         # signal buffer
         self.buffer = np.zeros((n_samples, ))
         # signal statistics
+        self.scale = scale
         self.mean = 0
         self.std = 1
         # spatial matrix
@@ -34,6 +35,8 @@ class DerivedSignal():
         self.buffer[-chunk_size:] =  filtered_chunk
         # bandpass filter and amplitude
         self.current_sample = self.get_bandpass_amplitude()
+        if self.scale:
+            self.current_sample = (self.current_sample - self.mean)/self.std
         pass
 
     def get_bandpass_amplitude(self):

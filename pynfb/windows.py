@@ -3,6 +3,7 @@ import sys
 import pyqtgraph as pg
 from pynfb.lsl.widgets import *
 from pynfb.protocols import *
+from pynfb.protocols_widgets import *
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -70,15 +71,12 @@ class SubjectWindow(QtGui.QMainWindow):
     def __init__(self, parent, **kwargs):
         super(SubjectWindow, self).__init__(parent, **kwargs)
         self.resize(500, 500)
-        self.figure = pg.PlotWidget(self)
+        self.current_protocol = [FeedbackProtocol(), BaselineProtocol()][0]
+        self.figure = self.current_protocol.widget
         self.setCentralWidget(self.figure)
-        self.figure.setYRange(-5, 5)
-        self.figure.hideAxis('bottom')
-        self.figure.hideAxis('left')
-        self.current_protocol = FeedbackProtocol()
 
     def update_protocol_state(self, sample):
-
+        self.current_protocol.update_state(sample)
         pass
 
 class Windows():
