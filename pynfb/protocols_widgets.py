@@ -4,8 +4,9 @@ import numpy as np
 class ProtocolWidget(pg.PlotWidget):
     def __init__(self, **kwargs):
         super(ProtocolWidget, self).__init__(**kwargs)
-        self.setYRange(-1, 1)
-        self.setXRange(-1, 1)
+        width = 5
+        self.setYRange(-width, width)
+        self.setXRange(-width, width)
         self.hideAxis('bottom')
         self.hideAxis('left')
 

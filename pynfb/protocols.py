@@ -8,7 +8,7 @@ class Protocol:
         self.widget = ProtocolWidget()
         pass
 
-    def update_state(self, sample):
+    def update_state(self, sample, chunk_size=1):
         self.widget.redraw_state(sample)
 
 
@@ -22,11 +22,11 @@ class BaselineProtocol(Protocol):
         self.n = 0
         pass
 
-    def update_state(self, sample):
-        self.mean = (self.n*self.mean + sample)/(self.n+1)
-        self.var = (self.n*self.var + (sample - self.mean)**2)/(self.n+1)
+    def update_state(self, sample, chunk_size=1):
+        self.mean = (self.n*self.mean + chunk_size*sample)/(self.n+chunk_size)
+        self.var = (self.n*self.var + chunk_size*(sample - self.mean)**2)/(self.n+chunk_size)
         self.std = self.var**0.5
-        self.n += 1
+        self.n += chunk_size
         self.widget.redraw_state((self.mean, self.std)) # TODO: delete
         #print(np.mean(self.accumulator), np.std(self.accumulator))
 

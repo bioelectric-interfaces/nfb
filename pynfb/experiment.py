@@ -19,7 +19,7 @@ class Experiment():
             self.signal.update(chunk)
             #print(self.signal.current_sample)
             self.windows.main.redraw_signals(self.signal.current_sample, chunk)
-            self.windows.subject.update_protocol_state(self.signal.current_sample)
+            self.windows.subject.update_protocol_state(self.signal.current_sample, chunk_size=chunk.shape[0])
 
     def run(self):
         app = QtGui.QApplication(sys.argv)

@@ -34,11 +34,11 @@ def run_eeg_sim(n_channels=50, freq=500, chunk_size=0):
     ampl = 1
     freqs = np.arange(10,n_channels+10)
     while True:
-        sample = np.random.uniform(-0.1, 0.1, size=(n_channels, ))
-        sample += np.sin(2*np.pi*time.time()*50)+sample + np.sin(2*np.pi*time.time()*freqs)
-        sample *= np.sin(2*np.pi*time.time()*0.1)*ampl
+        sample = np.random.uniform(-0.1, 0.1, size=(n_channels, ))*0
+        sample += np.sin(2*np.pi*time.time()*50)*0 + np.sin(2*np.pi*time.time()*freqs)
+        sample *= (np.sin(2*np.pi*time.time()*0.25)+1)*ampl
         if c % (freq * 5) < 10:
-            sample += np.ones(shape=(n_channels, ))*5*ampl
+            sample += np.ones(shape=(n_channels, ))*5*ampl*0
         outlet.push_sample(sample)
 
         time.sleep(1./freq)
