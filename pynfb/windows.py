@@ -7,8 +7,8 @@ from pynfb.protocols_widgets import *
 import time
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self):
-        super(MainWindow, self).__init__()
+    def __init__(self, current_protocol, parent=None):
+        super(MainWindow, self).__init__(parent)
         # timer label
         self.timer_label = QtGui.QLabel('tf')
         # derived signals viewers
@@ -56,7 +56,7 @@ class MainWindow(QtGui.QMainWindow):
         self.resize(800, 400)
         self.show()
         # subject window
-        self.subject_window = SubjectWindow(self)
+        self.subject_window = SubjectWindow(self, current_protocol)
         self.subject_window.show()
         # time counter
         self.time_counter = 0
@@ -86,10 +86,10 @@ class MainWindow(QtGui.QMainWindow):
         self.time_counter += 1
 
 class SubjectWindow(QtGui.QMainWindow):
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, current_protocol, **kwargs):
         super(SubjectWindow, self).__init__(parent, **kwargs)
         self.resize(500, 500)
-        self.current_protocol = [FeedbackProtocol(), BaselineProtocol()][1]
+        self.current_protocol = current_protocol
         self.figure = self.current_protocol.widget
         self.setCentralWidget(self.figure)
 
@@ -97,16 +97,9 @@ class SubjectWindow(QtGui.QMainWindow):
         self.current_protocol.update_state(sample, chunk_size=chunk_size)
         pass
 
-class Windows():
-    def __init__(self):
-        self.main = MainWindow()
-        self.subject = self.main.subject_window
-
 
 def main():
-    app = QtGui.QApplication(sys.argv)
-    main_window = Windows()
-    sys.exit(app.exec_())
+    pass
 
 
 if __name__ == '__main__':
