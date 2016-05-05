@@ -29,18 +29,18 @@ class DerivedSignal():
         self.current_sample = 0
 
         # bandpass filter settings
-        self.w = fftfreq(n_samples, d=1. / source_freq * 2)
+        self.w = fftfreq(2*n_samples, d=1. / source_freq * 2)
         self.bandpass = (bandpass_low if bandpass_low else self.w[0],
                          bandpass_high if bandpass_high else self.w[-1])
 
         # asymmetric gaussian window
-        p  = round(n_samples*2/4) # maximum
+        p  = round(2*n_samples*2/4) # maximum
         eps = 0.0001 # bounds value
         power = 2 # power of x
         left_c = - np.log(eps)/ (p**power)
-        right_c = - np.log(eps) / (n_samples-1-p) ** power
+        right_c = - np.log(eps) / (2*n_samples-1-p) ** power
         samples_window= np.concatenate([np.exp(-left_c * abs(np.arange(p) - p) ** power),
-                                        np.exp(-right_c * abs(np.arange(p, n_samples) - p) ** power)])
+                                        np.exp(-right_c * abs(np.arange(p, 2*n_samples) - p) ** power)])
         self.samples_window = samples_window
         pass
 
@@ -63,7 +63,7 @@ class DerivedSignal():
         pass
 
     def get_bandpass_amplitude(self):
-        f_signal = rfft(np.hstack((self.buffer[self.buffer.shape[0]//2+self.buffer.shape[0]%2:], -self.buffer[-1:self.buffer.shape[0]//2+self.buffer.shape[0]%2-1:-1])) * self.samples_window)
+        f_signal = rfft(np.hstack((self.buffer, self.buffer[-1::-1])) * self.samples_window)
         cut_f_signal = f_signal.copy()
         cut_f_signal[(self.w < self.bandpass[0]) | (self.w > self.bandpass[1])] = 0  # TODO: in one row
         amplitude = sum(np.abs(cut_f_signal))

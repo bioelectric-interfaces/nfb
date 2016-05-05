@@ -85,6 +85,7 @@ class MainWindow(QtGui.QMainWindow):
             self.t = t_curr
         self.time_counter += 1
 
+
 class SubjectWindow(QtGui.QMainWindow):
     def __init__(self, parent, current_protocol, **kwargs):
         super(SubjectWindow, self).__init__(parent, **kwargs)
