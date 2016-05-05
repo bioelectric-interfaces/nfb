@@ -91,8 +91,11 @@ class SubjectWindow(QtGui.QMainWindow):
         super(SubjectWindow, self).__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
-        self.figure = self.current_protocol.widget
+        #self.figure = self.current_protocol.widget
+        #self.setCentralWidget(self.figure)
+        self.figure = ProtocolWidget()
         self.setCentralWidget(self.figure)
+        self.current_protocol.widget_painter.prepare_widget(self.figure)
 
     def update_protocol_state(self, sample, chunk_size=1):
         self.current_protocol.update_state(sample, chunk_size=chunk_size)
