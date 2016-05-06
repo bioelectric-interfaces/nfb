@@ -9,11 +9,15 @@ import numpy as np
 class Experiment(QtGui.QApplication):
     def __init__(self):
         super(Experiment, self).__init__(sys.argv)
+        # inlet frequency
+        self.freq = 500
         # signals
         self.signals = [DerivedSignal(bandpass_low=8, bandpass_high=12)]
         self.current_samples = np.zeros_like(self.signals)
         # protocols
-        self.protocols = [BaselineProtocol(self.signals), FeedbackProtocol(self.signals), BaselineProtocol(self.signals)]
+        self.protocols = [BaselineProtocol(self.signals, duration=2),
+                          FeedbackProtocol(self.signals, duration=5),
+                          BaselineProtocol(self.signals, duration=2)]
         self.current_protocol_ind = 0
         self.main = MainWindow(parent=None, current_protocol=self.protocols[self.current_protocol_ind])
         self.subject = self.main.subject_window
@@ -21,35 +25,34 @@ class Experiment(QtGui.QApplication):
         # timer
         main_timer = QtCore.QTimer(self)
         main_timer.timeout.connect(self.update)
-        main_timer.start(1000 * 1. / 500)
-        # protocol switcher timer
-        self.protocols_timer = QtCore.QTimer(self)
-        self.protocols_timer.timeout.connect(self.next_protocol)
-        self.protocols_timer.start(1000 * 10)
-
+        main_timer.start(1000 * 1. / self.freq)
+        # samples counter for protocol sequence
+        self.samples_counter = 0
+        self.current_protocol_n_samples = self.freq * self.protocols[self.current_protocol_ind].duration
         pass
 
     def update(self):
         chunk = self.stream.get_next_chunk()
         if chunk is not None:
+            self.samples_counter += chunk.shape[0]
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
                 self.current_samples[i] = signal.current_sample
             self.main.redraw_signals(self.current_samples[0], chunk)
             self.subject.update_protocol_state(self.current_samples[0], chunk_size=chunk.shape[0])
-
+            if self.samples_counter > self.current_protocol_n_samples:
+                self.next_protocol()
     def next_protocol(self):
+        print('protocol', self.current_protocol_ind, 'done')
+        self.samples_counter = 0
         if self.current_protocol_ind < len(self.protocols)-1:
-            print('protocol', self.current_protocol_ind, 'done')
             self.current_protocol_ind += 1
-            self.subject.current_protocol = self.protocols[self.current_protocol_ind]
-            self.subject.figure.clear()
-            self.subject.current_protocol.widget_painter.prepare_widget(self.subject.figure)
-            self.protocols_timer.stop()
-            self.protocols_timer.start(1000 * 10)
+            self.current_protocol_n_samples = self.freq * self.protocols[self.current_protocol_ind].duration
+            self.subject.change_protocol(self.protocols[self.current_protocol_ind])
         else:
             print('finish')
-            self.protocols_timer.stop()
+            self.current_protocol_n_samples = np.inf
+            self.subject.close()
 
     def run(self):
         sys.exit(self.exec_())

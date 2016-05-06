@@ -101,6 +101,11 @@ class SubjectWindow(QtGui.QMainWindow):
         self.current_protocol.update_state(sample, chunk_size=chunk_size)
         pass
 
+    def change_protocol(self, new_protocol):
+        self.current_protocol = new_protocol
+        self.figure.clear()
+        self.current_protocol.widget_painter.prepare_widget(self.figure)
+
 
 def main():
     pass
