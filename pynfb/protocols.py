@@ -24,23 +24,20 @@ class Protocol:
                 signal.enable_scaling()
 
 class BaselineProtocol(Protocol):
-    def __init__(self, signals, base_signal_id = 0, name='Baseline', duration=30, update_statistics_in_the_end=True):
-        super().__init__(signals, base_signal_id=base_signal_id, name=name, duration=duration,
-                         update_statistics_in_the_end=update_statistics_in_the_end)
+    def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, **kwargs):
+        kwargs['name'] = name
+        kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
+        super().__init__(signals, **kwargs)
         self.widget_painter = BaselineProtocolWidgetPainter()
         pass
-
-    def update_state(self, sample, chunk_size=1):
-        self.widget_painter.redraw_state((self.signals[self.base_signal_id].mean_acc,
-                                          self.signals[self.base_signal_id].std_acc))
 
 
 
 
 class FeedbackProtocol(Protocol):
-    def __init__(self, signals, base_signal_id = 0, name='Feedback', duration=30, update_statistics_in_the_end=False):
-        super().__init__(signals, base_signal_id=base_signal_id, name=name, duration=duration,
-                         update_statistics_in_the_end=update_statistics_in_the_end)
+    def __init__(self, signals, name='Feedback', **kwargs):
+        kwargs['name'] = name
+        super().__init__(signals, **kwargs)
         self.widget_painter = CircleFeedbackProtocolWidgetPainter()
         pass
 

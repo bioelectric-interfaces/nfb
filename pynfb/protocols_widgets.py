@@ -17,8 +17,10 @@ class ProtocolWidget(pg.PlotWidget):
     def redraw_state(self, sample):
         pass
 
+
+
 class CircleFeedbackProtocolWidgetPainter():
-    def __init__(self, noise_scaler=100):
+    def __init__(self, noise_scaler=2):
         self.noise_scaler = noise_scaler
         self.x = np.linspace(-np.pi/2, np.pi/2, 100)
         self.noise = np.sin(15*self.x)*0.5-0.5
@@ -32,7 +34,7 @@ class CircleFeedbackProtocolWidgetPainter():
         widget.addItem(fill)
 
     def redraw_state(self, sample):
-        noise_ampl = -np.tanh(sample / self.noise_scaler) + 1
+        noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
         noise = self.noise*noise_ampl
         self.p1.setData(np.sin(self.x)*(1+noise), np.cos(self.x)*(1+noise))
         self.p2.setData(np.sin(self.x)*(1+noise), -np.cos(self.x)*(1+noise))
@@ -50,4 +52,4 @@ class BaselineProtocolWidgetPainter():
         self.plotItem = widget.plotItem
 
     def redraw_state(self, sample):
-        self.plotItem.setLabel('top', 'mean={:.2f}, std={:.2f}'.format(*sample)) # TODO: delete
+        pass
