@@ -1,10 +1,18 @@
 from PyQt4 import QtGui, QtCore
 import sys
 import pyqtgraph as pg
-from pynfb.lsl.widgets import *
 from pynfb.protocols import *
 from pynfb.protocols_widgets import *
 import time
+pg.setConfigOptions(antialias=True)
+
+class LSLPlotDataItem(pg.PlotDataItem):
+    def getData(self):
+        x, y = super(LSLPlotDataItem, self).getData()
+        if self.opts['fftMode']:
+            return x, y/(max(y) - min(y) + 1e-20)*0.75
+        return x, y
+
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, n_signals=1, parent=None):
