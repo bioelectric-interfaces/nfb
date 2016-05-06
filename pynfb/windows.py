@@ -7,17 +7,22 @@ from pynfb.protocols_widgets import *
 import time
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, parent=None):
+    def __init__(self, current_protocol, n_signals=1, parent=None):
         super(MainWindow, self).__init__(parent)
         # timer label
         self.timer_label = QtGui.QLabel('tf')
+
         # derived signals viewers
-        roi1 = pg.PlotWidget(self)
-        roi2 = pg.PlotWidget(self)
-        self.roi1_curve = roi1.plot().curve
-        self.roi2_curve = roi2.plot().curve
-        self.roi1_buffer = np.zeros((8000,))
-        self.roi_x_mesh = np.linspace(0, 8000/ 500, 8000/8)
+        signals_layout = pg.GraphicsLayoutWidget(self)
+        self.signal_curves = []
+        for _ in range(n_signals):
+            roi_figure = signals_layout.addPlot()
+            signals_layout.nextRow()
+            curve = roi_figure.plot().curve
+            self.signal_curves.append(curve)
+        self.signals_buffer = np.zeros((8000, n_signals))
+        self.signals_curves_x_net = np.linspace(0, 8000 / 500, 8000 / 8)
+
         # raw data viewer
         self.raw = pg.PlotWidget(self)
         self.n_channels = 50
@@ -34,42 +39,44 @@ class MainWindow(QtGui.QMainWindow):
         self.plot_raw_chekbox.setChecked(True)
         self.autoscale_raw_chekbox = QtGui.QCheckBox('autoscale')
         self.autoscale_raw_chekbox.setChecked(True)
-        #self.raw.setLabel('top', 't={:.1f}, f={:.2f}'.format(0., 0.))
         for i in range(self.n_channels):
             c = LSLPlotDataItem(pen=(i, self.n_channels * 1.3))
             self.raw.addItem(c)
             c.setPos(0, i + 1)
             self.curves.append(c)
-        # layout
+
+        # main window layout
         layout = pg.LayoutWidget(self)
-        layout.addWidget(roi1, 0, 0, 1, 2)
-        layout.addWidget(roi2, 1, 0, 1, 2)
-        layout.addWidget(self.plot_raw_chekbox, 2, 0, 1, 1)
-        layout.addWidget(self.autoscale_raw_chekbox, 2, 1, 1, 1)
-        layout.addWidget(self.raw, 3, 0, 1, 2)
-        layout.addWidget(self.timer_label, 4, 0, 1, 1)
-        layout.layout.setRowStretch(0, 1)
-        layout.layout.setRowStretch(1, 1)
-        layout.layout.setRowStretch(3, 2)
+        layout.addWidget(signals_layout, 0, 0, 1, 2)
+        layout.addWidget(self.plot_raw_chekbox, 1, 0, 1, 1)
+        layout.addWidget(self.autoscale_raw_chekbox, 1, 1, 1, 1)
+        layout.addWidget(self.raw, 2, 0, 1, 2)
+        layout.addWidget(self.timer_label, 3, 0, 1, 1)
+        layout.layout.setRowStretch(0, 2)
+        layout.layout.setRowStretch(2, 2)
         self.setCentralWidget(layout)
+
         # main window settings
         self.resize(800, 400)
         self.show()
+
         # subject window
         self.subject_window = SubjectWindow(self, current_protocol)
         self.subject_window.show()
+
         # time counter
         self.time_counter = 0
         self.t0 = time.time()
         self.t = self.t0
 
-    def redraw_signals(self, sample, chunk):
+    def redraw_signals(self, samples, chunk):
         # derived signals
-        data_buffer = self.roi1_buffer
+        data_buffer = self.signals_buffer
         data_buffer[:-chunk.shape[0]] = data_buffer[chunk.shape[0]:]
-        data_buffer[-chunk.shape[0]:] = sample
-        self.roi1_curve.setData(x=self.roi_x_mesh, y=data_buffer[::8])
-        self.roi2_curve.setData(x=self.roi_x_mesh, y=data_buffer[-1::-8])
+        data_buffer[-chunk.shape[0]:] = samples
+        for j in range(len(samples)):
+            self.signal_curves[j].setData(x=self.signals_curves_x_net, y=data_buffer[::8, j])
+
         # raw signals
         if self.plot_raw_chekbox.isChecked():
             self.raw_buffer[:-chunk.shape[0]] = self.raw_buffer[chunk.shape[0]:]
@@ -78,6 +85,7 @@ class MainWindow(QtGui.QMainWindow):
                 self.curves[i].setData(self.x_mesh, self.raw_buffer[:, i] / self.scaler)
             if self.autoscale_raw_chekbox.isChecked() and self.time_counter % 10 == 0:
                 self.scaler = 0.8 * self.scaler + 0.2 * (np.max(self.raw_buffer) - np.min(self.raw_buffer)) / 0.75
+
         # timer
         if self.time_counter % 10 == 0:
             t_curr = time.time()
@@ -91,8 +99,6 @@ class SubjectWindow(QtGui.QMainWindow):
         super(SubjectWindow, self).__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
-        #self.figure = self.current_protocol.widget
-        #self.setCentralWidget(self.figure)
         self.figure = ProtocolWidget()
         self.setCentralWidget(self.figure)
         self.current_protocol.widget_painter.prepare_widget(self.figure)

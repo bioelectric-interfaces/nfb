@@ -12,14 +12,14 @@ class Experiment(QtGui.QApplication):
         # inlet frequency
         self.freq = 500
         # signals
-        self.signals = [DerivedSignal(bandpass_low=8, bandpass_high=12)]
+        self.signals = [DerivedSignal(bandpass_low=8, bandpass_high=12), DerivedSignal(bandpass_low=6, bandpass_high=10)]
         self.current_samples = np.zeros_like(self.signals)
         # protocols
-        self.protocols = [BaselineProtocol(self.signals, duration=2),
-                          FeedbackProtocol(self.signals, duration=5),
-                          BaselineProtocol(self.signals, duration=2)]
+        self.protocols = [BaselineProtocol(self.signals, duration=10),
+                          FeedbackProtocol(self.signals, duration=10),
+                          BaselineProtocol(self.signals, duration=10)]
         self.current_protocol_ind = 0
-        self.main = MainWindow(parent=None, current_protocol=self.protocols[self.current_protocol_ind])
+        self.main = MainWindow(parent=None, current_protocol=self.protocols[self.current_protocol_ind], n_signals=len(self.signals))
         self.subject = self.main.subject_window
         self.stream = LSLStream()
         # timer
@@ -38,12 +38,13 @@ class Experiment(QtGui.QApplication):
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
                 self.current_samples[i] = signal.current_sample
-            self.main.redraw_signals(self.current_samples[0], chunk)
+            self.main.redraw_signals(self.current_samples, chunk)
             self.subject.update_protocol_state(self.current_samples[0], chunk_size=chunk.shape[0])
-            if self.samples_counter > self.current_protocol_n_samples:
+            if self.samples_counter >= self.current_protocol_n_samples:
                 self.next_protocol()
+
     def next_protocol(self):
-        print('protocol', self.current_protocol_ind, 'done')
+        print('protocol:', self.current_protocol_ind, 'samples:', self.samples_counter)
         self.samples_counter = 0
         if self.current_protocol_ind < len(self.protocols)-1:
             self.current_protocol_ind += 1
