@@ -68,3 +68,15 @@ class DerivedSignal():
         cut_f_signal[(self.w < self.bandpass[0]) | (self.w > self.bandpass[1])] = 0  # TODO: in one row
         amplitude = sum(np.abs(cut_f_signal))
         return amplitude
+
+    def update_statistics(self):
+        self.mean = self.mean_acc
+        self.std = self.std_acc
+        self.mean_acc = 0
+        self.var_acc = 0
+        self.std_acc = 0
+        self.n_acc = 0
+
+    def enable_scaling(self):
+        self.scaling_flag = True
+        pass
