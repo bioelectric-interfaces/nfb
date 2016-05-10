@@ -102,6 +102,21 @@ def format_odict_by_defaults(odict, defaults):
     return formatted_odict
 
 
+def params_to_odict(params):
+    odict = OrderedDict()
+    for k, v in params.items():
+        if isinstance(v, tuple):
+            if v[0] is not None:
+                odict[k] = v[0]
+            else:
+                odict[k] = params_to_odict(v[1])
+        else:
+            'not a tuple'
+    for key in ['vSignals', 'vProtocols', 'vPSequence']:
+        if key in odict:
+            odict[key ] = [val for val in odict[key ].values()]
+    return odict
+
 if __name__ == '__main__':
     from pyqtgraph.Qt import QtCore, QtGui
     from pyqtgraph.parametertree import Parameter, ParameterTree

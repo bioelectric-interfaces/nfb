@@ -15,7 +15,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
 
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, n_signals=1, parent=None):
+    def __init__(self, current_protocol, signals, n_signals=1, parent=None):
         super(MainWindow, self).__init__(parent)
         # timer label
         self.timer_label = QtGui.QLabel('tf')
@@ -23,8 +23,8 @@ class MainWindow(QtGui.QMainWindow):
         # derived signals viewers
         signals_layout = pg.GraphicsLayoutWidget(self)
         self.signal_curves = []
-        for _ in range(n_signals):
-            roi_figure = signals_layout.addPlot()
+        for signal in signals:
+            roi_figure = signals_layout.addPlot(labels={'left': signal.name})
             signals_layout.nextRow()
             curve = roi_figure.plot().curve
             self.signal_curves.append(curve)

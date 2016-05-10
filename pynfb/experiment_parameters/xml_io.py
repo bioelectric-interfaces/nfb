@@ -9,12 +9,9 @@ def read_xml_to_dict(filename, skip_root=False):
     """
     # postprocessor convert to int if possible
     def postprocessor(path, key, value):
-        try:
-            return key, int(value)
-        except (ValueError, TypeError):
-            if value is None:
-                value = ''
-            return key, value
+        if value is None:
+            value = ''
+        return key, value
     # read and parse
     with open(filename, 'r') as f:
         d = xmltodict.parse(f.read(), postprocessor=postprocessor)

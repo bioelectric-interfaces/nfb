@@ -7,7 +7,7 @@ LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
 
 
 class LSLStream():
-    def __init__(self, name='example', max_chunklen=8):
+    def __init__(self, name=LSL_STREAM_NAMES[2], max_chunklen=8):
         streams = resolve_stream('name', name)
         self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
 

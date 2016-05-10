@@ -7,7 +7,9 @@ from scipy.fftpack import rfft, irfft, fftfreq
 
 class DerivedSignal():
     def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
-                 source_freq=500, scale=False):
+                 source_freq=500, scale=False, name='Untitled'):
+        # signal name
+        self.name = name
         # signal buffer
         self.buffer = np.zeros((n_samples, ))
         # signal statistics
@@ -30,8 +32,8 @@ class DerivedSignal():
 
         # bandpass filter settings
         self.w = fftfreq(2*n_samples, d=1. / source_freq * 2)
-        self.bandpass = (bandpass_low if bandpass_low else self.w[0],
-                         bandpass_high if bandpass_high else self.w[-1])
+        self.bandpass = (bandpass_low if bandpass_low else 0,
+                         bandpass_high if bandpass_high else source_freq)
 
         # asymmetric gaussian window
         p  = round(2*n_samples*2/4) # maximum
@@ -52,9 +54,14 @@ class DerivedSignal():
         self.buffer[:-chunk_size] = self.buffer[chunk_size:]
         self.buffer[-chunk_size:] = filtered_chunk
         # bandpass filter and amplitude
-        self.current_sample = self.get_bandpass_amplitude()
+        current_sample = self.get_bandpass_amplitude()
         if self.scaling_flag:
-            self.current_sample = (self.current_sample - self.mean)/self.std
+            current_sample = (current_sample - self.mean) / self.std
+        # exponential smoothing
+        if self.n_acc > 10:
+            self.current_sample = 0.1*current_sample+0.9*self.current_sample
+        else:
+            self.current_sample = current_sample
         # accumulate sum and sum^2
         self.mean_acc = (self.n_acc*self.mean_acc + chunk_size*self.current_sample)/(self.n_acc+chunk_size)
         self.var_acc = (self.n_acc*self.var_acc + chunk_size*(self.current_sample - self.mean_acc)**2)/(self.n_acc+chunk_size)

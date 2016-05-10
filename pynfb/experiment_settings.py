@@ -2,13 +2,14 @@ import sys
 from PyQt4 import QtGui
 from pyqtgraph.parametertree import ParameterTree, Parameter
 from pynfb.experiment_parameters.widgets import *
+from pynfb.experiment import Experiment
 
 
 class Example(QtGui.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, app):
         super(Example, self).__init__()
-
+        self.app = app
         self.initUI()
 
 
@@ -31,7 +32,7 @@ class Example(QtGui.QMainWindow):
         fileMenu.addAction(openFile)
         fileMenu.addAction(exitAction)
         # parameter tree
-        self.widget = Widget()
+        self.widget = Widget(self.app)
         self.setCentralWidget(self.widget)
         # window settings
         self.setGeometry(200, 200, 500, 400)
@@ -43,14 +44,14 @@ class Example(QtGui.QMainWindow):
         odict = read_xml_to_dict(fname, True)
         params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
         params += vector_formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
-        p = Parameter.create(name='params', type='group', children=params)
-        self.widget.t.setParameters(p, showTop=False)
+        self.widget.p = Parameter.create(name='params', type='group', children=params)
+        self.widget.t.setParameters(self.widget.p, showTop=False)
 
 
 class Widget(QtGui.QWidget):
-    def __init__(self):
+    def __init__(self, app):
         super(Widget, self).__init__()
-
+        self.app = app
         self.initUI()
 
     def initUI(self):
@@ -69,21 +70,26 @@ class Widget(QtGui.QWidget):
         t = ParameterTree()
         layout.addWidget(t)
         start_button = QtGui.QPushButton('Start')
+        start_button.clicked.connect(self.onClicked)
         layout.addWidget(start_button)
         self.setLayout(layout)
         #odict = read_xml_to_dict('pynfb/experiment_parameters/settings/pilot.xml', True)
         params = formatted_odict_to_params(general_defaults)
         params += vector_formatted_odict_to_params(vectors_defaults)
         # Create tree of Parameter objects
-        p = Parameter.create(name='params', type='group', children=params)
+        self.p = Parameter.create(name='params', type='group', children=params)
         # Create two ParameterTree widgets, both accessing the same data
-        t.setParameters(p, showTop=False)
+        t.setParameters(self.p, showTop=False)
         self.t = t
+
+    def onClicked(self):
+        params = params_to_odict(self.p.getValues())
+        self.experiment = Experiment(self.app, params)
 
 def main():
 
     app = QtGui.QApplication(sys.argv)
-    ex = Example()
+    ex = Example(app)
     sys.exit(app.exec_())
 
 

@@ -1,14 +1,14 @@
 from collections import OrderedDict
 
 general_defaults = OrderedDict([
-    ('bDoubleBlind', False),
-    ('bShowFBCount', False),
-    ('bShowFBRect', False),
-    ('fSamplingFrequency', ''),
-    ('CompositeMontage', '__'),
-    ('CSPSettings', OrderedDict([
-        ('iNComp', '2'),
-        ('dInitBand', '8 16')]))
+    #('bDoubleBlind', False),
+    #('bShowFBCount', False),
+    #('bShowFBRect', False),
+    #('fSamplingFrequency', ''),
+    #('CompositeMontage', '__'),
+    #('CSPSettings', OrderedDict([
+    #    ('iNComp', '2'),
+    #    ('dInitBand', '8 16')]))
 ])
 
 vectors_defaults = OrderedDict([
@@ -20,22 +20,24 @@ vectors_defaults = OrderedDict([
             ('fBandpassHighHz', ''),
             ('fAverage', ''),
             ('fStdDev', ''),
-            ('sType', 'plain')])])])),
+            # ('sType', 'plain')
+        ])])])),
     ('vProtocols', OrderedDict([
         ('FeedbackProtocol', [OrderedDict([  # FeedbackProtocol is list!
             ('sProtocolName', 'Untitled'),
-            ('sSignalComposition', 'Simple'),
-            ('nMSecondsPerWindow', ''),
+            # ('sSignalComposition', 'Simple'),
+            # ('nMSecondsPerWindow', ''),
             ('bUpdateStatistics', False),
-            ('bStopAfter', False),
-            ('bShowFBRect', False),
-            ('fDuration', ''),
-            ('fThreshold', ''),
+            # ('bStopAfter', False),
+            # ('bShowFBRect', False),
+            ('fDuration', '10'),
+            # ('fThreshold', ''),
             ('fbSource', ''),
-            ('iNComp', ''),
+            # ('iNComp', ''),
             ('sFb_type', ''),
-            ('dBand', ''),
-            ('cString', '')])])])),
+            # ('dBand', ''),
+            ('cString', '')
+        ])])])),
     ('vPSequence', OrderedDict([
         ('s', ['Untitled'])])),
 ])
