@@ -15,7 +15,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
 
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, signals, n_signals=1, parent=None):
+    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32):
         super(MainWindow, self).__init__(parent)
         # timer label
         self.timer_label = QtGui.QLabel('tf')
@@ -33,7 +33,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # raw data viewer
         self.raw = pg.PlotWidget(self)
-        self.n_channels = 50
+        self.n_channels = n_channels
         self.n_samples = 2000
         self.raw_buffer = np.zeros((self.n_samples, self.n_channels))
         self.scaler = 1
