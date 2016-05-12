@@ -25,6 +25,7 @@ class ScalableGroup(pTypes.GroupParameter):
         else:
             if children is None:
                 children = formatted_odict_to_params(vectors_defaults[self.vector_name][type_][0])
+            children[0]['value'] += str(len(self.childs) + 1)
             self.addChild(dict(name=type_ + str(len(self.childs) + 1),
                                type='group', children=children, removable=True, renamable=False))
 
