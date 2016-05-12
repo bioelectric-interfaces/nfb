@@ -44,8 +44,8 @@ class Example(QtGui.QMainWindow):
         odict = read_xml_to_dict(fname, True)
         params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
         params += vector_formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
-        self.widget.p = Parameter.create(name='params', type='group', children=params)
-        self.widget.t.setParameters(self.widget.p, showTop=False)
+        self.widget.parameter_object = Parameter.create(name='params', type='group', children=params)
+        self.widget.tree.setParameters(self.widget.parameter_object, showTop=False)
 
 
 class Widget(QtGui.QWidget):
@@ -67,8 +67,8 @@ class Widget(QtGui.QWidget):
             """
         self.setStyleSheet(styleSheet)
         layout = QtGui.QGridLayout()
-        t = ParameterTree()
-        layout.addWidget(t)
+        tree = ParameterTree()
+        layout.addWidget(tree)
         start_button = QtGui.QPushButton('Start')
         start_button.clicked.connect(self.onClicked)
         layout.addWidget(start_button)
@@ -77,13 +77,13 @@ class Widget(QtGui.QWidget):
         params = formatted_odict_to_params(general_defaults)
         params += vector_formatted_odict_to_params(vectors_defaults)
         # Create tree of Parameter objects
-        self.p = Parameter.create(name='params', type='group', children=params)
+        self.parameter_object = Parameter.create(name='params', type='group', children=params)
         # Create two ParameterTree widgets, both accessing the same data
-        t.setParameters(self.p, showTop=False)
-        self.t = t
+        tree.setParameters(self.parameter_object, showTop=False)
+        self.tree = tree
 
     def onClicked(self):
-        params = params_to_odict(self.p.getValues())
+        params = params_to_odict(self.parameter_object.getValues())
         self.experiment = Experiment(self.app, params)
 
 def main():

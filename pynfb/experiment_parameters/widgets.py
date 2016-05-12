@@ -16,9 +16,9 @@ class ScalableGroup(pTypes.GroupParameter):
             opts['addList'] = ['FeedbackProtocol']
         if self.vector_name == 'vPSequence':
             opts['addList'] = ['s']
-        pTypes.GroupParameter.__init__(self, **opts)
+        super(ScalableGroup, self).__init__(**opts)
 
-    def addNew(self, type_, children=None):
+    def addNew(self, type_=None, children=None):
         if self.vector_name == 'vPSequence':
             self.addChild(dict(name=type_ + str(len(self.childs) + 1),
                                type='str', value='', removable=True, renamable=False))
