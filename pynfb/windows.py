@@ -15,7 +15,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
 
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32):
+    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, experiment_n_samples=None):
         super(MainWindow, self).__init__(parent)
         # timer label
         self.timer_label = QtGui.QLabel('tf')
@@ -30,6 +30,12 @@ class MainWindow(QtGui.QMainWindow):
             self.signal_curves.append(curve)
         self.signals_buffer = np.zeros((8000, n_signals))
         self.signals_curves_x_net = np.linspace(0, 8000 / 500, 8000 / 8)
+
+        # data recorders
+        self.experiment_n_samples = experiment_n_samples
+        self.samples_counter = 0
+        self.raw_recorder = np.zeros((experiment_n_samples*110//100, n_channels)) * np.nan
+        self.signals_recorder = np.zeros((experiment_n_samples*110//100, n_signals)) * np.nan
 
         # raw data viewer
         self.raw = pg.PlotWidget(self)
@@ -78,6 +84,12 @@ class MainWindow(QtGui.QMainWindow):
         self.t = self.t0
 
     def redraw_signals(self, samples, chunk):
+        # record raw
+        if self.samples_counter < self.experiment_n_samples:
+            self.raw_recorder[self.samples_counter:self.samples_counter+chunk.shape[0]] = chunk[:, :self.n_channels]
+            self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = samples
+            self.samples_counter += chunk.shape[0]
+
         # derived signals
         data_buffer = self.signals_buffer
         data_buffer[:-chunk.shape[0]] = data_buffer[chunk.shape[0]:]

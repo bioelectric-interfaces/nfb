@@ -65,9 +65,15 @@ class Experiment():
         # current protocol number of samples ('frequency' * 'protocol duration')
         self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
 
+        # experiment number of samples
+        experiment_n_samples = sum([self.freq * p.duration for p in self.protocols_sequence])
+
         # windows
-        self.main = MainWindow(signals=self.signals, parent=None,
-                               current_protocol=self.protocols_sequence[self.current_protocol_index], n_signals=len(self.signals))
+        self.main = MainWindow(signals=self.signals,
+                               parent=None,
+                               current_protocol=self.protocols_sequence[self.current_protocol_index],
+                               n_signals=len(self.signals),
+                               experiment_n_samples = experiment_n_samples)
         self.subject = self.main.subject_window
         self.stream = LSLStream(n_channels=self.n_channels)
 
@@ -121,3 +127,5 @@ class Experiment():
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.subject.close()
+            np.save('results/raw', self.main.raw_recorder)
+            np.save('results/signals', self.main.signals_recorder)
