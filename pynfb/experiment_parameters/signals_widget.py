@@ -26,53 +26,72 @@ protocols = [{'sProtocolName': 'Circle feedback',
               'fDuration': 102,
               'bUpdateStatistics': True,
               'fbSource': 'Signal2',
-              'sFb_type': 'Circle'}]
+              'sFb_type': 'Circle'},
+             {'sProtocolName': 'Baseline',
+              'fDuration': 10,
+              'bUpdateStatistics': True,
+              'fbSource': 'All',
+              'sFb_type': 'Baseline'}
+             ]
+
 
 protocols_sequence = ['Circle feedback']
 
+parameters = {'vSignals': signals,
+              'vProtocols': protocols,
+              'vPSequence': protocols_sequence}
+
+parameters_defaults = {'vSignals': default_signal,
+                       'vProtocols': protocol_default}
 
 class SignalsList(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        label = QtGui.QLabel('Signals:')
-        # signals list
-        self.list = QtGui.QListWidget(self)
-        self.set_data()
-        self.list.itemDoubleClicked.connect(self.item_double_clicked_event)
+        self.params = kwargs['parent'].params['vSignals']
+
+        # layout
         layout = QtGui.QVBoxLayout()
+        self.setLayout(layout)
+        
+        # label
+        label = QtGui.QLabel('Signals:')
         layout.addWidget(label)
+
+        # list of signals
+        self.list = QtGui.QListWidget(self)
+        self.reset_items()
+        self.list.itemDoubleClicked.connect(self.item_double_clicked_event)
         layout.addWidget(self.list)
+
+        # buttons layout
         buttons_layout = QtGui.QHBoxLayout()
-        add_signal_button = QtGui.QPushButton('Add')
-        add_signal_button.clicked.connect(self.add_action)
+        add_button = QtGui.QPushButton('Add')
+        add_button.clicked.connect(self.add)
         remove_signal_button = QtGui.QPushButton('Remove')
-        remove_signal_button.clicked.connect(self.remove_action)
-        buttons_layout.addWidget(add_signal_button)
+        remove_signal_button.clicked.connect(self.remove_current_item)
+        buttons_layout.addWidget(add_button)
         buttons_layout.addWidget(remove_signal_button)
         layout.addLayout(buttons_layout)
-        self.setLayout(layout)
-        # self.show()
 
-    def add_action(self):
-        signals.append(default_signal.copy())
-        self.set_data()
+    def add(self):
+        self.params.append(default_signal.copy())
+        self.reset_items()
         self.signals_dialogs[-1].open()
 
-    def remove_action(self, item):
+    def remove_current_item(self, item):
         current = self.list.currentRow()
         if current >= 0:
-            del signals[current]
-            self.set_data()
+            del self.params[current]
+            self.reset_items()
 
     def item_double_clicked_event(self, item):
         self.signals_dialogs[self.list.currentRow()].open()
 
-    def set_data(self):
+    def reset_items(self):
         self.list.clear()
         self.signals_dialogs = []
-        for signal in signals:
+        for signal in self.params:
             item = QtGui.QListWidgetItem(signal['sSignalName'])
-
             self.signals_dialogs.append(SignalDialog(self, signal_name=signal['sSignalName']))
             self.list.addItem(item)
         if self.list.currentRow() < 0:
@@ -81,6 +100,7 @@ class SignalsList(QtGui.QWidget):
 
 class SignalDialog(QtGui.QDialog):
     def __init__(self, parent, signal_name='Signal'):
+        self.params = parent.params
         super().__init__(parent)
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + signal_name)
@@ -104,25 +124,26 @@ class SignalDialog(QtGui.QDialog):
         self.form_layout.addRow(self.save_button)
 
     def open(self):
-        self.set_data()
+        self.reset_items()
         super().open()
 
-    def set_data(self):
-        self.bandpass_low.setValue(signals[self.parent().list.currentRow()]['fBandpassLowHz'])
-        self.bandpass_high.setValue(signals[self.parent().list.currentRow()]['fBandpassHighHz'])
+    def reset_items(self):
+        self.bandpass_low.setValue(self.params[self.parent().list.currentRow()]['fBandpassLowHz'])
+        self.bandpass_high.setValue(self.params[self.parent().list.currentRow()]['fBandpassHighHz'])
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
-        signals[current_signal_index]['sSignalName'] = self.name.text()
-        signals[current_signal_index]['fBandpassLowHz'] = self.bandpass_low.value()
-        signals[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
-        self.parent().set_data()
+        self.params[current_signal_index]['sSignalName'] = self.name.text()
+        self.params[current_signal_index]['fBandpassLowHz'] = self.bandpass_low.value()
+        self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
+        self.parent().reset_items()
         self.close()
 
 
 class ProtocolsList(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.params = kwargs['parent'].params['vProtocols']
         protocols_label = QtGui.QLabel('Protocols:')
         self.list = QtGui.QListWidget(self)
 
@@ -130,13 +151,13 @@ class ProtocolsList(QtGui.QWidget):
         layout = QtGui.QVBoxLayout()
         layout.addWidget(protocols_label)
         layout.addWidget(self.list)
-        self.set_data()
+        self.reset_items()
         self.list.itemDoubleClicked.connect(self.item_double_clicked_event)
         buttons_layout = QtGui.QHBoxLayout()
         add_signal_button = QtGui.QPushButton('Add')
         add_signal_button.clicked.connect(self.add_action)
         remove_signal_button = QtGui.QPushButton('Remove')
-        remove_signal_button.clicked.connect(self.remove_action)
+        remove_signal_button.clicked.connect(self.remove_current_item)
         buttons_layout.addWidget(add_signal_button)
         buttons_layout.addWidget(remove_signal_button)
         layout.addLayout(buttons_layout)
@@ -144,24 +165,24 @@ class ProtocolsList(QtGui.QWidget):
         # self.show()
 
     def add_action(self):
-        protocols.append(protocol_default.copy())
-        self.set_data()
+        self.params.append(protocol_default.copy())
+        self.reset_items()
         self.dialogs[-1].open()
 
-    def remove_action(self, item):
+    def remove_current_item(self, item):
         current = self.list.currentRow()
         if current >= 0:
-            del protocols[current]
-            self.set_data()
+            del self.params[current]
+            self.reset_items()
         # self.show()
 
     def item_double_clicked_event(self, item):
         self.dialogs[self.list.currentRow()].open()
 
-    def set_data(self):
+    def reset_items(self):
         self.list.clear()
         self.dialogs = []
-        for signal in protocols:
+        for signal in self.params:
             item = QtGui.QListWidgetItem(signal['sProtocolName'])
             self.dialogs.append(ProtocolDialog(self, protocol_name=signal['sProtocolName']))
             self.list.addItem(item)
@@ -172,6 +193,7 @@ class ProtocolsList(QtGui.QWidget):
 class ProtocolDialog(QtGui.QDialog):
     def __init__(self, parent, protocol_name='Protocol'):
         super().__init__(parent)
+        self.params = parent.params
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + protocol_name)
         self.form_layout = QtGui.QFormLayout(self)
@@ -196,7 +218,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.type = QtGui.QComboBox()
         for protocol_type in protocols_types:
             self.type.addItem(protocol_type)
-        #self.type.setCurrentIndex(protocols_types.index(protocols))
+        #self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
         # ok button
         self.save_button = QtGui.QPushButton('Save')
@@ -211,11 +233,11 @@ class ProtocolDialog(QtGui.QDialog):
 
     def open(self):
         self.update_combo_box()
-        self.set_data()
+        self.reset_items()
         super().open()
 
-    def set_data(self):
-        current_protocol = protocols[self.parent().list.currentRow()]
+    def reset_items(self):
+        current_protocol = self.params[self.parent().list.currentRow()]
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.source_signal.setCurrentIndex(
@@ -226,18 +248,19 @@ class ProtocolDialog(QtGui.QDialog):
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
-        protocols[current_signal_index]['sProtocolName'] = self.name.text()
-        protocols[current_signal_index]['fDuration'] = self.duration.value()
-        protocols[current_signal_index]['bUpdateStatistics'] = self.update_statistics.isChecked()
-        protocols[current_signal_index]['fbSource'] = self.source_signal.currentText()
-        protocols[current_signal_index]['sFb_type'] = self.type.currentText()
-        self.parent().set_data()
+        self.params[current_signal_index]['sProtocolName'] = self.name.text()
+        self.params[current_signal_index]['fDuration'] = self.duration.value()
+        self.params[current_signal_index]['bUpdateStatistics'] = self.update_statistics.isChecked()
+        self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
+        self.params[current_signal_index]['sFb_type'] = self.type.currentText()
+        self.parent().reset_items()
         self.close()
 
 
 class ProtocolSequenceList(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.params = kwargs['parent'].params['vPSequence']
         label = QtGui.QLabel('Protocols sequence:')
         self.list = ProtocolSequenceListWidget(parent=self)
         #self.list.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
@@ -246,17 +269,8 @@ class ProtocolSequenceList(QtGui.QWidget):
         layout.addWidget(label)
         layout.addWidget(self.list)
         buttons_layout = QtGui.QHBoxLayout()
-        add_signal_button = QtGui.QPushButton('Add')
-        # add_signal_button.clicked.connect(self.add_action)
         remove_signal_button = QtGui.QPushButton('Remove')
         remove_signal_button.clicked.connect(self.list.remove_current_row)
-        up_button = QtGui.QPushButton('Up')
-        # add_signal_button.clicked.connect(self.add_action)
-        down_button = QtGui.QPushButton('Down')
-        # remove_signal_button.clicked.connect(self.remove_action)
-        #buttons_layout.addWidget(add_signal_button)
-        #buttons_layout.addWidget(up_button)
-        #buttons_layout.addWidget(down_button)
         buttons_layout.addWidget(remove_signal_button)
         layout.addLayout(buttons_layout)
         self.setLayout(layout)
@@ -267,48 +281,51 @@ class ProtocolSequenceList(QtGui.QWidget):
 class ProtocolSequenceListWidget(QtGui.QListWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.params = kwargs['parent'].params
         self.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
-        self.set_data()
+        self.reset_items()
 
     def dropEvent(self, QDropEvent):
         super().dropEvent(QDropEvent)
         self.save()
-        print(protocols_sequence)
+        print(self.params)
 
 
-    def set_data(self):
+    def reset_items(self):
         self.clear()
-        for protocol in protocols_sequence:
+        for protocol in self.params:
             item = QtGui.QListWidgetItem(protocol)
             self.addItem(item)
 
     def save(self):
-        global protocols_sequence
-        protocols_sequence = [self.item(j).text() for j in range(self.count())]
+        self.params = [self.item(j).text() for j in range(self.count())]
 
     def remove_current_row(self):
         current = self.currentRow()
         if current >= 0:
-            del protocols_sequence[current]
-            self.set_data()
-
-
+            del self.params[current]
+            self.reset_items()
 
 
 class SettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
+        self.params = parameters.copy()
         self.protocols_list = ProtocolsList(parent=self)
         self.signals_list = SignalsList(parent=self)
         self.protocols_sequence_list = ProtocolSequenceList(parent=self)
         layout.addWidget(self.signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
-
         self.setLayout(layout)
         self.show()
+
+    def reset_parameters(self):
+        self.signals_list.reset_items()
+        self.protocols_list.reset_items()
+        self.protocols_sequence_list.list.reset_items()
 
 
 if __name__ == "__main__":

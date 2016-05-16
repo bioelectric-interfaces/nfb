@@ -84,7 +84,7 @@ class MainWindow(QtGui.QMainWindow):
         self.t = self.t0
 
     def redraw_signals(self, samples, chunk):
-        # record raw
+        # record
         if self.samples_counter < self.experiment_n_samples:
             self.raw_recorder[self.samples_counter:self.samples_counter+chunk.shape[0]] = chunk[:, :self.n_channels]
             self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = samples
