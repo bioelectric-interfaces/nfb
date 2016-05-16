@@ -28,6 +28,8 @@ protocols = [{'sProtocolName': 'Circle feedback',
               'fbSource': 'Signal2',
               'sFb_type': 'Circle'}]
 
+protocols_sequence = ['Circle feedback']
+
 
 class SignalsList(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -58,8 +60,9 @@ class SignalsList(QtGui.QWidget):
 
     def remove_action(self, item):
         current = self.list.currentRow()
-        del signals[current]
-        self.set_data()
+        if current >= 0:
+            del signals[current]
+            self.set_data()
 
     def item_double_clicked_event(self, item):
         self.signals_dialogs[self.list.currentRow()].open()
@@ -122,6 +125,8 @@ class ProtocolsList(QtGui.QWidget):
         super().__init__(**kwargs)
         protocols_label = QtGui.QLabel('Protocols:')
         self.list = QtGui.QListWidget(self)
+
+        self.list.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
         layout = QtGui.QVBoxLayout()
         layout.addWidget(protocols_label)
         layout.addWidget(self.list)
@@ -145,8 +150,9 @@ class ProtocolsList(QtGui.QWidget):
 
     def remove_action(self, item):
         current = self.list.currentRow()
-        del protocols[current]
-        self.set_data()
+        if current >= 0:
+            del protocols[current]
+            self.set_data()
         # self.show()
 
     def item_double_clicked_event(self, item):
@@ -229,16 +235,78 @@ class ProtocolDialog(QtGui.QDialog):
         self.close()
 
 
+class ProtocolSequenceList(QtGui.QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        label = QtGui.QLabel('Protocols sequence:')
+        self.list = ProtocolSequenceListWidget(parent=self)
+        #self.list.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
+        #self.list.connect.
+        layout = QtGui.QVBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(self.list)
+        buttons_layout = QtGui.QHBoxLayout()
+        add_signal_button = QtGui.QPushButton('Add')
+        # add_signal_button.clicked.connect(self.add_action)
+        remove_signal_button = QtGui.QPushButton('Remove')
+        remove_signal_button.clicked.connect(self.list.remove_current_row)
+        up_button = QtGui.QPushButton('Up')
+        # add_signal_button.clicked.connect(self.add_action)
+        down_button = QtGui.QPushButton('Down')
+        # remove_signal_button.clicked.connect(self.remove_action)
+        #buttons_layout.addWidget(add_signal_button)
+        #buttons_layout.addWidget(up_button)
+        #buttons_layout.addWidget(down_button)
+        buttons_layout.addWidget(remove_signal_button)
+        layout.addLayout(buttons_layout)
+        self.setLayout(layout)
+
+
+
+
+class ProtocolSequenceListWidget(QtGui.QListWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
+        self.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.set_data()
+
+    def dropEvent(self, QDropEvent):
+        super().dropEvent(QDropEvent)
+        self.save()
+        print(protocols_sequence)
+
+
+    def set_data(self):
+        self.clear()
+        for protocol in protocols_sequence:
+            item = QtGui.QListWidgetItem(protocol)
+            self.addItem(item)
+
+    def save(self):
+        global protocols_sequence
+        protocols_sequence = [self.item(j).text() for j in range(self.count())]
+
+    def remove_current_row(self):
+        current = self.currentRow()
+        if current >= 0:
+            del protocols_sequence[current]
+            self.set_data()
+
+
+
 
 class SettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
-
         self.protocols_list = ProtocolsList(parent=self)
         self.signals_list = SignalsList(parent=self)
+        self.protocols_sequence_list = ProtocolSequenceList(parent=self)
         layout.addWidget(self.signals_list)
         layout.addWidget(self.protocols_list)
+        layout.addWidget(self.protocols_sequence_list)
+
         self.setLayout(layout)
         self.show()
 
