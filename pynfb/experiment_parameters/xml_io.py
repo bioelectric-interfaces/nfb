@@ -1,7 +1,35 @@
 import xmltodict
+from collections import OrderedDict
+from pynfb.experiment_parameters.defaults import *
 
 
-def read_xml_to_dict(filename, skip_root=False):
+def format_odict_by_defaults(odict, defaults):
+    """ Format ordered dict of params by defaults ordered dicts of parameters
+    :param odict:  ordered dict
+    :param defaults: defaults
+    :return: ordered dict
+    """
+    if not isinstance(odict, OrderedDict):
+        return odict
+    formatted_odict = OrderedDict()
+    for key in defaults.keys():
+        if key in odict.keys():
+            if isinstance(defaults[key], OrderedDict):
+                formatted_odict[key] = format_odict_by_defaults(odict[key], defaults[key])
+            elif isinstance(defaults[key], list):
+                formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
+                                        for item in odict[key]]
+            else:
+                if isinstance(defaults[key], bool):
+                    formatted_odict[key] = bool(odict[key])
+                else:
+                    formatted_odict[key] = odict[key]
+        else:
+            formatted_odict[key] = defaults[key]
+    return formatted_odict
+
+
+def xml_file_to_odict(filename):
     """ Read xml to ordered dict
     :param filename: path to file
     :param skip_root: if True skip root
@@ -11,28 +39,40 @@ def read_xml_to_dict(filename, skip_root=False):
     def postprocessor(path, key, value):
         if value is None:
             value = ''
+        try:
+            value = int(value)
+        except (ValueError, TypeError):
+            pass
         return key, value
     # read and parse
     with open(filename, 'r') as f:
         d = xmltodict.parse(f.read(), postprocessor=postprocessor)
-    if skip_root:
-        d = list(d.values())[0]
+
+    d = list(d.values())[0]
+
     return d
 
 
-def write_dict_to_xml(dict_, filename):
-    """ Write dict to xml
-    :param dict_: OrderedDict instance
-    :param filename: path to file
-    :return: None
-    """
-    # unparse and write
+def xml_file_to_params(filename):
+    d = xml_file_to_odict(filename)
+    d = format_odict_by_defaults(d, vectors_defaults)
+    params = {'vSignals': d['vSignals']['DerivedSignal'],
+              'vProtocols': d['vProtocols']['FeedbackProtocol'],
+              'vPSequence': d['vPSequence']['s']}
+    return params
+
+
+def params_to_xml_file(params, filename):
+    odict = OrderedDict()
+    odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
+    odict['vProtocols'] = OrderedDict([('FeedbackProtocol', params['vProtocols'])])
+    odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])
+    xml_odict = OrderedDict([('NeurofeedbackSignalSpecs', odict.copy())])
     with open(filename, 'w') as f:
-        f.write(xmltodict.unparse(dict_, pretty=True))
+        f.write(xmltodict.unparse(xml_odict, pretty=True))
     pass
 
 
 if __name__ == '__main__':
-    odict = read_xml_to_dict('settings/pilot.xml')
-    print(odict)
-    write_dict_to_xml(odict, 'settings/test.xml')
+    odict = xml_file_to_params('settings/pilot.xml')
+    params_to_xml_file(odict, 'settings/pilot_rewrite.xml')

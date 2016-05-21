@@ -41,13 +41,14 @@ parameters = {'vSignals': signals,
               'vProtocols': protocols,
               'vPSequence': protocols_sequence}
 
-parameters_defaults = {'vSignals': default_signal,
-                       'vProtocols': protocol_default}
+parameters_defaults = {'vSignals': [default_signal],
+                       'vProtocols': [protocol_default],
+                       'vPSequence': []}
 
-class SignalsList(QtGui.QWidget):
+class SignalsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.params = kwargs['parent'].params['vSignals']
+        self.params = self.parent().params['vSignals']
 
         # layout
         layout = QtGui.QVBoxLayout()
@@ -88,6 +89,7 @@ class SignalsList(QtGui.QWidget):
         self.signals_dialogs[self.list.currentRow()].open()
 
     def reset_items(self):
+        self.params = self.parent().params['vSignals']
         self.list.clear()
         self.signals_dialogs = []
         for signal in self.params:
@@ -140,10 +142,10 @@ class SignalDialog(QtGui.QDialog):
         self.close()
 
 
-class ProtocolsList(QtGui.QWidget):
+class ProtocolsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.params = kwargs['parent'].params['vProtocols']
+        self.params = self.parent().params['vProtocols']
         protocols_label = QtGui.QLabel('Protocols:')
         self.list = QtGui.QListWidget(self)
 
@@ -180,6 +182,7 @@ class ProtocolsList(QtGui.QWidget):
         self.dialogs[self.list.currentRow()].open()
 
     def reset_items(self):
+        self.params = self.parent().params['vProtocols']
         self.list.clear()
         self.dialogs = []
         for signal in self.params:
@@ -227,7 +230,7 @@ class ProtocolDialog(QtGui.QDialog):
 
     def update_combo_box(self):
         self.source_signal.clear()
-        for signal in signals:
+        for signal in self.parent().parent().params['vSignals']:
             self.source_signal.addItem(signal['sSignalName'])
         self.source_signal.addItem('All')
 
@@ -257,10 +260,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.close()
 
 
-class ProtocolSequenceList(QtGui.QWidget):
+class ProtocolSequenceSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.params = kwargs['parent'].params['vPSequence']
+        self.params = self.parent().params['vPSequence']
         label = QtGui.QLabel('Protocols sequence:')
         self.list = ProtocolSequenceListWidget(parent=self)
         #self.list.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
@@ -275,13 +278,17 @@ class ProtocolSequenceList(QtGui.QWidget):
         layout.addLayout(buttons_layout)
         self.setLayout(layout)
 
+    def reset_items(self):
+        self.params = self.parent().params['vPSequence']
+        self.list.reset_items()
+
 
 
 
 class ProtocolSequenceListWidget(QtGui.QListWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.params = kwargs['parent'].params
+        self.params = self.parent().params
         self.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.reset_items()
@@ -293,6 +300,8 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
 
 
     def reset_items(self):
+        self.params = self.parent().params
+
         self.clear()
         for protocol in self.params:
             item = QtGui.QListWidgetItem(protocol)
@@ -312,10 +321,10 @@ class SettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
-        self.params = parameters.copy()
-        self.protocols_list = ProtocolsList(parent=self)
-        self.signals_list = SignalsList(parent=self)
-        self.protocols_sequence_list = ProtocolSequenceList(parent=self)
+        self.params = parameters_defaults.copy()
+        self.protocols_list = ProtocolsSettingsWidget(parent=self)
+        self.signals_list = SignalsSettingsWidget(parent=self)
+        self.protocols_sequence_list = ProtocolSequenceSettingsWidget(parent=self)
         layout.addWidget(self.signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
@@ -325,7 +334,7 @@ class SettingsWidget(QtGui.QWidget):
     def reset_parameters(self):
         self.signals_list.reset_items()
         self.protocols_list.reset_items()
-        self.protocols_sequence_list.list.reset_items()
+        self.protocols_sequence_list.reset_items()
 
 
 if __name__ == "__main__":
