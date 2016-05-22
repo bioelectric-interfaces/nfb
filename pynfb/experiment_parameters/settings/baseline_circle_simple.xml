@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NeurofeedbackSignalSpecs>
+	<vSignals>
+		<DerivedSignal>
+			<fBandpassHighHz>250</fBandpassHighHz>
+			<sSignalName>Signal</sSignalName>
+			<fBandpassLowHz>0</fBandpassLowHz>
+		</DerivedSignal>
+	</vSignals>
+	<vProtocols>
+		<FeedbackProtocol>
+			<sProtocolName>Baseline</sProtocolName>
+			<bUpdateStatistics>True</bUpdateStatistics>
+			<fDuration>10</fDuration>
+			<fbSource>All</fbSource>
+			<sFb_type>Baseline</sFb_type>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Circle_fb</sProtocolName>
+			<bUpdateStatistics>True</bUpdateStatistics>
+			<fDuration>10</fDuration>
+			<fbSource>Signal</fbSource>
+			<sFb_type>Circle</sFb_type>
+		</FeedbackProtocol>
+	</vProtocols>
+	<vPSequence>
+		<s>Baseline</s>
+		<s>Circle_fb</s>
+	</vPSequence>
+</NeurofeedbackSignalSpecs>

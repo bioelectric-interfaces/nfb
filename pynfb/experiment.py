@@ -22,8 +22,8 @@ class Experiment():
 
         # signals
         if 'vSignals' in params:
-            self.signals = [DerivedSignal(bandpass_high=int_or_none(signal['fBandpassHighHz']),
-                                          bandpass_low=int_or_none(signal['fBandpassLowHz']),
+            self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
+                                          bandpass_low=signal['fBandpassLowHz'],
                                           name=signal['sSignalName'],
                                           n_channels=self.n_channels)
                             for signal in params['vSignals']]
@@ -35,14 +35,16 @@ class Experiment():
         if 'vProtocols' in params:
             self.protocols = []
             for protocol in params['vProtocols']:
-                if protocol['sFb_type'] == '':
+                if protocol['sFb_type'] == 'Baseline':
                     self.protocols.append(BaselineProtocol(self.signals,
-                                                           duration=int_or_none(protocol['fDuration']),
+                                                           duration=protocol['fDuration'],
+                                                           name=protocol['sProtocolName']))
+                elif protocol['sFb_type'] == 'Circle':
+                    self.protocols.append(FeedbackProtocol(self.signals,
+                                                           duration=protocol['fDuration'],
                                                            name=protocol['sProtocolName']))
                 else:
-                    self.protocols.append(FeedbackProtocol(self.signals,
-                                                           duration=int_or_none(protocol['fDuration']),
-                                                           name=protocol['sProtocolName']))
+                    raise TypeError('Undefined protocol type')
         else:
             pass
 

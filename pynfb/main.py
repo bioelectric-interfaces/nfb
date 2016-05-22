@@ -1,11 +1,7 @@
 from pynfb.settings_widget import SettingsWidget
-from pynfb.settings_widget import parameters as p
-from PyQt4 import QtGui, QtCore
-
+from PyQt4 import QtGui
 import sys
-#from pyqtgraph.parametertree import ParameterTree, Parameter
 from pynfb.experiment_parameters.widgets import *
-from pynfb.experiment import Experiment
 
 
 class TheMainWindow(QtGui.QMainWindow):
@@ -41,7 +37,7 @@ class TheMainWindow(QtGui.QMainWindow):
         fileMenu.addAction(saveFile)
         fileMenu.addAction(exitAction)
         # parameter tree
-        self.widget = SettingsWidget()
+        self.widget = SettingsWidget(self.app)
         self.setCentralWidget(self.widget)
         # window settings
         self.setGeometry(200, 200, 500, 400)
@@ -53,59 +49,12 @@ class TheMainWindow(QtGui.QMainWindow):
         params = xml_file_to_params(fname)
         self.widget.params = params
         self.widget.reset_parameters()
-        #params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
-        #params += vector_formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
-        #self.widget.parameter_object = Parameter.create(name='params', type='group', children=params)
-        #self.widget.tree.setParameters(self.widget.parameter_object, showTop=False)
 
     def save_event(self):
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', './')
         print(self.widget.params)
-        #self.widget.reset_parameters()
         params_to_xml_file(self.widget.params, fname)
-            # params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
-            # params += vector_formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
-            # self.widget.parameter_object = Parameter.create(name='params', type='group', children=params)
-            # self.widget.tree.setParameters(self.widget.parameter_object, showTop=False)
 
-
-class Widget(QtGui.QWidget):
-    def __init__(self, app):
-        super(Widget, self).__init__()
-        self.app = app
-        self.initUI()
-
-    def initUI(self):
-        styleSheet = """
-            QTreeView::item {
-                border: 1px solid #d9d9d9;
-                border-top-color: transparent;
-                border-bottom-color: transparent;
-                border-left-color: transparent;
-                border-right-color: transparent;
-                color: #000000
-            }
-            """
-        self.setStyleSheet(styleSheet)
-        layout = QtGui.QGridLayout()
-        tree = ParameterTree()
-        layout.addWidget(tree)
-        start_button = QtGui.QPushButton('Start')
-        start_button.clicked.connect(self.onClicked)
-        layout.addWidget(start_button)
-        self.setLayout(layout)
-        #odict = read_xml_to_dict('pynfb/experiment_parameters/settings/pilot.xml', True)
-        params = formatted_odict_to_params(general_defaults)
-        params += vector_formatted_odict_to_params(vectors_defaults)
-        # Create tree of Parameter objects
-        self.parameter_object = Parameter.create(name='params', type='group', children=params)
-        # Create two ParameterTree widgets, both accessing the same data
-        tree.setParameters(self.parameter_object, showTop=False)
-        self.tree = tree
-
-    def onClicked(self):
-        params = params_to_odict(self.parameter_object.getValues())
-        self.experiment = Experiment(self.app, params)
 
 def main():
 

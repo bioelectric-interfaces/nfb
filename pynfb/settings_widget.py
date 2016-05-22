@@ -2,6 +2,8 @@ import sys
 from PyQt4 import QtGui, QtCore
 from collections import OrderedDict
 
+from pynfb.experiment import Experiment
+
 signals = [{'sSignalName': 'Signal1',
             'fBandpassLowHz': 1,
             'fBandpassHighHz': 10},
@@ -320,8 +322,9 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
 
 
 class SettingsWidget(QtGui.QWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
+        self.app = app
         layout = QtGui.QHBoxLayout()
         self.params = parameters_defaults.copy()
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
@@ -330,12 +333,18 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
+        start_button = QtGui.QPushButton('Start')
+        start_button.clicked.connect(self.onClicked)
+        layout.addWidget(start_button)
         self.setLayout(layout)
 
     def reset_parameters(self):
         self.signals_list.reset_items()
         self.protocols_list.reset_items()
         self.protocols_sequence_list.reset_items()
+
+    def onClicked(self):
+        self.experiment = Experiment(self.app, self.params)
 
 
 if __name__ == "__main__":
