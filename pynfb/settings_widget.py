@@ -296,7 +296,6 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
     def dropEvent(self, QDropEvent):
         super().dropEvent(QDropEvent)
         self.save()
-        print(self.params)
 
 
     def reset_items(self):
@@ -309,6 +308,9 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
 
     def save(self):
         self.params = [self.item(j).text() for j in range(self.count())]
+
+        self.parent().params = self.params
+        self.parent().parent().params['vPSequence'] = self.params
 
     def remove_current_row(self):
         current = self.currentRow()
@@ -329,7 +331,6 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         self.setLayout(layout)
-        self.show()
 
     def reset_parameters(self):
         self.signals_list.reset_items()

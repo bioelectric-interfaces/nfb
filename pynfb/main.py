@@ -60,6 +60,8 @@ class TheMainWindow(QtGui.QMainWindow):
 
     def save_event(self):
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', './')
+        print(self.widget.params)
+        #self.widget.reset_parameters()
         params_to_xml_file(self.widget.params, fname)
             # params = formatted_odict_to_params(format_odict_by_defaults(odict, general_defaults))
             # params += vector_formatted_odict_to_params(format_odict_by_defaults(odict, vectors_defaults))
