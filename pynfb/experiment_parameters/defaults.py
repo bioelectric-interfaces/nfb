@@ -12,6 +12,7 @@ general_defaults = OrderedDict([
 ])
 
 vectors_defaults = OrderedDict([
+    ('sExperimentName', 'experiment'),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),

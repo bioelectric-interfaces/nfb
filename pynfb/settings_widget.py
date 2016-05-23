@@ -45,7 +45,8 @@ parameters = {'vSignals': signals,
 
 parameters_defaults = {'vSignals': [default_signal],
                        'vProtocols': [protocol_default],
-                       'vPSequence': []}
+                       'vPSequence': [],
+                       'sExperimentName': 'Experiment1'}
 
 class SignalsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -325,7 +326,9 @@ class SettingsWidget(QtGui.QWidget):
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         self.app = app
+        v_layout = QtGui.QVBoxLayout()
         layout = QtGui.QHBoxLayout()
+        v_layout.addLayout(layout)
         self.params = parameters_defaults.copy()
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
         self.signals_list = SignalsSettingsWidget(parent=self)
@@ -335,13 +338,20 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
         start_button.clicked.connect(self.onClicked)
-        layout.addWidget(start_button)
-        self.setLayout(layout)
+        name_layout = QtGui.QHBoxLayout()
+        name_layout.addWidget(QtGui.QLabel('Experiment name:'))
+        self.experiment_name = QtGui.QLineEdit(self)
+        self.experiment_name.setText(self.params['sExperimentName'])
+        name_layout.addWidget(self.experiment_name)
+        v_layout.addLayout(name_layout)
+        name_layout.addWidget(start_button)
+        self.setLayout(v_layout)
 
     def reset_parameters(self):
         self.signals_list.reset_items()
         self.protocols_list.reset_items()
         self.protocols_sequence_list.reset_items()
+        #self.params['sExperimentName'] = self.experiment_name.text()
 
     def onClicked(self):
         self.experiment = Experiment(self.app, self.params)

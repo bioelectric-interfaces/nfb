@@ -9,21 +9,16 @@ def format_odict_by_defaults(odict, defaults):
     :param defaults: defaults
     :return: ordered dict
     """
-    if not isinstance(odict, OrderedDict):
-        return odict
     formatted_odict = OrderedDict()
     for key in defaults.keys():
         if key in odict.keys():
-            if isinstance(defaults[key], OrderedDict):
-                formatted_odict[key] = format_odict_by_defaults(odict[key], defaults[key])
-            elif isinstance(defaults[key], list):
+            if key in ['DerivedSignal', 'FeedbackProtocol']:
                 formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
-                                        for item in odict[key]]
+                                        for item in (odict[key] if isinstance(odict[key], list) else [odict[key]])]
+            elif isinstance(defaults[key], OrderedDict):
+                formatted_odict[key] = format_odict_by_defaults(odict[key], defaults[key])
             else:
-                if isinstance(defaults[key], bool):
-                    formatted_odict[key] = bool(odict[key])
-                else:
-                    formatted_odict[key] = odict[key]
+                formatted_odict[key] = odict[key]
         else:
             formatted_odict[key] = defaults[key]
     return formatted_odict
