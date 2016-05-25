@@ -45,7 +45,7 @@ class TheMainWindow(QtGui.QMainWindow):
         self.widget = SettingsWidget(self.app)
         self.setCentralWidget(self.widget)
         # window settings
-        self.setGeometry(200, 200, 500, 400)
+        self.setGeometry(200, 200, 900, 400)
         self.setWindowTitle('Experiment settings')
         self.show()
 
@@ -64,10 +64,10 @@ class TheMainWindow(QtGui.QMainWindow):
         from pynfb.generators import run_eeg_sim
         import numpy as np
         import threading
-        params = xml_file_to_params('E:\\_nikolai\\projects\\nfb\\pynfb\\experiment_parameters\\settings\\baseline_circle_simple.xml')
+        params = xml_file_to_params('experiment_parameters\\settings\\baseline_circle_simple.xml')
         self.widget.params = params
         self.widget.reset_parameters()
-        source_buffer = None if 0 else np.load('E:\\_nikolai\\projects\\nfb\pynfb\\results\\raw.npy').T
+        source_buffer = None if 0 else np.load('results\\raw.npy').T
         thread = threading.Thread(target=run_eeg_sim, args=(),kwargs={'chunk_size':0, 'source_buffer':source_buffer})
         thread.start()
         self.widget.onClicked()

@@ -322,29 +322,78 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
             self.reset_items()
 
 
+class InletSettingsWidget(QtGui.QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.setContentsMargins(0,0,0,0)
+        self.combo = QtGui.QComboBox()
+        self.combo.addItem('LSL stream name')
+        self.combo.addItem('Raw file path')
+        self.text = QtGui.QLineEdit()
+        layout = QtGui.QHBoxLayout()
+        layout.addWidget(self.combo)
+        layout.addWidget(self.text)
+        layout.setMargin(0)
+        self.setLayout(layout)
+        self.combo.currentIndexChanged.connect(self.combo_changed_event)
+        self.combo_changed_event()
+
+    def combo_changed_event(self):
+        if self.combo.currentText()=='LSL stream name':
+            self.text.setPlaceholderText('Print LSL stream name')
+            self.text.setText('NVX136_Data')
+        elif self.combo.currentText()=='Raw file path':
+            self.text.setPlaceholderText('Print raw data file to stream')
+            self.text.setText('')
+
+class GeneralSettingsWidget(QtGui.QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.params = self.parent().params
+        self.form_layout = QtGui.QFormLayout(self)
+        self.setLayout(self.form_layout)
+        # name
+        self.name = QtGui.QLineEdit(self)
+        self.name.setText(self.params['sExperimentName'])
+        self.name.textChanged.connect(self.name_changed_event)
+        self.form_layout.addRow('&Name:', self.name)
+        # composite montage
+        self.montage = QtGui.QLineEdit(self)
+        self.montage.setPlaceholderText('Print path to file')
+        self.form_layout.addRow('&Composite montage:', self.montage)
+        # inlet
+        self.inlet = InletSettingsWidget()
+        self.form_layout.addRow('&Inlet:', self.inlet)
+        #self.stream
+
+    def name_changed_event(self):
+        self.params['sExperimentName'] = self.name.text()
+
+
 class SettingsWidget(QtGui.QWidget):
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         self.app = app
         v_layout = QtGui.QVBoxLayout()
         layout = QtGui.QHBoxLayout()
-        v_layout.addLayout(layout)
+
         self.params = parameters_defaults.copy()
+        self.general_settings = GeneralSettingsWidget(parent=self)
+        v_layout.addWidget(self.general_settings)
+        v_layout.addLayout(layout)
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
         self.signals_list = SignalsSettingsWidget(parent=self)
         self.protocols_sequence_list = ProtocolSequenceSettingsWidget(parent=self)
+        #layout.addWidget(self.general_settings)
         layout.addWidget(self.signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
+        start_button.setMinimumHeight(50)
+        start_button.setMinimumWidth(200)
         start_button.clicked.connect(self.onClicked)
         name_layout = QtGui.QHBoxLayout()
-        name_layout.addWidget(QtGui.QLabel('Experiment name:'))
-        self.experiment_name = QtGui.QLineEdit(self)
-        self.experiment_name.setText(self.params['sExperimentName'])
-        name_layout.addWidget(self.experiment_name)
-        v_layout.addLayout(name_layout)
-        name_layout.addWidget(start_button)
+        v_layout.addWidget(start_button, alignment = QtCore.Qt.AlignCenter)
         self.setLayout(v_layout)
 
     def reset_parameters(self):
@@ -354,6 +403,7 @@ class SettingsWidget(QtGui.QWidget):
         #self.params['sExperimentName'] = self.experiment_name.text()
 
     def onClicked(self):
+        print(self.params)
         self.experiment = Experiment(self.app, self.params)
 
 
