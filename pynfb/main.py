@@ -1,3 +1,9 @@
+import sys
+import os
+full_path =os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
+print(full_path)
+sys.path.insert(0, full_path)
+
 from pynfb.settings_widget import SettingsWidget
 from PyQt4 import QtGui
 import sys

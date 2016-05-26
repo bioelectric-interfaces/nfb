@@ -54,5 +54,5 @@ def run_eeg_sim(n_channels=50, freq=500, chunk_size=0, source_buffer=None, name=
     pass
 
 if __name__ == '__main__':
-    source_buffer = None if 1 else np.load('E:\\_nikolai\\projects\\nfb\pynfb\\results\\raw.npy').T
-    run_eeg_sim(chunk_size=0, source_buffer=source_buffer)
+    source_buffer = None #if 1 else np.load('E:\\_nikolai\\projects\\nfb\pynfb\\results\\raw.npy').T
+    run_eeg_sim(chunk_size=0, source_buffer=source_buffer, name='NVX136_Data')
