@@ -17,7 +17,7 @@ default_signal = {'sSignalName': 'Unnamed Signal',
                   'fBandpassHighHz': 250}
 
 protocol_default = {'sProtocolName': 'Unnamed Protocol',
-                    'bUpdateStatistics': False,
+                    'bUpdateStatistics': 0,
                     'fDuration': 10,
                     'fbSource': 'All',
                     'sFb_type': 'Baseline'}
@@ -26,7 +26,7 @@ protocols_types = ['Baseline', 'Circle']
 
 protocols = [{'sProtocolName': 'Circle feedback',
               'fDuration': 102,
-              'bUpdateStatistics': True,
+              'bUpdateStatistics': 1,
               'fbSource': 'Signal2',
               'sFb_type': 'Circle'},
              {'sProtocolName': 'Baseline',
@@ -258,7 +258,7 @@ class ProtocolDialog(QtGui.QDialog):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sProtocolName'] = self.name.text()
         self.params[current_signal_index]['fDuration'] = self.duration.value()
-        self.params[current_signal_index]['bUpdateStatistics'] = self.update_statistics.isChecked()
+        self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
         self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
         self.parent().reset_items()
@@ -404,6 +404,7 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
+        start_button.setIcon(QtGui.QIcon('static/imag/play-button.png'))
         start_button.setMinimumHeight(50)
         start_button.setMinimumWidth(200)
         start_button.clicked.connect(self.onClicked)

@@ -1,6 +1,6 @@
-from pynfb.experiment_parameters.xmltodict import parse, unparse
+from pynfb.io.xmltodict import parse, unparse
 from collections import OrderedDict
-from pynfb.experiment_parameters.defaults import *
+from pynfb.io.defaults import *
 
 
 def format_odict_by_defaults(odict, defaults):

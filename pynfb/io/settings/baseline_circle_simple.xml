@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NeurofeedbackSignalSpecs>
+	<sExperimentName>experiment</sExperimentName>
+	<sStreamName>NVX136_Data</sStreamName>
+	<sRawDataFilePath></sRawDataFilePath>
 	<vSignals>
 		<DerivedSignal>
-			<fBandpassHighHz>250</fBandpassHighHz>
 			<sSignalName>Signal</sSignalName>
+			<SpatialFilterMatrix></SpatialFilterMatrix>
 			<fBandpassLowHz>0</fBandpassLowHz>
+			<fBandpassHighHz>250</fBandpassHighHz>
+			<fAverage></fAverage>
+			<fStdDev></fStdDev>
 		</DerivedSignal>
 	</vSignals>
 	<vProtocols>
 		<FeedbackProtocol>
 			<sProtocolName>Baseline</sProtocolName>
-			<bUpdateStatistics>True</bUpdateStatistics>
-			<fDuration>10</fDuration>
+			<bUpdateStatistics>1</bUpdateStatistics>
 			<fbSource>All</fbSource>
+			<fDuration>10</fDuration>
 			<sFb_type>Baseline</sFb_type>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
-			<sProtocolName>Circle_fb</sProtocolName>
-			<bUpdateStatistics>True</bUpdateStatistics>
-			<fDuration>10</fDuration>
+			<sProtocolName>Feedback</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
 			<fbSource>Signal</fbSource>
+			<fDuration>10</fDuration>
 			<sFb_type>Circle</sFb_type>
 		</FeedbackProtocol>
 	</vProtocols>
 	<vPSequence>
 		<s>Baseline</s>
-		<s>Circle_fb</s>
+		<s>Feedback</s>
+		<s>Feedback</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>

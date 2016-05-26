@@ -1,3 +1,3 @@
-from pynfb.experiment_parameters import *
+from pynfb.io import *
 
-odict = xml_io.read_xml_to_dict('pynfb/experiment_parameters/settings/pilot.xml')
+odict = xml_io.read_xml_to_dict('pynfb/io/settings/pilot.xml')

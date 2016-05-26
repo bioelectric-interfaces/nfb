@@ -7,13 +7,14 @@ sys.path.insert(0, full_path)
 from pynfb.settings_widget import SettingsWidget
 from PyQt4 import QtGui
 import sys
-from pynfb.experiment_parameters.xml_io import *
+from pynfb.io.xml import *
 
 
 class TheMainWindow(QtGui.QMainWindow):
 
     def __init__(self, app):
         super(TheMainWindow, self).__init__()
+        self.setWindowIcon(QtGui.QIcon('static/imag/settings.png'))
         self.app = app
         self.initUI()
 

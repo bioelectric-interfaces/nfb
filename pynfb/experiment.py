@@ -5,9 +5,12 @@ from pynfb.signals import DerivedSignal
 from pynfb.lsl_stream import LSLStream, LSL_STREAM_NAMES
 from pynfb.protocols import BaselineProtocol, FeedbackProtocol
 from PyQt4 import QtGui, QtCore
-import sys
+from pynfb.io.hdf5 import load_h5py, save_h5py
+from pynfb.io.xml import params_to_xml_file
 from pynfb.windows import MainWindow
 import numpy as np
+from datetime import datetime
+import os
 
 
 # helpers
@@ -17,7 +20,7 @@ def int_or_none(string):
 
 class Experiment():
     def __init__(self, app, params):
-        print(params)
+        self.params = params
         # inlet frequency
         self.freq = 500
 
@@ -26,6 +29,7 @@ class Experiment():
 
         # signals
         if 'vSignals' in params:
+            print(params['vSignals'])
             self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
                                           bandpass_low=signal['fBandpassLowHz'],
                                           name=signal['sSignalName'],
@@ -148,3 +152,9 @@ class Experiment():
             self.subject.close()
             np.save('results/raw', self.main.raw_recorder)
             np.save('results/signals', self.main.signals_recorder)
+            timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
+            dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
+            os.makedirs(dir_name)
+            save_h5py(dir_name+'raw.h5', self.main.raw_recorder)
+            save_h5py(dir_name + 'signals.h5', self.main.signals_recorder)
+            params_to_xml_file(self.params, dir_name + 'settings.xml')

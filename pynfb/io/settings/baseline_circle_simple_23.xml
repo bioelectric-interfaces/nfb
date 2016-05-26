@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NeurofeedbackSignalSpecs>
+	<vSignals>
+		<DerivedSignal>
+			<sSignalName>Unnamed Signal</sSignalName>
+			<fBandpassHighHz>250</fBandpassHighHz>
+			<fBandpassLowHz>0</fBandpassLowHz>
+		</DerivedSignal>
+	</vSignals>
+	<vProtocols>
+		<FeedbackProtocol>
+			<bUpdateStatistics>False</bUpdateStatistics>
+			<sFb_type>Baseline</sFb_type>
+			<sProtocolName>Unnamed Protocol</sProtocolName>
+			<fbSource>All</fbSource>
+			<fDuration>10</fDuration>
+		</FeedbackProtocol>
+	</vProtocols>
+	<vPSequence>
+	</vPSequence>
+</NeurofeedbackSignalSpecs>
