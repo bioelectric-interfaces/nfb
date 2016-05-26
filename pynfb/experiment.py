@@ -21,6 +21,8 @@ def int_or_none(string):
 class Experiment():
     def __init__(self, app, params):
         self.params = params
+
+        print(params['sRawDataFilePath'], params['sStreamName'])
         # inlet frequency
         self.freq = 500
 
@@ -83,20 +85,24 @@ class Experiment():
                                parent=None,
                                current_protocol=self.protocols_sequence[self.current_protocol_index],
                                n_signals=len(self.signals),
-                               experiment_n_samples = experiment_n_samples)
+                               experiment_n_samples=experiment_n_samples)
         self.subject = self.main.subject_window
 
         # run raw
         self.thread = None
-        self.source_buffer_shape = (0,0)
-        if params['sRawDataFilePath'] !='':
-            source_buffer = load_h5py(params['sRawDataFilePath']).T
-            self.source_buffer_shape = source_buffer.shape
-            self.thread = threading.Thread(target=run_eeg_sim, args=(),
-                                      kwargs={'chunk_size': 0, 'source_buffer': source_buffer, 'name': 'raw'})
-            print('start')
-            self.thread.start()
+        if params['sRawDataFilePath'] != '':
             params['sStreamName'] = 'raw'
+            source_buffer = load_h5py(params['sRawDataFilePath']).T
+            self.thread = threading.Thread(target=run_eeg_sim, args=(),
+                                           kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
+                                                   'name': params['sStreamName']})
+            self.thread.start()
+        if params['sRawDataFilePath'] == '' and params['sStreamName'] == '':
+
+            params['sStreamName'] = 'generator'
+            self.thread = threading.Thread(target=run_eeg_sim, args=(),
+                                           kwargs={'chunk_size': 0, 'name': params['sStreamName']})
+            self.thread.start()
 
         self.stream = LSLStream(n_channels=self.n_channels, name=params['sStreamName'])
 
@@ -150,11 +156,11 @@ class Experiment():
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.subject.close()
-            #np.save('results/raw', self.main.raw_recorder)
-            #np.save('results/signals', self.main.signals_recorder)
+            # np.save('results/raw', self.main.raw_recorder)
+            # np.save('results/signals', self.main.signals_recorder)
             timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
             dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
             os.makedirs(dir_name)
-            save_h5py(dir_name+'raw.h5', self.main.raw_recorder)
+            save_h5py(dir_name + 'raw.h5', self.main.raw_recorder)
             save_h5py(dir_name + 'signals.h5', self.main.signals_recorder)
             params_to_xml_file(self.params, dir_name + 'settings.xml')
