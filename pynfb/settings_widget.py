@@ -329,32 +329,49 @@ class InletSettingsWidget(QtGui.QWidget):
         super().__init__(**kwargs)
         self.setContentsMargins(0,0,0,0)
         self.combo = QtGui.QComboBox()
-        self.combo.addItem('LSL stream name')
-        self.combo.addItem('Raw file path')
-        self.text = QtGui.QLineEdit()
-        self.text.textChanged.connect(self.text_changed_event)
+        self.combo.addItem('LSL stream')
+        self.combo.addItem('Raw file  ')
+        self.combo.addItem('Generator')
+        self.stream_name = QtGui.QLineEdit()
+        self.stream_name.textChanged.connect(self.stream_name_changed_event)
+        self.raw_path = QtGui.QLineEdit('')
+        self.raw_path.setDisabled(True)
+        self.raw_select_button = QtGui.QPushButton('Select file...')
+        self.raw_select_button.clicked.connect(self.chose_file_action)
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.combo)
-        layout.addWidget(self.text)
+        layout.addWidget(self.stream_name)
+        layout.addWidget(self.raw_path)
+        layout.addWidget(self.raw_select_button)
         layout.setMargin(0)
         self.setLayout(layout)
         self.combo.currentIndexChanged.connect(self.combo_changed_event)
         self.combo_changed_event()
 
     def combo_changed_event(self):
-        if self.combo.currentText()=='LSL stream name':
-            self.text.setPlaceholderText('Print LSL stream name')
-            self.text.setText(self.parent().params['sStreamName'])
-        elif self.combo.currentText()=='Raw file path':
-            self.text.setPlaceholderText('Print raw data file to stream')
-            self.text.setText(self.parent().params['sRawDataFilePath'])
+        if self.combo.currentIndex()==0:
+            self.stream_name.show()
+            self.stream_name.setPlaceholderText('Print LSL stream name')
+            self.stream_name.setText(self.parent().params['sStreamName'])
+            self.raw_path.hide()
+            self.raw_select_button.hide()
+        elif self.combo.currentIndex()==1:
+            self.raw_path.show()
+            self.raw_select_button.show()
+            self.stream_name.hide()
+            self.raw_path.setPlaceholderText('Print raw data file to stream')
+            self.raw_path.setText(self.parent().params['sRawDataFilePath'])
+        elif self.combo.currentIndex()==2:
+            self.raw_path.hide()
+            self.stream_name.hide()
+            self.raw_select_button.hide()
+    def stream_name_changed_event(self):
+        self.parent().params['sStreamName'] = self.stream_name.text()
 
-    def text_changed_event(self):
-        if self.combo.currentText() == 'LSL stream name':
-            self.parent().params['sStreamName'] = self.text.text()
-        elif self.combo.currentText() == 'Raw file path':
-            self.parent().params['sRawDataFilePath'] = self.text.text()
-            print('change')
+    def chose_file_action(self):
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', './')
+        self.raw_path.setText(fname)
+        self.parent().params['sRawDataFilePath'] = fname
 
 class GeneralSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):

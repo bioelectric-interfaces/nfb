@@ -90,7 +90,7 @@ class Experiment():
         self.thread = None
         self.source_buffer_shape = (0,0)
         if params['sRawDataFilePath'] !='':
-            source_buffer = np.load(params['sRawDataFilePath']).T
+            source_buffer = load_h5py(params['sRawDataFilePath']).T
             self.source_buffer_shape = source_buffer.shape
             self.thread = threading.Thread(target=run_eeg_sim, args=(),
                                       kwargs={'chunk_size': 0, 'source_buffer': source_buffer, 'name': 'raw'})
@@ -150,8 +150,8 @@ class Experiment():
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.subject.close()
-            np.save('results/raw', self.main.raw_recorder)
-            np.save('results/signals', self.main.signals_recorder)
+            #np.save('results/raw', self.main.raw_recorder)
+            #np.save('results/signals', self.main.signals_recorder)
             timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
             dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
             os.makedirs(dir_name)
