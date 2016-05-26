@@ -1,3 +1,6 @@
+import threading
+
+from pynfb.generators import run_eeg_sim
 from pynfb.signals import DerivedSignal
 from pynfb.lsl_stream import LSLStream, LSL_STREAM_NAMES
 from pynfb.protocols import BaselineProtocol, FeedbackProtocol
@@ -14,6 +17,7 @@ def int_or_none(string):
 
 class Experiment():
     def __init__(self, app, params):
+        print(params)
         # inlet frequency
         self.freq = 500
 
@@ -77,7 +81,20 @@ class Experiment():
                                n_signals=len(self.signals),
                                experiment_n_samples = experiment_n_samples)
         self.subject = self.main.subject_window
-        self.stream = LSLStream(n_channels=self.n_channels)
+
+        # run raw
+        self.thread = None
+        self.source_buffer_shape = (0,0)
+        if params['sRawDataFilePath'] !='':
+            source_buffer = np.load(params['sRawDataFilePath']).T
+            self.source_buffer_shape = source_buffer.shape
+            self.thread = threading.Thread(target=run_eeg_sim, args=(),
+                                      kwargs={'chunk_size': 0, 'source_buffer': source_buffer, 'name': 'raw'})
+            print('start')
+            self.thread.start()
+            params['sStreamName'] = 'raw'
+
+        self.stream = LSLStream(n_channels=self.n_channels, name=params['sStreamName'])
 
         # timer
         main_timer = QtCore.QTimer(app)

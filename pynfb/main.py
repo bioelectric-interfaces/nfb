@@ -28,9 +28,6 @@ class TheMainWindow(QtGui.QMainWindow):
         saveFile.setShortcut('Ctrl+S')
         saveFile.setStatusTip('Save settings file')
         saveFile.triggered.connect(self.save_event)
-        # reproduce experiment from file
-        reproduceExperiment = QtGui.QAction('Reproduce from file', self)
-        reproduceExperiment.triggered.connect(self.reproduce_event)
         # status bar init
         self.statusBar()
         # menu bar init
@@ -39,8 +36,6 @@ class TheMainWindow(QtGui.QMainWindow):
         fileMenu.addAction(openFile)
         fileMenu.addAction(saveFile)
         fileMenu.addAction(exitAction)
-        toolsMenu = menubar.addMenu('&Tools')
-        toolsMenu.addAction(reproduceExperiment)
         # parameter tree
         self.widget = SettingsWidget(self.app)
         self.setCentralWidget(self.widget)
@@ -54,23 +49,13 @@ class TheMainWindow(QtGui.QMainWindow):
         params = xml_file_to_params(fname)
         self.widget.params = params
         self.widget.reset_parameters()
+        print(self.widget.params)
 
     def save_event(self):
+        #print(self.widget.params)
         fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', './')
-        print(self.widget.params)
+        #print(self.widget.params)
         params_to_xml_file(self.widget.params, fname)
-
-    def reproduce_event(self):
-        from pynfb.generators import run_eeg_sim
-        import numpy as np
-        import threading
-        params = xml_file_to_params('experiment_parameters\\settings\\baseline_circle_simple.xml')
-        self.widget.params = params
-        self.widget.reset_parameters()
-        source_buffer = None if 0 else np.load('results\\raw.npy').T
-        thread = threading.Thread(target=run_eeg_sim, args=(),kwargs={'chunk_size':0, 'source_buffer':source_buffer})
-        thread.start()
-        self.widget.onClicked()
 
 
 

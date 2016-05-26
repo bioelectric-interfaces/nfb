@@ -51,14 +51,16 @@ def xml_file_to_odict(filename):
 def xml_file_to_params(filename):
     d = xml_file_to_odict(filename)
     d = format_odict_by_defaults(d, vectors_defaults)
-    params = {'vSignals': d['vSignals']['DerivedSignal'],
-              'vProtocols': d['vProtocols']['FeedbackProtocol'],
-              'vPSequence': d['vPSequence']['s']}
-    return params
+    d['vSignals'] = d['vSignals']['DerivedSignal']
+    d['vProtocols'] = d['vProtocols']['FeedbackProtocol']
+    d['vPSequence'] = d['vPSequence']['s']
+    #print(d)
+    return d
 
 
 def params_to_xml_file(params, filename):
-    odict = OrderedDict()
+    print(params)
+    odict = params
     odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
     odict['vProtocols'] = OrderedDict([('FeedbackProtocol', params['vProtocols'])])
     odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])

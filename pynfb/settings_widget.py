@@ -46,7 +46,9 @@ parameters = {'vSignals': signals,
 parameters_defaults = {'vSignals': [default_signal],
                        'vProtocols': [protocol_default],
                        'vPSequence': [],
-                       'sExperimentName': 'Experiment1'}
+                       'sExperimentName': 'experiment',
+                       'sStreamName': 'NVX136_Data',
+                       'sRawDataFilePath': ''}
 
 class SignalsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -330,6 +332,7 @@ class InletSettingsWidget(QtGui.QWidget):
         self.combo.addItem('LSL stream name')
         self.combo.addItem('Raw file path')
         self.text = QtGui.QLineEdit()
+        self.text.textChanged.connect(self.text_changed_event)
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.combo)
         layout.addWidget(self.text)
@@ -341,10 +344,17 @@ class InletSettingsWidget(QtGui.QWidget):
     def combo_changed_event(self):
         if self.combo.currentText()=='LSL stream name':
             self.text.setPlaceholderText('Print LSL stream name')
-            self.text.setText('NVX136_Data')
+            self.text.setText(self.parent().params['sStreamName'])
         elif self.combo.currentText()=='Raw file path':
             self.text.setPlaceholderText('Print raw data file to stream')
-            self.text.setText('')
+            self.text.setText(self.parent().params['sRawDataFilePath'])
+
+    def text_changed_event(self):
+        if self.combo.currentText() == 'LSL stream name':
+            self.parent().params['sStreamName'] = self.text.text()
+        elif self.combo.currentText() == 'Raw file path':
+            self.parent().params['sRawDataFilePath'] = self.text.text()
+            print('change')
 
 class GeneralSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -362,12 +372,17 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.montage.setPlaceholderText('Print path to file')
         self.form_layout.addRow('&Composite montage:', self.montage)
         # inlet
-        self.inlet = InletSettingsWidget()
+        self.inlet = InletSettingsWidget(parent=self)
         self.form_layout.addRow('&Inlet:', self.inlet)
         #self.stream
 
     def name_changed_event(self):
         self.params['sExperimentName'] = self.name.text()
+
+    def reset(self):
+        self.params = self.parent().params
+        self.name.setText(self.params['sExperimentName'])
+        self.inlet.combo_changed_event()
 
 
 class SettingsWidget(QtGui.QWidget):
@@ -400,10 +415,10 @@ class SettingsWidget(QtGui.QWidget):
         self.signals_list.reset_items()
         self.protocols_list.reset_items()
         self.protocols_sequence_list.reset_items()
+        self.general_settings.reset()
         #self.params['sExperimentName'] = self.experiment_name.text()
 
     def onClicked(self):
-        print(self.params)
         self.experiment = Experiment(self.app, self.params)
 
 
