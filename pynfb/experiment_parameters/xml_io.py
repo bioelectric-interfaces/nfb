@@ -1,4 +1,4 @@
-import xmltodict
+from pynfb.experiment_parameters.xmltodict import parse, unparse
 from collections import OrderedDict
 from pynfb.experiment_parameters.defaults import *
 
@@ -41,7 +41,7 @@ def xml_file_to_odict(filename):
         return key, value
     # read and parse
     with open(filename, 'r') as f:
-        d = xmltodict.parse(f.read(), postprocessor=postprocessor)
+        d = parse(f.read(), postprocessor=postprocessor)
 
     d = list(d.values())[0]
 
@@ -66,7 +66,7 @@ def params_to_xml_file(params, filename):
     odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])
     xml_odict = OrderedDict([('NeurofeedbackSignalSpecs', odict.copy())])
     with open(filename, 'w') as f:
-        f.write(xmltodict.unparse(xml_odict, pretty=True))
+        f.write(unparse(xml_odict, pretty=True))
     pass
 
 
