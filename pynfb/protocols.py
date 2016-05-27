@@ -42,6 +42,12 @@ class FeedbackProtocol(Protocol):
         pass
 
 
+class ThresholdBlinkFeedbackProtocol(Protocol):
+    def __init__(self, signals, name='ThresholdBlink', threshold=1000, time_ms=50, **kwargs):
+        kwargs['name'] = name
+        super().__init__(signals, **kwargs)
+        self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter()
+
 def main():
     pass
 

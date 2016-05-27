@@ -3,7 +3,7 @@ import threading
 from pynfb.generators import run_eeg_sim
 from pynfb.signals import DerivedSignal
 from pynfb.lsl_stream import LSLStream, LSL_STREAM_NAMES
-from pynfb.protocols import BaselineProtocol, FeedbackProtocol
+from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
 from PyQt4 import QtGui, QtCore
 from pynfb.io.hdf5 import load_h5py, save_h5py
 from pynfb.io.xml import params_to_xml_file
@@ -51,6 +51,10 @@ class Experiment():
                                                            name=protocol['sProtocolName']))
                 elif protocol['sFb_type'] == 'Circle':
                     self.protocols.append(FeedbackProtocol(self.signals,
+                                                           duration=protocol['fDuration'],
+                                                           name=protocol['sProtocolName']))
+                elif protocol['sFb_type'] == 'ThresholdBlink':
+                    self.protocols.append(ThresholdBlinkFeedbackProtocol(self.signals,
                                                            duration=protocol['fDuration'],
                                                            name=protocol['sProtocolName']))
                 else:

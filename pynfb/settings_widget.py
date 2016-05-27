@@ -22,7 +22,7 @@ protocol_default = {'sProtocolName': 'Unnamed Protocol',
                     'fbSource': 'All',
                     'sFb_type': 'Baseline'}
 
-protocols_types = ['Baseline', 'Circle']
+protocols_types = ['Baseline', 'Circle', 'ThresholdBlink']
 
 protocols = [{'sProtocolName': 'Circle feedback',
               'fDuration': 102,
