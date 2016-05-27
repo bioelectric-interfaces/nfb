@@ -68,25 +68,7 @@ class Experiment():
         else:
             pass
 
-        # current protocol index
-        self.current_protocol_index = 0
-
-        # samples counter for protocol sequence
-        self.samples_counter = 0
-
-        # current protocol number of samples ('frequency' * 'protocol duration')
-        self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
-
-        # experiment number of samples
-        experiment_n_samples = sum([self.freq * p.duration for p in self.protocols_sequence])
-
-        # windows
-        self.main = MainWindow(signals=self.signals,
-                               parent=None,
-                               current_protocol=self.protocols_sequence[self.current_protocol_index],
-                               n_signals=len(self.signals),
-                               experiment_n_samples=experiment_n_samples)
-        self.subject = self.main.subject_window
+        self.restart()
 
         # run raw
         self.thread = None
@@ -121,13 +103,14 @@ class Experiment():
         chunk = self.stream.get_next_chunk()
         if chunk is not None:
             # update samples counter
-            self.samples_counter += chunk.shape[0]
+            if self.main.player_panel.start.isChecked():
+                self.samples_counter += chunk.shape[0]
             # update and collect current samples
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
                 self.current_samples[i] = signal.current_sample
             # redraw signals and raw data
-            self.main.redraw_signals(self.current_samples, chunk)
+            self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
             # redraw protocols
             self.subject.update_protocol_state(self.current_samples, chunk_size=chunk.shape[0])
             # change protocol if current_protocol_n_samples has been reached
@@ -164,3 +147,25 @@ class Experiment():
             save_h5py(dir_name + 'raw.h5', self.main.raw_recorder)
             save_h5py(dir_name + 'signals.h5', self.main.signals_recorder)
             params_to_xml_file(self.params, dir_name + 'settings.xml')
+
+    def restart(self):
+        # current protocol index
+        self.current_protocol_index = 0
+
+        # samples counter for protocol sequence
+        self.samples_counter = 0
+
+        # current protocol number of samples ('frequency' * 'protocol duration')
+        self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
+
+        # experiment number of samples
+        experiment_n_samples = sum([self.freq * p.duration for p in self.protocols_sequence])
+
+        # windows
+        self.main = MainWindow(signals=self.signals,
+                               parent=None,
+                               experiment=self,
+                               current_protocol=self.protocols_sequence[self.current_protocol_index],
+                               n_signals=len(self.signals),
+                               experiment_n_samples=experiment_n_samples)
+        self.subject = self.main.subject_window

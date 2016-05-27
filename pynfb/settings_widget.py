@@ -430,7 +430,7 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
-        start_button.setIcon(QtGui.QIcon('static/imag/play-button.png'))
+        start_button.setIcon(QtGui.QIcon('static/imag/power-button.png'))
         start_button.setMinimumHeight(50)
         start_button.setMinimumWidth(200)
         start_button.clicked.connect(self.onClicked)

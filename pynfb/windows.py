@@ -14,9 +14,58 @@ class LSLPlotDataItem(pg.PlotDataItem):
         return x, y
 
 
+class PlayerButtonsWidget(QtGui.QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # init buttons
+        self.start = QtGui.QPushButton('')
+        self.restart = QtGui.QPushButton('')
+        # set icons
+        self.start.setIcon(QtGui.QIcon('static/imag/play-button.png'))
+        self.restart.setIcon(QtGui.QIcon('static/imag/replay.png'))
+        # set size
+        self.start.setMinimumHeight(30)
+        self.restart.setMinimumHeight(30)
+        # add events
+        self.start.clicked.connect(self.start_clicked_event)
+        self.restart.clicked.connect(self.restart_clicked_event)
+        # properties
+        self.start.setCheckable(True)
+        self.restart.setEnabled(False)
+        # init layer
+        layer = QtGui.QHBoxLayout()
+        self.setLayout(layer)
+        layer.addWidget(self.start)
+        layer.addWidget(self.restart)
+        self.setMaximumWidth(200)
+        self.setMinimumWidth(100)
+
+    def start_clicked_event(self):
+        self.restart.setEnabled(True)
+        if self.start.isChecked():
+            self.start.setIcon(QtGui.QIcon('static/imag/pause.png'))
+        else:
+            self.start.setIcon(QtGui.QIcon('static/imag/play-button.png'))
+
+    def restart_clicked_event(self):
+        self.start.setChecked(False)
+        self.start_clicked_event()
+        self.restart.setEnabled(False)
+
+
+
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, experiment_n_samples=None):
+    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, experiment_n_samples=None,
+                 experiment=None):
         super(MainWindow, self).__init__(parent)
+        #link to experiment
+        self.experiment = experiment
+
+        # player panel
+        self.player_panel = PlayerButtonsWidget(parent=self)
+        self.player_panel.restart.clicked.connect(self.restart_experiment)
+
+
         # timer label
         self.timer_label = QtGui.QLabel('tf')
 
@@ -65,7 +114,8 @@ class MainWindow(QtGui.QMainWindow):
         layout.addWidget(self.plot_raw_chekbox, 1, 0, 1, 1)
         layout.addWidget(self.autoscale_raw_chekbox, 1, 1, 1, 1)
         layout.addWidget(self.raw, 2, 0, 1, 2)
-        layout.addWidget(self.timer_label, 3, 0, 1, 1)
+        layout.addWidget(self.player_panel, 3, 0, 1, 1)
+        layout.addWidget(self.timer_label, 3, 1, 1, 1)
         layout.layout.setRowStretch(0, 2)
         layout.layout.setRowStretch(2, 2)
         self.setCentralWidget(layout)
@@ -83,12 +133,13 @@ class MainWindow(QtGui.QMainWindow):
         self.t0 = time.time()
         self.t = self.t0
 
-    def redraw_signals(self, samples, chunk):
-        # record
-        if self.samples_counter < self.experiment_n_samples:
-            self.raw_recorder[self.samples_counter:self.samples_counter+chunk.shape[0]] = chunk[:, :self.n_channels]
-            self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = samples
-            self.samples_counter += chunk.shape[0]
+    def redraw_signals(self, samples, chunk, samples_counter):
+        if self.player_panel.start.isChecked():
+            # record
+            if self.samples_counter < self.experiment_n_samples:
+                self.raw_recorder[self.samples_counter:self.samples_counter+chunk.shape[0]] = chunk[:, :self.n_channels]
+                self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = samples
+                self.samples_counter += chunk.shape[0]
 
         # derived signals
         data_buffer = self.signals_buffer
@@ -109,9 +160,12 @@ class MainWindow(QtGui.QMainWindow):
         # timer
         if self.time_counter % 10 == 0:
             t_curr = time.time()
-            self.timer_label.setText('time:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}'.format(t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
+            self.timer_label.setText('samples:\t{}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}'.format(samples_counter, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
             self.t = t_curr
         self.time_counter += 1
+
+    def restart_experiment(self):
+        self.experiment.restart()
 
 
 class SubjectWindow(QtGui.QMainWindow):
@@ -134,6 +188,10 @@ class SubjectWindow(QtGui.QMainWindow):
 
 
 def main():
+    app = QtGui.QApplication(sys.argv)
+    widget = PlayerButtonsWidget()
+    widget.show()
+    sys.exit(app.exec_())
     pass
 
 
