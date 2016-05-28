@@ -4,7 +4,9 @@ import pyqtgraph as pg
 from pynfb.protocols import *
 from pynfb.protocols_widgets import *
 import time
+import os
 pg.setConfigOptions(antialias=True)
+static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/static')
 
 class LSLPlotDataItem(pg.PlotDataItem):
     def getData(self):
@@ -21,8 +23,8 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.start = QtGui.QPushButton('')
         self.restart = QtGui.QPushButton('')
         # set icons
-        self.start.setIcon(QtGui.QIcon('static/imag/play-button.png'))
-        self.restart.setIcon(QtGui.QIcon('static/imag/replay.png'))
+        self.start.setIcon(QtGui.QIcon(static_path+'/imag/play-button.png'))
+        self.restart.setIcon(QtGui.QIcon(static_path+'/imag/replay.png'))
         # set size
         self.start.setMinimumHeight(30)
         self.restart.setMinimumHeight(30)
@@ -43,9 +45,9 @@ class PlayerButtonsWidget(QtGui.QWidget):
     def start_clicked_event(self):
         self.restart.setEnabled(True)
         if self.start.isChecked():
-            self.start.setIcon(QtGui.QIcon('static/imag/pause.png'))
+            self.start.setIcon(QtGui.QIcon(static_path+'/imag/pause.png'))
         else:
-            self.start.setIcon(QtGui.QIcon('static/imag/play-button.png'))
+            self.start.setIcon(QtGui.QIcon(static_path+'/imag/play-button.png'))
 
     def restart_clicked_event(self):
         self.start.setChecked(False)
@@ -188,6 +190,7 @@ class SubjectWindow(QtGui.QMainWindow):
 
 
 def main():
+    print(static_path)
     app = QtGui.QApplication(sys.argv)
     widget = PlayerButtonsWidget()
     widget.show()

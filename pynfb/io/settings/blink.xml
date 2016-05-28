@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NeurofeedbackSignalSpecs>
+	<sExperimentName>experiment</sExperimentName>
+	<sStreamName>_generator</sStreamName>
+	<sRawDataFilePath></sRawDataFilePath>
+	<vSignals>
+		<DerivedSignal>
+			<sSignalName>Signal</sSignalName>
+			<SpatialFilterMatrix></SpatialFilterMatrix>
+			<fBandpassLowHz>0.0</fBandpassLowHz>
+			<fBandpassHighHz>250.0</fBandpassHighHz>
+			<fAverage></fAverage>
+			<fStdDev></fStdDev>
+		</DerivedSignal>
+	</vSignals>
+	<vProtocols>
+		<FeedbackProtocol>
+			<sProtocolName>Protocol</sProtocolName>
+			<bUpdateStatistics>1.0</bUpdateStatistics>
+			<fDuration>10.0</fDuration>
+			<fbSource>All</fbSource>
+			<sFb_type>Baseline</sFb_type>
+			<cString></cString>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Blink</sProtocolName>
+			<bUpdateStatistics>0.0</bUpdateStatistics>
+			<fDuration>600.0</fDuration>
+			<fbSource>All</fbSource>
+			<sFb_type>ThresholdBlink</sFb_type>
+			<cString></cString>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+		</FeedbackProtocol>
+	</vProtocols>
+	<vPSequence>
+		<s>Protocol</s>
+		<s>Blink</s>
+	</vPSequence>
+</NeurofeedbackSignalSpecs>

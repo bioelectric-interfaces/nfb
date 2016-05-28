@@ -2,9 +2,11 @@ import sys
 from PyQt4 import QtGui, QtCore
 from pynfb.io.xml import xml_file_to_params, format_odict_by_defaults
 from pynfb.io.defaults import vectors_defaults as defaults
-from collections import OrderedDict
-
 from pynfb.experiment import Experiment
+import os
+
+
+static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/static')
 
 default_signal = defaults['vSignals']['DerivedSignal'][0]
 
@@ -415,7 +417,7 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
-        start_button.setIcon(QtGui.QIcon('static/imag/power-button.png'))
+        start_button.setIcon(QtGui.QIcon(static_path+'/imag/power-button.png'))
         start_button.setMinimumHeight(50)
         start_button.setMinimumWidth(200)
         start_button.clicked.connect(self.onClicked)
