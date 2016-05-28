@@ -19,8 +19,8 @@ vectors_defaults = OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),
             ('SpatialFilterMatrix', ''),
-            ('fBandpassLowHz', ''),
-            ('fBandpassHighHz', ''),
+            ('fBandpassLowHz', 0),
+            ('fBandpassHighHz', 250),
             ('fAverage', ''),
             ('fStdDev', ''),
             # ('sType', 'plain')
@@ -30,17 +30,19 @@ vectors_defaults = OrderedDict([
             ('sProtocolName', 'Protocol'),
             # ('sSignalComposition', 'Simple'),
             # ('nMSecondsPerWindow', ''),
-            ('bUpdateStatistics', False),
+            ('bUpdateStatistics', 0),
             # ('bStopAfter', False),
             # ('bShowFBRect', False),
-            ('fDuration', '10'),
+            ('fDuration', 10),
             # ('fThreshold', ''),
-            ('fbSource', ''),
+            ('fbSource', 'All'),
             # ('iNComp', ''),
-            ('sFb_type', ''),
+            ('sFb_type', 'Baseline'),
             # ('dBand', ''),
-            ('cString', '')
+            ('cString', ''),
+            ('fBlinkDurationMs', 50),
+            ('fBlinkThreshold', 0)
         ])])])),
     ('vPSequence', OrderedDict([
-        ('s', ['Protocol1'])])),
+        ('s', ['Protocol'])])),
 ])

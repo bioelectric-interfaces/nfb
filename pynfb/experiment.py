@@ -56,7 +56,9 @@ class Experiment():
                 elif protocol['sFb_type'] == 'ThresholdBlink':
                     self.protocols.append(ThresholdBlinkFeedbackProtocol(self.signals,
                                                            duration=protocol['fDuration'],
-                                                           name=protocol['sProtocolName']))
+                                                           name=protocol['sProtocolName'],
+                                                           threshold=protocol['fBlinkThreshold'],
+                                                           time_ms=protocol['fBlinkDurationMs']))
                 else:
                     raise TypeError('Undefined protocol type')
         else:
@@ -77,15 +79,15 @@ class Experiment():
         # run raw
         self.thread = None
         if params['sRawDataFilePath'] != '':
-            params['sStreamName'] = 'raw'
+            params['sStreamName'] = '_raw'
             source_buffer = load_h5py(params['sRawDataFilePath']).T
             self.thread = threading.Thread(target=run_eeg_sim, args=(),
                                            kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                                    'name': params['sStreamName']})
             self.thread.start()
-        if params['sRawDataFilePath'] == '' and params['sStreamName'] == '':
+        if (params['sRawDataFilePath'] == '' and params['sStreamName'] == '') or params['sStreamName'] == '_generator':
 
-            params['sStreamName'] = 'generator'
+            params['sStreamName'] = '_generator'
             self.thread = threading.Thread(target=run_eeg_sim, args=(),
                                            kwargs={'chunk_size': 0, 'name': params['sStreamName']})
             self.thread.start()

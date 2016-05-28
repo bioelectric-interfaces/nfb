@@ -35,7 +35,7 @@ def xml_file_to_odict(filename):
         if value is None:
             value = ''
         try:
-            value = int(value)
+            value = float(value)
         except (ValueError, TypeError):
             pass
         return key, value
@@ -48,8 +48,8 @@ def xml_file_to_odict(filename):
     return d
 
 
-def xml_file_to_params(filename):
-    d = xml_file_to_odict(filename)
+def xml_file_to_params(filename=None):
+    d = vectors_defaults if filename is None else xml_file_to_odict(filename)
     d = format_odict_by_defaults(d, vectors_defaults)
     d['vSignals'] = d['vSignals']['DerivedSignal']
     d['vProtocols'] = d['vProtocols']['FeedbackProtocol']

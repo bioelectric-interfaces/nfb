@@ -1,54 +1,17 @@
 import sys
 from PyQt4 import QtGui, QtCore
+from pynfb.io.xml import xml_file_to_params, format_odict_by_defaults
+from pynfb.io.defaults import vectors_defaults as defaults
 from collections import OrderedDict
 
 from pynfb.experiment import Experiment
 
-signals = [{'sSignalName': 'Signal1',
-            'fBandpassLowHz': 1,
-            'fBandpassHighHz': 10},
-           {'sSignalName': 'Signal2',
-            'fBandpassLowHz': 1,
-            'fBandpassHighHz': 30}
-           ]
+default_signal = defaults['vSignals']['DerivedSignal'][0]
 
-default_signal = {'sSignalName': 'Unnamed Signal',
-                  'fBandpassLowHz': 0,
-                  'fBandpassHighHz': 250}
-
-protocol_default = {'sProtocolName': 'Unnamed Protocol',
-                    'bUpdateStatistics': 0,
-                    'fDuration': 10,
-                    'fbSource': 'All',
-                    'sFb_type': 'Baseline'}
+protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 
 protocols_types = ['Baseline', 'Circle', 'ThresholdBlink']
 
-protocols = [{'sProtocolName': 'Circle feedback',
-              'fDuration': 102,
-              'bUpdateStatistics': 1,
-              'fbSource': 'Signal2',
-              'sFb_type': 'Circle'},
-             {'sProtocolName': 'Baseline',
-              'fDuration': 10,
-              'bUpdateStatistics': True,
-              'fbSource': 'All',
-              'sFb_type': 'Baseline'}
-             ]
-
-
-protocols_sequence = ['Circle feedback']
-
-parameters = {'vSignals': signals,
-              'vProtocols': protocols,
-              'vPSequence': protocols_sequence}
-
-parameters_defaults = {'vSignals': [default_signal],
-                       'vProtocols': [protocol_default],
-                       'vPSequence': [],
-                       'sExperimentName': 'experiment',
-                       'sStreamName': 'NVX136_Data',
-                       'sRawDataFilePath': ''}
 
 class SignalsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -226,8 +189,18 @@ class ProtocolDialog(QtGui.QDialog):
         self.type = QtGui.QComboBox()
         for protocol_type in protocols_types:
             self.type.addItem(protocol_type)
+        self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
         #self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
+        # threshold blink settings
+        self.blink_duration_ms = QtGui.QSpinBox()
+        self.blink_duration_ms.setRange(0, 1000000)
+        self.blink_threshold = QtGui.QDoubleSpinBox()
+        self.blink_threshold.setRange(-1e20, 1e20)
+        self.blink_threshold.setEnabled(False)
+        self.blink_duration_ms.setEnabled(False)
+        self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
+        self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -239,6 +212,13 @@ class ProtocolDialog(QtGui.QDialog):
             self.source_signal.addItem(signal['sSignalName'])
         self.source_signal.addItem('All')
 
+    def set_enabled_threshold_blink_settings(self):
+        flag = (self.type.currentText() == 'ThresholdBlink')
+        self.blink_threshold.setEnabled(flag)
+        self.blink_duration_ms.setEnabled(flag)
+
+
+
     def open(self):
         self.update_combo_box()
         self.reset_items()
@@ -246,12 +226,15 @@ class ProtocolDialog(QtGui.QDialog):
 
     def reset_items(self):
         current_protocol = self.params[self.parent().list.currentRow()]
+        print(current_protocol)
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.source_signal.setCurrentIndex(
             self.source_signal.findText(current_protocol['fbSource'], QtCore.Qt.MatchFixedString))
         self.type.setCurrentIndex(
             self.type.findText(current_protocol['sFb_type'], QtCore.Qt.MatchFixedString))
+        self.blink_duration_ms.setValue(current_protocol['fBlinkDurationMs'])
+        self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
         pass
 
     def save_and_close(self):
@@ -261,6 +244,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
         self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
+        self.params[current_signal_index]['fBlinkDurationMs'] = self.blink_duration_ms.value()
+        self.params[current_signal_index]['fBlinkThreshold'] = self.blink_threshold.value()
         self.parent().reset_items()
         self.close()
 
@@ -418,7 +403,7 @@ class SettingsWidget(QtGui.QWidget):
         v_layout = QtGui.QVBoxLayout()
         layout = QtGui.QHBoxLayout()
 
-        self.params = parameters_defaults.copy()
+        self.params = xml_file_to_params()
         self.general_settings = GeneralSettingsWidget(parent=self)
         v_layout.addWidget(self.general_settings)
         v_layout.addLayout(layout)
