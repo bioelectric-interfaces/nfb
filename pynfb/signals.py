@@ -22,11 +22,12 @@ class DerivedSignal():
         self.std_acc = 0
         self.n_acc = 0
         # spatial matrix
+        self.spatial_matrix = np.zeros((n_channels,))
         if spatial_matrix is None:
-            self.spatial_matrix = np.zeros((n_channels, ))
             self.spatial_matrix[0] = 1
         else:
-            self.spatial_matrix = spatial_matrix
+            shape = min(spatial_matrix.shape[0], n_channels)
+            self.spatial_matrix[:shape] = spatial_matrix[:shape]
         # current sample
         self.current_sample = 0
 

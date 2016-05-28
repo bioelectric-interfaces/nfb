@@ -37,7 +37,10 @@ class Experiment():
             self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
                                           bandpass_low=signal['fBandpassLowHz'],
                                           name=signal['sSignalName'],
-                                          n_channels=self.n_channels)
+                                          n_channels=self.n_channels,
+                                          spatial_matrix=(np.loadtxt(signal['SpatialFilterMatrix'])
+                                                          if signal['SpatialFilterMatrix']!=''
+                                                          else None))
                             for signal in params['vSignals']]
         else:
             pass

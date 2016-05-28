@@ -90,6 +90,9 @@ class SignalDialog(QtGui.QDialog):
         self.bandpass_high.setRange(0, 250)
         self.bandpass_high.setValue(250)
         self.form_layout.addRow('&Bandpass high [Hz]:', self.bandpass_high)
+        # spatial filter
+        self.spatial_filter = FileSelectorLine(parent=self)
+        self.form_layout.addRow('Spatial filter:', self.spatial_filter)
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -102,12 +105,14 @@ class SignalDialog(QtGui.QDialog):
     def reset_items(self):
         self.bandpass_low.setValue(self.params[self.parent().list.currentRow()]['fBandpassLowHz'])
         self.bandpass_high.setValue(self.params[self.parent().list.currentRow()]['fBandpassHighHz'])
+        self.spatial_filter.path.setText(self.params[self.parent().list.currentRow()]['SpatialFilterMatrix'])
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sSignalName'] = self.name.text()
         self.params[current_signal_index]['fBandpassLowHz'] = self.bandpass_low.value()
         self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
+        self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.path.text()
         self.parent().reset_items()
         self.close()
 
@@ -162,6 +167,24 @@ class ProtocolsSettingsWidget(QtGui.QWidget):
         if self.list.currentRow() < 0:
             self.list.setItemSelected(self.list.item(0), True)
 
+
+class FileSelectorLine(QtGui.QWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        layout = QtGui.QHBoxLayout()
+        self.setLayout(layout)
+        self.setContentsMargins(0,0,0,0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.path = QtGui.QLineEdit('')
+        #self.path.textChanged.connect(self.raw_path_changed_event)
+        self.select_button = QtGui.QPushButton('Select file...')
+        self.select_button.clicked.connect(self.chose_file_action)
+        layout.addWidget(self.path)
+        layout.addWidget(self.select_button)
+
+    def chose_file_action(self):
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', './')
+        self.path.setText(fname)
 
 class ProtocolDialog(QtGui.QDialog):
     def __init__(self, parent, protocol_name='Protocol'):
@@ -438,6 +461,6 @@ class SettingsWidget(QtGui.QWidget):
 
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
-    window = SettingsWidget()
+    window = FileSelectorLine()
     window.show()
     sys.exit(app.exec_())
