@@ -129,6 +129,7 @@ class MainWindow(QtGui.QMainWindow):
         # subject window
         self.subject_window = SubjectWindow(self, current_protocol)
         self.subject_window.show()
+        self._subject_window_want_to_close = False
 
         # time counter
         self.time_counter = 0
@@ -169,6 +170,13 @@ class MainWindow(QtGui.QMainWindow):
     def restart_experiment(self):
         self.experiment.restart()
 
+    def closeEvent(self, event):
+        self._subject_window_want_to_close = True
+        self.subject_window.close()
+        if self.experiment.thread is not None:
+            self.experiment.thread.terminate()
+        event.accept()
+
 
 class SubjectWindow(QtGui.QMainWindow):
     def __init__(self, parent, current_protocol, **kwargs):
@@ -187,6 +195,12 @@ class SubjectWindow(QtGui.QMainWindow):
         self.current_protocol = new_protocol
         self.figure.clear()
         self.current_protocol.widget_painter.prepare_widget(self.figure)
+
+    def closeEvent(self, event):
+        if self.parent().experiment.is_finished or self.parent()._subject_window_want_to_close:
+            event.accept()
+        else:
+            event.ignore()
 
 
 def main():

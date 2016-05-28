@@ -1,4 +1,5 @@
 import threading
+from multiprocessing import Process
 
 from pynfb.generators import run_eeg_sim
 from pynfb.signals import DerivedSignal
@@ -25,6 +26,7 @@ class Experiment():
         print(params['sRawDataFilePath'], params['sStreamName'])
         # inlet frequency
         self.freq = 500
+        self.is_finished = False
 
         # number of channels (select first n_channels channels)
         self.n_channels = 32
@@ -81,14 +83,14 @@ class Experiment():
         if params['sRawDataFilePath'] != '':
             params['sStreamName'] = '_raw'
             source_buffer = load_h5py(params['sRawDataFilePath']).T
-            self.thread = threading.Thread(target=run_eeg_sim, args=(),
+            self.thread = Process(target=run_eeg_sim, args=(),
                                            kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                                    'name': params['sStreamName']})
             self.thread.start()
         if (params['sRawDataFilePath'] == '' and params['sStreamName'] == '') or params['sStreamName'] == '_generator':
 
             params['sStreamName'] = '_generator'
-            self.thread = threading.Thread(target=run_eeg_sim, args=(),
+            self.thread = Process(target=run_eeg_sim, args=(),
                                            kwargs={'chunk_size': 0, 'name': params['sStreamName']})
             self.thread.start()
 
@@ -144,6 +146,7 @@ class Experiment():
         else:
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
+            self.is_finished = True
             self.subject.close()
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
@@ -155,6 +158,8 @@ class Experiment():
             params_to_xml_file(self.params, dir_name + 'settings.xml')
 
     def restart(self):
+        self.is_finished = False
+
         # current protocol index
         self.current_protocol_index = 0
 
