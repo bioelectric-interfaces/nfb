@@ -99,9 +99,9 @@ class Experiment():
         self.stream = LSLStream(n_channels=self.n_channels, name=params['sStreamName'])
 
         # timer
-        main_timer = QtCore.QTimer(app)
-        main_timer.timeout.connect(self.update)
-        main_timer.start(1000 * 1. / self.freq)
+        self.main_timer = QtCore.QTimer(app)
+        self.main_timer.timeout.connect(self.update)
+        self.main_timer.start(1000 * 1. / self.freq)
         pass
 
     def update(self):

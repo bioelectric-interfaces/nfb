@@ -175,6 +175,9 @@ class MainWindow(QtGui.QMainWindow):
         self.subject_window.close()
         if self.experiment.thread is not None:
             self.experiment.thread.terminate()
+            self.experiment.main_timer.stop()
+            del self.experiment.stream
+            del self.experiment
         event.accept()
 
 
