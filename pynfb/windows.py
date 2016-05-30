@@ -174,11 +174,7 @@ class MainWindow(QtGui.QMainWindow):
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
         self.subject_window.close()
-        if self.experiment.thread is not None:
-            self.experiment.thread.terminate()
-            self.experiment.main_timer.stop()
-            del self.experiment.stream
-            del self.experiment
+        self.experiment.destroy()
         event.accept()
 
 

@@ -7,8 +7,7 @@ LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
 LSL_RESOLVE_TIMEOUT = 10
 
 class LSLStream():
-    def __init__(self, name=LSL_STREAM_NAMES[2], max_chunklen=8, n_channels=32):
-        self.n_channels = n_channels
+    def __init__(self, name=LSL_STREAM_NAMES[2], max_chunklen=8):
         streams = resolve_byprop('name', name, timeout=LSL_RESOLVE_TIMEOUT)
         self.inlet = None
         if len(streams) > 0:
@@ -21,7 +20,11 @@ class LSLStream():
         # convert to numpy array
         chunk = np.array(chunk)
         # return first n_channels channels or None if empty chunk
-        return chunk[:, :self.n_channels] if chunk.shape[0] > 0 else None
+        return chunk if chunk.shape[0] > 0 else None
 
     def update_action(self):
         pass
+
+    def save_info(self, file):
+        with open(file, 'w') as f:
+            f.write(self.inlet.info().as_xml())

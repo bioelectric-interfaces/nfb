@@ -23,7 +23,7 @@ def run_noise_sins():
     pass
 
 
-def run_eeg_sim(n_channels=322, freq=500, chunk_size=0, source_buffer=None, name='example'):
+def run_eeg_sim(n_channels=50, freq=500, chunk_size=0, source_buffer=None, name='example'):
     info = StreamInfo(name=name, type='EEG', channel_count=n_channels, nominal_srate=500,  # TODO: nominal_srate?
                       channel_format='float32', source_id='myuid34234')
     outlet = StreamOutlet(info, chunk_size=chunk_size)

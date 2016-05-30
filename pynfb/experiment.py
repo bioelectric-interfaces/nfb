@@ -21,87 +21,12 @@ def int_or_none(string):
 
 class Experiment():
     def __init__(self, app, params):
+        self.app = app
         self.params = params
-
-        # inlet frequency
-        self.freq = 1000 #TODO
-        self.is_finished = False
-
-        # number of channels (select first n_channels channels)
-        self.n_channels = 322 #TODO
-
-        # signals
-        if 'vSignals' in params:
-            print(params['vSignals'])
-            self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
-                                          bandpass_low=signal['fBandpassLowHz'],
-                                          name=signal['sSignalName'],
-                                          n_channels=self.n_channels,
-                                          spatial_matrix=(np.loadtxt(signal['SpatialFilterMatrix'])
-                                                          if signal['SpatialFilterMatrix']!=''
-                                                          else None))
-                            for signal in params['vSignals']]
-        else:
-            pass
-        self.current_samples = np.zeros_like(self.signals)
-
-        # protocols
-        if 'vProtocols' in params:
-            self.protocols = []
-            for protocol in params['vProtocols']:
-                if protocol['sFb_type'] == 'Baseline':
-                    self.protocols.append(BaselineProtocol(self.signals,
-                                                           duration=protocol['fDuration'],
-                                                           name=protocol['sProtocolName']))
-                elif protocol['sFb_type'] == 'Circle':
-                    self.protocols.append(FeedbackProtocol(self.signals,
-                                                           duration=protocol['fDuration'],
-                                                           name=protocol['sProtocolName']))
-                elif protocol['sFb_type'] == 'ThresholdBlink':
-                    self.protocols.append(ThresholdBlinkFeedbackProtocol(self.signals,
-                                                           duration=protocol['fDuration'],
-                                                           name=protocol['sProtocolName'],
-                                                           threshold=protocol['fBlinkThreshold'],
-                                                           time_ms=protocol['fBlinkDurationMs']))
-                else:
-                    raise TypeError('Undefined protocol type')
-        else:
-            pass
-
-        # protocols sequence
-        if 'vPSequence' in params:
-            names = [protocol.name for protocol in self.protocols]
-            self.protocols_sequence = []
-            for name in params['vPSequence']:
-                self.protocols_sequence.append(self.protocols[names.index(name)])
-            print(self.protocols_sequence)
-        else:
-            pass
-
-        self.restart()
-
-        # run raw
+        self.main_timer = None
+        self.stream = None
         self.thread = None
-        if params['sRawDataFilePath'] != '':
-            params['sStreamName'] = '_raw'
-            source_buffer = load_h5py(params['sRawDataFilePath']).T
-            self.thread = Process(target=run_eeg_sim, args=(),
-                                           kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
-                                                   'name': params['sStreamName']})
-            self.thread.start()
-        if (params['sRawDataFilePath'] == '' and params['sStreamName'] == '') or params['sStreamName'] == '_generator':
-
-            params['sStreamName'] = '_generator'
-            self.thread = Process(target=run_eeg_sim, args=(),
-                                           kwargs={'chunk_size': 0, 'name': params['sStreamName']})
-            self.thread.start()
-
-        self.stream = LSLStream(n_channels=self.n_channels, name=params['sStreamName'])
-
-        # timer
-        self.main_timer = QtCore.QTimer(app)
-        self.main_timer.timeout.connect(self.update)
-        self.main_timer.start(1000 * 1. / self.freq)
+        self.restart()
         pass
 
     def update(self):
@@ -110,7 +35,7 @@ class Experiment():
         :return: None
         """
         # get next chunk
-        chunk = self.stream.get_next_chunk()
+        chunk = self.stream.get_next_chunk() if self.stream is not None else None
         if chunk is not None:
             # update samples counter
             if self.main.player_panel.start.isChecked():
@@ -158,8 +83,16 @@ class Experiment():
             save_h5py(dir_name + 'raw.h5', self.main.raw_recorder)
             save_h5py(dir_name + 'signals.h5', self.main.signals_recorder)
             params_to_xml_file(self.params, dir_name + 'settings.xml')
+            self.stream.save_info(dir_name + 'lsl_stream_info.xml')
 
     def restart(self):
+        if self.main_timer is not None:
+            self.main_timer.stop()
+        if self.stream is not None:
+           self.stream.inlet.__del__()
+        if self.thread is not None:
+            self.thread.terminate()
+
         self.is_finished = False
 
         # current protocol index
@@ -168,12 +101,73 @@ class Experiment():
         # samples counter for protocol sequence
         self.samples_counter = 0
 
+        # run raw
+        self.thread = None
+        if self.params['sRawDataFilePath'] != '':
+            self.params['sStreamName'] = '_raw'
+            source_buffer = load_h5py(self.params['sRawDataFilePath']).T
+            self.thread = Process(target=run_eeg_sim, args=(),
+                                  kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
+                                          'name': self.params['sStreamName']})
+            self.thread.start()
+        if (self.params['sRawDataFilePath'] == '' and self.params['sStreamName'] == '') or self.params['sStreamName'] == '_generator':
+            self.params['sStreamName'] = '_generator'
+            self.thread = Process(target=run_eeg_sim, args=(),
+                                  kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
+            self.thread.start()
+
+        self.stream = LSLStream(name=self.params['sStreamName'])
+        self.freq = self.stream.inlet.info().nominal_srate()
+        self.n_channels = self.stream.inlet.info().channel_count()
+
+        # signals
+        self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
+                                      bandpass_low=signal['fBandpassLowHz'],
+                                      name=signal['sSignalName'],
+                                      n_channels=self.n_channels,
+                                      spatial_matrix=(np.loadtxt(signal['SpatialFilterMatrix'])
+                                                      if signal['SpatialFilterMatrix'] != ''
+                                                      else None))
+                        for signal in self.params['vSignals']]
+        self.current_samples = np.zeros_like(self.signals)
+
+        # protocols
+        self.protocols = []
+        for protocol in self.params['vProtocols']:
+            if protocol['sFb_type'] == 'Baseline':
+                self.protocols.append(BaselineProtocol(self.signals,
+                                                       duration=protocol['fDuration'],
+                                                       name=protocol['sProtocolName']))
+            elif protocol['sFb_type'] == 'Circle':
+                self.protocols.append(FeedbackProtocol(self.signals,
+                                                       duration=protocol['fDuration'],
+                                                       name=protocol['sProtocolName']))
+            elif protocol['sFb_type'] == 'ThresholdBlink':
+                self.protocols.append(ThresholdBlinkFeedbackProtocol(self.signals,
+                                                                     duration=protocol['fDuration'],
+                                                                     name=protocol['sProtocolName'],
+                                                                     threshold=protocol['fBlinkThreshold'],
+                                                                     time_ms=protocol['fBlinkDurationMs']))
+            else:
+                raise TypeError('Undefined protocol type')
+
+        # protocols sequence
+        names = [protocol.name for protocol in self.protocols]
+        self.protocols_sequence = []
+        for name in self.params['vPSequence']:
+            self.protocols_sequence.append(self.protocols[names.index(name)])
+        
+        # timer
+        self.main_timer = QtCore.QTimer(self.app)
+        self.main_timer.timeout.connect(self.update)
+        self.main_timer.start(1000 * 1. / self.freq)
+
         # current protocol number of samples ('frequency' * 'protocol duration')
         self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
 
         # experiment number of samples
         experiment_n_samples = sum([self.freq * p.duration for p in self.protocols_sequence])
-
+        
         # windows
         self.main = MainWindow(signals=self.signals,
                                parent=None,
@@ -183,3 +177,11 @@ class Experiment():
                                experiment_n_samples=experiment_n_samples,
                                freq=self.freq)
         self.subject = self.main.subject_window
+
+    def destroy(self):
+        if self.thread is not None:
+            self.thread.terminate()
+        self.main_timer.stop()
+        del self.stream
+        self.stream = None
+        #del self
