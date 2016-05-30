@@ -1,7 +1,8 @@
 import sys
 import os
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
-from pynfb import STATIC_PATH
+#from pynfb import STATIC_PATH
+STATIC_PATH = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static') #TODO
 print(full_path)
 sys.path.insert(0, full_path)
 
