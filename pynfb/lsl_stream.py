@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from pylsl import StreamInlet, resolve_stream
+from pylsl import StreamInlet, resolve_byprop
 
 
 LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
-
+LSL_RESOLVE_TIMEOUT = 10
 
 class LSLStream():
     def __init__(self, name=LSL_STREAM_NAMES[2], max_chunklen=8, n_channels=32):
         self.n_channels = n_channels
-        streams = resolve_stream('name', name)
-        self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
+        streams = resolve_byprop('name', name, timeout=LSL_RESOLVE_TIMEOUT)
+        self.inlet = None
+        if len(streams) > 0:
+            self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
+
 
     def get_next_chunk(self):
         # get next chunk

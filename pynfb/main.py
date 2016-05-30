@@ -1,7 +1,7 @@
 import sys
 import os
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
-static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/static')
+from pynfb import STATIC_PATH
 print(full_path)
 sys.path.insert(0, full_path)
 
@@ -15,7 +15,7 @@ class TheMainWindow(QtGui.QMainWindow):
 
     def __init__(self, app):
         super(TheMainWindow, self).__init__()
-        self.setWindowIcon(QtGui.QIcon(static_path+'/imag/settings.png'))
+        self.setWindowIcon(QtGui.QIcon(STATIC_PATH + '/imag/settings.png'))
         self.app = app
         self.initUI()
 
