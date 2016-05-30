@@ -23,7 +23,6 @@ class Experiment():
     def __init__(self, app, params):
         self.params = params
 
-        print(params['sRawDataFilePath'], params['sStreamName'])
         # inlet frequency
         self.freq = 500
         self.is_finished = False

@@ -59,8 +59,7 @@ def xml_file_to_params(filename=None):
 
 
 def params_to_xml_file(params, filename):
-    print(params)
-    odict = params
+    odict = params.copy()
     odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
     odict['vProtocols'] = OrderedDict([('FeedbackProtocol', params['vProtocols'])])
     odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])
