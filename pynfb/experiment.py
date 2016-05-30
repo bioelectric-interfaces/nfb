@@ -175,7 +175,8 @@ class Experiment():
                                current_protocol=self.protocols_sequence[self.current_protocol_index],
                                n_signals=len(self.signals),
                                experiment_n_samples=experiment_n_samples,
-                               freq=self.freq)
+                               freq=self.freq,
+                               n_channels=self.n_channels)
         self.subject = self.main.subject_window
 
     def destroy(self):
