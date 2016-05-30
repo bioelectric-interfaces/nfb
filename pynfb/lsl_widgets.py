@@ -54,10 +54,10 @@ class LSLResolveWaitWidget(QtGui.QWidget):
     def fill_table(self, streams=None):
         if streams is None:
             streams = []
-        info = [(stream.name(), stream.type()) for stream in streams]
+        info = [(stream.name(), stream.type(), stream.channel_count(), stream.nominal_srate()) for stream in streams]
         self.streams_table.clear()
         for inf in info:
-            self.streams_table.addItem('{} ({})'.format(*inf))
+            self.streams_table.addItem('{} ({}, {} channels, {} Hz)'.format(*inf))
         pass
 
     def onFinished(self):

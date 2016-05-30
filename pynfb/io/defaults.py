@@ -14,6 +14,7 @@ general_defaults = OrderedDict([
 vectors_defaults = OrderedDict([
     ('sExperimentName', 'experiment'),
     ('sStreamName', 'NVX136_Data'),
+    ('fSamplingFrequency', 500),
     ('sRawDataFilePath', ''),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!

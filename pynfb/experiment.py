@@ -24,11 +24,11 @@ class Experiment():
         self.params = params
 
         # inlet frequency
-        self.freq = 500
+        self.freq = 1000 #TODO
         self.is_finished = False
 
         # number of channels (select first n_channels channels)
-        self.n_channels = 32
+        self.n_channels = 322 #TODO
 
         # signals
         if 'vSignals' in params:
@@ -180,5 +180,6 @@ class Experiment():
                                experiment=self,
                                current_protocol=self.protocols_sequence[self.current_protocol_index],
                                n_signals=len(self.signals),
-                               experiment_n_samples=experiment_n_samples)
+                               experiment_n_samples=experiment_n_samples,
+                               freq=self.freq)
         self.subject = self.main.subject_window

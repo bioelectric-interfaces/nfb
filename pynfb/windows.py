@@ -58,9 +58,11 @@ class PlayerButtonsWidget(QtGui.QWidget):
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, experiment_n_samples=None,
-                 experiment=None):
+                 experiment=None, freq=500):
         super(MainWindow, self).__init__(parent)
         #link to experiment
+
+        self.source_freq = freq
         self.experiment = experiment
 
         # player panel
@@ -80,7 +82,7 @@ class MainWindow(QtGui.QMainWindow):
             curve = roi_figure.plot().curve
             self.signal_curves.append(curve)
         self.signals_buffer = np.zeros((8000, n_signals))
-        self.signals_curves_x_net = np.linspace(0, 8000 / 500, 8000 / 8)
+        self.signals_curves_x_net = np.linspace(0, 8000 / self.source_freq, 8000 / 8)
 
         # data recorders
         self.experiment_n_samples = experiment_n_samples
@@ -95,7 +97,6 @@ class MainWindow(QtGui.QMainWindow):
         self.raw_buffer = np.zeros((self.n_samples, self.n_channels))
         self.scaler = 1
         self.curves = []
-        self.source_freq = 500
         self.x_mesh = np.linspace(0, self.n_samples / self.source_freq, self.n_samples)
         self.raw.setYRange(0, min(8, self.n_channels))
         self.raw.setXRange(0, self.n_samples / self.source_freq)
