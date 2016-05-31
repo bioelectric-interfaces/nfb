@@ -36,6 +36,8 @@ class CircleFeedbackProtocolWidgetPainter():
         widget.addItem(fill)
 
     def redraw_state(self, sample):
+        if np.ndim(sample)>0:
+            sample = np.sum(np.abs(sample))
         noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
         noise = self.noise*noise_ampl
         self.p1.setData(np.sin(self.x)*(1+noise), np.cos(self.x)*(1+noise))
@@ -71,9 +73,19 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter():
         self.fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 25))
         widget.addItem(self.fill)
 
-    def redraw_state(self, sample):
+    def redraw_state(self, samples):
+        samples = np.abs(samples)
+        if np.ndim(samples)==0:
+            samples = samples.reshape((1,))
 
-        if (sample >= self.threshold >= self.previous_sample) and (self.blink_start_time < 0):
+        previous_sample = self.previous_sample
+        do_blink = False
+        for sample in samples:
+            if (sample >= self.threshold >= previous_sample) and (self.blink_start_time < 0):
+                do_blink = True
+            previous_sample = sample
+
+        if do_blink:
             self.blink_start_time = time.time()
 
         if ((time.time() - self.blink_start_time < self.time_ms * 0.001) and (self.blink_start_time > 0)):
@@ -83,5 +95,5 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter():
             self.fill.setBrush((255, 255, 255, 10))
 
 
-        self.previous_sample = sample
+        self.previous_sample = previous_sample
         pass
