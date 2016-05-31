@@ -142,15 +142,16 @@ class MainWindow(QtGui.QMainWindow):
             # record
             if self.samples_counter < self.experiment_n_samples:
                 self.raw_recorder[self.samples_counter:self.samples_counter+chunk.shape[0]] = chunk[:, :self.n_channels]
-                self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = samples
+                for s, sample in enumerate(samples):
+                    self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0], s] = sample
                 self.samples_counter += chunk.shape[0]
 
         # derived signals
         data_buffer = self.signals_buffer
         data_buffer[:-chunk.shape[0]] = data_buffer[chunk.shape[0]:]
-        data_buffer[-chunk.shape[0]:] = samples
-        for j in range(len(samples)):
-            self.signal_curves[j].setData(x=self.signals_curves_x_net, y=data_buffer[::8, j])
+        for s, sample in enumerate(samples):
+            data_buffer[-chunk.shape[0]:, s] = sample
+            self.signal_curves[s].setData(x=self.signals_curves_x_net, y=data_buffer[::8, s])
 
         # raw signals
         if self.plot_raw_chekbox.isChecked():

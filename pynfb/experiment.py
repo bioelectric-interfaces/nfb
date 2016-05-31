@@ -127,7 +127,8 @@ class Experiment():
                                       n_channels=self.n_channels,
                                       spatial_matrix=(np.loadtxt(signal['SpatialFilterMatrix'])
                                                       if signal['SpatialFilterMatrix'] != ''
-                                                      else None))
+                                                      else None),
+                                      disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'])
                         for signal in self.params['vSignals']]
         self.current_samples = np.zeros_like(self.signals)
 

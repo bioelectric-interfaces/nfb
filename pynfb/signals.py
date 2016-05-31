@@ -7,7 +7,7 @@ from scipy.fftpack import rfft, irfft, fftfreq
 
 class DerivedSignal():
     def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
-                 source_freq=500, scale=False, name='Untitled'):
+                 source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False):
         # signal name
         self.name = name
         # signal buffer
@@ -30,7 +30,8 @@ class DerivedSignal():
             self.spatial_matrix[:shape] = spatial_matrix[:shape]
         # current sample
         self.current_sample = 0
-
+        # bandpass and exponential smoothing flsg
+        self.disable_spectrum_evaluation = disable_spectrum_evaluation
         # bandpass filter settings
         self.w = fftfreq(2*n_samples, d=1. / source_freq * 2)
         self.bandpass = (bandpass_low if bandpass_low else 0,
@@ -48,24 +49,36 @@ class DerivedSignal():
         pass
 
     def update(self, chunk):
+
         # spatial filter
         filtered_chunk = np.dot(chunk, self.spatial_matrix)
+
         # update buffer
         chunk_size = filtered_chunk.shape[0]
         self.buffer[:-chunk_size] = self.buffer[chunk_size:]
         self.buffer[-chunk_size:] = filtered_chunk
-        # bandpass filter and amplitude
-        current_sample = self.get_bandpass_amplitude()
-        if self.scaling_flag:
-            current_sample = (current_sample - self.mean) / self.std
-        # exponential smoothing
-        if self.n_acc > 10:
-            self.current_sample = 0.1*current_sample+0.9*self.current_sample
+
+        if not self.disable_spectrum_evaluation:
+            # bandpass filter and amplitude
+            current_sample = self.get_bandpass_amplitude()
+            if self.scaling_flag:
+                current_sample = (current_sample - self.mean) / self.std
+            # exponential smoothing
+            if self.n_acc > 10:
+                self.current_sample = 0.1*current_sample+0.9*self.current_sample
+            else:
+                self.current_sample = current_sample
+            # accumulate sum and sum^2
+            self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample) / (self.n_acc + chunk_size)
+            self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc) ** 2) / (
+            self.n_acc + chunk_size)
         else:
-            self.current_sample = current_sample
-        # accumulate sum and sum^2
-        self.mean_acc = (self.n_acc*self.mean_acc + chunk_size*self.current_sample)/(self.n_acc+chunk_size)
-        self.var_acc = (self.n_acc*self.var_acc + chunk_size*(self.current_sample - self.mean_acc)**2)/(self.n_acc+chunk_size)
+            # accumulate sum and sum^2
+            self.current_sample = filtered_chunk
+            self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample.sum()) / (self.n_acc + chunk_size)
+            self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc).sum() ** 2) / (
+                self.n_acc + chunk_size)
+
         self.std_acc = self.var_acc**0.5
         self.n_acc += chunk_size
         pass

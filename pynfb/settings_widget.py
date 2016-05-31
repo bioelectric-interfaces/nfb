@@ -81,6 +81,13 @@ class SignalDialog(QtGui.QDialog):
         self.name = QtGui.QLineEdit(self)
         self.name.setText(signal_name)
         self.form_layout.addRow('&Name:', self.name)
+        # spatial filter
+        self.spatial_filter = FileSelectorLine(parent=self)
+        self.form_layout.addRow('Spatial filter:', self.spatial_filter)
+        # disable spectrum evaluation
+        self.disable_spectrum = QtGui.QCheckBox()
+        self.disable_spectrum.stateChanged.connect(self.disable_spectrum_event)
+        self.form_layout.addRow('&Disable spectrum \nevaluation:', self.disable_spectrum)
         # bandpass
         self.bandpass_low = QtGui.QSpinBox()
         self.bandpass_low.setRange(0, 250)
@@ -90,9 +97,6 @@ class SignalDialog(QtGui.QDialog):
         self.bandpass_high.setRange(0, 250)
         self.bandpass_high.setValue(250)
         self.form_layout.addRow('&Bandpass high [Hz]:', self.bandpass_high)
-        # spatial filter
-        self.spatial_filter = FileSelectorLine(parent=self)
-        self.form_layout.addRow('Spatial filter:', self.spatial_filter)
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -103,9 +107,11 @@ class SignalDialog(QtGui.QDialog):
         super().open()
 
     def reset_items(self):
-        self.bandpass_low.setValue(self.params[self.parent().list.currentRow()]['fBandpassLowHz'])
-        self.bandpass_high.setValue(self.params[self.parent().list.currentRow()]['fBandpassHighHz'])
-        self.spatial_filter.path.setText(self.params[self.parent().list.currentRow()]['SpatialFilterMatrix'])
+        current_signal_index = self.parent().list.currentRow()
+        self.disable_spectrum.setChecked(self.params[current_signal_index]['bDisableSpectrumEvaluation'])
+        self.bandpass_low.setValue(self.params[current_signal_index]['fBandpassLowHz'])
+        self.bandpass_high.setValue(self.params[current_signal_index]['fBandpassHighHz'])
+        self.spatial_filter.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
@@ -113,8 +119,17 @@ class SignalDialog(QtGui.QDialog):
         self.params[current_signal_index]['fBandpassLowHz'] = self.bandpass_low.value()
         self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
         self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.path.text()
+        self.params[current_signal_index]['bDisableSpectrumEvaluation'] = int(self.disable_spectrum.isChecked())
         self.parent().reset_items()
         self.close()
+
+    def disable_spectrum_event(self):
+        if self.disable_spectrum.isChecked():
+            self.bandpass_low.setDisabled(True)
+            self.bandpass_high.setDisabled(True)
+        else:
+            self.bandpass_low.setDisabled(False)
+            self.bandpass_high.setDisabled(False)
 
 
 class ProtocolsSettingsWidget(QtGui.QWidget):

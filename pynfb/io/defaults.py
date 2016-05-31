@@ -14,12 +14,12 @@ general_defaults = OrderedDict([
 vectors_defaults = OrderedDict([
     ('sExperimentName', 'experiment'),
     ('sStreamName', 'NVX136_Data'),
-    ('fSamplingFrequency', 500),
     ('sRawDataFilePath', ''),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),
             ('SpatialFilterMatrix', ''),
+            ('bDisableSpectrumEvaluation', 0),
             ('fBandpassLowHz', 0),
             ('fBandpassHighHz', 250),
             ('fAverage', ''),
