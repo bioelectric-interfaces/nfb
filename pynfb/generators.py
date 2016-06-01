@@ -31,7 +31,7 @@ def run_eeg_sim(n_channels=50, freq=500, chunk_size=0, source_buffer=None, name=
     t0 = time.time()
     t = t0
     c = 1
-    ampl = 1
+    ampl = 10
     freqs = np.arange(10,n_channels+10)
     sample = np.zeros((n_channels, ))
     while True:
