@@ -2,26 +2,40 @@ from pynfb.protocols_widgets import *
 import numpy as np
 
 class Protocol:
-    def __init__(self, signals, base_signal_id = 0, name='', duration=30, update_statistics_in_the_end=False):
+    def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False):
+        """ Constructor
+        :param signals: derived signals
+        :param source_signal_id: base signal id, or None if 'All' signals using
+        :param name: name of protocol
+        :param duration: duration of protocol
+        :param update_statistics_in_the_end: if true update mean and std scaling parameters of signals
+        """
         self.update_statistics_in_the_end = update_statistics_in_the_end
         self.name = name
         self.duration = duration
         self.widget_painter = None
         self.signals = signals
-        self.base_signal_id = base_signal_id
+        self.source_signal_id = source_signal_id
         pass
 
     def update_state(self, samples, chunk_size=1):
-        self.widget_painter.redraw_state(samples[self.base_signal_id])
+        if self.source_signal_id is not None:
+            self.widget_painter.redraw_state(samples[self.source_signal_id])
+        else:
+            self.widget_painter.redraw_state(samples[0]) #TODO: if source signal is 'ALL'
 
     def update_statistics(self):
         pass
 
     def close_protocol(self):
         if self.update_statistics_in_the_end:
-            for signal in self.signals:
-                signal.update_statistics()
-                signal.enable_scaling()
+            if self.source_signal_id is not None:
+                self.signals[self.source_signal_id].update_statistics()
+                self.signals[self.source_signal_id].enable_scaling()
+            else:
+                for signal in self.signals:
+                    signal.update_statistics()
+                    signal.enable_scaling()
 
 class BaselineProtocol(Protocol):
     def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, **kwargs):

@@ -89,7 +89,7 @@ class Experiment():
         if self.main_timer is not None:
             self.main_timer.stop()
         if self.stream is not None:
-           self.stream.inlet.__del__()
+            self.stream.inlet.__del__()
         if self.thread is not None:
             self.thread.terminate()
 
@@ -110,7 +110,8 @@ class Experiment():
                                   kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                           'name': self.params['sStreamName']})
             self.thread.start()
-        if (self.params['sRawDataFilePath'] == '' and self.params['sStreamName'] == '') or self.params['sStreamName'] == '_generator':
+        if (self.params['sRawDataFilePath'] == '' and self.params['sStreamName'] == '') or self.params[
+            'sStreamName'] == '_generator':
             self.params['sStreamName'] = '_generator'
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
@@ -134,21 +135,32 @@ class Experiment():
 
         # protocols
         self.protocols = []
+        signal_names = [signal.name for signal in self.signals]
         for protocol in self.params['vProtocols']:
+            source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
             if protocol['sFb_type'] == 'Baseline':
-                self.protocols.append(BaselineProtocol(self.signals,
-                                                       duration=protocol['fDuration'],
-                                                       name=protocol['sProtocolName']))
+                self.protocols.append(
+                    BaselineProtocol(
+                        self.signals,
+                        duration=protocol['fDuration'],
+                        name=protocol['sProtocolName'],
+                        source_signal_id=source_signal_id))
             elif protocol['sFb_type'] == 'Circle':
-                self.protocols.append(FeedbackProtocol(self.signals,
-                                                       duration=protocol['fDuration'],
-                                                       name=protocol['sProtocolName']))
+                self.protocols.append(
+                    FeedbackProtocol(
+                        self.signals,
+                        duration=protocol['fDuration'],
+                        name=protocol['sProtocolName'],
+                        source_signal_id=source_signal_id))
             elif protocol['sFb_type'] == 'ThresholdBlink':
-                self.protocols.append(ThresholdBlinkFeedbackProtocol(self.signals,
-                                                                     duration=protocol['fDuration'],
-                                                                     name=protocol['sProtocolName'],
-                                                                     threshold=protocol['fBlinkThreshold'],
-                                                                     time_ms=protocol['fBlinkDurationMs']))
+                self.protocols.append(
+                    ThresholdBlinkFeedbackProtocol(
+                        self.signals,
+                        duration=protocol['fDuration'],
+                        name=protocol['sProtocolName'],
+                        threshold=protocol['fBlinkThreshold'],
+                        time_ms=protocol['fBlinkDurationMs'],
+                        source_signal_id=source_signal_id))
             else:
                 raise TypeError('Undefined protocol type')
 
@@ -157,7 +169,7 @@ class Experiment():
         self.protocols_sequence = []
         for name in self.params['vPSequence']:
             self.protocols_sequence.append(self.protocols[names.index(name)])
-        
+
         # timer
         self.main_timer = QtCore.QTimer(self.app)
         self.main_timer.timeout.connect(self.update)
@@ -168,7 +180,7 @@ class Experiment():
 
         # experiment number of samples
         experiment_n_samples = sum([self.freq * p.duration for p in self.protocols_sequence])
-        
+
         # windows
         self.main = MainWindow(signals=self.signals,
                                parent=None,
@@ -186,4 +198,4 @@ class Experiment():
         self.main_timer.stop()
         del self.stream
         self.stream = None
-        #del self
+        # del self
