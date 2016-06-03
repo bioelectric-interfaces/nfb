@@ -26,9 +26,9 @@ class FieldTripBufferInlet():
         # Else retrieve all the new samples
         else:
             retrieve_from = self.last_repeated_sample+1
-        D = self.ftc.getData([retrieve_from, last_sample])
+        chunk = self.ftc.getData([retrieve_from, last_sample])
         self.last_repeated_sample = last_sample
-        return D
+        return chunk.astype('float64')
 
     def update_action(self):
         pass
