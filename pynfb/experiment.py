@@ -3,7 +3,7 @@ from multiprocessing import Process
 
 from pynfb.generators import run_eeg_sim
 from pynfb.signals import DerivedSignal
-from pynfb.lsl_stream import LSLStream, LSL_STREAM_NAMES
+from pynfb.lsl_inlet import LSLInlet, LSL_STREAM_NAMES
 from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
 from PyQt4 import QtGui, QtCore
 from pynfb.io.hdf5 import load_h5py, save_h5py
@@ -12,7 +12,7 @@ from pynfb.windows import MainWindow
 import numpy as np
 from datetime import datetime
 import os
-
+from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
 
 # helpers
 def int_or_none(string):
@@ -89,7 +89,7 @@ class Experiment():
         if self.main_timer is not None:
             self.main_timer.stop()
         if self.stream is not None:
-            self.stream.inlet.__del__()
+            self.stream.disconnect()
         if self.thread is not None:
             self.thread.terminate()
 
@@ -117,9 +117,10 @@ class Experiment():
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
             self.thread.start()
 
-        self.stream = LSLStream(name=self.params['sStreamName'])
-        self.freq = self.stream.inlet.info().nominal_srate()
-        self.n_channels = self.stream.inlet.info().channel_count()
+        self.stream = LSLInlet(name=self.params['sStreamName'])
+        # self.stream = FieldTripBufferInlet()
+        self.freq = self.stream.get_frequency()
+        self.n_channels = self.stream.get_n_channels()
 
         # signals
         self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],

@@ -8,14 +8,14 @@ fmt2string = ['undefined', 'float32', 'float64', 'str', 'int32', 'int16',
 LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
 LSL_RESOLVE_TIMEOUT = 10
 
-class LSLStream():
+class LSLInlet():
     def __init__(self, name=LSL_STREAM_NAMES[2], max_chunklen=8):
         streams = resolve_byprop('name', name, timeout=LSL_RESOLVE_TIMEOUT)
         self.inlet = None
         self.dtype = 'float64'
         if len(streams) > 0:
             self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
-            self.dtype = fmt2string[self.inlet.info().channel_format()]
+            #self.dtype = fmt2string[self.inlet.info().channel_format()]
             print(self.dtype)
 
 
@@ -33,3 +33,13 @@ class LSLStream():
     def save_info(self, file):
         with open(file, 'w') as f:
             f.write(self.inlet.info().as_xml())
+
+    def get_frequency(self):
+        return self.inlet.info().nominal_srate()
+
+    def get_n_channels(self):
+        return self.inlet.info().channel_count()
+
+    def disconnect(self):
+        del self.inlet
+        self.inlet = None
