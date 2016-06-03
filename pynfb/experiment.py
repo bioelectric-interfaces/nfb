@@ -1,18 +1,18 @@
-import threading
+import os
+from datetime import datetime
 from multiprocessing import Process
 
+import numpy as np
+from PyQt4 import QtCore
+
 from pynfb.generators import run_eeg_sim
-from pynfb.signals import DerivedSignal
-from pynfb.lsl_inlet import LSLInlet, LSL_STREAM_NAMES
-from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
-from PyQt4 import QtGui, QtCore
+from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
+from pynfb.inlets.lsl_inlet import LSLInlet
 from pynfb.io.hdf5 import load_h5py, save_h5py
 from pynfb.io.xml import params_to_xml_file
+from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
+from pynfb.signals import DerivedSignal
 from pynfb.windows import MainWindow
-import numpy as np
-from datetime import datetime
-import os
-from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
 
 # helpers
 def int_or_none(string):
@@ -103,22 +103,22 @@ class Experiment():
 
         # run raw
         self.thread = None
-        if self.params['sRawDataFilePath'] != '':
-            self.params['sStreamName'] = '_raw'
+        if self.params['sInletType'] == 'lsl_from_file':
             source_buffer = load_h5py(self.params['sRawDataFilePath']).T
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                           'name': self.params['sStreamName']})
             self.thread.start()
-        if (self.params['sRawDataFilePath'] == '' and self.params['sStreamName'] == '') or self.params[
-            'sStreamName'] == '_generator':
-            self.params['sStreamName'] = '_generator'
+        elif self.params['sInletType'] == 'lsl_generator':
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
             self.thread.start()
-
-        self.stream = LSLInlet(name=self.params['sStreamName'])
-        # self.stream = FieldTripBufferInlet()
+        if self.params['sInletType'] == 'ftbuffer':
+            hostname, port = self.params['sFTHostnamePort'].split(':')
+            port = int(port)
+            self.stream = FieldTripBufferInlet(hostname, port)
+        else:
+            self.stream = LSLInlet(name=self.params['sStreamName'])
         self.freq = self.stream.get_frequency()
         self.n_channels = self.stream.get_n_channels()
 

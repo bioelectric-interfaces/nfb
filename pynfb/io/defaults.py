@@ -11,10 +11,13 @@ general_defaults = OrderedDict([
     #    ('dInitBand', '8 16')]))
 ])
 
+
 vectors_defaults = OrderedDict([
     ('sExperimentName', 'experiment'),
+    ('sInletType', 'lsl'),
     ('sStreamName', 'NVX136_Data'),
     ('sRawDataFilePath', ''),
+    ('sFTHostnamePort', 'localhost:1972'),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),

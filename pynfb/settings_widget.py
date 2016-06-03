@@ -15,6 +15,9 @@ protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 protocols_types = ['Baseline', 'Circle', 'ThresholdBlink']
 
 
+inlet_types = ['lsl', 'lsl_from_file', 'lsl_generator', 'ftbuffer']
+
+
 class SignalsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -355,56 +358,75 @@ class InletSettingsWidget(QtGui.QWidget):
         self.setContentsMargins(0,0,0,0)
         self.combo = QtGui.QComboBox()
         self.combo.addItem('LSL stream')
-        self.combo.addItem('Raw file  ')
-        self.combo.addItem('Generator')
-        self.stream_name = QtGui.QLineEdit()
-        self.stream_name.textChanged.connect(self.stream_name_changed_event)
-        self.raw_path = QtGui.QLineEdit('')
-        self.raw_path.textChanged.connect(self.raw_path_changed_event)
+        self.combo.addItem('LSL from file')
+        self.combo.addItem('LSL generator')
+        self.combo.addItem('Field Trip buffer')
+        self.line_edit_1 = QtGui.QLineEdit()
+        self.line_edit_1.textChanged.connect(self.line_edit_1_changed_event)
+        self.line_edit_2 = QtGui.QLineEdit()
+        self.line_edit_2.textChanged.connect(self.line_edit_2_changed_event)
+        #self.stream_name = QtGui.QLineEdit()
+        #self.stream_name.textChanged.connect(self.stream_name_changed_event)
+        #self.raw_path = QtGui.QLineEdit('')
+        #self.raw_path.textChanged.connect(self.raw_path_changed_event)
         self.raw_select_button = QtGui.QPushButton('Select file...')
         self.raw_select_button.clicked.connect(self.chose_file_action)
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.combo)
-        layout.addWidget(self.stream_name)
-        layout.addWidget(self.raw_path)
+        layout.addWidget(self.line_edit_1)
+        layout.addWidget(self.line_edit_2)
+        #layout.addWidget(self.stream_name)
+        #layout.addWidget(self.raw_path)
         layout.addWidget(self.raw_select_button)
         layout.setMargin(0)
         self.setLayout(layout)
         self.combo.currentIndexChanged.connect(self.combo_changed_event)
+        self.combo.setCurrentIndex(inlet_types.index(self.parent().params['sInletType']))
         self.combo_changed_event()
 
+
+    def line_edit_2_changed_event(self):
+        host, port = self.parent().params['sFTHostnamePort'].split(':')
+        self.parent().params['sFTHostnamePort'] = host + ':' + self.line_edit_2.text()
+
+    def line_edit_1_changed_event(self):
+        if self.combo.currentIndex() == 0:
+            self.parent().params['sStreamName'] = self.line_edit_1.text()
+        elif self.combo.currentIndex() == 1:
+            self.parent().params['sRawDataFilePath'] = self.line_edit_1.text()
+        elif self.combo.currentIndex() == 2:
+            pass
+        elif self.combo.currentIndex() == 3:
+            host, port = self.parent().params['sFTHostnamePort'].split(':')
+            self.parent().params['sFTHostnamePort'] = self.line_edit_1.text()+':'+port
+
     def combo_changed_event(self):
+        self.parent().params['sInletType'] = inlet_types[self.combo.currentIndex()]
+        self.raw_select_button.hide()
+        self.line_edit_1.setEnabled(True)
+        self.line_edit_2.hide()
         if self.combo.currentIndex()==0:
-            self.stream_name.show()
-            self.stream_name.setPlaceholderText('Print LSL stream name')
-            self.stream_name.setText(self.parent().params['sStreamName'])
-            self.raw_path.hide()
-            self.raw_path.setText('')
-            self.raw_select_button.hide()
+            self.line_edit_1.setPlaceholderText('Print LSL stream name')
+            self.line_edit_1.setText(self.parent().params['sStreamName'])
         elif self.combo.currentIndex()==1:
-            self.raw_path.show()
             self.raw_select_button.show()
-            self.stream_name.hide()
-            self.stream_name.setText('')
-            self.raw_path.setPlaceholderText('Print raw data file path')
-            self.raw_path.setText(self.parent().params['sRawDataFilePath'])
+            self.line_edit_1.setPlaceholderText('Print raw data file path')
+            self.line_edit_1.setText(self.parent().params['sRawDataFilePath'])
         elif self.combo.currentIndex()==2:
-            self.raw_path.hide()
-            self.raw_path.setText('')
-            self.stream_name.setText('')
-            self.stream_name.hide()
-            self.raw_select_button.hide()
-
-    def stream_name_changed_event(self):
-        self.parent().params['sStreamName'] = self.stream_name.text()
-
-    def raw_path_changed_event(self):
-        self.parent().params['sRawDataFilePath'] = self.raw_path.text()
-        print(self.parent().params)
+            self.line_edit_1.setPlaceholderText('')
+            self.line_edit_1.setEnabled(False)
+            self.line_edit_1.setText('')
+        elif self.combo.currentIndex()==3:
+            host, port = self.parent().params['sFTHostnamePort'].split(':')
+            self.line_edit_2.show()
+            self.line_edit_1.setPlaceholderText('Hostname')
+            self.line_edit_2.setPlaceholderText('Port')
+            self.line_edit_1.setText(host)
+            self.line_edit_2.setText(port)
 
     def chose_file_action(self):
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', './')
-        self.raw_path.setText(fname)
+        self.line_edit_1.setText(fname)
         self.parent().params['sRawDataFilePath'] = fname
 
 class GeneralSettingsWidget(QtGui.QWidget):
@@ -421,7 +443,7 @@ class GeneralSettingsWidget(QtGui.QWidget):
         # composite montage
         self.montage = QtGui.QLineEdit(self)
         self.montage.setPlaceholderText('Print path to file')
-        self.form_layout.addRow('&Composite montage:', self.montage)
+        self.form_layout.addRow('&Composite\nmontage:', self.montage)
         # inlet
         self.inlet = InletSettingsWidget(parent=self)
         self.form_layout.addRow('&Inlet:', self.inlet)
@@ -442,7 +464,6 @@ class SettingsWidget(QtGui.QWidget):
         self.app = app
         v_layout = QtGui.QVBoxLayout()
         layout = QtGui.QHBoxLayout()
-
         self.params = xml_file_to_params()
         self.general_settings = GeneralSettingsWidget(parent=self)
         v_layout.addWidget(self.general_settings)

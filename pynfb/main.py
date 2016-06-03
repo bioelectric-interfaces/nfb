@@ -49,7 +49,7 @@ class TheMainWindow(QtGui.QMainWindow):
         self.widget = SettingsWidget(self.app)
         self.setCentralWidget(self.widget)
         # window settings
-        self.setGeometry(200, 200, 900, 400)
+        self.setGeometry(200, 200, 500, 400)
         self.setWindowTitle('Experiment settings')
         self.show()
 
