@@ -53,7 +53,8 @@ def xml_file_to_params(filename=None):
     d = format_odict_by_defaults(d, vectors_defaults)
     d['vSignals'] = d['vSignals']['DerivedSignal']
     d['vProtocols'] = d['vProtocols']['FeedbackProtocol']
-    d['vPSequence'] = d['vPSequence']['s']
+    protocols_sequence = d['vPSequence']['s']
+    d['vPSequence'] = [protocols_sequence] if isinstance(protocols_sequence, str) else protocols_sequence
     #print(d)
     return d
 
