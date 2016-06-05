@@ -30,6 +30,7 @@ class DerivedSignal():
             self.spatial_matrix[:shape] = spatial_matrix[:shape]
         # current sample
         self.current_sample = 0
+        self.previous_sample = 0
         # bandpass and exponential smoothing flsg
         self.disable_spectrum_evaluation = disable_spectrum_evaluation
         # bandpass filter settings
@@ -60,14 +61,13 @@ class DerivedSignal():
 
         if not self.disable_spectrum_evaluation:
             # bandpass filter and amplitude
-            current_sample = self.get_bandpass_amplitude()
-            if self.scaling_flag:
-                current_sample = (current_sample - self.mean) / self.std
+            filtered_sample = self.get_bandpass_amplitude()
             # exponential smoothing
             if self.n_acc > 10:
-                self.current_sample = 0.1*current_sample+0.9*self.current_sample
+                self.current_sample = 0.1*filtered_sample+0.9*self.previous_sample
             else:
-                self.current_sample = current_sample
+                self.current_sample = filtered_sample
+            self.previous_sample = self.current_sample
             # accumulate sum and sum^2
             self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample) / (self.n_acc + chunk_size)
             self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc) ** 2) / (
@@ -75,8 +75,6 @@ class DerivedSignal():
         else:
             # accumulate sum and sum^2
             self.current_sample = filtered_chunk
-            if self.scaling_flag:
-                self.current_sample = (self.current_sample - self.mean) / self.std
             self.mean_acc = (self.n_acc * self.mean_acc + self.current_sample.sum()) / (self.n_acc + chunk_size)
             self.var_acc = (self.n_acc * self.var_acc + (self.current_sample - self.mean_acc).sum() ** 2) / (
                 self.n_acc + chunk_size)
@@ -84,6 +82,10 @@ class DerivedSignal():
         self.std_acc = self.var_acc**0.5
         self.n_acc += chunk_size
 
+        if self.scaling_flag:
+            self.current_sample = (self.current_sample - self.mean) / self.std
+
+        print(self.n_acc)
 
         pass
 
@@ -97,6 +99,9 @@ class DerivedSignal():
     def update_statistics(self):
         self.mean = self.mean_acc
         self.std = self.std_acc
+        self.reset_statistic_acc()
+
+    def reset_statistic_acc(self):
         self.mean_acc = 0
         self.var_acc = 0
         self.std_acc = 0

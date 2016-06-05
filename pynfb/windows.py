@@ -68,6 +68,8 @@ class MainWindow(QtGui.QMainWindow):
         # player panel
         self.player_panel = PlayerButtonsWidget(parent=self)
         self.player_panel.restart.clicked.connect(self.restart_experiment)
+        for signal in signals:
+            self.player_panel.start.clicked.connect(signal.reset_statistic_acc)
 
 
         # timer label

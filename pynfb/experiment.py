@@ -71,6 +71,7 @@ class Experiment():
             # change protocol widget
             self.subject.change_protocol(self.protocols_sequence[self.current_protocol_index])
         else:
+            self.protocols_sequence[-1].close_protocol()
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
