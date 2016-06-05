@@ -429,6 +429,10 @@ class InletSettingsWidget(QtGui.QWidget):
         self.line_edit_1.setText(fname)
         self.parent().params['sRawDataFilePath'] = fname
 
+    def reset(self):
+        self.combo.setCurrentIndex(inlet_types.index(self.parent().params['sInletType']))
+        self.combo_changed_event()
+
 class GeneralSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -455,7 +459,7 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def reset(self):
         self.params = self.parent().params
         self.name.setText(self.params['sExperimentName'])
-        self.inlet.combo_changed_event()
+        self.inlet.reset()
 
 
 class SettingsWidget(QtGui.QWidget):
