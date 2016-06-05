@@ -441,7 +441,6 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.setLayout(self.form_layout)
         # name
         self.name = QtGui.QLineEdit(self)
-        self.name.setText(self.params['sExperimentName'])
         self.name.textChanged.connect(self.name_changed_event)
         self.form_layout.addRow('&Name:', self.name)
         # composite montage
@@ -451,14 +450,23 @@ class GeneralSettingsWidget(QtGui.QWidget):
         # inlet
         self.inlet = InletSettingsWidget(parent=self)
         self.form_layout.addRow('&Inlet:', self.inlet)
+        # plot raw flag
+        self.plot_raw_check = QtGui.QCheckBox()
+        self.plot_raw_check.clicked.connect(self.plot_raw_checkbox_event)
+        self.form_layout.addRow('&Plot raw:', self.plot_raw_check)
+        self.reset()
         #self.stream
 
     def name_changed_event(self):
         self.params['sExperimentName'] = self.name.text()
 
+    def plot_raw_checkbox_event(self):
+        self.params['bPlotRaw'] = int(self.plot_raw_check.isChecked())
+
     def reset(self):
         self.params = self.parent().params
         self.name.setText(self.params['sExperimentName'])
+        self.plot_raw_check.setChecked(self.params['bPlotRaw'])
         self.inlet.reset()
 
 

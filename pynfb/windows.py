@@ -58,7 +58,7 @@ class PlayerButtonsWidget(QtGui.QWidget):
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, experiment_n_samples=None,
-                 experiment=None, freq=500):
+                 experiment=None, freq=500, plot_raw_flag=True):
         super(MainWindow, self).__init__(parent)
         #link to experiment
 
@@ -102,7 +102,7 @@ class MainWindow(QtGui.QMainWindow):
         self.raw.setXRange(0, self.n_samples / self.source_freq)
         self.raw.showGrid(x=None, y=True, alpha=1)
         self.plot_raw_chekbox = QtGui.QCheckBox('plot raw')
-        self.plot_raw_chekbox.setChecked(True)
+        self.plot_raw_chekbox.setChecked(plot_raw_flag)
         self.autoscale_raw_chekbox = QtGui.QCheckBox('autoscale')
         self.autoscale_raw_chekbox.setChecked(True)
         for i in range(self.n_channels):

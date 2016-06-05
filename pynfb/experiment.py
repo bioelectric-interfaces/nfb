@@ -190,7 +190,8 @@ class Experiment():
                                n_signals=len(self.signals),
                                experiment_n_samples=experiment_n_samples,
                                freq=self.freq,
-                               n_channels=self.n_channels)
+                               n_channels=self.n_channels,
+                               plot_raw_flag=self.params['bPlotRaw'])
         self.subject = self.main.subject_window
 
     def destroy(self):
