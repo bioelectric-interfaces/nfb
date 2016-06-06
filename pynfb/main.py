@@ -58,7 +58,6 @@ class TheMainWindow(QtGui.QMainWindow):
         params = xml_file_to_params(fname)
         self.widget.params = params
         self.widget.reset_parameters()
-        print(self.widget.params)
 
     def save_event(self):
         #print(self.widget.params)

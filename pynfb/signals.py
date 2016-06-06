@@ -84,9 +84,6 @@ class DerivedSignal():
 
         if self.scaling_flag:
             self.current_sample = (self.current_sample - self.mean) / self.std
-
-        print(self.n_acc)
-
         pass
 
     def get_bandpass_amplitude(self):
