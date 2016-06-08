@@ -8,7 +8,7 @@ from PyQt4 import QtCore
 from pynfb.generators import run_eeg_sim
 from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
 from pynfb.inlets.lsl_inlet import LSLInlet
-from pynfb.io.hdf5 import load_h5py_all_samples, save_h5py
+from pynfb.io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
 from pynfb.io.xml import params_to_xml_file
 from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
 from pynfb.signals import DerivedSignal
@@ -29,6 +29,7 @@ class Experiment():
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
         os.makedirs(self.dir_name)
+        self.mock_signals_buffer = None
         self.restart()
 
         pass
@@ -51,7 +52,11 @@ class Experiment():
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
             # redraw protocols
-            self.subject.update_protocol_state(self.current_samples, chunk_size=chunk.shape[0])
+            if self.protocols_sequence[self.current_protocol_index].mock_samples_file_path is None:
+                self.subject.update_protocol_state(self.current_samples, chunk_size=chunk.shape[0])
+            else:
+                mock_samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
+                self.subject.update_protocol_state(mock_samples, chunk_size=chunk.shape[0])
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples:
                 self.next_protocol()
@@ -82,6 +87,10 @@ class Experiment():
             self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
             # change protocol widget
             self.subject.change_protocol(self.protocols_sequence[self.current_protocol_index])
+            if self.protocols_sequence[self.current_protocol_index].mock_samples_file_path is not None:
+                self.mock_signals_buffer = load_h5py(
+                    self.protocols_sequence[self.current_protocol_index].mock_samples_file_path,
+                    self.protocols_sequence[self.current_protocol_index].mock_samples_protocol)
 
         else:
             # action in the end of protocols sequence
@@ -148,8 +157,11 @@ class Experiment():
         # protocols
         self.protocols = []
         signal_names = [signal.name for signal in self.signals]
+
         for protocol in self.params['vProtocols']:
             source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
+            mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
+                         protocol['sMockSignalFileDataset'])
             if protocol['sFb_type'] == 'Baseline':
                 self.protocols.append(
                     BaselineProtocol(
@@ -163,7 +175,8 @@ class Experiment():
                         self.signals,
                         duration=protocol['fDuration'],
                         name=protocol['sProtocolName'],
-                        source_signal_id=source_signal_id))
+                        source_signal_id=source_signal_id,
+                        mock_samples_path=mock_path))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(

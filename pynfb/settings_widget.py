@@ -244,6 +244,14 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_duration_ms.setEnabled(False)
         self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
         self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
+        # mock settings
+        #self.mock_checkbox = QtGui.QCheckBox()
+        #self.form_layout.addRow('&Enable mock signals:', self.mock_checkbox)
+        self.mock_file = FileSelectorLine()
+        self.form_layout.addRow('&Mock signals file:', self.mock_file)
+        self.mock_dataset = QtGui.QLineEdit('protocol1')
+        self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
+
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -278,6 +286,8 @@ class ProtocolDialog(QtGui.QDialog):
             self.type.findText(current_protocol['sFb_type'], QtCore.Qt.MatchFixedString))
         self.blink_duration_ms.setValue(current_protocol['fBlinkDurationMs'])
         self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
+        self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
+        self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         pass
 
     def save_and_close(self):
@@ -289,6 +299,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
         self.params[current_signal_index]['fBlinkDurationMs'] = self.blink_duration_ms.value()
         self.params[current_signal_index]['fBlinkThreshold'] = self.blink_threshold.value()
+        self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()
+        self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
         self.parent().reset_items()
         self.close()
 

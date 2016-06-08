@@ -46,7 +46,9 @@ vectors_defaults = OrderedDict([
             # ('dBand', ''),
             ('cString', ''),
             ('fBlinkDurationMs', 50),
-            ('fBlinkThreshold', 0)
+            ('fBlinkThreshold', 0),
+            ('sMockSignalFilePath', ''),
+            ('sMockSignalFileDataset', 'protocol1')
         ])])])),
     ('vPSequence', OrderedDict([
         ('s', ['Protocol'])])),

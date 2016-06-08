@@ -2,7 +2,8 @@ from pynfb.protocols_widgets import *
 import numpy as np
 
 class Protocol:
-    def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False):
+    def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
+                 mock_samples_path = (None, None)):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -11,6 +12,7 @@ class Protocol:
         :param update_statistics_in_the_end: if true update mean and std scaling parameters of signals
         """
         self.update_statistics_in_the_end = update_statistics_in_the_end
+        self.mock_samples_file_path, self.mock_samples_protocol = mock_samples_path
         self.name = name
         self.duration = duration
         self.widget_painter = None
