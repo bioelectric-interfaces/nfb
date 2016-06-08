@@ -8,7 +8,7 @@ from PyQt4 import QtCore
 from pynfb.generators import run_eeg_sim
 from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
 from pynfb.inlets.lsl_inlet import LSLInlet
-from pynfb.io.hdf5 import load_h5py, save_h5py
+from pynfb.io.hdf5 import load_h5py_all_samples, save_h5py
 from pynfb.io.xml import params_to_xml_file
 from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
 from pynfb.signals import DerivedSignal
@@ -26,7 +26,11 @@ class Experiment():
         self.main_timer = None
         self.stream = None
         self.thread = None
+        timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
+        self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
+        os.makedirs(self.dir_name)
         self.restart()
+
         pass
 
     def update(self):
@@ -59,32 +63,38 @@ class Experiment():
         """
         # reset samples counter
         self.samples_counter = 0
+        # save raw and signals samples
+        save_h5py(self.dir_name + 'raw.h5', self.main.raw_recorder[:self.main.samples_counter],
+                  'protocol' + str(self.current_protocol_index + 1))
+        save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder[:self.main.samples_counter],
+                  'protocol' + str(self.current_protocol_index + 1))
+        self.main.samples_counter = 0
+        # close previous protocol
+        self.protocols_sequence[self.current_protocol_index].close_protocol()
+        # reset buffer if previous protocol has true value in update_statistics_in_the_end
+        if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
+            self.main.signals_buffer *= 0
+
         if self.current_protocol_index < len(self.protocols_sequence) - 1:
-            # close previous protocol
-            self.protocols_sequence[self.current_protocol_index].close_protocol()
-            # reset buffer if previous protocol has true value in update_statistics_in_the_end
-            if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
-                self.main.signals_buffer *= 0
+
             # update current protocol index and n_samples
             self.current_protocol_index += 1
             self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
             # change protocol widget
             self.subject.change_protocol(self.protocols_sequence[self.current_protocol_index])
+
         else:
-            self.protocols_sequence[-1].close_protocol()
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
             self.subject.close()
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
-            timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
-            dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
-            os.makedirs(dir_name)
-            save_h5py(dir_name + 'raw.h5', self.main.raw_recorder)
-            save_h5py(dir_name + 'signals.h5', self.main.signals_recorder)
-            params_to_xml_file(self.params, dir_name + 'settings.xml')
-            self.stream.save_info(dir_name + 'lsl_stream_info.xml')
+
+            #save_h5py(self.dir_name + 'raw.h5', self.main.raw_recorder)
+            #save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
+            params_to_xml_file(self.params, self.dir_name + 'settings.xml')
+            self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
 
     def restart(self):
         if self.main_timer is not None:
@@ -105,7 +115,7 @@ class Experiment():
         # run raw
         self.thread = None
         if self.params['sInletType'] == 'lsl_from_file':
-            source_buffer = load_h5py(self.params['sRawDataFilePath']).T
+            source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                           'name': self.params['sStreamName']})
@@ -181,7 +191,7 @@ class Experiment():
         self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
 
         # experiment number of samples
-        experiment_n_samples = sum([self.freq * p.duration for p in self.protocols_sequence])
+        max_protocol_n_samples = max([self.freq * p.duration for p in self.protocols_sequence])
 
         # windows
         self.main = MainWindow(signals=self.signals,
@@ -189,7 +199,7 @@ class Experiment():
                                experiment=self,
                                current_protocol=self.protocols_sequence[self.current_protocol_index],
                                n_signals=len(self.signals),
-                               experiment_n_samples=experiment_n_samples,
+                               max_protocol_n_samples=max_protocol_n_samples,
                                freq=self.freq,
                                n_channels=self.n_channels,
                                plot_raw_flag=self.params['bPlotRaw'])

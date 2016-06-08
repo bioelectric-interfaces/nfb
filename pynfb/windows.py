@@ -57,7 +57,7 @@ class PlayerButtonsWidget(QtGui.QWidget):
 
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, experiment_n_samples=None,
+    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, max_protocol_n_samples=None,
                  experiment=None, freq=500, plot_raw_flag=True):
         super(MainWindow, self).__init__(parent)
         #link to experiment
@@ -87,10 +87,10 @@ class MainWindow(QtGui.QMainWindow):
         self.signals_curves_x_net = np.linspace(0, 8000 / self.source_freq, 8000 / 8)
 
         # data recorders
-        self.experiment_n_samples = experiment_n_samples
+        self.experiment_n_samples = max_protocol_n_samples
         self.samples_counter = 0
-        self.raw_recorder = np.zeros((experiment_n_samples*110//100, n_channels)) * np.nan
-        self.signals_recorder = np.zeros((experiment_n_samples*110//100, n_signals)) * np.nan
+        self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, n_channels)) * np.nan
+        self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, n_signals)) * np.nan
 
         # raw data viewer
         self.raw = pg.PlotWidget(self)
