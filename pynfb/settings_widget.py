@@ -233,6 +233,7 @@ class ProtocolDialog(QtGui.QDialog):
         for protocol_type in protocols_types:
             self.type.addItem(protocol_type)
         self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
+        self.type.currentIndexChanged.connect(self.set_enabled_mock_settings)
         #self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
         # threshold blink settings
@@ -251,6 +252,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Mock signals file:', self.mock_file)
         self.mock_dataset = QtGui.QLineEdit('protocol1')
         self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
+        self.set_enabled_mock_settings()
 
         # ok button
         self.save_button = QtGui.QPushButton('Save')
@@ -268,6 +270,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_threshold.setEnabled(flag)
         self.blink_duration_ms.setEnabled(flag)
 
+    def set_enabled_mock_settings(self):
+        flag = (self.type.currentText() == 'Circle')
+        self.mock_file.setEnabled(flag)
+        self.mock_dataset.setEnabled(flag)
 
 
     def open(self):
