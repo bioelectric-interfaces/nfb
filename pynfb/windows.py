@@ -58,7 +58,7 @@ class PlayerButtonsWidget(QtGui.QWidget):
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, max_protocol_n_samples=None,
-                 experiment=None, freq=500, plot_raw_flag=True):
+                 experiment=None, freq=500, plot_raw_flag=True, channels_labels=None):
         super(MainWindow, self).__init__(parent)
         #link to experiment
 
@@ -102,6 +102,12 @@ class MainWindow(QtGui.QMainWindow):
         self.x_mesh = np.linspace(0, self.n_samples / self.source_freq, self.n_samples)
         self.raw.setYRange(0, min(8, self.n_channels))
         self.raw.setXRange(0, self.n_samples / self.source_freq)
+        self.raw.getPlotItem().showAxis('right')
+        self.raw.getPlotItem().getAxis('right').setTicks(
+            [[(val, tick) for val, tick in zip(range(1, n_channels + 1, 2), range(1, n_channels + 1, 2))],
+             [(val, tick) for val, tick in zip(range(1, n_channels + 1), range(1, n_channels + 1))]])
+        self.raw.getPlotItem().getAxis('left').setTicks(
+            [[(val, tick) for val, tick in zip(range(1, n_channels+1), channels_labels)]])
         self.raw.showGrid(x=None, y=True, alpha=1)
         self.plot_raw_chekbox = QtGui.QCheckBox('plot raw')
         self.plot_raw_chekbox.setChecked(plot_raw_flag)

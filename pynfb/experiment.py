@@ -141,6 +141,7 @@ class Experiment():
             self.stream = LSLInlet(name=self.params['sStreamName'])
         self.freq = self.stream.get_frequency()
         self.n_channels = self.stream.get_n_channels()
+        channels_labels = self.stream.get_channels_labels()
 
         # signals
         self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
@@ -215,7 +216,8 @@ class Experiment():
                                max_protocol_n_samples=max_protocol_n_samples,
                                freq=self.freq,
                                n_channels=self.n_channels,
-                               plot_raw_flag=self.params['bPlotRaw'])
+                               plot_raw_flag=self.params['bPlotRaw'],
+                               channels_labels=channels_labels)
         self.subject = self.main.subject_window
 
     def destroy(self):
