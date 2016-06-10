@@ -18,7 +18,7 @@ def run_eeg_sim(n_channels=50, freq=500, chunk_size=0, source_buffer=None, name=
                       channel_format='float32', source_id='myuid34234')
 
     # channels labels (in accordance with XDF format, see also code.google.com/p/xdf)
-    labels = ['Ch{}'.format(k) for k in range(1, n_channels)]
+    labels = ['Ch{}'.format(k + 1) for k in range(n_channels)]
     chns = info.desc().append_child("channels")
     for label in labels:
         ch = chns.append_child("channel")
