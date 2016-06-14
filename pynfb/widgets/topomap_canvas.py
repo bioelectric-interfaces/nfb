@@ -10,23 +10,23 @@ except ImportError:
 
 
 class TopographicMapCanvas(FigureCanvas):
-    def __init__(self, data, pos, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, data, pos, names=None, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         self.colorbar = None
         FigureCanvas.__init__(self, self.fig)
-        self.update_figure(data, pos)
+        self.update_figure(data, pos, names)
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self,
                                    QtGui.QSizePolicy.Expanding,
                                    QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def update_figure(self, data, pos):
+    def update_figure(self, data, pos, names=None):
         self.axes.clear()
         if self.colorbar:
             self.colorbar.remove()
-        a, b = plot_topomap(data, pos, axes=self.axes, show=False, contours=0)
+        a, b = plot_topomap(data, pos, axes=self.axes, show=False, contours=0, names=names, show_names=True, mask=np.arange(len(data))==44)
         self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax = self.axes)
         self.colorbar.ax.tick_params(labelsize=6)
         self.colorbar.ax.set_xticklabels(self.colorbar.ax.get_xticklabels(), rotation=90)

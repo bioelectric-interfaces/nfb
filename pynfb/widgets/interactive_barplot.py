@@ -70,6 +70,8 @@ class ClickableBarplot(pg.PlotWidget):
             self.addItem(rect)
             self.rectangles.append(rect)
         self.set_all_not_current()
+        self.current = 0
+        self.rectangles[0].set_current(True)
 
     def set_all_not_current(self):
         self.current = None
