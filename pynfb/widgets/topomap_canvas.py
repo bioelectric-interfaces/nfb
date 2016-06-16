@@ -26,7 +26,13 @@ class TopographicMapCanvas(FigureCanvas):
         self.axes.clear()
         if self.colorbar:
             self.colorbar.remove()
-        a, b = plot_topomap(data, pos, axes=self.axes, show=False, contours=0, names=names, show_names=True, mask=np.arange(len(data))==44)
+        if names:
+            mask = np.array([name.upper() in ['O1', 'O2', 'CZ', 'T3', 'T4', 'T7', 'T8', 'FP1', 'FP2'] for name in names])
+        else:
+            mask = None
+        a, b = plot_topomap(data, pos, axes=self.axes, show=False, contours=0, names=names, show_names=True,
+                            mask=mask,
+                            mask_params=dict(marker='o', markerfacecolor='k', markeredgecolor='w', linewidth=0, markersize=3))
         self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax = self.axes)
         self.colorbar.ax.tick_params(labelsize=6)
         self.colorbar.ax.set_xticklabels(self.colorbar.ax.get_xticklabels(), rotation=90)

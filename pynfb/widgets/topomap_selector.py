@@ -29,8 +29,8 @@ class TopomapSelector(QtGui.QWidget):
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
-    channels_names = ch_names[:90]
-    x = np.random.rand(10000, 90)
+    channels_names = ch_names[:128]
+    x = np.random.rand(10000, 128)
     pos = ch_names_to_2d_pos(channels_names)
     widget = TopomapSelector(x, pos, names=channels_names)
     widget.show()
