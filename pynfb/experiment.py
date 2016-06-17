@@ -169,7 +169,8 @@ class Experiment():
                         self.signals,
                         duration=protocol['fDuration'],
                         name=protocol['sProtocolName'],
-                        source_signal_id=source_signal_id))
+                        source_signal_id=source_signal_id,
+                        text=protocol['cString'] if protocol['cString']!='' else 'Relax'))
             elif protocol['sFb_type'] == 'Circle':
                 self.protocols.append(
                     FeedbackProtocol(

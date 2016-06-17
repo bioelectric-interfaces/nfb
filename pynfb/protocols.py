@@ -40,11 +40,11 @@ class Protocol:
                     signal.enable_scaling()
 
 class BaselineProtocol(Protocol):
-    def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, **kwargs):
+    def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, text='Relax', **kwargs):
         kwargs['name'] = name
         kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
         super().__init__(signals, **kwargs)
-        self.widget_painter = BaselineProtocolWidgetPainter()
+        self.widget_painter = BaselineProtocolWidgetPainter(text=text)
         pass
 
 

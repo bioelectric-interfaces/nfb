@@ -45,7 +45,7 @@ class CircleFeedbackProtocolWidgetPainter():
         pass
 
 class BaselineProtocolWidgetPainter():
-    def __init__(self, text='Relax your hands', **kwargs):
+    def __init__(self, text='Relax', **kwargs):
         self.text = text
 
     def prepare_widget(self, widget):

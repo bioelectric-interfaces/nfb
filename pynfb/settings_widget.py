@@ -5,15 +5,13 @@ from pynfb.io.defaults import vectors_defaults as defaults
 from pynfb.experiment import Experiment
 import os
 
-
-static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/static')
+static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static')
 
 default_signal = defaults['vSignals']['DerivedSignal'][0]
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 
 protocols_types = ['Baseline', 'Circle', 'ThresholdBlink']
-
 
 inlet_types = ['lsl', 'lsl_from_file', 'lsl_generator', 'ftbuffer']
 
@@ -26,7 +24,7 @@ class SignalsSettingsWidget(QtGui.QWidget):
         # layout
         layout = QtGui.QVBoxLayout()
         self.setLayout(layout)
-        
+
         # label
         label = QtGui.QLabel('Signals:')
         layout.addWidget(label)
@@ -169,7 +167,7 @@ class ProtocolsSettingsWidget(QtGui.QWidget):
         if current >= 0:
             del self.params[current]
             self.reset_items()
-        # self.show()
+            # self.show()
 
     def item_double_clicked_event(self, item):
         self.dialogs[self.list.currentRow()].open()
@@ -191,10 +189,10 @@ class FileSelectorLine(QtGui.QWidget):
         super().__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
         self.setLayout(layout)
-        self.setContentsMargins(0,0,0,0)
+        self.setContentsMargins(0, 0, 0, 0)
         layout.setContentsMargins(0, 0, 0, 0)
         self.path = QtGui.QLineEdit('')
-        #self.path.textChanged.connect(self.raw_path_changed_event)
+        # self.path.textChanged.connect(self.raw_path_changed_event)
         self.select_button = QtGui.QPushButton('Select file...')
         self.select_button.clicked.connect(self.chose_file_action)
         layout.addWidget(self.path)
@@ -203,6 +201,7 @@ class FileSelectorLine(QtGui.QWidget):
     def chose_file_action(self):
         fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', './')
         self.path.setText(fname)
+
 
 class ProtocolDialog(QtGui.QDialog):
     def __init__(self, parent, protocol_name='Protocol'):
@@ -218,20 +217,20 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Name:', self.name)
 
         # duration spin box
-        self.duration =  QtGui.QSpinBox()
+        self.duration = QtGui.QSpinBox()
         self.duration.setRange(0, 1000000)
-        #self.duration.setValue(protocol_default['fDuration'])
+        # self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Duration [s]:', self.duration)
 
         # update statistics in the end
         self.update_statistics = QtGui.QCheckBox()
-        #self.update_statistics.setTristate(protocol_default['bUpdateStatistics'])
+        # self.update_statistics.setTristate(protocol_default['bUpdateStatistics'])
         self.form_layout.addRow('&Update statistics:', self.update_statistics)
 
         # source signal combo box
         self.source_signal = QtGui.QComboBox()
         self.form_layout.addRow('&Source signal:', self.source_signal)
-        #self.source_signal.currentIndexChanged.connect(self.source_signal_changed_event)
+        # self.source_signal.currentIndexChanged.connect(self.source_signal_changed_event)
 
         # feedback type
         self.type = QtGui.QComboBox()
@@ -240,7 +239,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
         self.type.currentIndexChanged.connect(self.set_enabled_mock_settings)
         self.type.currentIndexChanged.connect(self.update_source_signal_combo_box)
-        #self.type.setCurrentIndex(protocols_types.index(self.params))
+        # self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
 
         # threshold blink settings
@@ -254,13 +253,18 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
 
         # mock settings
-        #self.mock_checkbox = QtGui.QCheckBox()
-        #self.form_layout.addRow('&Enable mock signals:', self.mock_checkbox)
+        # self.mock_checkbox = QtGui.QCheckBox()
+        # self.form_layout.addRow('&Enable mock signals:', self.mock_checkbox)
         self.mock_file = FileSelectorLine()
         self.form_layout.addRow('&Mock signals file:', self.mock_file)
         self.mock_dataset = QtGui.QLineEdit('protocol1')
         self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
         self.set_enabled_mock_settings()
+
+        # message text edit
+        self.message = QtGui.QTextEdit()
+        self.message.setMaximumHeight(50)
+        self.form_layout.addRow('&Message:', self.message)
 
         # ok button
         self.save_button = QtGui.QPushButton('Save')
@@ -273,7 +277,6 @@ class ProtocolDialog(QtGui.QDialog):
             self.source_signal.addItem('All')
         for signal in self.parent().parent().params['vSignals']:
             self.source_signal.addItem(signal['sSignalName'])
-
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
@@ -303,6 +306,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
+        self.message.setText(current_protocol['cString'])
         pass
 
     def save_and_close(self):
@@ -316,6 +320,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['fBlinkThreshold'] = self.blink_threshold.value()
         self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()
         self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
+        self.params[current_signal_index]['cString'] = self.message.toPlainText()
         self.parent().reset_items()
         self.close()
 
@@ -326,8 +331,8 @@ class ProtocolSequenceSettingsWidget(QtGui.QWidget):
         self.params = self.parent().params['vPSequence']
         label = QtGui.QLabel('Protocols sequence:')
         self.list = ProtocolSequenceListWidget(parent=self)
-        #self.list.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
-        #self.list.connect.
+        # self.list.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
+        # self.list.connect.
         layout = QtGui.QVBoxLayout()
         layout.addWidget(label)
         layout.addWidget(self.list)
@@ -343,8 +348,6 @@ class ProtocolSequenceSettingsWidget(QtGui.QWidget):
         self.list.reset_items()
 
 
-
-
 class ProtocolSequenceListWidget(QtGui.QListWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -356,7 +359,6 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
     def dropEvent(self, QDropEvent):
         super().dropEvent(QDropEvent)
         self.save()
-
 
     def reset_items(self):
         self.params = self.parent().params
@@ -382,7 +384,7 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
 class InletSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.setContentsMargins(0,0,0,0)
+        self.setContentsMargins(0, 0, 0, 0)
         self.combo = QtGui.QComboBox()
         self.combo.addItem('LSL stream')
         self.combo.addItem('LSL from file')
@@ -392,25 +394,24 @@ class InletSettingsWidget(QtGui.QWidget):
         self.line_edit_1.textChanged.connect(self.line_edit_1_changed_event)
         self.line_edit_2 = QtGui.QLineEdit()
         self.line_edit_2.textChanged.connect(self.line_edit_2_changed_event)
-        #self.stream_name = QtGui.QLineEdit()
-        #self.stream_name.textChanged.connect(self.stream_name_changed_event)
-        #self.raw_path = QtGui.QLineEdit('')
-        #self.raw_path.textChanged.connect(self.raw_path_changed_event)
+        # self.stream_name = QtGui.QLineEdit()
+        # self.stream_name.textChanged.connect(self.stream_name_changed_event)
+        # self.raw_path = QtGui.QLineEdit('')
+        # self.raw_path.textChanged.connect(self.raw_path_changed_event)
         self.raw_select_button = QtGui.QPushButton('Select file...')
         self.raw_select_button.clicked.connect(self.chose_file_action)
         layout = QtGui.QHBoxLayout()
         layout.addWidget(self.combo)
         layout.addWidget(self.line_edit_1)
         layout.addWidget(self.line_edit_2)
-        #layout.addWidget(self.stream_name)
-        #layout.addWidget(self.raw_path)
+        # layout.addWidget(self.stream_name)
+        # layout.addWidget(self.raw_path)
         layout.addWidget(self.raw_select_button)
         layout.setMargin(0)
         self.setLayout(layout)
         self.combo.currentIndexChanged.connect(self.combo_changed_event)
         self.combo.setCurrentIndex(inlet_types.index(self.parent().params['sInletType']))
         self.combo_changed_event()
-
 
     def line_edit_2_changed_event(self):
         host, port = self.parent().params['sFTHostnamePort'].split(':')
@@ -425,25 +426,25 @@ class InletSettingsWidget(QtGui.QWidget):
             pass
         elif self.combo.currentIndex() == 3:
             host, port = self.parent().params['sFTHostnamePort'].split(':')
-            self.parent().params['sFTHostnamePort'] = self.line_edit_1.text()+':'+port
+            self.parent().params['sFTHostnamePort'] = self.line_edit_1.text() + ':' + port
 
     def combo_changed_event(self):
         self.parent().params['sInletType'] = inlet_types[self.combo.currentIndex()]
         self.raw_select_button.hide()
         self.line_edit_1.setEnabled(True)
         self.line_edit_2.hide()
-        if self.combo.currentIndex()==0:
+        if self.combo.currentIndex() == 0:
             self.line_edit_1.setPlaceholderText('Print LSL stream name')
             self.line_edit_1.setText(self.parent().params['sStreamName'])
-        elif self.combo.currentIndex()==1:
+        elif self.combo.currentIndex() == 1:
             self.raw_select_button.show()
             self.line_edit_1.setPlaceholderText('Print raw data file path')
             self.line_edit_1.setText(self.parent().params['sRawDataFilePath'])
-        elif self.combo.currentIndex()==2:
+        elif self.combo.currentIndex() == 2:
             self.line_edit_1.setPlaceholderText('')
             self.line_edit_1.setEnabled(False)
             self.line_edit_1.setText('')
-        elif self.combo.currentIndex()==3:
+        elif self.combo.currentIndex() == 3:
             host, port = self.parent().params['sFTHostnamePort'].split(':')
             self.line_edit_2.show()
             self.line_edit_1.setPlaceholderText('Hostname')
@@ -459,6 +460,7 @@ class InletSettingsWidget(QtGui.QWidget):
     def reset(self):
         self.combo.setCurrentIndex(inlet_types.index(self.parent().params['sInletType']))
         self.combo_changed_event()
+
 
 class GeneralSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -482,7 +484,7 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_raw_check.clicked.connect(self.plot_raw_checkbox_event)
         self.form_layout.addRow('&Plot raw:', self.plot_raw_check)
         self.reset()
-        #self.stream
+        # self.stream
 
     def name_changed_event(self):
         self.params['sExperimentName'] = self.name.text()
@@ -510,17 +512,17 @@ class SettingsWidget(QtGui.QWidget):
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
         self.signals_list = SignalsSettingsWidget(parent=self)
         self.protocols_sequence_list = ProtocolSequenceSettingsWidget(parent=self)
-        #layout.addWidget(self.general_settings)
+        # layout.addWidget(self.general_settings)
         layout.addWidget(self.signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
-        start_button.setIcon(QtGui.QIcon(static_path+'/imag/power-button.png'))
+        start_button.setIcon(QtGui.QIcon(static_path + '/imag/power-button.png'))
         start_button.setMinimumHeight(50)
         start_button.setMinimumWidth(200)
         start_button.clicked.connect(self.onClicked)
         name_layout = QtGui.QHBoxLayout()
-        v_layout.addWidget(start_button, alignment = QtCore.Qt.AlignCenter)
+        v_layout.addWidget(start_button, alignment=QtCore.Qt.AlignCenter)
         self.setLayout(v_layout)
 
     def reset_parameters(self):
@@ -528,7 +530,7 @@ class SettingsWidget(QtGui.QWidget):
         self.protocols_list.reset_items()
         self.protocols_sequence_list.reset_items()
         self.general_settings.reset()
-        #self.params['sExperimentName'] = self.experiment_name.text()
+        # self.params['sExperimentName'] = self.experiment_name.text()
 
     def onClicked(self):
         self.experiment = Experiment(self.app, self.params)
