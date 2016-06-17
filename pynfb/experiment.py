@@ -170,7 +170,9 @@ class Experiment():
                         duration=protocol['fDuration'],
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
-                        text=protocol['cString'] if protocol['cString']!='' else 'Relax'))
+                        text=protocol['cString'] if protocol['cString']!='' else 'Relax',
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])
+                    ))
             elif protocol['sFb_type'] == 'Circle':
                 self.protocols.append(
                     FeedbackProtocol(
@@ -178,7 +180,8 @@ class Experiment():
                         duration=protocol['fDuration'],
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
-                        mock_samples_path=mock_path))
+                        mock_samples_path=mock_path,
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(
@@ -187,7 +190,8 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         threshold=protocol['fBlinkThreshold'],
                         time_ms=protocol['fBlinkDurationMs'],
-                        source_signal_id=source_signal_id))
+                        source_signal_id=source_signal_id,
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])))
             else:
                 raise TypeError('Undefined protocol type')
 
