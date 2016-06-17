@@ -211,31 +211,38 @@ class ProtocolDialog(QtGui.QDialog):
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + protocol_name)
         self.form_layout = QtGui.QFormLayout(self)
-        # name
+
+        # name line edit
         self.name = QtGui.QLineEdit(self)
         self.name.setText(protocol_name)
         self.form_layout.addRow('&Name:', self.name)
-        # duration
+
+        # duration spin box
         self.duration =  QtGui.QSpinBox()
         self.duration.setRange(0, 1000000)
         #self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Duration [s]:', self.duration)
+
         # update statistics in the end
         self.update_statistics = QtGui.QCheckBox()
         #self.update_statistics.setTristate(protocol_default['bUpdateStatistics'])
         self.form_layout.addRow('&Update statistics:', self.update_statistics)
-        # source signal
+
+        # source signal combo box
         self.source_signal = QtGui.QComboBox()
-        self.update_combo_box()
         self.form_layout.addRow('&Source signal:', self.source_signal)
+        #self.source_signal.currentIndexChanged.connect(self.source_signal_changed_event)
+
         # feedback type
         self.type = QtGui.QComboBox()
         for protocol_type in protocols_types:
             self.type.addItem(protocol_type)
         self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
         self.type.currentIndexChanged.connect(self.set_enabled_mock_settings)
+        self.type.currentIndexChanged.connect(self.update_source_signal_combo_box)
         #self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
+
         # threshold blink settings
         self.blink_duration_ms = QtGui.QSpinBox()
         self.blink_duration_ms.setRange(0, 1000000)
@@ -245,6 +252,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_duration_ms.setEnabled(False)
         self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
         self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
+
         # mock settings
         #self.mock_checkbox = QtGui.QCheckBox()
         #self.form_layout.addRow('&Enable mock signals:', self.mock_checkbox)
@@ -259,11 +267,13 @@ class ProtocolDialog(QtGui.QDialog):
         self.save_button.clicked.connect(self.save_and_close)
         self.form_layout.addRow(self.save_button)
 
-    def update_combo_box(self):
+    def update_source_signal_combo_box(self):
         self.source_signal.clear()
+        if self.type.currentText() == 'Baseline':
+            self.source_signal.addItem('All')
         for signal in self.parent().parent().params['vSignals']:
             self.source_signal.addItem(signal['sSignalName'])
-        self.source_signal.addItem('All')
+
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
@@ -275,9 +285,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.mock_file.setEnabled(flag)
         self.mock_dataset.setEnabled(flag)
 
-
     def open(self):
-        self.update_combo_box()
+        self.update_source_signal_combo_box()
         self.reset_items()
         super().open()
 
