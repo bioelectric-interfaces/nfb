@@ -14,6 +14,9 @@ ch_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc
             'Poo9h', 'Poo1', 'Poo2', 'Poo10h', 'Aux 1.1', 'Aux 1.2', 'Aux 2.1', 'Aux 2.2', 'Aux 3.1', 'Aux 3.2',
             'Aux 4.1', 'Aux 4.2']
 
+ch_names32 = ['Fp1','Fp2','F7','F3','Fz','F4','F8','Ft9','Fc5','Fc1','Fc2','Fc6','Ft10','T3','C3','Cz','C4','T4','Tp9',
+              'Cp5','Cp1','Cp2','Cp6','Tp10','T5','P3','Pz','P4','T6','O1','Oz','O2']
+
 
 def run_eeg_sim(n_channels=50, freq=500, chunk_size=0, source_buffer=None, name='example'):
     """
