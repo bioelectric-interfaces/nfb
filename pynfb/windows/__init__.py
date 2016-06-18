@@ -1,13 +1,12 @@
 import os
 import sys
-import time
-
 from PyQt4 import QtGui
-
-from pynfb.protocols.protocols_widgets import *
+from pynfb.protocols.widgets import *
 
 pg.setConfigOptions(antialias=True)
-static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/static')
+
+static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/../static')
+
 
 class LSLPlotDataItem(pg.PlotDataItem):
     def getData(self):

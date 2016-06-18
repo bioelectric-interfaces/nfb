@@ -1,18 +1,16 @@
 import os
 from datetime import datetime
 from multiprocessing import Process
-
 import numpy as np
 from PyQt4 import QtCore
-
-from pynfb.generators import run_eeg_sim
-from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
-from pynfb.inlets.lsl_inlet import LSLInlet
-from pynfb.io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
-from pynfb.io.xml import params_to_xml_file
-from pynfb.protocols.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
-from pynfb.signals import DerivedSignal
-from pynfb.windows import MainWindow
+from .generators import run_eeg_sim
+from .inlets.ftbuffer_inlet import FieldTripBufferInlet
+from .inlets.lsl_inlet import LSLInlet
+from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
+from .io.xml import params_to_xml_file
+from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
+from .signals import DerivedSignal
+from .windows import MainWindow
 
 
 # helpers
