@@ -101,8 +101,11 @@ class Experiment():
                 self.mock_signals_buffer = load_h5py(
                     self.protocols_sequence[self.current_protocol_index].mock_samples_file_path,
                     self.protocols_sequence[self.current_protocol_index].mock_samples_protocol)
+            self.main.status.update()
 
         else:
+            # status
+            self.main.status.finish()
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
@@ -114,6 +117,7 @@ class Experiment():
             # save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
             params_to_xml_file(self.params, self.dir_name + 'settings.xml')
             self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
+
 
     def restart(self):
         if self.main_timer is not None:
@@ -244,6 +248,7 @@ class Experiment():
 
         # windows
         self.main = MainWindow(signals=self.signals,
+                               protocols=self.protocols_sequence,
                                parent=None,
                                experiment=self,
                                current_protocol=self.protocols_sequence[self.current_protocol_index],

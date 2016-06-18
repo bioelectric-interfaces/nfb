@@ -5,14 +5,14 @@ from pynfb.protocols.widgets import *
 
 pg.setConfigOptions(antialias=True)
 
-static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/../static')
+static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../static')
 
 
 class LSLPlotDataItem(pg.PlotDataItem):
     def getData(self):
         x, y = super(LSLPlotDataItem, self).getData()
         if self.opts['fftMode']:
-            return x, y/(max(y) - min(y) + 1e-20)*0.75
+            return x, y / (max(y) - min(y) + 1e-20) * 0.75
         return x, y
 
 
@@ -23,8 +23,8 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.start = QtGui.QPushButton('')
         self.restart = QtGui.QPushButton('')
         # set icons
-        self.start.setIcon(QtGui.QIcon(static_path+'/imag/play-button.png'))
-        self.restart.setIcon(QtGui.QIcon(static_path+'/imag/replay.png'))
+        self.start.setIcon(QtGui.QIcon(static_path + '/imag/play-button.png'))
+        self.restart.setIcon(QtGui.QIcon(static_path + '/imag/replay.png'))
         # set size
         self.start.setMinimumHeight(30)
         self.restart.setMinimumHeight(30)
@@ -45,9 +45,9 @@ class PlayerButtonsWidget(QtGui.QWidget):
     def start_clicked_event(self):
         self.restart.setEnabled(True)
         if self.start.isChecked():
-            self.start.setIcon(QtGui.QIcon(static_path+'/imag/pause.png'))
+            self.start.setIcon(QtGui.QIcon(static_path + '/imag/pause.png'))
         else:
-            self.start.setIcon(QtGui.QIcon(static_path+'/imag/play-button.png'))
+            self.start.setIcon(QtGui.QIcon(static_path + '/imag/play-button.png'))
 
     def restart_clicked_event(self):
         self.start.setChecked(False)
@@ -55,12 +55,50 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.restart.setEnabled(False)
 
 
+class PlayerLineInfo(QtGui.QWidget):
+    def __init__(self, protocols_names, protocols_durations=[], **kwargs):
+        super().__init__(**kwargs)
+
+        # init layout
+        layer = QtGui.QHBoxLayout()
+        self.setLayout(layer)
+
+        # status widget
+        self.status = QtGui.QLabel()
+        layer.addWidget(self.status)
+
+        #
+        self.n_protocols = len(protocols_names)
+        self.protocol_ind = -1
+        self.protocols_names = protocols_names
+        self.init()
+
+    def init(self):
+        self.status.setText('Press play button to start. First protocol is \"{}\"'.format(self.protocols_names[0]))
+
+    def update(self):
+        self.protocol_ind += 1
+        self.status.setText(
+            'Current protocol: \"{}\" \t({}/{} completed)'.format(self.protocols_names[self.protocol_ind],
+                                                                  self.protocol_ind, self.n_protocols)
+        )
+
+    def finish(self):
+        self.status.setText('Protocols sequence is successfully completed!')
+
+    def restart(self):
+        self.protocol_ind = -1
+        self.init()
+
 
 class MainWindow(QtGui.QMainWindow):
-    def __init__(self, current_protocol, signals, n_signals=1, parent=None, n_channels=32, max_protocol_n_samples=None,
+    def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
+                 max_protocol_n_samples=None,
                  experiment=None, freq=500, plot_raw_flag=True, channels_labels=None):
         super(MainWindow, self).__init__(parent)
-        #link to experiment
+
+        # status info
+        self.status = PlayerLineInfo([p.name for p in protocols], [[p.duration for p in protocols]])
 
         self.source_freq = freq
         self.experiment = experiment
@@ -70,7 +108,8 @@ class MainWindow(QtGui.QMainWindow):
         self.player_panel.restart.clicked.connect(self.restart_experiment)
         for signal in signals:
             self.player_panel.start.clicked.connect(signal.reset_statistic_acc)
-
+        self.player_panel.start.clicked.connect(self.update_first_status)
+        self._first_time_start_press = True
 
         # timer label
         self.timer_label = QtGui.QLabel('tf')
@@ -101,7 +140,7 @@ class MainWindow(QtGui.QMainWindow):
             [[(val, tick) for val, tick in zip(range(1, n_channels + 1, 2), range(1, n_channels + 1, 2))],
              [(val, tick) for val, tick in zip(range(1, n_channels + 1), range(1, n_channels + 1))]])
         self.raw.getPlotItem().getAxis('left').setTicks(
-            [[(val, tick) for val, tick in zip(range(1, n_channels+1), channels_labels)]])
+            [[(val, tick) for val, tick in zip(range(1, n_channels + 1), channels_labels)]])
         self.raw.showGrid(x=None, y=True, alpha=1)
         self.plot_raw_chekbox = QtGui.QCheckBox('plot raw')
         self.plot_raw_chekbox.setChecked(plot_raw_flag)
@@ -121,6 +160,7 @@ class MainWindow(QtGui.QMainWindow):
         layout.addWidget(self.raw, 2, 0, 1, 2)
         layout.addWidget(self.player_panel, 3, 0, 1, 1)
         layout.addWidget(self.timer_label, 3, 1, 1, 1)
+        layout.addWidget(self.status, 4, 0, 1, 2)
         layout.layout.setRowStretch(0, 2)
         layout.layout.setRowStretch(2, 2)
         self.setCentralWidget(layout)
@@ -160,11 +200,14 @@ class MainWindow(QtGui.QMainWindow):
         # timer
         if self.time_counter % 10 == 0:
             t_curr = time.time()
-            self.timer_label.setText('samples:\t{}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}'.format(samples_counter, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
+            self.timer_label.setText(
+                'samples:\t{}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}'
+                    .format(samples_counter, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
             self.t = t_curr
         self.time_counter += 1
 
     def restart_experiment(self):
+        self.status.restart()
         self.experiment.restart()
 
     def closeEvent(self, event):
@@ -172,6 +215,11 @@ class MainWindow(QtGui.QMainWindow):
         self.subject_window.close()
         self.experiment.destroy()
         event.accept()
+
+    def update_first_status(self):
+        if self.player_panel.start.isChecked() and self._first_time_start_press:
+            self.status.update()
+        self._first_time_start_press = False
 
 
 class SubjectWindow(QtGui.QMainWindow):
