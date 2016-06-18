@@ -1,10 +1,11 @@
-from PyQt4 import QtGui, QtCore
-import sys
-import pyqtgraph as pg
-from pynfb.protocols import *
-from pynfb.protocols_widgets import *
-import time
 import os
+import sys
+import time
+
+from PyQt4 import QtGui
+
+from pynfb.protocols.protocols_widgets import *
+
 pg.setConfigOptions(antialias=True)
 static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/static')
 
@@ -86,12 +87,6 @@ class MainWindow(QtGui.QMainWindow):
         self.signals_buffer = np.zeros((8000, n_signals))
         self.signals_curves_x_net = np.linspace(0, 8000 / self.source_freq, 8000 / 8)
 
-        # data recorders
-        self.experiment_n_samples = max_protocol_n_samples
-        self.samples_counter = 0
-        self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, n_channels)) * np.nan
-        self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, n_signals)) * np.nan
-
         # raw data viewer
         self.raw = pg.PlotWidget(self)
         self.n_channels = n_channels
@@ -146,13 +141,6 @@ class MainWindow(QtGui.QMainWindow):
         self.t = self.t0
 
     def redraw_signals(self, samples, chunk, samples_counter):
-        if self.player_panel.start.isChecked():
-            # record
-            if self.samples_counter < self.experiment_n_samples:
-                self.raw_recorder[self.samples_counter:self.samples_counter+chunk.shape[0]] = chunk[:, :self.n_channels]
-                for s, sample in enumerate(samples):
-                    self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0], s] = sample
-                self.samples_counter += chunk.shape[0]
 
         # derived signals
         data_buffer = self.signals_buffer

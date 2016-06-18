@@ -11,7 +11,7 @@ default_signal = defaults['vSignals']['DerivedSignal'][0]
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 
-protocols_types = ['Baseline', 'Circle', 'ThresholdBlink']
+protocols_types = ['Baseline', 'Circle', 'ThresholdBlink', 'SSD']
 
 inlet_types = ['lsl', 'lsl_from_file', 'lsl_generator', 'ftbuffer']
 

@@ -1,5 +1,8 @@
-from pynfb.protocols_widgets import *
-import numpy as np
+from pip._vendor.pyparsing import _PositionToken
+
+from pynfb.protocols.protocols_widgets import *
+from pynfb.protocols.protocols_user_inputs import SelectSSDFilterWidget
+
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
@@ -48,8 +51,6 @@ class BaselineProtocol(Protocol):
         pass
 
 
-
-
 class FeedbackProtocol(Protocol):
     def __init__(self, signals, name='Feedback', **kwargs):
         kwargs['name'] = name
@@ -63,6 +64,30 @@ class ThresholdBlinkFeedbackProtocol(Protocol):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
         self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter(threshold=threshold, time_ms=time_ms)
+
+
+class SSDProtocol(Protocol):
+    def __init__(self, signals, text='Relax', main_window=None, timer=None, freq=500, **kwargs):
+        super().__init__(signals, **kwargs)
+        self.timer = timer
+        self.freq = freq
+        self.main_window = main_window
+        self.widget_painter = BaselineProtocolWidgetPainter(text=text)
+
+    def close_protocol(self):
+        if self.timer:
+            self.timer.stop()
+        super(SSDProtocol, self).close_protocol()
+        import numpy as np
+        from pynfb.widgets.helpers import ch_names_to_2d_pos
+        from pynfb.generators import ch_names
+        channels_names = ch_names[:128]
+        x = np.random.rand(10000, 128)
+        pos = ch_names_to_2d_pos(channels_names)
+        filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, parent=self.main_window)
+        #selector.sh
+        if self.timer:
+            self.timer.start(1000 * 1. / self.freq)
 
 def main():
     pass

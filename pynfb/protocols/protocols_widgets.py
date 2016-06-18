@@ -20,7 +20,6 @@ class ProtocolWidget(pg.PlotWidget):
         pass
 
 
-
 class CircleFeedbackProtocolWidgetPainter():
     def __init__(self, noise_scaler=2):
         self.noise_scaler = noise_scaler
@@ -44,6 +43,7 @@ class CircleFeedbackProtocolWidgetPainter():
         self.p2.setData(np.sin(self.x)*(1+noise), -np.cos(self.x)*(1+noise))
         pass
 
+
 class BaselineProtocolWidgetPainter():
     def __init__(self, text='Relax', **kwargs):
         self.text = text
@@ -57,6 +57,7 @@ class BaselineProtocolWidgetPainter():
 
     def redraw_state(self, sample):
         pass
+
 
 class ThresholdBlinkFeedbackProtocolWidgetPainter():
     def __init__(self, threshold=2000, time_ms=50):

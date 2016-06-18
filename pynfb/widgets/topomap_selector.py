@@ -3,14 +3,13 @@ import numpy as np
 from pynfb.widgets.interactive_barplot import ClickableBarplot
 from pynfb.widgets.topomap_canvas import TopographicMapCanvas
 from pynfb.widgets.ssd import ssd_analysis
-from pynfb.widgets.helpers import ch_names_to_2d_pos
-from pynfb.generators import ch_names
 
 
 class TopomapSelector(QtGui.QWidget):
     def __init__(self, data, pos, names=None, sampling_freq=500, **kwargs):
         super(TopomapSelector, self).__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
         freqs = np.arange(4, 26)
         sampling_freq = sampling_freq
         self.pos = pos
@@ -26,9 +25,16 @@ class TopomapSelector(QtGui.QWidget):
         index = self.selector.current_index()
         self.topomap.update_figure(self.topographies[index], self.pos, names=self.names)
 
+    def get_current_topo(self):
+        return self.topographies[self.selector.current_index()]
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
+
+    import numpy as np
+    from pynfb.widgets.helpers import ch_names_to_2d_pos
+    from pynfb.generators import ch_names
     channels_names = ch_names[:128]
     x = np.random.rand(10000, 128)
     pos = ch_names_to_2d_pos(channels_names)

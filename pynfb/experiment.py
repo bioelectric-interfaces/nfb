@@ -10,7 +10,7 @@ from pynfb.inlets.ftbuffer_inlet import FieldTripBufferInlet
 from pynfb.inlets.lsl_inlet import LSLInlet
 from pynfb.io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
 from pynfb.io.xml import params_to_xml_file
-from pynfb.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol
+from pynfb.protocols.protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
 from pynfb.signals import DerivedSignal
 from pynfb.windows import MainWindow
 
@@ -42,13 +42,20 @@ class Experiment():
         # get next chunk
         chunk = self.stream.get_next_chunk() if self.stream is not None else None
         if chunk is not None:
-            # update samples counter
-            if self.main.player_panel.start.isChecked():
-                self.samples_counter += chunk.shape[0]
             # update and collect current samples
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
                 self.current_samples[i] = signal.current_sample
+
+            # record data
+            if self.main.player_panel.start.isChecked():
+                if self.samples_counter < self.experiment_n_samples:
+                    self.raw_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = chunk[:,
+                                                                                                    :self.n_channels]
+                    for s, sample in enumerate(self.current_samples):
+                        self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0], s] = sample
+                    self.samples_counter += chunk.shape[0]
+
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
             # redraw protocols
@@ -66,16 +73,18 @@ class Experiment():
         Change protocol
         :return: None
         """
-        # reset samples counter
-        self.samples_counter = 0
         # save raw and signals samples
-        save_h5py(self.dir_name + 'raw.h5', self.main.raw_recorder[:self.main.samples_counter],
+        save_h5py(self.dir_name + 'raw.h5', self.raw_recorder[:self.samples_counter],
                   'protocol' + str(self.current_protocol_index + 1))
-        save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder[:self.main.samples_counter],
+        save_h5py(self.dir_name + 'signals.h5', self.signals_recorder[:self.samples_counter],
                   'protocol' + str(self.current_protocol_index + 1))
-        self.main.samples_counter = 0
+
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol()
+
+        # reset samples counter
+        self.samples_counter = 0
+
         # reset buffer if previous protocol has true value in update_statistics_in_the_end
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
             self.main.signals_buffer *= 0
@@ -112,6 +121,9 @@ class Experiment():
             self.stream.disconnect()
         if self.thread is not None:
             self.thread.terminate()
+
+        # timer
+        self.main_timer = QtCore.QTimer(self.app)
 
         self.is_finished = False
 
@@ -192,6 +204,15 @@ class Experiment():
                         time_ms=protocol['fBlinkDurationMs'],
                         source_signal_id=source_signal_id,
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])))
+            elif protocol['sFb_type'] == 'SSD':
+                self.protocols.append(
+                    SSDProtocol(
+                        self.signals,
+                        duration=protocol['fDuration'],
+                        name=protocol['sProtocolName'],
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        freq=self.freq,
+                        timer=self.main_timer))
             else:
                 raise TypeError('Undefined protocol type')
 
@@ -202,7 +223,7 @@ class Experiment():
             self.protocols_sequence.append(self.protocols[names.index(name)])
 
         # timer
-        self.main_timer = QtCore.QTimer(self.app)
+        #self.main_timer = QtCore.QTimer(self.app)
         self.main_timer.timeout.connect(self.update)
         self.main_timer.start(1000 * 1. / self.freq)
 
@@ -211,6 +232,12 @@ class Experiment():
 
         # experiment number of samples
         max_protocol_n_samples = max([self.freq * p.duration for p in self.protocols_sequence])
+
+        # data recorders
+        self.experiment_n_samples = max_protocol_n_samples
+        self.samples_counter = 0
+        self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels)) * np.nan
+        self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
 
         # windows
         self.main = MainWindow(signals=self.signals,
