@@ -1,7 +1,7 @@
 from pynfb.widgets.topomap_selector import TopomapSelector
 from pynfb.generators import ch_names
 from pynfb.widgets.helpers import ch_names_to_2d_pos
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 import numpy as np
 
 
@@ -34,12 +34,11 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         self.close()
         # print(self.filter)
 
-
     @staticmethod
     def select_filter(data, pos, names=None, sampling_freq=500, parent=None):
         selector = SelectSSDFilterWidget(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
-        result = selector.exec_()
-        print(selector.filter)
+        _result = selector.exec_()
+        # print(selector.filter)
         return selector.filter
 
 

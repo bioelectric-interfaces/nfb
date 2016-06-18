@@ -14,6 +14,7 @@ from pynfb.protocols.protocols import BaselineProtocol, FeedbackProtocol, Thresh
 from pynfb.signals import DerivedSignal
 from pynfb.windows import MainWindow
 
+
 # helpers
 def int_or_none(string):
     return int(string) if len(string) > 0 else None
@@ -80,7 +81,9 @@ class Experiment():
                   'protocol' + str(self.current_protocol_index + 1))
 
         # close previous protocol
-        self.protocols_sequence[self.current_protocol_index].close_protocol()
+        self.protocols_sequence[self.current_protocol_index].close_protocol(
+            raw=self.raw_recorder[:self.samples_counter],
+            signals=self.signals_recorder[:self.samples_counter])
 
         # reset samples counter
         self.samples_counter = 0
@@ -109,8 +112,8 @@ class Experiment():
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
 
-            #save_h5py(self.dir_name + 'raw.h5', self.main.raw_recorder)
-            #save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
+            # save_h5py(self.dir_name + 'raw.h5', self.main.raw_recorder)
+            # save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
             params_to_xml_file(self.params, self.dir_name + 'settings.xml')
             self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
 
@@ -182,7 +185,7 @@ class Experiment():
                         duration=protocol['fDuration'],
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
-                        text=protocol['cString'] if protocol['cString']!='' else 'Relax',
+                        text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])
                     ))
             elif protocol['sFb_type'] == 'Circle':
@@ -212,7 +215,9 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
                         freq=self.freq,
-                        timer=self.main_timer))
+                        timer=self.main_timer,
+                        source_signal_id=source_signal_id,
+                        ch_names=channels_labels))
             else:
                 raise TypeError('Undefined protocol type')
 
@@ -223,7 +228,7 @@ class Experiment():
             self.protocols_sequence.append(self.protocols[names.index(name)])
 
         # timer
-        #self.main_timer = QtCore.QTimer(self.app)
+        # self.main_timer = QtCore.QTimer(self.app)
         self.main_timer.timeout.connect(self.update)
         self.main_timer.start(1000 * 1. / self.freq)
 

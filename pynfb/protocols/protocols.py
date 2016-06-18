@@ -32,7 +32,7 @@ class Protocol:
     def update_statistics(self):
         pass
 
-    def close_protocol(self):
+    def close_protocol(self, raw=None, signals=None):
         if self.update_statistics_in_the_end:
             if self.source_signal_id is not None:
                 self.signals[self.source_signal_id].update_statistics()
@@ -67,25 +67,26 @@ class ThresholdBlinkFeedbackProtocol(Protocol):
 
 
 class SSDProtocol(Protocol):
-    def __init__(self, signals, text='Relax', main_window=None, timer=None, freq=500, **kwargs):
+    def __init__(self, signals, text='Relax', timer=None, freq=500, ch_names=None, **kwargs):
         super().__init__(signals, **kwargs)
         self.timer = timer
         self.freq = freq
-        self.main_window = main_window
+        self.ch_names = ch_names
         self.widget_painter = BaselineProtocolWidgetPainter(text=text)
 
-    def close_protocol(self):
+    def close_protocol(self, raw=None, signals=None):
         if self.timer:
             self.timer.stop()
         super(SSDProtocol, self).close_protocol()
         import numpy as np
         from pynfb.widgets.helpers import ch_names_to_2d_pos
         from pynfb.generators import ch_names
-        channels_names = ch_names[:128]
-        x = np.random.rand(10000, 128)
+        channels_names = self.ch_names
+        x = raw
         pos = ch_names_to_2d_pos(channels_names)
-        filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, parent=self.main_window)
-        #selector.sh
+        filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names)
+        #print(filter)
+        self.signals[self.source_signal_id].update_spatial_filter(filter)
         if self.timer:
             self.timer.start(1000 * 1. / self.freq)
 

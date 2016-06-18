@@ -98,6 +98,9 @@ class DerivedSignal():
         self.std = self.std_acc
         self.reset_statistic_acc()
 
+    def update_spatial_filter(self, spatial_filter):
+        self.spatial_matrix = spatial_filter
+
     def reset_statistic_acc(self):
         self.mean_acc = 0
         self.var_acc = 0
