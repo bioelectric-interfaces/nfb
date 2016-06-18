@@ -229,7 +229,7 @@ class ProtocolDialog(QtGui.QDialog):
 
         # source signal combo box
         self.source_signal = QtGui.QComboBox()
-        self.form_layout.addRow('&Source signal:', self.source_signal)
+        self.form_layout.addRow('&Signal:', self.source_signal)
         # self.source_signal.currentIndexChanged.connect(self.source_signal_changed_event)
 
         # feedback type
