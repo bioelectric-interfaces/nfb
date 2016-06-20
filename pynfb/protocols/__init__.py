@@ -82,7 +82,7 @@ class SSDProtocol(Protocol):
         channels_names = self.ch_names
         x = raw
         pos = ch_names_to_2d_pos(channels_names)
-        filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names)
+        filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, sampling_freq=self.freq)
         #print(filter)
         self.signals[self.source_signal_id].update_spatial_filter(filter)
         if self.timer:
