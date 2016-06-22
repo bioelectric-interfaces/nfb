@@ -168,7 +168,9 @@ class Experiment():
                                       spatial_matrix=(np.loadtxt(signal['SpatialFilterMatrix'])
                                                       if signal['SpatialFilterMatrix'] != ''
                                                       else None),
-                                      disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'])
+                                      disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
+                                      n_samples=signal['fFFTWindowSize'],
+                                      smoothing_factor=signal['fSmoothingFactor'])
                         for signal in self.params['vSignals']]
         self.current_samples = np.zeros_like(self.signals)
 

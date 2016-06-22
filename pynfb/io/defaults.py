@@ -24,6 +24,8 @@ vectors_defaults = OrderedDict([
             ('sSignalName', 'Signal'),
             ('SpatialFilterMatrix', ''),
             ('bDisableSpectrumEvaluation', 0),
+            ('fSmoothingFactor', 0.1),
+            ('fFFTWindowSize', 1000),
             ('fBandpassLowHz', 0),
             ('fBandpassHighHz', 250),
             ('fAverage', ''),

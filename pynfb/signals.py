@@ -2,16 +2,14 @@ import numpy as np
 from scipy.fftpack import rfft, irfft, fftfreq
 
 
-
-
-
 class DerivedSignal():
     def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
-                 source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False):
+                 source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False,
+                 smoothing_factor=0.1):
         # signal name
         self.name = name
         # signal buffer
-        self.buffer = np.zeros((n_samples, ))
+        self.buffer = np.zeros((n_samples,))
         # signal statistics
         self.scaling_flag = scale
         self.mean = np.nan
@@ -34,19 +32,22 @@ class DerivedSignal():
         # bandpass and exponential smoothing flsg
         self.disable_spectrum_evaluation = disable_spectrum_evaluation
         # bandpass filter settings
-        self.w = fftfreq(2*n_samples, d=1. / source_freq * 2)
+        self.w = fftfreq(2 * n_samples, d=1. / source_freq * 2)
         self.bandpass = (bandpass_low if bandpass_low else 0,
                          bandpass_high if bandpass_high else source_freq)
 
         # asymmetric gaussian window
-        p  = round(2*n_samples*2/4) # maximum
-        eps = 0.0001 # bounds value
-        power = 2 # power of x
-        left_c = - np.log(eps)/ (p**power)
-        right_c = - np.log(eps) / (2*n_samples-1-p) ** power
-        samples_window= np.concatenate([np.exp(-left_c * abs(np.arange(p) - p) ** power),
-                                        np.exp(-right_c * abs(np.arange(p, 2*n_samples) - p) ** power)])
+        p = round(2 * n_samples * 2 / 4)  # maximum
+        eps = 0.0001  # bounds value
+        power = 2  # power of x
+        left_c = - np.log(eps) / (p ** power)
+        right_c = - np.log(eps) / (2 * n_samples - 1 - p) ** power
+        samples_window = np.concatenate([np.exp(-left_c * abs(np.arange(p) - p) ** power),
+                                         np.exp(-right_c * abs(np.arange(p, 2 * n_samples) - p) ** power)])
         self.samples_window = samples_window
+
+        # exponential smoothing factor
+        self.smoothing_factor = smoothing_factor
         pass
 
     def update(self, chunk):
@@ -64,14 +65,15 @@ class DerivedSignal():
             filtered_sample = self.get_bandpass_amplitude()
             # exponential smoothing
             if self.n_acc > 10:
-                self.current_sample = 0.1*filtered_sample+0.9*self.previous_sample
+                self.current_sample = (
+                self.smoothing_factor * filtered_sample + (1 - self.smoothing_factor) * self.previous_sample)
             else:
                 self.current_sample = filtered_sample
             self.previous_sample = self.current_sample
             # accumulate sum and sum^2
             self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample) / (self.n_acc + chunk_size)
             self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc) ** 2) / (
-            self.n_acc + chunk_size)
+                self.n_acc + chunk_size)
         else:
             # accumulate sum and sum^2
             self.current_sample = filtered_chunk
@@ -79,7 +81,7 @@ class DerivedSignal():
             self.var_acc = (self.n_acc * self.var_acc + (self.current_sample - self.mean_acc).sum() ** 2) / (
                 self.n_acc + chunk_size)
 
-        self.std_acc = self.var_acc**0.5
+        self.std_acc = self.var_acc ** 0.5
         self.n_acc += chunk_size
 
         if self.scaling_flag:
