@@ -40,13 +40,18 @@ class LSLInlet:
         return self.inlet.info().channel_count()
 
     def get_channels_labels(self):
-        time.sleep(0.001)
-        labels = []
-        ch = self.inlet.info().desc().child("channels").child("channel")
-        for k in range(self.get_n_channels()):
-            labels.append(ch.child_value("label"))
-            ch = ch.next_sibling()
-        return labels
+        for t in range(100):
+            time.sleep(0.01*(t+1))
+            try:
+                labels = []
+                ch = self.inlet.info().desc().child("channels").child("channel")
+                for k in range(self.get_n_channels()):
+                    labels.append(ch.child_value("label"))
+                    ch = ch.next_sibling()
+                return labels
+            except OSError:
+                print('OSError during reading channels names', t+1)
+        return ['channel'+str(n+1) for n in range(self.get_n_channels())]
 
     def disconnect(self):
         del self.inlet
