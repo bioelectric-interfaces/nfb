@@ -98,6 +98,14 @@ class SignalDialog(QtGui.QDialog):
         self.bandpass_high.setRange(0, 250)
         self.bandpass_high.setValue(250)
         self.form_layout.addRow('&Bandpass high [Hz]:', self.bandpass_high)
+        self.window_size = QtGui.QSpinBox()
+        self.window_size.setRange(1, 100000)
+        self.form_layout.addRow('&FFT window size:', self.window_size)
+        # exponential smoothing factor
+        self.smoothing_factor = QtGui.QDoubleSpinBox()
+        self.smoothing_factor.setRange(0, 1)
+        self.smoothing_factor.setSingleStep(0.1)
+        self.form_layout.addRow('&Smoothing factor:', self.smoothing_factor)
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -112,6 +120,8 @@ class SignalDialog(QtGui.QDialog):
         self.disable_spectrum.setChecked(self.params[current_signal_index]['bDisableSpectrumEvaluation'])
         self.bandpass_low.setValue(self.params[current_signal_index]['fBandpassLowHz'])
         self.bandpass_high.setValue(self.params[current_signal_index]['fBandpassHighHz'])
+        self.window_size.setValue(self.params[current_signal_index]['fFFTWindowSize'])
+        self.smoothing_factor.setValue(self.params[current_signal_index]['fSmoothingFactor'])
         self.spatial_filter.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
 
     def save_and_close(self):
@@ -121,16 +131,17 @@ class SignalDialog(QtGui.QDialog):
         self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
         self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.path.text()
         self.params[current_signal_index]['bDisableSpectrumEvaluation'] = int(self.disable_spectrum.isChecked())
+        self.params[current_signal_index]['fFFTWindowSize'] = self.window_size.value()
+        self.params[current_signal_index]['fSmoothingFactor'] = self.smoothing_factor.value()
         self.parent().reset_items()
         self.close()
 
     def disable_spectrum_event(self):
-        if self.disable_spectrum.isChecked():
-            self.bandpass_low.setDisabled(True)
-            self.bandpass_high.setDisabled(True)
-        else:
-            self.bandpass_low.setDisabled(False)
-            self.bandpass_high.setDisabled(False)
+        flag = self.disable_spectrum.isChecked()
+        self.bandpass_low.setDisabled(flag)
+        self.bandpass_high.setDisabled(flag)
+        self.window_size.setDisabled(flag)
+        self.smoothing_factor.setDisabled(flag)
 
 
 class ProtocolsSettingsWidget(QtGui.QWidget):
