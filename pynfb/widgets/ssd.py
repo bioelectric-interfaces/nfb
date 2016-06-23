@@ -54,7 +54,7 @@ def ssd(x, fs, bands, butter_order=3):
     return vals[reversed_slice], vecs[reversed_slice], topo
 
 
-def ssd_analysis(x, sampling_frequency, freqs, flanker_delta):
+def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2):
     freq_delta = freqs[1] - freqs[0]
     bands = [[[fc - freq_delta / 2 - flanker_delta, fc - freq_delta / 2],
               [fc - freq_delta / 2, fc + freq_delta / 2],
@@ -64,7 +64,7 @@ def ssd_analysis(x, sampling_frequency, freqs, flanker_delta):
     for band in bands:
         vals, vecs, topos = ssd(x, sampling_frequency, band)
         major_vals.append(vals[0])
-        topographies.append(topos[0])
+        topographies.append(topos[:, 0])
     return major_vals, topographies
 
 

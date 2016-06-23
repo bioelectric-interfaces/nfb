@@ -14,7 +14,7 @@ class TopomapSelector(QtGui.QWidget):
         sampling_freq = sampling_freq
         self.pos = pos
         self.names = names
-        major_vals, self.topographies = ssd_analysis(data, sampling_frequency=sampling_freq, freqs=freqs, flanker_delta=3)
+        major_vals, self.topographies = ssd_analysis(data, sampling_frequency=sampling_freq, freqs=freqs)
         self.topomap = TopographicMapCanvas(self.topographies[0], self.pos, names=names, width=5, height=4, dpi=100)
         self.selector = ClickableBarplot(self, freqs, major_vals, True)
         layout.addWidget(self.selector, 2)
