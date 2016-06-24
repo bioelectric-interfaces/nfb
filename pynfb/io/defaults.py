@@ -19,6 +19,7 @@ vectors_defaults = OrderedDict([
     ('sRawDataFilePath', ''),
     ('sFTHostnamePort', 'localhost:1972'),
     ('bPlotRaw', 1),
+    ('sReference', ''),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),
