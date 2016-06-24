@@ -40,11 +40,12 @@ class LSLInlet:
         return self.inlet.info().channel_count()
 
     def get_channels_labels(self):
-        for t in range(100):
-            time.sleep(0.01*(t+1))
+        for t in range(3):
+            time.sleep(0.5*(t+1))
             try:
                 labels = []
-                ch = self.inlet.info().desc().child("channels").child("channel")
+                _info = self.inlet.info()
+                ch = _info.desc().child("channels").child("channel")
                 for k in range(self.get_n_channels()):
                     labels.append(ch.child_value("label"))
                     ch = ch.next_sibling()
