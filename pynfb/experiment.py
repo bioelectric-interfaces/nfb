@@ -6,6 +6,7 @@ from PyQt4 import QtCore
 from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
+from .inlets.channels_selector import ChannelsSelector
 from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
 from .io.xml import params_to_xml_file
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
@@ -153,9 +154,10 @@ class Experiment():
         if self.params['sInletType'] == 'ftbuffer':
             hostname, port = self.params['sFTHostnamePort'].split(':')
             port = int(port)
-            self.stream = FieldTripBufferInlet(hostname, port)
+            stream = FieldTripBufferInlet(hostname, port)
         else:
-            self.stream = LSLInlet(name=self.params['sStreamName'])
+            stream = LSLInlet(name=self.params['sStreamName'])
+        self.stream = ChannelsSelector(stream, exclude=self.params['sReference'])
         self.freq = self.stream.get_frequency()
         self.n_channels = self.stream.get_n_channels()
         channels_labels = self.stream.get_channels_labels()
