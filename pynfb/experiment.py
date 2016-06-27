@@ -9,6 +9,7 @@ from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
 from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
 from .io.xml import params_to_xml_file
+from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
 from .signals import DerivedSignal
 from .windows import MainWindow
@@ -167,7 +168,8 @@ class Experiment():
                                       bandpass_low=signal['fBandpassLowHz'],
                                       name=signal['sSignalName'],
                                       n_channels=self.n_channels,
-                                      spatial_matrix=(np.loadtxt(signal['SpatialFilterMatrix'])
+                                      spatial_matrix=(read_spatial_filter(signal['SpatialFilterMatrix'],
+                                                                          channels_labels)
                                                       if signal['SpatialFilterMatrix'] != ''
                                                       else None),
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
