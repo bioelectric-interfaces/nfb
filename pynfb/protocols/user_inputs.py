@@ -1,8 +1,8 @@
-from pynfb.widgets.topomap_selector import TopomapSelector
-from pynfb.generators import ch_names
-from pynfb.widgets.helpers import ch_names_to_2d_pos
-from PyQt4 import QtGui
 import numpy as np
+from PyQt4 import QtGui
+from pynfb.generators import ch_names
+from .ssd import TopomapSelector
+from pynfb.widgets.helpers import ch_names_to_2d_pos
 
 
 class SelectSSDFilterWidget(QtGui.QDialog):

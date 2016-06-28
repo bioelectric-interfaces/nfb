@@ -4,6 +4,7 @@ from numpy import array
 def read_spatial_filter(filepath, channel_labels=None):
     """
     Read spatial filter from path to file
+    :param channel_labels: channel labels list
     :param filepath: path to file
     :return: spatial filter
     """

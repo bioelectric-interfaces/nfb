@@ -1,8 +1,8 @@
-from PyQt4 import QtGui, QtCore
-import numpy as np
-from pynfb.widgets.interactive_barplot import ClickableBarplot
-from pynfb.widgets.topomap_canvas import TopographicMapCanvas
-from pynfb.widgets.ssd import ssd_analysis
+from PyQt4 import QtGui
+from .ssd import ssd_analysis
+from .topomap_canvas import TopographicMapCanvas
+from .interactive_barplot import ClickableBarplot
+from numpy import arange
 
 
 class TopomapSelector(QtGui.QWidget):
@@ -10,7 +10,7 @@ class TopomapSelector(QtGui.QWidget):
         super(TopomapSelector, self).__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
         layout.setMargin(0)
-        freqs = np.arange(4, 26)
+        freqs = arange(4, 26)
         sampling_freq = sampling_freq
         self.pos = pos
         self.names = names
