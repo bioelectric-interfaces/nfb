@@ -17,7 +17,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=5, axis=0):
     return y
 
 
-def ssd(x, fs, bands, butter_order=3):
+def ssd(x, fs, bands, butter_order=3, regularization_coef=0.05):
     """
     The code can be used in two modes. In the classical SSD mode
     when the filters are found to emphasize the spectral peak agains two
@@ -44,7 +44,6 @@ def ssd(x, fs, bands, butter_order=3):
         raise ValueError('Wrong format for <band> argument')
 
     # find filters
-    regularization_coef = 0.05
     regularization = lambda z: z + regularization_coef * np.trace(z) * np.eye(z.shape[0]) / z.shape[0]
     vals, vecs = eigh(regularization(cov_peak), regularization(cov_flankers))
 
@@ -54,15 +53,17 @@ def ssd(x, fs, bands, butter_order=3):
     return vals[reversed_slice], vecs[reversed_slice], topo
 
 
-def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2):
+def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0, regularization_coef=0.05):
     freq_delta = freqs[1] - freqs[0]
-    bands = [[[fc - freq_delta / 2 - flanker_delta, fc - freq_delta / 2],
-              [fc - freq_delta / 2, fc + freq_delta / 2],
-              [fc + freq_delta / 2, fc + freq_delta / 2 + flanker_delta]] for fc in freqs]
+    bands = [
+        [[fc - freq_delta / 2 - flanker_delta - flanker_margin, fc - freq_delta / 2 - flanker_margin],
+         [fc - freq_delta / 2, fc + freq_delta / 2],
+         [fc + freq_delta / 2 + flanker_margin, fc + freq_delta / 2 + flanker_delta + flanker_margin]]
+        for fc in freqs]
     major_vals = []
     topographies = []
     for band in bands:
-        vals, vecs, topos = ssd(x, sampling_frequency, band)
+        vals, vecs, topos = ssd(x, sampling_frequency, band, regularization_coef=regularization_coef)
         major_vals.append(vals[0])
         topographies.append(topos[:, 0])
     return major_vals, topographies
