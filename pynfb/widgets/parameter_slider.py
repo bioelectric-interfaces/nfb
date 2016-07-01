@@ -2,10 +2,15 @@ from PyQt4 import QtGui, QtCore
 import sys
 
 class ParameterSlider(QtGui.QWidget):
-    def __init__(self, minimum=0, maximum=1, interval=0.05, value=0.05):
+    valueChanged = QtCore.pyqtSignal()
+    def __init__(self, label, minimum=0, maximum=1, interval=0.05, value=0.05):
         super(ParameterSlider, self).__init__()
         layout = QtGui.QHBoxLayout()
+        layout.setMargin(0)
         self.setLayout(layout)
+
+        # label
+        layout.addWidget(QtGui.QLabel(label), 1)
 
         # slider
         slider = QtGui.QSlider(QtCore.Qt.Horizontal)
@@ -27,7 +32,6 @@ class ParameterSlider(QtGui.QWidget):
         self.value = value_edit
         layout.addWidget(value_edit, 1)
 
-
     def set_value_from_slider(self):
         self.value.setValue(self.slider.value() / self.scaler)
 
@@ -39,6 +43,6 @@ class ParameterSlider(QtGui.QWidget):
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
-    w = ParameterSlider()
+    w = ParameterSlider('Regularization')
     w.show()
     sys.exit(app.exec_())
