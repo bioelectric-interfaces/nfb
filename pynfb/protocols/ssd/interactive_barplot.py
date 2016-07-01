@@ -57,16 +57,30 @@ class ClickableBar(QtGui.QGraphicsRectItem):
     def is_current(self):
         return self.is_current_flag
 
+    def set_height(self, h):
+        rect = self.rect()
+        self.setRect(rect.x(), rect.y(), rect.width(), h)
+
 
 class ClickableBarplot(pg.PlotWidget):
-    def __init__(self, parent, x, y, center=False, **kwargs):
+    def __init__(self, parent, x_left, x_right, x_width, y, **kwargs):
         print(parent)
         super(ClickableBarplot, self).__init__(parent=parent, **kwargs)
         self.parent = parent
         self.rectangles = []
-        delta = x[1] - x[0]
+        self.plot(x_left, x_right, x_width, y)
+
+    def plot(self, x_left, x_right, x_width, y):
+        self.clear()
+        self.rectangles = []
+        self.x_left = x_left
+        self.x_right = x_right
+        self.y = y
+        delta = x_width
+        x = np.arange(x_left, x_right, x_width)
+        print(x)
         for _x, _y in zip(x, y):
-            rect = ClickableBar(self, _x - int(center)*delta/2, 0, delta, _y)
+            rect = ClickableBar(self, _x, 0, delta, _y)
             self.addItem(rect)
             self.rectangles.append(rect)
         self.set_all_not_current()
@@ -87,6 +101,16 @@ class ClickableBarplot(pg.PlotWidget):
             self.parent.select_action()
         else:
             print('Parent is None')
+
+
+    def reset_y(self, y):
+        self.y = y
+        for y_, rect in zip(y, self.rectangles):
+            rect.set_height(y_)
+
+    def reset_w(self, w):
+        self.plot(self.x_left, self.x_right, w, self.y)
+
 
 
 if __name__ == '__main__':
