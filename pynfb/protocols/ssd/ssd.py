@@ -66,7 +66,7 @@ def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0
         vals, vecs, topos = ssd(x, sampling_frequency, band, regularization_coef=regularization_coef)
         major_vals.append(vals[0])
         topographies.append(topos[:, 0])
-    return major_vals, topographies
+    return np.array(major_vals), topographies
 
 
 if __name__ == "__main__":

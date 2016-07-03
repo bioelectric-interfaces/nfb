@@ -15,15 +15,16 @@ class Sliders(QtGui.QWidget):
         h_layout.addLayout(v_layout)
         self.parameters = {}
 
+        # regularizator slider
+        self.parameters['regularizator'] = ParameterSlider('Regularizator:', 0, 10, 0.5,
+                                                           value=defaults['regularizator'])
+        self.parameters['regularizator'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
+        v_layout.addWidget(self.parameters['regularizator'])
+
         # central bandwidth slider
         self.parameters['bandwidth'] = ParameterSlider('Central bandwidth:', 1, 5, 0.5, value=defaults['bandwidth'])
         self.parameters['bandwidth'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['bandwidth'])
-
-        # regularizator slider
-        self.parameters['regularizator'] = ParameterSlider('Regularizator:', 0, 10, 0.5, value=defaults['regularizator'])
-        self.parameters['regularizator'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
-        v_layout.addWidget(self.parameters['regularizator'])
 
         # flanker bandwidth
         self.parameters['flanker_bandwidth'] = ParameterSlider('Flanker bandwidth:', 1, 5, 0.5, value=defaults['flanker_bandwidth'])
@@ -31,7 +32,7 @@ class Sliders(QtGui.QWidget):
         v_layout.addWidget(self.parameters['flanker_bandwidth'])
 
         # flanker margin
-        self.parameters['flanker_margin'] = ParameterSlider('Flanker bandwidth:', 0, 2, 0.5, value=defaults['flanker_margin'])
+        self.parameters['flanker_margin'] = ParameterSlider('Flanker margin:', 0, 2, 0.5, value=defaults['flanker_margin'])
         self.parameters['flanker_margin'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['flanker_margin'])
 

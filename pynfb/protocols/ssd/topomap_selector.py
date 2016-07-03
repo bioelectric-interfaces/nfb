@@ -1,8 +1,12 @@
 from PyQt4 import QtGui
-from .ssd import ssd_analysis
-from .topomap_canvas import TopographicMapCanvas
-from .interactive_barplot import ClickableBarplot
+from pynfb.protocols.ssd.ssd import ssd_analysis
+from pynfb.protocols.ssd.sliders import Sliders
+from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
+from pynfb.protocols.ssd.interactive_barplot import ClickableBarplot
+
+from pynfb.widgets.parameter_slider import ParameterSlider
 from numpy import arange
+
 
 
 class TopomapSelector(QtGui.QWidget):
@@ -10,16 +14,34 @@ class TopomapSelector(QtGui.QWidget):
         super(TopomapSelector, self).__init__(**kwargs)
         layout = QtGui.QHBoxLayout()
         layout.setMargin(0)
-        freqs = arange(4, 26)
+        v_layout = QtGui.QVBoxLayout()
+        v_layout.addLayout(layout)
+        self.setLayout(v_layout)
+
+        # central bandwidth slider
+        self.sliders = Sliders()
+        self.sliders.apply_button.clicked.connect(self.recompute_ssd)
+        v_layout.addWidget(self.sliders)
+        self.x_left = 4
+        self.x_right = 26
+        self.x_delta = 1
+
+        self.freqs = np.arange(self.x_left, self.x_right, self.x_delta)
         sampling_freq = sampling_freq
         self.pos = pos
         self.names = names
-        major_vals, self.topographies = ssd_analysis(data, sampling_frequency=sampling_freq, freqs=freqs)
+        self.data = data
+        self.sampling_freq = sampling_freq
+        self.major_vals, self.topographies = ssd_analysis(data, sampling_frequency=sampling_freq, freqs=self.freqs)
         self.topomap = TopographicMapCanvas(self.topographies[0], self.pos, names=names, width=5, height=4, dpi=100)
-        self.selector = ClickableBarplot(self, freqs, major_vals, True)
+        self.selector = ClickableBarplot(self, self.freqs, self.major_vals)
+        self.recompute_ssd()
+        #self.selector.reset_y(np.array(major_vals)*0+1)
+        #self.selector.reset_w(3)
         layout.addWidget(self.selector, 2)
         layout.addWidget(self.topomap, 1)
-        self.setLayout(layout)
+
+
 
     def select_action(self):
         index = self.selector.current_index()
@@ -28,6 +50,18 @@ class TopomapSelector(QtGui.QWidget):
     def get_current_topo(self):
         return self.topographies[self.selector.current_index()]
 
+    def recompute_ssd(self):
+        parameters = self.sliders.getValues()
+        self.freqs = np.arange(self.x_left, self.x_right, parameters['bandwidth'])
+        self.major_vals, self.topographies = ssd_analysis(self.data,
+                                                          sampling_frequency=self.sampling_freq,
+                                                          freqs=self.freqs,
+                                                          regularization_coef=parameters['regularizator'],
+                                                          flanker_delta=parameters['flanker_bandwidth'],
+                                                          flanker_margin=parameters['flanker_margin'])
+        self.selector.plot(self.freqs, self.major_vals)
+        self.select_action()
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])
@@ -35,8 +69,8 @@ if __name__ == '__main__':
     import numpy as np
     from pynfb.widgets.helpers import ch_names_to_2d_pos
     from pynfb.generators import ch_names
-    channels_names = ch_names[:128]
-    x = np.random.rand(10000, 128)
+    channels_names = ch_names[:40]
+    x = np.random.rand(10000, 40)
     pos = ch_names_to_2d_pos(channels_names)
     widget = TopomapSelector(x, pos, names=channels_names)
     widget.show()
