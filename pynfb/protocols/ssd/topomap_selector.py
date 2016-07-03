@@ -26,7 +26,7 @@ class TopomapSelector(QtGui.QWidget):
         self.x_right = 26
         self.x_delta = 1
 
-        self.freqs = np.arange(self.x_left, self.x_right, self.x_delta)
+        self.freqs = arange(self.x_left, self.x_right, self.x_delta)
         sampling_freq = sampling_freq
         self.pos = pos
         self.names = names
@@ -52,7 +52,7 @@ class TopomapSelector(QtGui.QWidget):
 
     def recompute_ssd(self):
         parameters = self.sliders.getValues()
-        self.freqs = np.arange(self.x_left, self.x_right, parameters['bandwidth'])
+        self.freqs = arange(self.x_left, self.x_right, parameters['bandwidth'])
         self.major_vals, self.topographies = ssd_analysis(self.data,
                                                           sampling_frequency=self.sampling_freq,
                                                           freqs=self.freqs,
