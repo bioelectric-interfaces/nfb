@@ -38,6 +38,12 @@ class ParameterSlider(QtGui.QWidget):
     def set_slider_from_value(self):
         self.slider.setValue(self.value.value() * self.scaler)
 
+    def setValue(self, p_float):
+        self.value.setValue(p_float)
+
+    def getValue(self):
+        return self.value.value()
+
 
 
 
