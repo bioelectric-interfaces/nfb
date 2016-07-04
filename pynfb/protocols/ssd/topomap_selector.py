@@ -23,7 +23,7 @@ class TopomapSelector(QtGui.QWidget):
         self.sliders.apply_button.clicked.connect(self.recompute_ssd)
         v_layout.addWidget(self.sliders)
         self.x_left = 4
-        self.x_right = 26
+        self.x_right = 40
         self.x_delta = 1
 
         self.freqs = arange(self.x_left, self.x_right, self.x_delta)
@@ -68,10 +68,14 @@ if __name__ == '__main__':
 
     import numpy as np
     from pynfb.widgets.helpers import ch_names_to_2d_pos
-    from pynfb.generators import ch_names
-    channels_names = ch_names[:40]
-    x = np.random.rand(10000, 40)
+    ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
+                'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
+    channels_names = np.array(ch_names)
+    x = np.loadtxt('example_recordings.txt')[:, channels_names!='Cz']
+    channels_names = list(channels_names[channels_names!='Cz'])
+
+    print(x.shape, channels_names)
     pos = ch_names_to_2d_pos(channels_names)
-    widget = TopomapSelector(x, pos, names=channels_names)
+    widget = TopomapSelector(x, pos, names=channels_names, sampling_freq=1000)
     widget.show()
     app.exec_()

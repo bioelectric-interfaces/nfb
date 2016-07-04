@@ -1,9 +1,9 @@
-from scipy.signal import butter, lfilter
+from scipy.signal import butter, lfilter, filtfilt
 from scipy.linalg import eigh, inv
 import numpy as np
 
 
-def butter_bandpass(lowcut, highcut, fs, order=5):
+def butter_bandpass(lowcut, highcut, fs, order=3):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
@@ -11,9 +11,9 @@ def butter_bandpass(lowcut, highcut, fs, order=5):
     return b, a
 
 
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5, axis=0):
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=3, axis=0):
     b, a = butter_bandpass(lowcut, highcut, fs, order=order)
-    y = lfilter(b, a, data, axis=axis)
+    y = filtfilt(b, a, data, axis=axis)
     return y
 
 
@@ -38,7 +38,7 @@ def ssd(x, fs, bands, butter_order=3, regularization_coef=0.05):
         cov_peak = cov_x_filtered[0]
         cov_flankers = np.dot(x.T, x) / x.shape[0]
     elif len(bands) == 3:
-        cov_peak = cov_x_filtered[0]
+        cov_peak = cov_x_filtered[1]
         cov_flankers = 0.5 * cov_x_filtered[0] + 0.5 * cov_x_filtered[2]
     else:
         raise ValueError('Wrong format for <band> argument')
@@ -70,9 +70,6 @@ def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0
 
 
 if __name__ == "__main__":
-    np.random.seed(42)
-    x = np.random.rand(10000, 3)
-    x[:, 1] += np.sin(np.arange(10000))*10
-    print(ssd(np.random.rand(10000, 3), 500, [[9, 8]]))
-    print('--')
-    print(ssd_analysis(x, 500, np.arange(4,26), 3))
+    x = np.loadtxt('example_recordings.txt')
+    k, l, n = ssd(x, 1000, [[7,9], [9, 10], [10, 12]])
+    print(k)
