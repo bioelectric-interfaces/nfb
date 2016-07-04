@@ -64,7 +64,6 @@ class ClickableBar(QtGui.QGraphicsRectItem):
 
 class ClickableBarplot(pg.PlotWidget):
     def __init__(self, parent, x, y, **kwargs):
-        print(parent)
         super(ClickableBarplot, self).__init__(parent=parent, **kwargs)
         self.parent = parent
         self.rectangles = []
@@ -73,7 +72,6 @@ class ClickableBarplot(pg.PlotWidget):
     def plot(self, x, y):
         self.clear()
         self.rectangles = []
-        print(x)
         for _x, _y in zip(x, y):
             rect = ClickableBar(self, _x, 0, x[1] - x[0], _y)
             self.addItem(rect)

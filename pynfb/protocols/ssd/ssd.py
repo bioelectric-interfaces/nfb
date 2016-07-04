@@ -1,5 +1,5 @@
 from scipy.signal import butter, lfilter, filtfilt
-from scipy.linalg import eigh, inv
+from scipy.linalg import eigh, inv, eig
 import numpy as np
 
 
@@ -46,11 +46,18 @@ def ssd(x, fs, bands, butter_order=3, regularization_coef=0.05):
     # find filters
     regularization = lambda z: z + regularization_coef * np.trace(z) * np.eye(z.shape[0]) / z.shape[0]
     vals, vecs = eigh(regularization(cov_peak), regularization(cov_flankers))
+    vecs /= np.abs(vecs).max(0)
+
+    # like matlab
+    # vals, vecs = eig(regularization(cov_peak), regularization(cov_flankers))
+    # srt_key = np.argsort(vals)
+    # vals = np.real(vals)[srt_key]
+    # vecs = vecs[:, srt_key]
 
     # return vals, vecs and topographics (in descending order)
     reversed_slice = slice(-1, None, -1)
-    topo = inv(vecs[reversed_slice]).T  # TODO: transpose or not transpose: that is the question
-    return vals[reversed_slice], vecs[reversed_slice], topo
+    topo = inv(vecs[:,reversed_slice]).T
+    return vals[reversed_slice], vecs[:, reversed_slice], topo
 
 
 def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0, regularization_coef=0.05):
@@ -70,6 +77,6 @@ def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0
 
 
 if __name__ == "__main__":
-    x = np.loadtxt('example_recordings.txt')
+    x = np.loadtxt('example_recordings.txt')[:, :]
     k, l, n = ssd(x, 1000, [[7,9], [9, 10], [10, 12]])
-    print(k)
+    print(l)
