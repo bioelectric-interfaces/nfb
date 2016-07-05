@@ -56,6 +56,8 @@ class Experiment():
                     for s, sample in enumerate(self.current_samples):
                         self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0], s] = sample
                     self.samples_counter += chunk.shape[0]
+                self.reward.update()
+                self.subject.figure.update_reward(self.reward.get_score())
 
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
@@ -234,6 +236,10 @@ class Experiment():
         self.protocols_sequence = []
         for name in self.params['vPSequence']:
             self.protocols_sequence.append(self.protocols[names.index(name)])
+
+        # reward
+        from pynfb.reward import Reward
+        self.reward = Reward(self.signals[0])
 
         # timer
         # self.main_timer = QtCore.QTimer(self.app)

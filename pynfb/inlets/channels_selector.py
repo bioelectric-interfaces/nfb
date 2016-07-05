@@ -40,7 +40,6 @@ class ChannelsSelector:
 
         # all indices
         self.indices = [j for j in include_indices if j not in exclude_indices]
-        print(self.indices)
 
     def get_next_chunk(self):
         chunk = self.inlet.get_next_chunk()

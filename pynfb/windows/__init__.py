@@ -228,6 +228,8 @@ class SubjectWindow(QtGui.QMainWindow):
         self.resize(500, 500)
         self.current_protocol = current_protocol
         self.figure = ProtocolWidget()
+        # TODO: show reward flag
+        self.figure.show_reward(False)
         self.setCentralWidget(self.figure)
         self.current_protocol.widget_painter.prepare_widget(self.figure)
 
@@ -237,7 +239,7 @@ class SubjectWindow(QtGui.QMainWindow):
 
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol
-        self.figure.clear()
+        self.figure.clear_all()
         self.current_protocol.widget_painter.prepare_widget(self.figure)
 
     def closeEvent(self, event):

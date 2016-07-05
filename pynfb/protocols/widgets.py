@@ -11,13 +11,27 @@ class ProtocolWidget(pg.PlotWidget):
         self.setXRange(-width, width)
         self.hideAxis('bottom')
         self.hideAxis('left')
+        self.setBackgroundBrush(pg.mkBrush('#252120'))
+        self.reward_str = '<font size="4" color="#B48375">Reward: </font><font size="5" color="#91C7A9">{}</font>'
+        self.reward = pg.TextItem(html=self.reward_str.format(0))
+        self.reward.setPos(-4.7, 4.7)
+        self.reward.setTextWidth(300)
+        self.addItem(self.reward)
+        self.clear_all()
 
-    def clear(self):
+    def clear_all(self):
         for item in self.items():
             self.removeItem(item)
+        self.addItem(self.reward)
 
-    def redraw_state(self, sample):
-        pass
+    def update_reward(self, reward):
+        self.reward.setHtml(self.reward_str.format(reward))
+
+    def show_reward(self, flag):
+        if flag:
+            self.reward.show()
+        else:
+            self.reward.hide()
 
 
 class CircleFeedbackProtocolWidgetPainter():
@@ -29,9 +43,9 @@ class CircleFeedbackProtocolWidgetPainter():
         self.widget = None
 
     def prepare_widget(self, widget):
-        self.p1 = widget.plot(np.sin(self.x), np.cos(self.x), pen=pg.mkPen(77, 144, 254)).curve
-        self.p2 = widget.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(77, 144, 254)).curve
-        fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 25))
+        self.p1 = widget.plot(np.sin(self.x), np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
+        self.p2 = widget.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
+        fill = pg.FillBetweenItem(self.p1, self.p2, brush=(229, 223, 213, 25))
         widget.addItem(fill)
 
     def redraw_state(self, sample):
@@ -49,7 +63,7 @@ class BaselineProtocolWidgetPainter():
         self.text = text
 
     def prepare_widget(self, widget):
-        text_item = pg.TextItem(html='<center><font size="7" color="white">{}</font></center>'.format(self.text),
+        text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text),
                                 anchor=(0.5, 0.5))
         text_item.setTextWidth(500)
         widget.addItem(text_item)
