@@ -6,6 +6,8 @@ class DerivedSignal():
     def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
                  source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1):
+        # n_samples hot fix:
+        n_samples = int(n_samples)
         # signal name
         self.name = name
         # signal buffer
