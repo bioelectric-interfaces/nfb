@@ -277,6 +277,17 @@ class ProtocolDialog(QtGui.QDialog):
         self.message.setMaximumHeight(50)
         self.form_layout.addRow('&Message:', self.message)
 
+        # reward settings
+        self.reward_signal = QtGui.QComboBox()
+        self.update_reward_signal_combo_box()
+        self.form_layout.addRow('&Reward signal:', self.reward_signal)
+        self.reward_threshold = QtGui.QDoubleSpinBox()
+        self.reward_threshold.setRange(-10000, 10000)
+        self.form_layout.addRow('&Reward threshold:', self.reward_threshold)
+        self.show_reward = QtGui.QCheckBox()
+        self.form_layout.addRow('&Show reward:', self.show_reward)
+
+
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -288,6 +299,10 @@ class ProtocolDialog(QtGui.QDialog):
             self.source_signal.addItem('All')
         for signal in self.parent().parent().params['vSignals']:
             self.source_signal.addItem(signal['sSignalName'])
+
+    def update_reward_signal_combo_box(self):
+        for signal in self.parent().parent().params['vSignals']:
+            self.reward_signal.addItem(signal['sSignalName'])
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
@@ -301,6 +316,7 @@ class ProtocolDialog(QtGui.QDialog):
 
     def open(self):
         self.update_source_signal_combo_box()
+        self.update_reward_signal_combo_box()
         self.reset_items()
         super().open()
 
@@ -318,6 +334,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         self.message.setText(current_protocol['cString'])
+        current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
+        self.reward_signal.setCurrentIndex(current_index if current_index>-1 else 0)
+        self.show_reward.setChecked(current_protocol['bShowReward'])
+        self.reward_threshold.setValue(current_protocol['bRewardThreshold'])
         pass
 
     def save_and_close(self):
@@ -332,6 +352,9 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()
         self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
         self.params[current_signal_index]['cString'] = self.message.toPlainText()
+        self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
+        self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())
+        self.params[current_signal_index]['bRewardThreshold'] = self.reward_threshold.value()
         self.parent().reset_items()
         self.close()
 
