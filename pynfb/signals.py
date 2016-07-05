@@ -7,6 +7,7 @@ class DerivedSignal():
                  source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1):
         # n_samples hot fix:
+        print('**** n_samples type is', type(n_samples))
         n_samples = int(n_samples)
         # signal name
         self.name = name
