@@ -106,6 +106,9 @@ class Experiment():
                     self.protocols_sequence[self.current_protocol_index].mock_samples_file_path,
                     self.protocols_sequence[self.current_protocol_index].mock_samples_protocol)
             self.main.status.update()
+            self.reward.threshold = self.protocols_sequence[self.current_protocol_index].reward_threshold
+            reward_signal_id = self.protocols_sequence[self.current_protocol_index].reward_signal_id
+            self.reward.signal = self.signals[reward_signal_id]
 
         else:
             # status
@@ -186,6 +189,7 @@ class Experiment():
 
         for protocol in self.params['vProtocols']:
             source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
+            reward_signal_id = signal_names.index(protocol['sRewardSignal']) if protocol['sRewardSignal']!='' else 0
             mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
                          protocol['sMockSignalFileDataset'])
             if protocol['sFb_type'] == 'Baseline':
@@ -196,7 +200,10 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        show_reward=bool(protocol['bShowReward']),
+                        reward_threshold=protocol['bRewardThreshold'],
+                        reward_signal_id=reward_signal_id
                     ))
             elif protocol['sFb_type'] == 'Circle':
                 self.protocols.append(
@@ -206,7 +213,8 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
                         mock_samples_path=mock_path,
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])))
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        show_reward=bool(protocol['bShowReward'])))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(
@@ -216,7 +224,8 @@ class Experiment():
                         threshold=protocol['fBlinkThreshold'],
                         time_ms=protocol['fBlinkDurationMs'],
                         source_signal_id=source_signal_id,
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics'])))
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        show_reward=bool(protocol['bShowReward'])))
             elif protocol['sFb_type'] == 'SSD':
                 self.protocols.append(
                     SSDProtocol(
@@ -227,7 +236,8 @@ class Experiment():
                         freq=self.freq,
                         timer=self.main_timer,
                         source_signal_id=source_signal_id,
-                        ch_names=channels_labels))
+                        ch_names=channels_labels,
+                        show_reward=bool(protocol['bShowReward'])))
             else:
                 raise TypeError('Undefined protocol type')
 
@@ -239,7 +249,8 @@ class Experiment():
 
         # reward
         from pynfb.reward import Reward
-        self.reward = Reward(self.signals[0])
+        self.reward = Reward(self.signals[self.protocols[0].reward_signal_id],
+                             threshold=self.protocols[0].reward_threshold)
 
         # timer
         # self.main_timer = QtCore.QTimer(self.app)

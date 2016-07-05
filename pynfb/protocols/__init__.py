@@ -4,7 +4,7 @@ from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
-                 mock_samples_path = (None, None)):
+                 mock_samples_path = (None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -12,6 +12,9 @@ class Protocol:
         :param duration: duration of protocol
         :param update_statistics_in_the_end: if true update mean and std scaling parameters of signals
         """
+        self.show_reward = show_reward
+        self.reward_signal_id = reward_signal_id
+        self.reward_threshold = reward_threshold
         self.update_statistics_in_the_end = update_statistics_in_the_end
         self.mock_samples_file_path, self.mock_samples_protocol = mock_samples_path
         self.name = name
@@ -45,7 +48,7 @@ class BaselineProtocol(Protocol):
         kwargs['name'] = name
         kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
         super().__init__(signals, **kwargs)
-        self.widget_painter = BaselineProtocolWidgetPainter(text=text)
+        self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
         pass
 
 
@@ -53,7 +56,7 @@ class FeedbackProtocol(Protocol):
     def __init__(self, signals, name='Feedback', **kwargs):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
-        self.widget_painter = CircleFeedbackProtocolWidgetPainter()
+        self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward)
         pass
 
 
@@ -61,7 +64,8 @@ class ThresholdBlinkFeedbackProtocol(Protocol):
     def __init__(self, signals, name='ThresholdBlink', threshold=1000, time_ms=50, **kwargs):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
-        self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter(threshold=threshold, time_ms=time_ms)
+        self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter(threshold=threshold, time_ms=time_ms,
+                                                                          show_reward=self.show_reward)
 
 
 class SSDProtocol(Protocol):
@@ -70,7 +74,7 @@ class SSDProtocol(Protocol):
         self.timer = timer
         self.freq = freq
         self.ch_names = ch_names
-        self.widget_painter = BaselineProtocolWidgetPainter(text=text)
+        self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
 
     def close_protocol(self, raw=None, signals=None):
         if self.timer:

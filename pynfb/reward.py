@@ -1,7 +1,7 @@
 import time
 
 class Reward:
-    def __init__(self, signal, threshold=0.9, rate_of_increase=1):
+    def __init__(self, signal, threshold=0.9, rate_of_increase=0.2):
         self.score = 0
         self.signal = signal
         self.threshold = threshold
@@ -11,10 +11,12 @@ class Reward:
         pass
 
     def update(self):
-        if self.signal.current_sample > self.threshold:
+        current_sample = self.signal.current_sample
+        if self.signal.disable_spectrum_evaluation:
+            current_sample = current_sample[0]
+        if current_sample > self.threshold:
             if self._increase_score:
                 self.score += 1
-                print('Increase! Current:', self.score)
                 self._increase_started_time = time.time()
                 self._increase_score = False
             if time.time() - self._increase_started_time > self.rate_of_increase:

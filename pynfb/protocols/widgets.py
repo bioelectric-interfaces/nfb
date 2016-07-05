@@ -34,8 +34,17 @@ class ProtocolWidget(pg.PlotWidget):
             self.reward.hide()
 
 
-class CircleFeedbackProtocolWidgetPainter():
-    def __init__(self, noise_scaler=2):
+class Painter:
+    def __init__(self, show_reward=False):
+        self.show_reward = show_reward
+
+    def prepare_widget(self, widget):
+        widget.show_reward(self.show_reward)
+
+
+class CircleFeedbackProtocolWidgetPainter(Painter):
+    def __init__(self, noise_scaler=2, show_reward=False):
+        super(CircleFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.noise_scaler = noise_scaler
         self.x = np.linspace(-np.pi/2, np.pi/2, 100)
         self.noise = np.sin(15*self.x)*0.5-0.5
@@ -43,6 +52,7 @@ class CircleFeedbackProtocolWidgetPainter():
         self.widget = None
 
     def prepare_widget(self, widget):
+        super(CircleFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
         self.p1 = widget.plot(np.sin(self.x), np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
         self.p2 = widget.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
         fill = pg.FillBetweenItem(self.p1, self.p2, brush=(229, 223, 213, 25))
@@ -58,11 +68,13 @@ class CircleFeedbackProtocolWidgetPainter():
         pass
 
 
-class BaselineProtocolWidgetPainter():
-    def __init__(self, text='Relax', **kwargs):
+class BaselineProtocolWidgetPainter(Painter):
+    def __init__(self, text='Relax', show_reward=False):
+        super(BaselineProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
 
     def prepare_widget(self, widget):
+        super(BaselineProtocolWidgetPainter, self).prepare_widget(widget)
         text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text),
                                 anchor=(0.5, 0.5))
         text_item.setTextWidth(500)
@@ -73,8 +85,9 @@ class BaselineProtocolWidgetPainter():
         pass
 
 
-class ThresholdBlinkFeedbackProtocolWidgetPainter():
-    def __init__(self, threshold=2000, time_ms=50):
+class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
+    def __init__(self, threshold=2000, time_ms=50, show_reward=False):
+        super(ThresholdBlinkFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.threshold = threshold
         self.time_ms = time_ms
         self.blink_start_time = -1
@@ -83,6 +96,7 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter():
         self.previous_sample = -np.inf
 
     def prepare_widget(self, widget):
+        super(ThresholdBlinkFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
         self.p1 = widget.plot([-10, 10], [10, 10], pen=pg.mkPen(77, 144, 254)).curve
         self.p2 = widget.plot([-10, 10], [-10, -10], pen=pg.mkPen(77, 144, 254)).curve
         self.fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 25))
