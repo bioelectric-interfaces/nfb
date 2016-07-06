@@ -89,6 +89,18 @@ class ClickableBarplot(pg.PlotWidget):
     def current_index(self):
         return self.rectangles.index(self.current)
 
+    def current_x(self):
+        return self.current.x
+
+    def set_current(self, ind):
+        self.set_all_not_current()
+        self.rectangles[ind].set_current(True)
+
+    def set_current_by_value(self, val):
+        x = np.array([rect.x for rect in self.rectangles])
+        ind = np.abs(x - val).argmin()
+        self.set_current(ind)
+
     def changed_action(self):
         if self.parent is not None:
             self.parent.select_action()

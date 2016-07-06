@@ -35,7 +35,7 @@ class DerivedSignal():
         # bandpass and exponential smoothing flsg
         self.disable_spectrum_evaluation = disable_spectrum_evaluation
         # bandpass filter settings
-        self.w = fftfreq(2 * n_samples, d=1. / source_freq * 2)
+        self.w = fftfreq(2 * self.n_samples, d=1. / source_freq * 2)
         self.bandpass = (bandpass_low if bandpass_low else 0,
                          bandpass_high if bandpass_high else source_freq)
 

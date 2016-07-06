@@ -54,6 +54,7 @@ class TopomapSelector(QtGui.QWidget):
         return self.filters[self.selector.current_index()]
 
     def recompute_ssd(self):
+        current_x = self.selector.current_x()
         parameters = self.sliders.getValues()
         self.freqs = arange(self.x_left, self.x_right, parameters['bandwidth'])
         self.major_vals, self.topographies, self.filters = ssd_analysis(self.data,
@@ -63,6 +64,7 @@ class TopomapSelector(QtGui.QWidget):
                                                           flanker_delta=parameters['flanker_bandwidth'],
                                                           flanker_margin=parameters['flanker_margin'])
         self.selector.plot(self.freqs, self.major_vals)
+        self.selector.set_current_by_value(current_x)
         self.select_action()
 
 
