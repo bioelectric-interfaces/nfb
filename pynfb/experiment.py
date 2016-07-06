@@ -209,7 +209,7 @@ class Experiment():
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id
                     ))
-            elif protocol['sFb_type'] == 'Circle':
+            elif protocol['sFb_type'] == 'CircleFeedback':
                 self.protocols.append(
                     FeedbackProtocol(
                         self.signals,
@@ -239,7 +239,7 @@ class Experiment():
                         ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
                         show_reward=bool(protocol['bShowReward'])))
             else:
-                raise TypeError('Undefined protocol type')
+                raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 
         # protocols sequence
         names = [protocol.name for protocol in self.protocols]

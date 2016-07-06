@@ -69,11 +69,13 @@ def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0
         for fc in freqs]
     major_vals = []
     topographies = []
+    filters = []
     for band in bands:
         vals, vecs, topos = ssd(x, sampling_frequency, band, regularization_coef=regularization_coef)
         major_vals.append(vals[0])
         topographies.append(topos[:, 0])
-    return np.array(major_vals), topographies
+        filters.append(vecs[:, 0])
+    return np.array(major_vals), topographies, filters
 
 
 if __name__ == "__main__":

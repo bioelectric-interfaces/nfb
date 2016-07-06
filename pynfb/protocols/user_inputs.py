@@ -27,10 +27,10 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         layout.addWidget(select_button)
 
         # selected filter
-        self.filter = self.selector.get_current_topo()
+        self.filter = self.selector.get_current_filter()
 
     def select_action(self):
-        self.filter = self.selector.get_current_topo()
+        self.filter = self.selector.get_current_filter()
         self.close()
         # print(self.filter)
 

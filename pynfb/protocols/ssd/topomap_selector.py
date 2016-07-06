@@ -32,7 +32,7 @@ class TopomapSelector(QtGui.QWidget):
         self.names = names
         self.data = data
         self.sampling_freq = sampling_freq
-        self.major_vals, self.topographies = ssd_analysis(data, sampling_frequency=sampling_freq, freqs=self.freqs)
+        self.major_vals, self.topographies, self.filters = ssd_analysis(data, sampling_frequency=sampling_freq, freqs=self.freqs)
         self.topomap = TopographicMapCanvas(self.topographies[0], self.pos, names=names, width=5, height=4, dpi=100)
         self.selector = ClickableBarplot(self, self.freqs, self.major_vals)
         self.recompute_ssd()
@@ -50,10 +50,13 @@ class TopomapSelector(QtGui.QWidget):
     def get_current_topo(self):
         return self.topographies[self.selector.current_index()]
 
+    def get_current_filter(self):
+        return self.filters[self.selector.current_index()]
+
     def recompute_ssd(self):
         parameters = self.sliders.getValues()
         self.freqs = arange(self.x_left, self.x_right, parameters['bandwidth'])
-        self.major_vals, self.topographies = ssd_analysis(self.data,
+        self.major_vals, self.topographies, self.filters = ssd_analysis(self.data,
                                                           sampling_frequency=self.sampling_freq,
                                                           freqs=self.freqs,
                                                           regularization_coef=parameters['regularizator'],
