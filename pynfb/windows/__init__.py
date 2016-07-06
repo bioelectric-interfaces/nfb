@@ -94,7 +94,7 @@ class PlayerLineInfo(QtGui.QWidget):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
-                 experiment=None, freq=500, plot_raw_flag=True, channels_labels=None):
+                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, channels_labels=None):
         super(MainWindow, self).__init__(parent)
 
         # status info
@@ -144,6 +144,8 @@ class MainWindow(QtGui.QMainWindow):
         self.raw.showGrid(x=None, y=True, alpha=1)
         self.plot_raw_chekbox = QtGui.QCheckBox('plot raw')
         self.plot_raw_chekbox.setChecked(plot_raw_flag)
+        self.plot_signals_chekbox = QtGui.QCheckBox('plot signals')
+        self.plot_signals_chekbox.setChecked(plot_signals_flag)
         self.autoscale_raw_chekbox = QtGui.QCheckBox('autoscale')
         self.autoscale_raw_chekbox.setChecked(True)
         for i in range(self.n_channels):
@@ -154,13 +156,14 @@ class MainWindow(QtGui.QMainWindow):
 
         # main window layout
         layout = pg.LayoutWidget(self)
-        layout.addWidget(signals_layout, 0, 0, 1, 2)
+        layout.addWidget(signals_layout, 0, 0, 1, 3)
         layout.addWidget(self.plot_raw_chekbox, 1, 0, 1, 1)
+        layout.addWidget(self.plot_signals_chekbox, 1, 2, 1, 1)
         layout.addWidget(self.autoscale_raw_chekbox, 1, 1, 1, 1)
-        layout.addWidget(self.raw, 2, 0, 1, 2)
+        layout.addWidget(self.raw, 2, 0, 1, 3)
         layout.addWidget(self.player_panel, 3, 0, 1, 1)
-        layout.addWidget(self.timer_label, 3, 1, 1, 1)
-        layout.addWidget(self.status, 4, 0, 1, 2)
+        layout.addWidget(self.timer_label, 3, 1, 1, 2)
+        layout.addWidget(self.status, 4, 0, 1, 3)
         layout.layout.setRowStretch(0, 2)
         layout.layout.setRowStretch(2, 2)
         self.setCentralWidget(layout)
@@ -182,11 +185,12 @@ class MainWindow(QtGui.QMainWindow):
     def redraw_signals(self, samples, chunk, samples_counter):
 
         # derived signals
-        data_buffer = self.signals_buffer
-        data_buffer[:-chunk.shape[0]] = data_buffer[chunk.shape[0]:]
-        for s, sample in enumerate(samples):
-            data_buffer[-chunk.shape[0]:, s] = sample
-            self.signal_curves[s].setData(x=self.signals_curves_x_net, y=data_buffer[::8, s])
+        if self.plot_signals_chekbox.isChecked():
+            data_buffer = self.signals_buffer
+            data_buffer[:-chunk.shape[0]] = data_buffer[chunk.shape[0]:]
+            for s, sample in enumerate(samples):
+                data_buffer[-chunk.shape[0]:, s] = sample
+                self.signal_curves[s].setData(x=self.signals_curves_x_net, y=data_buffer[::8, s])
 
         # raw signals
         if self.plot_raw_chekbox.isChecked():
@@ -201,7 +205,7 @@ class MainWindow(QtGui.QMainWindow):
         if self.time_counter % 10 == 0:
             t_curr = time.time()
             self.timer_label.setText(
-                'samples:\t{}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}'
+                'samples:\t{}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}\t '
                     .format(samples_counter, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
             self.t = t_curr
         self.time_counter += 1

@@ -533,6 +533,11 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_raw_check = QtGui.QCheckBox()
         self.plot_raw_check.clicked.connect(self.plot_raw_checkbox_event)
         self.form_layout.addRow('&Plot raw:', self.plot_raw_check)
+        # plot signals flag
+        self.plot_signals_check = QtGui.QCheckBox()
+        self.plot_signals_check.clicked.connect(self.plot_signals_checkbox_event)
+        self.form_layout.addRow('&Plot signals:', self.plot_signals_check)
+        
         self.reset()
         # self.stream
 
@@ -545,11 +550,15 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def plot_raw_checkbox_event(self):
         self.params['bPlotRaw'] = int(self.plot_raw_check.isChecked())
 
+    def plot_signals_checkbox_event(self):
+        self.params['bPlotSignals'] = int(self.plot_signals_check.isChecked())
+
     def reset(self):
         self.params = self.parent().params
         self.name.setText(self.params['sExperimentName'])
         self.reference.setText(self.params['sReference'])
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
+        self.plot_signals_check.setChecked(self.params['bPlotSignals'])
         self.inlet.reset()
 
 

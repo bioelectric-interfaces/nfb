@@ -280,6 +280,7 @@ class Experiment():
                                freq=self.freq,
                                n_channels=self.n_channels,
                                plot_raw_flag=self.params['bPlotRaw'],
+                               plot_signals_flag=self.params['bPlotSignals'],
                                channels_labels=channels_labels)
         self.subject = self.main.subject_window
 
