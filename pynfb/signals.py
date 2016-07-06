@@ -8,7 +8,7 @@ class DerivedSignal():
                  smoothing_factor=0.1):
         # n_samples hot fix:
         print('**** n_samples type is', type(n_samples))
-        n_samples = int(n_samples)
+        self.n_samples = int(n_samples)
         # signal name
         self.name = name
         # signal buffer
@@ -60,8 +60,10 @@ class DerivedSignal():
 
         # update buffer
         chunk_size = filtered_chunk.shape[0]
-        self.buffer[:-chunk_size] = self.buffer[chunk_size:]
-        self.buffer[-chunk_size:] = filtered_chunk
+        if chunk_size <= self.n_samples:
+            self.buffer[-chunk_size:] = filtered_chunk
+        else:
+            self.buffer = filtered_chunk[-self.n_samples:]
 
         if not self.disable_spectrum_evaluation:
             # bandpass filter and amplitude
