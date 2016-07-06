@@ -11,7 +11,7 @@ default_signal = defaults['vSignals']['DerivedSignal'][0]
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 
-protocols_types = ['Baseline', 'Circle', 'ThresholdBlink', 'SSD']
+protocols_types = ['Baseline', 'CircleFeedback', 'ThresholdBlink']
 
 inlet_types = ['lsl', 'lsl_from_file', 'lsl_generator', 'ftbuffer']
 
@@ -233,9 +233,12 @@ class ProtocolDialog(QtGui.QDialog):
         # self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Duration [s]:', self.duration)
 
-        # update statistics in the end
+        # update statistics in the end end ssd analysis in the end check boxes
         self.update_statistics = QtGui.QCheckBox()
-        # self.update_statistics.setTristate(protocol_default['bUpdateStatistics'])
+        self.ssd_in_the_end = QtGui.QCheckBox()
+        self.ssd_in_the_end.clicked.connect(self.update_source_signal_combo_box)
+        self.ssd_in_the_end.clicked.connect(lambda: self.update_statistics.setDisabled(self.ssd_in_the_end.isChecked()))
+        self.form_layout.addRow('&SSD in the end:', self.ssd_in_the_end)
         self.form_layout.addRow('&Update statistics:', self.update_statistics)
 
         # source signal combo box
@@ -295,7 +298,7 @@ class ProtocolDialog(QtGui.QDialog):
 
     def update_source_signal_combo_box(self):
         self.source_signal.clear()
-        if self.type.currentText() == 'Baseline':
+        if self.type.currentText() == 'Baseline' and not self.ssd_in_the_end.isChecked():
             self.source_signal.addItem('All')
         for signal in self.parent().parent().params['vSignals']:
             self.source_signal.addItem(signal['sSignalName'])
@@ -310,7 +313,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_duration_ms.setEnabled(flag)
 
     def set_enabled_mock_settings(self):
-        flag = (self.type.currentText() == 'Circle')
+        flag = (self.type.currentText() == 'CircleFeedback')
         self.mock_file.setEnabled(flag)
         self.mock_dataset.setEnabled(flag)
 
@@ -325,6 +328,8 @@ class ProtocolDialog(QtGui.QDialog):
         print(current_protocol)
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
+        self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
+        self.update_statistics.setDisabled(self.ssd_in_the_end.isChecked())
         self.source_signal.setCurrentIndex(
             self.source_signal.findText(current_protocol['fbSource'], QtCore.Qt.MatchFixedString))
         self.type.setCurrentIndex(
@@ -345,6 +350,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['sProtocolName'] = self.name.text()
         self.params[current_signal_index]['fDuration'] = self.duration.value()
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
+        self.params[current_signal_index]['bSSDInTheEnd'] = int(self.ssd_in_the_end.isChecked())
         self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
         self.params[current_signal_index]['fBlinkDurationMs'] = self.blink_duration_ms.value()

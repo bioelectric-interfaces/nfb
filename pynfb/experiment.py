@@ -201,6 +201,10 @@ class Experiment():
                         source_signal_id=source_signal_id,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
+                        freq=self.freq,
+                        timer=self.main_timer,
+                        ch_names=channels_labels,
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id
@@ -214,6 +218,10 @@ class Experiment():
                         source_signal_id=source_signal_id,
                         mock_samples_path=mock_path,
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
+                        freq=self.freq,
+                        timer=self.main_timer,
+                        ch_names=channels_labels,
                         show_reward=bool(protocol['bShowReward'])))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
@@ -223,20 +231,12 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         threshold=protocol['fBlinkThreshold'],
                         time_ms=protocol['fBlinkDurationMs'],
-                        source_signal_id=source_signal_id,
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
-                        show_reward=bool(protocol['bShowReward'])))
-            elif protocol['sFb_type'] == 'SSD':
-                self.protocols.append(
-                    SSDProtocol(
-                        self.signals,
-                        duration=protocol['fDuration'],
-                        name=protocol['sProtocolName'],
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
                         freq=self.freq,
                         timer=self.main_timer,
                         source_signal_id=source_signal_id,
                         ch_names=channels_labels,
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
                         show_reward=bool(protocol['bShowReward'])))
             else:
                 raise TypeError('Undefined protocol type')

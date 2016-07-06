@@ -25,7 +25,7 @@ class DerivedSignal():
         # spatial matrix
         self.spatial_matrix = np.zeros((n_channels,))
         if spatial_matrix is None:
-            self.spatial_matrix[0] = 1
+            self.spatial_matrix[0] = 0
         else:
             shape = min(spatial_matrix.shape[0], n_channels)
             self.spatial_matrix[:shape] = spatial_matrix[:shape]
@@ -98,9 +98,9 @@ class DerivedSignal():
         amplitude = sum(np.abs(cut_f_signal))
         return amplitude
 
-    def update_statistics(self):
-        self.mean = self.mean_acc
-        self.std = self.std_acc
+    def update_statistics(self, mean=None, std=None):
+        self.mean = mean if (mean is not None) else self.mean_acc
+        self.std = std if (std is not None) else self.std_acc
         self.reset_statistic_acc()
 
     def update_spatial_filter(self, spatial_filter):
