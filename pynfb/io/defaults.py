@@ -33,7 +33,13 @@ vectors_defaults = OrderedDict([
             ('fAverage', ''),
             ('fStdDev', ''),
             # ('sType', 'plain')
-        ])])])),
+        ])]),
+        ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
+            ('sSignalName', 'Composite'),
+            ('vDerivedSignals', []),
+            ('sOperation', 'Sum')
+        ])])
+    ])),
     ('vProtocols', OrderedDict([
         ('FeedbackProtocol', [OrderedDict([  # FeedbackProtocol is list!
             ('sProtocolName', 'Protocol'),

@@ -12,7 +12,7 @@ def format_odict_by_defaults(odict, defaults):
     formatted_odict = OrderedDict()
     for key in defaults.keys():
         if key in odict.keys():
-            if key in ['DerivedSignal', 'FeedbackProtocol']:
+            if key in ['DerivedSignal', 'FeedbackProtocol', 'CompositeSignal']:
                 formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
                                         for item in (odict[key] if isinstance(odict[key], list) else [odict[key]])]
             elif isinstance(defaults[key], OrderedDict):
@@ -51,7 +51,7 @@ def xml_file_to_odict(filename):
 def xml_file_to_params(filename=None):
     d = vectors_defaults if filename is None else xml_file_to_odict(filename)
     d = format_odict_by_defaults(d, vectors_defaults)
-    d['vSignals'] = d['vSignals']['DerivedSignal']
+    #d['vSignals'] = d['vSignals']['DerivedSignal']
     d['vProtocols'] = d['vProtocols']['FeedbackProtocol']
     protocols_sequence = d['vPSequence']['s']
     d['vPSequence'] = [protocols_sequence] if isinstance(protocols_sequence, str) else protocols_sequence
@@ -61,7 +61,7 @@ def xml_file_to_params(filename=None):
 
 def params_to_xml_file(params, filename):
     odict = params.copy()
-    odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
+    #odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
     odict['vProtocols'] = OrderedDict([('FeedbackProtocol', params['vProtocols'])])
     odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])
     xml_odict = OrderedDict([('NeurofeedbackSignalSpecs', odict.copy())])

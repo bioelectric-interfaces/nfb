@@ -180,7 +180,7 @@ class Experiment():
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'])
-                        for signal in self.params['vSignals']]
+                        for signal in self.params['vSignals']['DerivedSignal']]
         self.current_samples = np.zeros_like(self.signals)
 
         # protocols
