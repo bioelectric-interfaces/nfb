@@ -36,8 +36,7 @@ vectors_defaults = OrderedDict([
         ])]),
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Composite'),
-            ('vDerivedSignals', []),
-            ('sOperation', 'Sum')
+            ('sExpression', '')
         ])])
     ])),
     ('vProtocols', OrderedDict([

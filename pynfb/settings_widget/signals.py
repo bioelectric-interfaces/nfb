@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 from pynfb.io.defaults import vectors_defaults as defaults
 from pynfb.settings_widget import FileSelectorLine
@@ -72,6 +72,8 @@ class SignalDialog(QtGui.QDialog):
         self.name = QtGui.QLineEdit(self)
         self.name.setText(signal_name)
         self.form_layout.addRow('&Name:', self.name)
+        validator = QtGui.QRegExpValidator(QtCore.QRegExp("^[a-zA-Z0-9_]+$"))
+        self.name.setValidator(validator)
         # spatial filter
         self.spatial_filter = FileSelectorLine(parent=self)
         self.form_layout.addRow('Spatial filter:', self.spatial_filter)

@@ -10,6 +10,7 @@ from pynfb.settings_widget.inlet import InletSettingsWidget
 from pynfb.settings_widget.protocol_sequence import ProtocolSequenceSettingsWidget
 from pynfb.settings_widget.protocols import ProtocolsSettingsWidget, FileSelectorLine
 from pynfb.settings_widget.signals import SignalsSettingsWidget
+from pynfb.settings_widget.composite_signals import CompositeSignalsSettingsWidget
 
 static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static')
 
@@ -26,15 +27,17 @@ class SettingsWidget(QtGui.QWidget):
         v_layout.addLayout(layout)
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
         self.signals_list = SignalsSettingsWidget(parent=self)
+        self.composite_signals_list = CompositeSignalsSettingsWidget(parent=self)
         self.protocols_sequence_list = ProtocolSequenceSettingsWidget(parent=self)
         # layout.addWidget(self.general_settings)
         layout.addWidget(self.signals_list)
+        layout.addWidget(self.composite_signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
         start_button.setIcon(QtGui.QIcon(static_path + '/imag/power-button.png'))
         start_button.setMinimumHeight(50)
-        start_button.setMinimumWidth(200)
+        start_button.setMinimumWidth(300)
         start_button.clicked.connect(self.onClicked)
         name_layout = QtGui.QHBoxLayout()
         v_layout.addWidget(start_button, alignment=QtCore.Qt.AlignCenter)
