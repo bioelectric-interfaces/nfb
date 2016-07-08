@@ -61,6 +61,7 @@ class DerivedSignal():
         # update buffer
         chunk_size = filtered_chunk.shape[0]
         if chunk_size <= self.n_samples:
+            self.buffer[:-chunk_size] = self.buffer[chunk_size:]
             self.buffer[-chunk_size:] = filtered_chunk
         else:
             self.buffer = filtered_chunk[-self.n_samples:]
@@ -97,7 +98,7 @@ class DerivedSignal():
         f_signal = rfft(np.hstack((self.buffer, self.buffer[-1::-1])) * self.samples_window)
         cut_f_signal = f_signal.copy()
         cut_f_signal[(self.w < self.bandpass[0]) | (self.w > self.bandpass[1])] = 0  # TODO: in one row
-        amplitude = sum(np.abs(cut_f_signal))
+        amplitude = np.abs(cut_f_signal).mean()
         return amplitude
 
     def update_statistics(self, mean=None, std=None):

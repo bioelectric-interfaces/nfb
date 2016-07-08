@@ -5,9 +5,9 @@ import os
 import glob
 
 dir_name = max(glob.glob(os.path.join('./', '*/')), key=os.path.getmtime)
+print(dir_name)
 f = plt.figure()
 ax = f.add_subplot(211)
-print(load_h5py_all_samples(dir_name+'signals.h5'))
 ax.plot(load_h5py_all_samples(dir_name+'raw.h5')[:, 0])
 ax = f.add_subplot(212)
 ax.plot(load_h5py_all_samples(dir_name+'signals.h5'))
