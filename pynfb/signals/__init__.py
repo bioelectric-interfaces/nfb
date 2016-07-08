@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.fftpack import rfft, irfft, fftfreq
+from .composite import CompositeSignal
 
 
 class DerivedSignal():

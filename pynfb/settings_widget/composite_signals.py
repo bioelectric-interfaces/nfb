@@ -3,7 +3,7 @@ from PyQt4 import QtGui
 from pynfb.io.defaults import vectors_defaults as defaults
 from pynfb.settings_widget import FileSelectorLine
 
-default_signal = defaults['vSignals']['CompositeSignal']
+default_signal = defaults['vSignals']['CompositeSignal'][0]
 
 
 class CompositeSignalsSettingsWidget(QtGui.QWidget):
@@ -77,7 +77,7 @@ class CompositeSignalDialog(QtGui.QDialog):
         self.form_layout.addRow('&Name:', self.name)
 
         # operation type combo box:
-        self.expression = QtGui.QTextEdit()
+        self.expression = QtGui.QLineEdit()
         self.expression.setMaximumHeight(50)
         self.form_layout.addRow('&Expression:', self.expression)
 
@@ -97,6 +97,6 @@ class CompositeSignalDialog(QtGui.QDialog):
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sSignalName'] = self.name.text()
-        self.params[current_signal_index]['sExpression'] = self.expression.toPlainText()
+        self.params[current_signal_index]['sExpression'] = self.expression.text()
         self.parent().reset_items()
         self.close()

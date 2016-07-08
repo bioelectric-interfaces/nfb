@@ -27,11 +27,11 @@ class SettingsWidget(QtGui.QWidget):
         v_layout.addLayout(layout)
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
         self.signals_list = SignalsSettingsWidget(parent=self)
-        #self.composite_signals_list = CompositeSignalsSettingsWidget(parent=self)
+        self.composite_signals_list = CompositeSignalsSettingsWidget(parent=self)
         self.protocols_sequence_list = ProtocolSequenceSettingsWidget(parent=self)
         # layout.addWidget(self.general_settings)
         layout.addWidget(self.signals_list)
-        #layout.addWidget(self.composite_signals_list)
+        layout.addWidget(self.composite_signals_list)
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
@@ -45,6 +45,7 @@ class SettingsWidget(QtGui.QWidget):
 
     def reset_parameters(self):
         self.signals_list.reset_items()
+        self.composite_signals_list.reset_items()
         self.protocols_list.reset_items()
         self.protocols_sequence_list.reset_items()
         self.general_settings.reset()

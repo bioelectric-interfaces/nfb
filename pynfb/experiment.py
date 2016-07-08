@@ -11,7 +11,7 @@ from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
 from .io.xml import params_to_xml_file
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
-from .signals import DerivedSignal
+from .signals import DerivedSignal, CompositeSignal
 from .windows import MainWindow
 
 
@@ -181,6 +181,13 @@ class Experiment():
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'])
                         for signal in self.params['vSignals']['DerivedSignal']]
+
+        # composite signals
+        self.composite_signals = [CompositeSignal([s for s in self.signals],
+                                                  signal['sExpression'],
+                                                  signal['sSignalName'])
+                                  for signal in self.params['vSignals']['CompositeSignal']]
+        self.signals += self.composite_signals
         self.current_samples = np.zeros_like(self.signals)
 
         # protocols

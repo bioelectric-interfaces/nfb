@@ -1,22 +1,20 @@
 import numpy as np
+import sympy
 
 class CompositeSignal:
     """
     Class for composite signal
     """
-    def __init__(self, signals, weights, operation):
+    def __init__(self, signals, expression, name):
         """
         Constructor
-        :param signals: list of signals
-        :param weights: list of signal weights
-        :param operation: operation type (str)
-        Let w_j and s_j are weight and current sample of j signal in list of signals
-        If operation == 'sum' composite signal is sum of w_j*s_j
-        If operation == 'prod' composite signal is product of s_j^w_j
+        :param signals: list of all signals
+        :param expression: str expression
         """
+        self.name = name
         self.signals = signals
-        self.weights = weights
-        self.operation = operation
+        self._signals_names = [signal.name for signal in self.signals]
+        self.expression = sympy.sympify(expression if expression != '' else '0')
         self.current_sample = 0
         # signal statistics
         self.scaling_flag = False
@@ -30,13 +28,8 @@ class CompositeSignal:
 
     def update(self, chunk):
         chunk_size = chunk.shape[0]
-        weights_signals = zip(self.weights, self.signals)
-        if self.operation == 'sum':
-            self.current_sample = np.sum([signal.current_sample*w for w, signal in weights_signals])
-        elif self.operation == 'prod':
-            self.current_sample = np.prod([np.power(signal.current_sample, w) for w, signal in weights_signals])
-        else:
-            raise TypeError('Wrong operation type')
+        current_samples = [(signal.name, signal.current_sample) for signal in self.signals]
+        self.current_sample = float(self.expression.subs(current_samples))
         self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample) / (self.n_acc + chunk_size)
         self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc) ** 2) / (
             self.n_acc + chunk_size)
