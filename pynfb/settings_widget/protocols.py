@@ -99,7 +99,6 @@ class ProtocolDialog(QtGui.QDialog):
         self.update_statistics = QtGui.QCheckBox()
         self.ssd_in_the_end = QtGui.QCheckBox()
         self.ssd_in_the_end.clicked.connect(self.update_source_signal_combo_box)
-        self.ssd_in_the_end.clicked.connect(lambda: self.update_statistics.setDisabled(self.ssd_in_the_end.isChecked()))
         self.form_layout.addRow('&SSD in the end:', self.ssd_in_the_end)
         self.form_layout.addRow('&Update statistics:', self.update_statistics)
 
@@ -160,7 +159,7 @@ class ProtocolDialog(QtGui.QDialog):
     def update_source_signal_combo_box(self):
         text = self.source_signal.currentText()
         self.source_signal.clear()
-        if self.type.currentText() == 'Baseline' and not self.ssd_in_the_end.isChecked():
+        if self.type.currentText() == 'Baseline':
             self.source_signal.addItem('All')
         all_signals = self.parent().parent().params['vSignals']
         signals = all_signals['DerivedSignal'].copy()
@@ -186,6 +185,7 @@ class ProtocolDialog(QtGui.QDialog):
     def open(self):
         self.update_source_signal_combo_box()
         self.reset_items()
+        self.update_source_signal_combo_box()
         super().open()
 
     def reset_items(self):
@@ -193,7 +193,6 @@ class ProtocolDialog(QtGui.QDialog):
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
-        self.update_statistics.setDisabled(self.ssd_in_the_end.isChecked())
         self.source_signal.setCurrentIndex(
             self.source_signal.findText(current_protocol['fbSource'], QtCore.Qt.MatchFixedString))
         self.type.setCurrentIndex(

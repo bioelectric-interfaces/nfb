@@ -40,25 +40,41 @@ class Protocol:
         pass
 
     def close_protocol(self, raw=None, signals=None):
+        # action if ssd in the end checkbox was checked
         if self.ssd_in_the_end:
+
+            # stop main timer
             if self.timer:
                 self.timer.stop()
+
+            # get spatial filter
             channels_names = self.ch_names
             x = raw
             pos = ch_names_to_2d_pos(channels_names)
             filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, sampling_freq=self.freq)
             self.signals[self.source_signal_id].update_spatial_filter(filter)
+
+            # emulate signal with new spatial filter
+            signal = self.signals[self.source_signal_id]
+            signal.reset_statistic_acc()
+            mean_chunk_size = 8
+            for k in range(0, x.shape[0]-mean_chunk_size, mean_chunk_size):
+                chunk = x[k:k+mean_chunk_size]
+                signal.update(chunk)
+
+            # run main timer
             if self.timer:
                 self.timer.start(1000 * 1. / self.freq)
-        else:
-            if self.update_statistics_in_the_end:
-                if self.source_signal_id is not None:
-                    self.signals[self.source_signal_id].update_statistics()
-                    self.signals[self.source_signal_id].enable_scaling()
-                else:
-                    for signal in self.signals:
-                        signal.update_statistics()
-                        signal.enable_scaling()
+
+        # update statistics action
+        if self.update_statistics_in_the_end:
+            if self.source_signal_id is not None:
+                self.signals[self.source_signal_id].update_statistics()
+                self.signals[self.source_signal_id].enable_scaling()
+            else:
+                for signal in self.signals:
+                    signal.update_statistics()
+                    signal.enable_scaling()
 
 class BaselineProtocol(Protocol):
     def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, text='Relax', **kwargs):
