@@ -231,10 +231,22 @@ class SubjectWindow(QtGui.QMainWindow):
         super(SubjectWindow, self).__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
+
+        # add central widget
+        widget = QtGui.QWidget()
+        layout = QtGui.QHBoxLayout()
+        widget.setLayout(layout)
         self.figure = ProtocolWidget()
-        # TODO: show reward flag
+        layout.addWidget(self.figure)
         self.figure.show_reward(False)
-        self.setCentralWidget(self.figure)
+        self.setCentralWidget(widget)
+
+        # background
+        p = self.palette()
+        p.setColor(self.backgroundRole(), QtGui.QColor(37, 33, 32))
+        self.setPalette(p)
+
+        # prepare widget
         self.current_protocol.widget_painter.prepare_widget(self.figure)
 
     def update_protocol_state(self, samples, chunk_size=1):

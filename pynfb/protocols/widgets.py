@@ -9,6 +9,11 @@ class ProtocolWidget(pg.PlotWidget):
         width = 5
         self.setYRange(-width, width)
         self.setXRange(-width, width)
+        size = 400
+        self.setMaximumWidth(size)
+        self.setMaximumHeight(size)
+        self.setMinimumWidth(size)
+        self.setMinimumHeight(size)
         self.hideAxis('bottom')
         self.hideAxis('left')
         self.setBackgroundBrush(pg.mkBrush('#252120'))
