@@ -197,6 +197,7 @@ class Experiment():
         for protocol in self.params['vProtocols']:
             source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
             reward_signal_id = signal_names.index(protocol['sRewardSignal']) if protocol['sRewardSignal']!='' else 0
+            print(protocol['sRewardSignal'], reward_signal_id)
             mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
                          protocol['sMockSignalFileDataset'])
             if protocol['sFb_type'] == 'Baseline':
@@ -229,7 +230,9 @@ class Experiment():
                         freq=self.freq,
                         timer=self.main_timer,
                         ch_names=channels_labels,
-                        show_reward=bool(protocol['bShowReward'])))
+                        show_reward=bool(protocol['bShowReward']),
+                        reward_threshold=protocol['bRewardThreshold'],
+                        reward_signal_id=reward_signal_id))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(
@@ -244,7 +247,9 @@ class Experiment():
                         ch_names=channels_labels,
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
                         ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
-                        show_reward=bool(protocol['bShowReward'])))
+                        show_reward=bool(protocol['bShowReward']),
+                        reward_threshold=protocol['bRewardThreshold'],
+                        reward_signal_id=reward_signal_id))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 

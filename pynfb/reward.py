@@ -12,7 +12,7 @@ class Reward:
 
     def update(self):
         current_sample = self.signal.current_sample
-        if self.signal.disable_spectrum_evaluation:
+        if not isinstance(current_sample, float):
             current_sample = current_sample[0]
         if current_sample > self.threshold:
             if self._increase_score:

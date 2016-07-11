@@ -35,6 +35,8 @@ class CompositeSignal:
             self.n_acc + chunk_size)
         self.std_acc = self.var_acc ** 0.5
         self.n_acc += chunk_size
+        if self.scaling_flag:
+            self.current_sample = (self.current_sample - self.mean) / self.std
         pass
 
     def update_statistics(self, mean=None, std=None):

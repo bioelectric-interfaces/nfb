@@ -144,7 +144,6 @@ class ProtocolDialog(QtGui.QDialog):
 
         # reward settings
         self.reward_signal = QtGui.QComboBox()
-        self.update_reward_signal_combo_box()
         self.form_layout.addRow('&Reward signal:', self.reward_signal)
         self.reward_threshold = QtGui.QDoubleSpinBox()
         self.reward_threshold.setRange(-10000, 10000)
@@ -159,15 +158,20 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow(self.save_button)
 
     def update_source_signal_combo_box(self):
+        text = self.source_signal.currentText()
         self.source_signal.clear()
         if self.type.currentText() == 'Baseline' and not self.ssd_in_the_end.isChecked():
             self.source_signal.addItem('All')
-        for signal in self.parent().parent().params['vSignals']['DerivedSignal']:
+        all_signals = self.parent().parent().params['vSignals']
+        signals = all_signals['DerivedSignal'].copy()
+        if not self.ssd_in_the_end.isChecked():
+            signals += all_signals['CompositeSignal'].copy()
+        for signal in signals:
             self.source_signal.addItem(signal['sSignalName'])
-
-    def update_reward_signal_combo_box(self):
-        for signal in self.parent().parent().params['vSignals']['DerivedSignal']:
             self.reward_signal.addItem(signal['sSignalName'])
+
+        current_index = self.source_signal.findText(text, QtCore.Qt.MatchFixedString)
+        self.source_signal.setCurrentIndex(current_index if current_index > -1 else 0)
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
@@ -181,13 +185,11 @@ class ProtocolDialog(QtGui.QDialog):
 
     def open(self):
         self.update_source_signal_combo_box()
-        self.update_reward_signal_combo_box()
         self.reset_items()
         super().open()
 
     def reset_items(self):
         current_protocol = self.params[self.parent().list.currentRow()]
-        print(current_protocol)
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
@@ -202,7 +204,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         self.message.setText(current_protocol['cString'])
         current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
-        self.reward_signal.setCurrentIndex(current_index if current_index>-1 else 0)
+        self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.show_reward.setChecked(current_protocol['bShowReward'])
         self.reward_threshold.setValue(current_protocol['bRewardThreshold'])
         pass
