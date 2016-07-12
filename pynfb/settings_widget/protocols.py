@@ -159,7 +159,7 @@ class ProtocolDialog(QtGui.QDialog):
     def update_source_signal_combo_box(self):
         text = self.source_signal.currentText()
         self.source_signal.clear()
-        if self.type.currentText() == 'Baseline':
+        if self.type.currentText() == 'Baseline' and not self.ssd_in_the_end.isChecked():
             self.source_signal.addItem('All')
         all_signals = self.parent().parent().params['vSignals']
         signals = all_signals['DerivedSignal'].copy()
