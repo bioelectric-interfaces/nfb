@@ -36,6 +36,8 @@ class TopomapSelector(QtGui.QWidget):
         self.topomap = TopographicMapCanvas(self.topographies[0], self.pos, names=names, width=5, height=4, dpi=100)
         self.selector = ClickableBarplot(self, self.freqs, self.major_vals)
         self.recompute_ssd()
+
+        self.selector.changed.connect(self.underline_central_band)
         #self.selector.reset_y(np.array(major_vals)*0+1)
         #self.selector.reset_w(3)
         layout.addWidget(self.selector, 2)
@@ -56,16 +58,29 @@ class TopomapSelector(QtGui.QWidget):
     def recompute_ssd(self):
         current_x = self.selector.current_x()
         parameters = self.sliders.getValues()
-        self.freqs = arange(self.x_left, self.x_right, parameters['bandwidth'])
+        self.x_delta = parameters['bandwidth']
+        self.freqs = arange(self.x_left, self.x_right, self.x_delta)
+        self.flanker_delta = parameters['flanker_bandwidth']
+        self.flanker_margin = parameters['flanker_margin']
         self.major_vals, self.topographies, self.filters = ssd_analysis(self.data,
                                                           sampling_frequency=self.sampling_freq,
                                                           freqs=self.freqs,
                                                           regularization_coef=parameters['regularizator'],
-                                                          flanker_delta=parameters['flanker_bandwidth'],
-                                                          flanker_margin=parameters['flanker_margin'])
+                                                          flanker_delta=self.flanker_delta,
+                                                          flanker_margin=self.flanker_margin)
         self.selector.plot(self.freqs, self.major_vals)
         self.selector.set_current_by_value(current_x)
         self.select_action()
+
+    def underline_central_band(self):
+        self.selector.clear_underlines_and_ticks()
+        x1 = self.selector.current_x()
+        x2 = x1 + self.x_delta
+        self.selector.underline(x1 - self.flanker_margin - self.flanker_delta, x1 - self.flanker_margin, 'flanker')
+        self.selector.underline(x2 + self.flanker_margin, x2 + self.flanker_margin + self.flanker_delta, 'flanker')
+        self.selector.underline(x1, x2, 'central')
+        self.selector.add_xtick(x1 - self.flanker_margin - self.flanker_delta)
+        self.selector.add_xtick(x2 + self.flanker_margin + self.flanker_delta)
 
 
 if __name__ == '__main__':
@@ -76,8 +91,9 @@ if __name__ == '__main__':
     ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
                 'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
     channels_names = np.array(ch_names)
-    x = np.loadtxt('example_recordings.txt')[:, channels_names!='Cz']
+    #x = np.loadtxt('example_recordings.txt')[:, channels_names!='Cz']
     channels_names = list(channels_names[channels_names!='Cz'])
+    x = np.random.randn(10000, len(channels_names))
 
     print(x.shape, channels_names)
     pos = ch_names_to_2d_pos(channels_names)

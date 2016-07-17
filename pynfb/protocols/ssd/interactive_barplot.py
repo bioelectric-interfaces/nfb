@@ -7,8 +7,12 @@ STYLE = {
     'pen-hover': pg.mkPen(255, 255, 255, width=1),
     'brush': pg.mkBrush(100, 100, 100),
     'brush-hover': pg.mkBrush(150, 150, 150),
-    'brush-selected': pg.mkBrush(200, 200, 200)
+    'brush-selected': pg.mkBrush(200, 200, 200),
+    'underline-central': pg.mkPen(176, 35, 48, width=3),
+    'underline-flanker': pg.mkPen(51, 152, 188, width=3)
 }
+STYLE['underline-central'].setCapStyle(QtCore.Qt.FlatCap)
+STYLE['underline-flanker'].setCapStyle(QtCore.Qt.FlatCap)
 
 
 class ClickableBar(QtGui.QGraphicsRectItem):
@@ -63,10 +67,13 @@ class ClickableBar(QtGui.QGraphicsRectItem):
 
 
 class ClickableBarplot(pg.PlotWidget):
+    changed = QtCore.pyqtSignal()
     def __init__(self, parent, x, y, **kwargs):
         super(ClickableBarplot, self).__init__(parent=parent, **kwargs)
         self.parent = parent
         self.rectangles = []
+        self.underlines = []
+        self.ticks = []
         self.plot(x, y)
 
     def plot(self, x, y):
@@ -78,7 +85,9 @@ class ClickableBarplot(pg.PlotWidget):
             self.rectangles.append(rect)
         self.set_all_not_current()
         self.current = 0
-        self.rectangles[0].set_current(True)
+        self.set_current(0)
+        self.setYRange(-0.05*max(y), max(y))
+        self.getPlotItem().getAxis('bottom').setLabel('Hz')
 
     def set_all_not_current(self):
         self.current = None
@@ -95,6 +104,7 @@ class ClickableBarplot(pg.PlotWidget):
     def set_current(self, ind):
         self.set_all_not_current()
         self.rectangles[ind].set_current(True)
+        self.changed.emit()
 
     def set_current_by_value(self, val):
         x = np.array([rect.x for rect in self.rectangles])
@@ -102,10 +112,31 @@ class ClickableBarplot(pg.PlotWidget):
         self.set_current(ind)
 
     def changed_action(self):
+        self.changed.emit()
         if self.parent is not None:
             self.parent.select_action()
         else:
             print('Parent is None')
+
+    def underline(self, x1=5, x2=8, style='central'):
+        y = -0.02
+        item = QtGui.QGraphicsLineItem(QtCore.QLineF(x1, y, x2, y))
+        item.setPen(STYLE['underline-'+style])
+        self.addItem(item)
+        self.underlines.append(item)
+
+    def add_xtick(self, val):
+        item = pg.TextItem(str(val), anchor=(0.5, 0))
+        item.setX(val)
+        item.setY(0)
+        self.addItem(item)
+        self.ticks.append(item)
+
+    def clear_underlines_and_ticks(self):
+        for item in self.underlines + self.ticks:
+            self.removeItem(item)
+
+
 
 
     def reset_y(self, y):
