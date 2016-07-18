@@ -57,6 +57,11 @@ class TopomapSelector(QtGui.QWidget):
     def get_current_filter(self):
         return self.filters[self.selector.current_index()]
 
+    def get_current_bandpass(self):
+        x1 = self.selector.current_x()
+        x2 = x1 + self.x_delta
+        return x1 - self.flanker_margin - self.flanker_delta, x2 + self.flanker_margin + self.flanker_delta
+
     def recompute_ssd(self):
         current_x = self.selector.current_x()
         parameters = self.sliders.getValues()

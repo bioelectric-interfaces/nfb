@@ -31,16 +31,14 @@ class SelectSSDFilterWidget(QtGui.QDialog):
 
     def select_action(self):
         self.filter = self.selector.get_current_filter()
+        self.bandpass = self.selector.get_current_bandpass()
         self.close()
-        # print(self.filter)
 
     @staticmethod
-    def select_filter(data, pos, names=None, sampling_freq=500, parent=None):
+    def select_filter_and_bandpass(data, pos, names=None, sampling_freq=500, parent=None):
         selector = SelectSSDFilterWidget(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
         _result = selector.exec_()
-        # print(selector.filter)
-        return selector.filter
-
+        return selector.filter, selector.bandpass
 
 if __name__ == '__main__':
     app = QtGui.QApplication([])

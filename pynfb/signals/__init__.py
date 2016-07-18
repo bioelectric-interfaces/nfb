@@ -110,6 +110,9 @@ class DerivedSignal():
     def update_spatial_filter(self, spatial_filter):
         self.spatial_matrix = spatial_filter
 
+    def update_bandpass(self, bandpass):
+        self.bandpass = bandpass
+
     def reset_statistic_acc(self):
         self.mean_acc = 0
         self.var_acc = 0

@@ -51,8 +51,11 @@ class Protocol:
             channels_names = self.ch_names
             x = raw
             pos = ch_names_to_2d_pos(channels_names)
-            filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, sampling_freq=self.freq)
+            # filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, sampling_freq=self.freq)
+            filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(x, pos, channels_names,
+                                                                                sampling_freq=self.freq)
             self.signals[self.source_signal_id].update_spatial_filter(filter)
+            self.signals[self.source_signal_id].update_bandpass(bandpass)
 
             # emulate signal with new spatial filter
             signal = self.signals[self.source_signal_id]
