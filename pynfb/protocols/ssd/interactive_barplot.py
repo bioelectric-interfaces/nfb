@@ -68,13 +68,13 @@ class ClickableBar(QtGui.QGraphicsRectItem):
 
 class ClickableBarplot(pg.PlotWidget):
     changed = QtCore.pyqtSignal()
-    def __init__(self, parent, x, y, **kwargs):
+    def __init__(self, parent, **kwargs):
         super(ClickableBarplot, self).__init__(parent=parent, **kwargs)
         self.parent = parent
         self.rectangles = []
         self.underlines = []
         self.ticks = []
-        self.plot(x, y)
+        self.current = None
 
     def plot(self, x, y):
         self.clear()
@@ -99,7 +99,7 @@ class ClickableBarplot(pg.PlotWidget):
         return self.rectangles.index(self.current)
 
     def current_x(self):
-        return self.current.x
+        return self.current.x if self.current is not None else 0
 
     def set_current(self, ind):
         self.set_all_not_current()

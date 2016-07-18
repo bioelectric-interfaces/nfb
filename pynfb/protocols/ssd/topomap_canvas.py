@@ -13,12 +13,11 @@ except ImportError:
 
 
 class TopographicMapCanvas(FigureCanvas):
-    def __init__(self, data, pos=None, names=None, parent=None, width=5, height=4, dpi=100, show_names=None):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         self.colorbar = None
         FigureCanvas.__init__(self, self.fig)
-        self.update_figure(data, pos, names, show_names=show_names)
         self.setParent(parent)
         FigureCanvas.setSizePolicy(self,
                                    QtGui.QSizePolicy.Expanding,
