@@ -173,7 +173,7 @@ class Experiment():
                                       bandpass_low=signal['fBandpassLowHz'],
                                       name=signal['sSignalName'],
                                       n_channels=self.n_channels,
-                                      spatial_matrix=(read_spatial_filter(signal['SpatialFilterMatrix'],
+                                      spatial_filter=(read_spatial_filter(signal['SpatialFilterMatrix'],
                                                                           channels_labels)
                                                       if signal['SpatialFilterMatrix'] != ''
                                                       else None),

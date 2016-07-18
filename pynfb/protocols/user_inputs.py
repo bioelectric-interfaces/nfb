@@ -1,7 +1,7 @@
 import numpy as np
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from pynfb.generators import ch_names
-from .ssd import TopomapSelector
+from pynfb.protocols.ssd import TopomapSelector
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 
 
@@ -20,17 +20,27 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         self.selector = TopomapSelector(data, pos, names=names, sampling_freq=sampling_freq)
         layout.addWidget(self.selector)
 
+        # reject, select radio
+        radio_layout = QtGui.QHBoxLayout()
+        radio_layout.setAlignment(QtCore.Qt.AlignLeft)
+        self.select_radio = QtGui.QRadioButton('Select')
+        self.select_radio.toggle()
+        self.reject_radio = QtGui.QRadioButton('Reject')
+        radio_layout.addWidget(self.select_radio)
+        radio_layout.addWidget(self.reject_radio)
+        layout.addLayout(radio_layout)
+
         # select button
-        select_button = QtGui.QPushButton('Select')
+        select_button = QtGui.QPushButton('OK')
         select_button.setMaximumWidth(100)
         select_button.clicked.connect(self.select_action)
-        layout.addWidget(select_button)
+        radio_layout.addWidget(select_button)
 
         # selected filter
         self.filter = self.selector.get_current_filter()
 
     def select_action(self):
-        self.filter = self.selector.get_current_filter()
+        self.filter = self.selector.get_current_filter(reject=self.reject_radio.isChecked())
         self.bandpass = self.selector.get_current_bandpass()
         self.close()
 

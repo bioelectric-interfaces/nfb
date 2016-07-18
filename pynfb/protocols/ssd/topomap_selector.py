@@ -5,7 +5,8 @@ from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pynfb.protocols.ssd.interactive_barplot import ClickableBarplot
 
 from pynfb.widgets.parameter_slider import ParameterSlider
-from numpy import arange
+from numpy import arange, dot, array, eye
+from numpy.linalg import pinv
 
 
 
@@ -54,8 +55,14 @@ class TopomapSelector(QtGui.QWidget):
     def get_current_topo(self):
         return self.topographies[self.selector.current_index()]
 
-    def get_current_filter(self):
-        return self.filters[self.selector.current_index()]
+    def get_current_filter(self, reject=False):
+        filters = self.filters[self.selector.current_index()]
+        filter = filters[:, 0]
+        if reject:
+            rejected_matrix = dot(filters, eye(filters.shape[0]) - dot(filter[:, None], filter[None, :]))
+            inv = pinv(filters)
+            return dot(rejected_matrix, inv)
+        return filter
 
     def get_current_bandpass(self):
         x1 = self.selector.current_x()

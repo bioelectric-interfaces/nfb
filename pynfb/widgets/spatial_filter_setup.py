@@ -51,7 +51,7 @@ class SpatialFilterSetup(QtGui.QDialog):
         super(SpatialFilterSetup, self).__init__(**kwargs)
         #
         self.ch_names = ch_names
-        self.weights = weights if weights is not None else [0 for _j in self.ch_names]
+        self.weights = weights if weights is not None else [0. for _j in self.ch_names]
 
         # layout
         layout = QtGui.QGridLayout(self)
@@ -63,7 +63,8 @@ class SpatialFilterSetup(QtGui.QDialog):
         layout.addWidget(self.table, 0, 1)
 
         # topomap canvas
-        self.topomap = TopographicMapCanvas(weights, names=ch_names, show_names=ch_names)
+        self.topomap = TopographicMapCanvas()
+        self.topomap.update_figure(self.weights, names=ch_names, show_names=ch_names)
         layout.addWidget(self.topomap, 0, 0)
 
         # buttons

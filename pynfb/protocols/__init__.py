@@ -1,7 +1,7 @@
 from pynfb.protocols.widgets import *
 from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
-
+from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
@@ -54,7 +54,12 @@ class Protocol:
             # filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, sampling_freq=self.freq)
             filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(x, pos, channels_names,
                                                                                 sampling_freq=self.freq)
-            self.signals[self.source_signal_id].update_spatial_filter(filter)
+            if filter.ndim == 1:
+                self.signals[self.source_signal_id].update_spatial_filter(filter)
+            else:
+                self.signals[self.source_signal_id].append_spatial_matrix_list(filter)
+                filter = SpatialFilterSetup.get_filter(self.ch_names)
+                self.signals[self.source_signal_id].update_spatial_filter(filter)
             self.signals[self.source_signal_id].update_bandpass(bandpass)
 
             # emulate signal with new spatial filter

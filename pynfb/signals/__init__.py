@@ -4,7 +4,7 @@ from .composite import CompositeSignal
 
 
 class DerivedSignal():
-    def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_matrix=None,
+    def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_filter=None,
                  source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1):
         # n_samples hot fix:
@@ -23,13 +23,21 @@ class DerivedSignal():
         self.var_acc = 0
         self.std_acc = 0
         self.n_acc = 0
-        # spatial matrix
-        self.spatial_matrix = np.zeros((n_channels,))
-        if spatial_matrix is None:
-            self.spatial_matrix[0] = 0
+
+        # linear filter matrices list
+        self.spatial_matrix_list = []
+
+        # spatial filter
+        self.spatial_filter = np.zeros((n_channels,))
+        if spatial_filter is None:
+            self.spatial_filter[0] = 0
         else:
-            shape = min(spatial_matrix.shape[0], n_channels)
-            self.spatial_matrix[:shape] = spatial_matrix[:shape]
+            shape = min(spatial_filter.shape[0], n_channels)
+            self.spatial_filter[:shape] = spatial_filter[:shape]
+
+        # spatial matrix
+        self.spatial_matrix = self.spatial_filter.copy()
+
         # current sample
         self.current_sample = 0
         self.previous_sample = 0
@@ -107,8 +115,17 @@ class DerivedSignal():
         self.std = std if (std is not None) else self.std_acc
         self.reset_statistic_acc()
 
-    def update_spatial_filter(self, spatial_filter):
-        self.spatial_matrix = spatial_filter
+    def update_spatial_filter(self, spatial_filter=None):
+        if spatial_filter is not None:
+            self.spatial_filter = spatial_filter
+        self.spatial_matrix = self.spatial_filter
+        for matrix in self.spatial_matrix_list[-1::-1]:
+            self.spatial_matrix = np.dot(matrix, self.spatial_matrix)
+        print('ok')
+
+    def append_spatial_matrix_list(self, matrix):
+        self.spatial_matrix_list.append(matrix)
+        self.update_spatial_filter()
 
     def update_bandpass(self, bandpass):
         self.bandpass = bandpass
