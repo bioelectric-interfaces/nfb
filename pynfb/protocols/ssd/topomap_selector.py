@@ -11,7 +11,7 @@ from numpy.linalg import pinv
 
 
 class TopomapSelector(QtGui.QWidget):
-    def __init__(self, data, pos, names=None, sampling_freq=500, **kwargs):
+    def __init__(self, data, pos, names, sampling_freq=500, **kwargs):
         super(TopomapSelector, self).__init__(**kwargs)
 
         # layouts
@@ -36,9 +36,27 @@ class TopomapSelector(QtGui.QWidget):
         self.data = data
         self.sampling_freq = sampling_freq
 
-        # topomap canvas init
-        self.topomap = TopographicMapCanvas(width=5, height=4, dpi=100)
-        layout.addWidget(self.topomap, 1)
+        # topomap canvas layout
+        topo_layout = QtGui.QVBoxLayout()
+        layout.addLayout(topo_layout, 1)
+
+        # component spinbox and layout
+        component_layout = QtGui.QHBoxLayout()
+        self.component_spinbox = QtGui.QSpinBox()
+        self.component_spinbox.setRange(1, len(names))
+        self.component_spinbox.valueChanged.connect(self.change_topomap)
+        component_layout.addWidget(QtGui.QLabel('Component:'))
+        component_layout.addWidget(self.component_spinbox)
+
+        # topomap canvas
+        self.topomaps = [TopographicMapCanvas(width=5, height=4, dpi=100) for _k in range(len(names))]
+        for topomap in self.topomaps:
+            topo_layout.addWidget(topomap)
+            topomap.setHidden(True)
+        self.current_topomap = 0
+        self.topomap = self.topomaps[self.current_topomap]
+        self.topomap.setHidden(False)
+        topo_layout.addLayout(component_layout)
 
         # selector barplot init
         self.selector = ClickableBarplot(self)
@@ -48,22 +66,29 @@ class TopomapSelector(QtGui.QWidget):
         # first ssd analysis
         self.recompute_ssd()
 
+    def change_topomap(self):
+        self.topomap.setHidden(True)
+        self.current_topomap = self.component_spinbox.value() - 1
+        self.topomap = self.topomaps[self.current_topomap]
+        self.topomap.setHidden(False)
+
     def select_action(self):
         index = self.selector.current_index()
-        self.topomap.update_figure(self.topographies[index], self.pos, names=self.names)
+        for ind, topomap in enumerate(self.topomaps):
+            topomap.update_figure(self.topographies[index][:, ind], self.pos, names=self.names)
 
     def get_current_topo(self):
-        return self.topographies[self.selector.current_index()]
+        return self.topographies[self.selector.current_index()][:, self.current_topomap]
 
     def get_current_filter(self, reject=False):
         filters = self.filters[self.selector.current_index()]
-        filter = filters[:, 0]
+        filter = filters[:, self.current_topomap]
         if reject:
             # rejected_matrix = dot(filters, eye(filters.shape[0]) - dot(filter[:, None], filter[None, :]))
             # inv = pinv(filters)
             # return dot(rejected_matrix, inv)
             inv = pinv(filters)
-            filters[:, 0] = 0
+            filters[:, self.current_topomap] = 0
             return dot(filters, inv)
         return filter
 
