@@ -47,7 +47,7 @@ class Table(QtGui.QTableWidget):
 
 
 class SpatialFilterSetup(QtGui.QDialog):
-    def __init__(self, ch_names, weights=None, **kwargs):
+    def __init__(self, ch_names, weights=None, message=None, **kwargs):
         super(SpatialFilterSetup, self).__init__(**kwargs)
         #
         self.ch_names = ch_names
@@ -75,10 +75,21 @@ class SpatialFilterSetup(QtGui.QDialog):
         revert_btn.clicked.connect(self.table.revert_changes)
         ok_btn = QtGui.QPushButton('OK')
         ok_btn.clicked.connect(self.ok_action)
+        zero_btn = QtGui.QPushButton('Set zeros')
+        zero_btn.clicked.connect(self.set_zeros)
+        btn_layout.addWidget(zero_btn)
         btn_layout.addWidget(revert_btn)
         btn_layout.addWidget(apply_btn)
         btn_layout.addWidget(ok_btn)
         layout.addLayout(btn_layout, 1, 1)
+
+        if message is not None:
+            layout.addWidget(QtGui.QLabel(message), 1, 0)
+
+    def set_zeros(self):
+        self.weights = [0 for _w in self.weights]
+        self.table.set_weights(self.weights)
+        self.apply_action()
 
     def apply_action(self):
         self.table.commit_changes()
@@ -90,8 +101,8 @@ class SpatialFilterSetup(QtGui.QDialog):
         self.close()
 
     @staticmethod
-    def get_filter(ch_names, weights=None):
-        selector = SpatialFilterSetup(ch_names, weights=weights)
+    def get_filter(ch_names, weights=None, message=None):
+        selector = SpatialFilterSetup(ch_names, weights=weights, message=message)
         _result = selector.exec_()
         return selector.weights
 
@@ -102,5 +113,5 @@ if __name__ == '__main__':
     app = QtGui.QApplication([])
     ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
                 'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
-    w = SpatialFilterSetup.get_filter(ch_names, np.random.uniform(size=len(ch_names)))
+    w = SpatialFilterSetup.get_filter(ch_names, np.random.uniform(size=len(ch_names)), message='KEK')
     print(w)

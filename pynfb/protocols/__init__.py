@@ -3,6 +3,7 @@ from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 
+
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
@@ -34,7 +35,7 @@ class Protocol:
         if self.source_signal_id is not None:
             self.widget_painter.redraw_state(samples[self.source_signal_id])
         else:
-            self.widget_painter.redraw_state(samples[0]) # if source signal is 'ALL'
+            self.widget_painter.redraw_state(samples[0])  # if source signal is 'ALL'
 
     def update_statistics(self):
         pass
@@ -58,7 +59,9 @@ class Protocol:
                 self.signals[self.source_signal_id].update_spatial_filter(filter)
             else:
                 self.signals[self.source_signal_id].append_spatial_matrix_list(filter)
-                filter = SpatialFilterSetup.get_filter(self.ch_names)
+                filter = SpatialFilterSetup.get_filter(self.ch_names,
+                                                       message='Current spatial filter for signal is null vector. '
+                                                               'Please modify it.')
                 self.signals[self.source_signal_id].update_spatial_filter(filter)
             self.signals[self.source_signal_id].update_bandpass(bandpass)
 
@@ -66,8 +69,8 @@ class Protocol:
             signal = self.signals[self.source_signal_id]
             signal.reset_statistic_acc()
             mean_chunk_size = 8
-            for k in range(0, x.shape[0]-mean_chunk_size, mean_chunk_size):
-                chunk = x[k:k+mean_chunk_size]
+            for k in range(0, x.shape[0] - mean_chunk_size, mean_chunk_size):
+                chunk = x[k:k + mean_chunk_size]
                 signal.update(chunk)
 
             # run main timer
@@ -83,6 +86,7 @@ class Protocol:
                 for signal in self.signals:
                     signal.update_statistics()
                     signal.enable_scaling()
+
 
 class BaselineProtocol(Protocol):
     def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, text='Relax', **kwargs):
@@ -114,6 +118,7 @@ class SSDProtocol(Protocol):
         kwargs['ssd_in_the_end'] = True
         super().__init__(signals, **kwargs)
         self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
+
 
 def main():
     pass
