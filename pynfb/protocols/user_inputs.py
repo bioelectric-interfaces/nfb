@@ -51,10 +51,23 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         return selector.filter, selector.bandpass
 
 if __name__ == '__main__':
+    import numpy as np
+    from pynfb.widgets.helpers import ch_names_to_2d_pos
+
     app = QtGui.QApplication([])
-    channels_names = ch_names[:128]
-    x = np.random.rand(10000, 128)
+
+    ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
+                'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
+    channels_names = np.array(ch_names)
+    x = np.loadtxt('ssd/example_recordings.txt')[:, channels_names != 'Cz']
+    channels_names = list(channels_names[channels_names != 'Cz'])
     pos = ch_names_to_2d_pos(channels_names)
-    widget = SelectSSDFilterWidget(x, pos, names=channels_names)
-    widget.show()
-    app.exec_()
+
+    # double ssd reject test
+    for _k in range(3):
+        filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(x, pos, names=channels_names,
+                                                                            sampling_freq=1000)
+        # ff = np.zeros((filter.shape[0], filter.shape[0]))
+        # ff[:, 0] = filter
+        # filter = ff
+        x = np.dot(x, filter)

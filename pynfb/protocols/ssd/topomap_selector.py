@@ -59,9 +59,12 @@ class TopomapSelector(QtGui.QWidget):
         filters = self.filters[self.selector.current_index()]
         filter = filters[:, 0]
         if reject:
-            rejected_matrix = dot(filters, eye(filters.shape[0]) - dot(filter[:, None], filter[None, :]))
+            # rejected_matrix = dot(filters, eye(filters.shape[0]) - dot(filter[:, None], filter[None, :]))
+            # inv = pinv(filters)
+            # return dot(rejected_matrix, inv)
             inv = pinv(filters)
-            return dot(rejected_matrix, inv)
+            filters[:, 0] = 0
+            return dot(filters, inv)
         return filter
 
     def get_current_bandpass(self):
