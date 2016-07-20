@@ -2,6 +2,7 @@ from pynfb.protocols.widgets import *
 from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
+from pynfb.widgets.update_signals_dialog import SignalsSSDManager
 
 
 class Protocol:
@@ -52,26 +53,12 @@ class Protocol:
             channels_names = self.ch_names
             x = raw
             pos = ch_names_to_2d_pos(channels_names)
-            # filter = SelectSSDFilterWidget.select_filter(x, pos, channels_names, sampling_freq=self.freq)
-            filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(x, pos, channels_names,
-                                                                                sampling_freq=self.freq)
-            if filter.ndim == 1:
-                self.signals[self.source_signal_id].update_spatial_filter(filter)
-            else:
-                self.signals[self.source_signal_id].append_spatial_matrix_list(filter)
-                filter = SpatialFilterSetup.get_filter(self.ch_names,
-                                                       message='Current spatial filter for signal is null vector. '
-                                                               'Please modify it.')
-                self.signals[self.source_signal_id].update_spatial_filter(filter)
-            self.signals[self.source_signal_id].update_bandpass(bandpass)
 
-            # emulate signal with new spatial filter
-            signal = self.signals[self.source_signal_id]
-            signal.reset_statistic_acc()
-            mean_chunk_size = 8
-            for k in range(0, x.shape[0] - mean_chunk_size, mean_chunk_size):
-                chunk = x[k:k + mean_chunk_size]
-                signal.update(chunk)
+            signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self.freq)
+            if self.source_signal_id is not None:
+                signal_manager.run_ssd(row=self.source_signal_id)
+            else:
+                signal_manager.exec_()
 
             # run main timer
             if self.timer:

@@ -1,6 +1,9 @@
 from PyQt4 import QtGui, QtCore
 import sys
-from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
+
+from pynfb.protocols import SelectSSDFilterWidget
+from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
+from pynfb.signals import DerivedSignal
 
 
 class Table(QtGui.QTableWidget):
@@ -24,24 +27,37 @@ class Table(QtGui.QTableWidget):
             self.setItem(ind, 2, modified_item)
 
         # open buttons
-        self.weights = [0 for _j in range(self.rowCount())]
-        for ind, w in enumerate(self.weights):
+        self.buttons = []
+        for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
-            open_ssd_btn.clicked.connect(lambda : self.set_modified(ind))
+            open_ssd_btn.clicked.connect(lambda: self.set_modified(ind))
+            self.buttons.append(open_ssd_btn)
             self.setCellWidget(ind, 1, open_ssd_btn)
 
         # formatting
+        self.current_row = None
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().setVisible(False)
 
     def set_modified(self, ind):
-        row = [self.cellWidget(i, 1) for i in range(self.rowCount())].index(self.sender())
+        row = self.buttons.index(self.sender())
+        print('CURREEENNNNT', row)
         self.item(row, 2).setText('Yes')
+        self.current_row = row
 
 
 class SignalsSSDManager(QtGui.QDialog):
-    def __init__(self, signals, message=None, **kwargs):
+    def __init__(self, signals, x, pos, channels_names, sampling_freq=1000, message=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
+
+        # attributes
+        self.signals = signals
+        self.x = x
+        self.pos = pos
+        self.channels_names = channels_names
+        self.sampling_freq = sampling_freq
+
+        #layout
         layout = QtGui.QVBoxLayout(self)
 
         # table
@@ -58,17 +74,47 @@ class SignalsSSDManager(QtGui.QDialog):
         ok_button.setMaximumWidth(100)
         layout.addWidget(ok_button)
 
+        for j, button in enumerate(self.table.buttons):
+            button.clicked.connect(lambda: self.run_ssd())
+
+            button.setEnabled(isinstance(self.signals[j], DerivedSignal))
+            
+
+    def run_ssd(self, row=None):
+        if row is None:
+            row = self.table.buttons.index(self.sender())
+
+        filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(self.x, self.pos, self.channels_names,
+                                                                            sampling_freq=self.sampling_freq)
+
+        if filter.ndim == 1:
+            self.signals[row].update_spatial_filter(filter)
+        else:
+            self.signals[row].append_spatial_matrix_list(filter)
+            filter = SpatialFilterSetup.get_filter(self.channels_names,
+                                                   message='Current spatial filter for signal is null vector. '
+                                                           'Please modify it.')
+            self.signals[row].update_spatial_filter(filter)
+        self.signals[row].update_bandpass(bandpass)
+        
+        # emulate signal with new spatial filter
+        signal = self.signals[row]
+        signal.reset_statistic_acc()
+        mean_chunk_size = 8
+        for k in range(0, self.x.shape[0] - mean_chunk_size, mean_chunk_size):
+            chunk = self.x[k:k + mean_chunk_size]
+            signal.update(chunk)
+
     def ok_button_action(self):
         self.close()
 
-    @staticmethod
-    def run(signals, message=None):
-        selector = SignalsSSDManager(signals, message=message)
-        _result = selector.exec_()
+
+
 
 if __name__ == '__main__':
     import numpy as np
-    from pynfb.signals import DerivedSignal
     signals = [DerivedSignal(name='Signal'+str(k)) for k in range(3)]
     app = QtGui.QApplication([])
-    SignalsSSDManager.run(signals, 'Run it')
+    w = SignalsSSDManager(signals, 0, 0, 0)
+    w.show()
+    app.exec_()

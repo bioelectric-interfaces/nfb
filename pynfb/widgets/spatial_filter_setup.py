@@ -113,5 +113,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication([])
     ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
                 'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
-    w = SpatialFilterSetup.get_filter(ch_names, np.random.uniform(size=len(ch_names)), message='KEK')
+    w = SpatialFilterSetup.get_filter(ch_names, np.random.uniform(size=len(ch_names)), message='Current spatial filter '
+                                                                                               'for signal is null vector. '
+                                                               'Please modify it.')
     print(w)
