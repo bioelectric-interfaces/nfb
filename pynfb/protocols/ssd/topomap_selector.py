@@ -56,6 +56,7 @@ class TopomapSelector(QtGui.QWidget):
         self.current_topomap = 0
         self.topomap = self.topomaps[self.current_topomap]
         self.topomap.setHidden(False)
+        self.topomap_drawn = [False for topomap in self.topomaps]
         topo_layout.addLayout(component_layout)
 
         # selector barplot init
@@ -71,11 +72,17 @@ class TopomapSelector(QtGui.QWidget):
         self.current_topomap = self.component_spinbox.value() - 1
         self.topomap = self.topomaps[self.current_topomap]
         self.topomap.setHidden(False)
+        self.draw_topomap()
 
     def select_action(self):
+        self.topomap_drawn = [False for _topomap in self.topomaps]
+        self.draw_topomap()
+
+    def draw_topomap(self):
         index = self.selector.current_index()
-        for ind, topomap in enumerate(self.topomaps):
-            topomap.update_figure(self.topographies[index][:, ind], self.pos, names=self.names)
+        if not self.topomap_drawn[self.current_topomap]:
+            self.topomap.update_figure(self.topographies[index][:, self.current_topomap], self.pos, names=self.names)
+            self.topomap_drawn[self.current_topomap] = True
 
     def get_current_topo(self):
         return self.topographies[self.selector.current_index()][:, self.current_topomap]
@@ -98,6 +105,7 @@ class TopomapSelector(QtGui.QWidget):
         return x1 - self.flanker_margin - self.flanker_delta, x2 + self.flanker_margin + self.flanker_delta
 
     def recompute_ssd(self):
+        self.topomap_drawn = [False for _topomap in self.topomaps]
         current_x = self.selector.current_x()
         parameters = self.sliders.getValues()
         self.x_delta = parameters['bandwidth']
@@ -112,7 +120,7 @@ class TopomapSelector(QtGui.QWidget):
                                                                         flanker_margin=self.flanker_margin)
         self.selector.plot(self.freqs, self.major_vals)
         self.selector.set_current_by_value(current_x)
-        self.select_action()
+        self.change_topomap()
 
     def underline_central_band(self):
         self.selector.clear_underlines_and_ticks()
