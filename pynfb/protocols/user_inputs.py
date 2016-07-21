@@ -28,13 +28,23 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         self.reject_radio = QtGui.QRadioButton('Reject')
         radio_layout.addWidget(self.select_radio)
         radio_layout.addWidget(self.reject_radio)
-        layout.addLayout(radio_layout)
+
+        # update checkboxes layout
+        update_layout = QtGui.QVBoxLayout()
+        self.update_band_checkbox = QtGui.QCheckBox('Update band')
+        self.update_band_checkbox.setChecked(True)
+        self.update_spatial_filter_checkbox = QtGui.QCheckBox('Update spatial filter')
+        self.update_spatial_filter_checkbox.setChecked(True)
+        update_layout.addWidget(self.update_band_checkbox)
+        update_layout.addWidget(self.update_spatial_filter_checkbox)
+        layout.addLayout(update_layout)
 
         # select button
         select_button = QtGui.QPushButton('OK')
         select_button.setMaximumWidth(100)
         select_button.clicked.connect(self.select_action)
         radio_layout.addWidget(select_button)
+        layout.addLayout(radio_layout)
 
         # selected filter
         self.filter = self.selector.get_current_filter()
@@ -48,7 +58,8 @@ class SelectSSDFilterWidget(QtGui.QDialog):
     def select_filter_and_bandpass(data, pos, names=None, sampling_freq=500, parent=None):
         selector = SelectSSDFilterWidget(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
         _result = selector.exec_()
-        return selector.filter, selector.bandpass
+        return (selector.filter if selector.update_spatial_filter_checkbox.isChecked() else None,
+                selector.bandpass if selector.update_band_checkbox.isChecked() else None)
 
 if __name__ == '__main__':
     import numpy as np

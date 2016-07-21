@@ -86,16 +86,17 @@ class SignalsSSDManager(QtGui.QDialog):
 
         filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(self.x, self.pos, self.channels_names,
                                                                             sampling_freq=self.sampling_freq)
-
-        if filter.ndim == 1:
-            self.signals[row].update_spatial_filter(filter)
-        else:
-            self.signals[row].append_spatial_matrix_list(filter)
-            filter = SpatialFilterSetup.get_filter(self.channels_names,
-                                                   message='Current spatial filter for signal is null vector. '
-                                                           'Please modify it.')
-            self.signals[row].update_spatial_filter(filter)
-        self.signals[row].update_bandpass(bandpass)
+        if filter is not None:
+            if filter.ndim == 1:
+                self.signals[row].update_spatial_filter(filter)
+            else:
+                self.signals[row].append_spatial_matrix_list(filter)
+                filter = SpatialFilterSetup.get_filter(self.channels_names,
+                                                       message='Current spatial filter for signal is null vector. '
+                                                               'Please modify it.')
+                self.signals[row].update_spatial_filter(filter)
+        if bandpass is not None:
+            self.signals[row].update_bandpass(bandpass)
         
         # emulate signal with new spatial filter
         signal = self.signals[row]
