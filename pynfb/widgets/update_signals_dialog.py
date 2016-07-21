@@ -13,18 +13,35 @@ class Table(QtGui.QTableWidget):
         self.names = [signal.name for signal in signals]
 
         # set size and names
-        self.setColumnCount(3)
+        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Spatial filter', 'Open SSD']
+        self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
-        self.setHorizontalHeaderLabels(['Signal name', 'Open SSD', 'Modified'])
+        self.setHorizontalHeaderLabels(self.columns)
 
         # set ch names
-        for ind, name in enumerate(self.names):
-            name_item = QtGui.QTableWidgetItem(name)
+        for ind, signal in enumerate(signals):
+
+            # name
+            name_item = QtGui.QTableWidgetItem(signal.name)
             name_item.setFlags(QtCore.Qt.ItemIsEnabled)
-            self.setItem(ind, 0, name_item)
+            self.setItem(ind, self.columns.index('Signal'), name_item)
+
+            # status
             modified_item = QtGui.QTableWidgetItem('No')
             modified_item.setFlags(QtCore.Qt.ItemIsEnabled)
-            self.setItem(ind, 2, modified_item)
+            self.setItem(ind, self.columns.index('Modified'), modified_item)
+
+            # band
+            band_widget = BandWidget()
+            band_widget.set_band(signal.bandpass)
+            self.setCellWidget(ind, self.columns.index('Band'), band_widget)
+
+            # rejection
+            self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem('0'))
+
+            # spatial filter
+            text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
+            self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
 
         # open buttons
         self.buttons = []
@@ -32,18 +49,44 @@ class Table(QtGui.QTableWidget):
             open_ssd_btn = QtGui.QPushButton('Open')
             open_ssd_btn.clicked.connect(lambda: self.set_modified(ind))
             self.buttons.append(open_ssd_btn)
-            self.setCellWidget(ind, 1, open_ssd_btn)
+            self.setCellWidget(ind, self.columns.index('Open SSD'), open_ssd_btn)
 
         # formatting
         self.current_row = None
         self.horizontalHeader().setStretchLastSection(True)
         self.verticalHeader().setVisible(False)
+        self.resizeColumnsToContents()
 
     def set_modified(self, ind):
         row = self.buttons.index(self.sender())
         print('CURREEENNNNT', row)
-        self.item(row, 2).setText('Yes')
+        self.item(row, self.columns.index('Modified')).setText('Yes')
         self.current_row = row
+
+
+class BandWidget(QtGui.QWidget):
+    def __init__(self, max_freq=10000, **kwargs):
+        super(BandWidget, self).__init__(**kwargs)
+        layout = QtGui.QHBoxLayout(self)
+        layout.setMargin(0)
+        self.left = QtGui.QDoubleSpinBox()
+        self.left.setMinimumHeight(25)
+        self.left.setRange(0, max_freq)
+        self.right = QtGui.QDoubleSpinBox()
+        self.right.setRange(0, max_freq)
+        self.right.setMinimumHeight(25)
+        layout.addWidget(self.left)
+        layout.addWidget(QtGui.QLabel('-'))
+        layout.addWidget(self.right)
+        layout.addWidget(QtGui.QLabel('Hz '))
+
+    def set_band(self, band=(0, 0)):
+        self.left.setValue(band[0])
+        self.right.setValue(band[1])
+
+    def get_band(self):
+        return self.left.value(), self.right.value()
+
 
 
 class SignalsSSDManager(QtGui.QDialog):
@@ -51,7 +94,7 @@ class SignalsSSDManager(QtGui.QDialog):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # attributes
-        self.signals = signals
+        self.signals = [signal for signal in signals if isinstance(signal, DerivedSignal)]
         self.x = x
         self.pos = pos
         self.channels_names = channels_names
@@ -59,9 +102,10 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
+        self.setMinimumWidth(500)
 
         # table
-        self.table = Table(signals)
+        self.table = Table(self.signals)
         layout.addWidget(self.table)
 
         # message
@@ -114,7 +158,9 @@ class SignalsSSDManager(QtGui.QDialog):
 
 if __name__ == '__main__':
     import numpy as np
-    signals = [DerivedSignal(name='Signal'+str(k)) for k in range(3)]
+    from pynfb.signals import CompositeSignal
+    signals = [DerivedSignal(name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k])) for k in range(3)]
+    signals +=[CompositeSignal(signals, '', 'Composite')]
     app = QtGui.QApplication([])
     w = SignalsSSDManager(signals, 0, 0, 0)
     w.show()

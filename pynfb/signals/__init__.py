@@ -62,6 +62,9 @@ class DerivedSignal():
         self.smoothing_factor = smoothing_factor
         pass
 
+    def spatial_filter_is_zeros(self):
+        return (self.spatial_filter == 0).all()
+
     def update(self, chunk):
 
         # spatial filter
