@@ -99,6 +99,10 @@ class TopomapSelector(QtGui.QWidget):
             return dot(filters, inv)
         return filter
 
+    def update_data(self, data):
+        self.data = data
+        self.recompute_ssd()
+
     def get_current_bandpass(self):
         x1 = self.selector.current_x()
         x2 = x1 + self.x_delta

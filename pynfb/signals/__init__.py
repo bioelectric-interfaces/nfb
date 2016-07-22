@@ -120,7 +120,7 @@ class DerivedSignal():
 
     def update_spatial_filter(self, spatial_filter=None):
         if spatial_filter is not None:
-            self.spatial_filter = spatial_filter
+            self.spatial_filter = np.array(spatial_filter)
         self.spatial_matrix = self.spatial_filter
         for matrix in self.spatial_matrix_list[-1::-1]:
             self.spatial_matrix = np.dot(matrix, self.spatial_matrix)
@@ -128,6 +128,13 @@ class DerivedSignal():
 
     def append_spatial_matrix_list(self, matrix):
         self.spatial_matrix_list.append(matrix)
+        self.update_spatial_filter()
+
+    def update_rejections(self, rejections, append=False):
+        if append:
+            self.spatial_matrix_list += rejections
+        else:
+            self.spatial_matrix_list = rejections.copy()
         self.update_spatial_filter()
 
     def update_bandpass(self, bandpass):

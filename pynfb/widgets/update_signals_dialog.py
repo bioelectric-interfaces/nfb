@@ -9,7 +9,7 @@ from pynfb.signals import DerivedSignal
 class Table(QtGui.QTableWidget):
     def __init__(self, signals, *args):
         super(Table, self).__init__(*args)
-
+        self.signals = signals
         self.names = [signal.name for signal in signals]
 
         # set size and names
@@ -25,29 +25,13 @@ class Table(QtGui.QTableWidget):
             name_item = QtGui.QTableWidgetItem(signal.name)
             name_item.setFlags(QtCore.Qt.ItemIsEnabled)
             self.setItem(ind, self.columns.index('Signal'), name_item)
+            self.update_row(ind)
 
-            # status
-            modified_item = QtGui.QTableWidgetItem('No')
-            modified_item.setFlags(QtCore.Qt.ItemIsEnabled)
-            self.setItem(ind, self.columns.index('Modified'), modified_item)
-
-            # band
-            band_widget = BandWidget()
-            band_widget.set_band(signal.bandpass)
-            self.setCellWidget(ind, self.columns.index('Band'), band_widget)
-
-            # rejection
-            self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem('0'))
-
-            # spatial filter
-            text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
-            self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
 
         # open buttons
         self.buttons = []
         for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
-            open_ssd_btn.clicked.connect(lambda: self.set_modified(ind))
             self.buttons.append(open_ssd_btn)
             self.setCellWidget(ind, self.columns.index('Open SSD'), open_ssd_btn)
 
@@ -57,12 +41,25 @@ class Table(QtGui.QTableWidget):
         self.verticalHeader().setVisible(False)
         self.resizeColumnsToContents()
 
-    def set_modified(self, ind):
-        row = self.buttons.index(self.sender())
-        print('CURREEENNNNT', row)
-        self.item(row, self.columns.index('Modified')).setText('Yes')
-        self.current_row = row
+    def update_row(self, ind, modified=False):
+        signal = self.signals[ind]
+        # status
+        modified_item = QtGui.QTableWidgetItem('Yes' if modified else 'No')
+        modified_item.setFlags(QtCore.Qt.ItemIsEnabled)
+        self.setItem(ind, self.columns.index('Modified'), modified_item)
 
+        # band
+        band_widget = BandWidget()
+        band_widget.set_band(signal.bandpass)
+        self.setCellWidget(ind, self.columns.index('Band'), band_widget)
+
+        # rejection
+        n_rejections = len(signal.spatial_matrix_list)
+        self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem(str(n_rejections)))
+
+        # spatial filter
+        text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
+        self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
 
 class BandWidget(QtGui.QWidget):
     def __init__(self, max_freq=10000, **kwargs):
@@ -128,20 +125,21 @@ class SignalsSSDManager(QtGui.QDialog):
         if row is None:
             row = self.table.buttons.index(self.sender())
 
-        filter, bandpass = SelectSSDFilterWidget.select_filter_and_bandpass(self.x, self.pos, self.channels_names,
-                                                                            sampling_freq=self.sampling_freq)
+        filter, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(self.x, self.pos,
+                                                                                        self.channels_names,
+                                                                                        sampling_freq=
+                                                                                        self.sampling_freq)
         if filter is not None:
-            if filter.ndim == 1:
-                self.signals[row].update_spatial_filter(filter)
-            else:
-                self.signals[row].append_spatial_matrix_list(filter)
-                filter = SpatialFilterSetup.get_filter(self.channels_names,
-                                                       message='Current spatial filter for signal is null vector. '
-                                                               'Please modify it.')
-                self.signals[row].update_spatial_filter(filter)
+            self.signals[row].update_spatial_filter(filter)
+
         if bandpass is not None:
             self.signals[row].update_bandpass(bandpass)
-        
+
+        self.signals[row].update_rejections(rejections, append=False)
+
+        modified_flag = len(rejections)>0 or bandpass is not None or filter is not None
+        self.table.update_row(row, modified=modified_flag)
+
         # emulate signal with new spatial filter
         signal = self.signals[row]
         signal.reset_statistic_acc()
@@ -151,6 +149,9 @@ class SignalsSSDManager(QtGui.QDialog):
             signal.update(chunk)
 
     def ok_button_action(self):
+        for row in range(self.table.rowCount()):
+            band = self.table.cellWidget(row, self.table.columns.index('Band')).get_band()
+            self.signals[row].update_bandpass(band)
         self.close()
 
 
@@ -159,9 +160,14 @@ class SignalsSSDManager(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
     from pynfb.signals import CompositeSignal
-    signals = [DerivedSignal(name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k])) for k in range(3)]
+    signals = [DerivedSignal(name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=4) for k in range(3)]
     signals +=[CompositeSignal(signals, '', 'Composite')]
     app = QtGui.QApplication([])
-    w = SignalsSSDManager(signals, 0, 0, 0)
+
+    x = np.random.rand(1000, 4)
+    from pynfb.widgets.helpers import ch_names_to_2d_pos
+    channels = ['Cz', 'Fp1', 'Fp2', 'Pz']
+
+    w = SignalsSSDManager(signals, x, ch_names_to_2d_pos(channels), channels)
     w.show()
     app.exec_()
