@@ -9,7 +9,7 @@ class ProtocolWidget(pg.PlotWidget):
         width = 5
         self.setYRange(-width, width)
         self.setXRange(-width, width)
-        size = 400
+        size = 500
         self.setMaximumWidth(size)
         self.setMaximumHeight(size)
         self.setMinimumWidth(size)
@@ -48,13 +48,14 @@ class Painter:
 
 
 class CircleFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False):
+    def __init__(self, noise_scaler=2, show_reward=False, radius = 3):
         super(CircleFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.noise_scaler = noise_scaler
         self.x = np.linspace(-np.pi/2, np.pi/2, 100)
         self.noise = np.sin(15*self.x)*0.5-0.5
         #self.noise = np.random.uniform(-0.5, 0.5, 100)-0.5
         self.widget = None
+        self.radius = radius
 
     def prepare_widget(self, widget):
         super(CircleFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -68,8 +69,8 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
             sample = np.sum(np.abs(sample))
         noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
         noise = self.noise*noise_ampl
-        self.p1.setData(np.sin(self.x)*(1+noise), np.cos(self.x)*(1+noise))
-        self.p2.setData(np.sin(self.x)*(1+noise), -np.cos(self.x)*(1+noise))
+        self.p1.setData(self.radius * np.sin(self.x)*(1+noise), self.radius * np.cos(self.x)*(1+noise))
+        self.p2.setData(self.radius * np.sin(self.x)*(1+noise), -self.radius * np.cos(self.x)*(1+noise))
         pass
 
 
