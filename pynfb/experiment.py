@@ -90,6 +90,9 @@ class Experiment():
         # reset samples counter
         self.samples_counter = 0
 
+        # reset reward
+        self.reward.reset()
+
         # reset buffer if previous protocol has true value in update_statistics_in_the_end
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
             self.main.signals_buffer *= 0

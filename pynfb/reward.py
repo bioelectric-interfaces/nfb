@@ -25,3 +25,6 @@ class Reward:
 
     def get_score(self):
         return self.score
+
+    def reset(self):
+        self.score = 0
