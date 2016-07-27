@@ -21,5 +21,24 @@ def read_spatial_filter(filepath, channel_labels=None):
         raise ValueError ('Empty file or wrong format')
     return _filter
 
+
+def save_spatial_filter(file_path, filter_, channels_labels=None):
+    """
+    Save spatial filter to file
+    :param file_path: path to file
+    :param filter_: filter coefficient array or list
+    :param channels_labels: labels for channels; line format is if it's not None  '<label> <value>', else just '<value>'
+    :return:
+    """
+    filter_str = [val + '\n' for val in array(filter_).astype(str)]
+    with open(file_path, 'w') as f:
+        if channels_labels is None:
+            f.writelines(filter_str)
+        else:
+            f.writelines([label+' '+val_str for label, val_str in zip(channels_labels, filter_str)])
+
+
 if __name__ == '__main__':
-    read_spatial_filter('settings\\n_s')
+    labels = ['Cz', 'Pz', 'Fp1']
+    save_spatial_filter('spatial_test.txt', [1, 2, 3], labels[-1::-1])
+    print(read_spatial_filter('spatial_test.txt', labels))

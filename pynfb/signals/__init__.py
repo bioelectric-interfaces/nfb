@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.fftpack import rfft, irfft, fftfreq
 from .composite import CompositeSignal
+from pynfb.io import save_spatial_filter
 
 
 class DerivedSignal():
@@ -24,8 +25,8 @@ class DerivedSignal():
         self.std_acc = 0
         self.n_acc = 0
 
-        # linear filter matrices list
-        self.spatial_matrix_list = []
+        # rejections matrices list
+        self.rejections = []
 
         # spatial filter
         self.spatial_filter = np.zeros((n_channels,))
@@ -122,19 +123,18 @@ class DerivedSignal():
         if spatial_filter is not None:
             self.spatial_filter = np.array(spatial_filter)
         self.spatial_matrix = self.spatial_filter
-        for matrix in self.spatial_matrix_list[-1::-1]:
+        for matrix in self.rejections[-1::-1]:
             self.spatial_matrix = np.dot(matrix, self.spatial_matrix)
-        print('ok')
 
     def append_spatial_matrix_list(self, matrix):
-        self.spatial_matrix_list.append(matrix)
+        self.rejections.append(matrix)
         self.update_spatial_filter()
 
     def update_rejections(self, rejections, append=False):
         if append:
-            self.spatial_matrix_list += rejections
+            self.rejections += rejections
         else:
-            self.spatial_matrix_list = rejections.copy()
+            self.rejections = rejections.copy()
         self.update_spatial_filter()
 
     def update_bandpass(self, bandpass):
@@ -149,3 +149,23 @@ class DerivedSignal():
     def enable_scaling(self):
         self.scaling_flag = True
         pass
+
+    def save_spatial_matrix(self, file_path, channels_labels=None):
+        """
+        Save full spatial matrix: R1*R2*...*Rk*S, where R1,..Rk - rejections matrices, S - spatial filter
+        :return:
+        """
+        save_spatial_filter(file_path, self.spatial_matrix, channels_labels=channels_labels)
+
+    def reset_spatial_matrix(self, spatial_filter=None):
+        """
+        Drop all rejections and set spatial_matrix = spatial_filter
+        :param spatial_filter: if spatial_filter is None then spatial_filter = 0
+        :return:
+        """
+        self.rejections = []
+        if spatial_filter is None:
+            self.spatial_filter *= 0
+        else:
+            self.spatial_filter = spatial_filter
+        self.spatial_matrix = spatial_filter.copy()
