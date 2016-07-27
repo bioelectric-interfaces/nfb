@@ -54,7 +54,7 @@ class Table(QtGui.QTableWidget):
         self.setCellWidget(ind, self.columns.index('Band'), band_widget)
 
         # rejection
-        n_rejections = len(signal.spatial_matrix_list)
+        n_rejections = len(signal.rejections)
         self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem(str(n_rejections)))
 
         # spatial filter
