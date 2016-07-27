@@ -133,6 +133,9 @@ class SignalsSSDManager(QtGui.QDialog):
         if row is None:
             row = self.table.save_buttons.index(self.sender())
         print('Simulation: signal', row, self.signals[row].name, 'saved')
+        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', './')
+        from pynfb.io.xml import save_signal
+        save_signal(self.signals[row], fname)
 
 
     def run_ssd(self, row=None):
