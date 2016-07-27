@@ -1,6 +1,9 @@
+from pynfb.io import read_spatial_filter
 from pynfb.io.xmltodict import parse, unparse
 from collections import OrderedDict
 from pynfb.io.defaults import *
+from numpy import array
+
 
 
 def format_odict_by_defaults(odict, defaults):
@@ -70,6 +73,52 @@ def params_to_xml_file(params, filename):
     pass
 
 
+def save_signal(signal, filename):
+    default = vectors_defaults['vSignals']['DerivedSignal'][0].copy()
+    default['sSignalName'] = signal.name
+    default['fBandpassLowHz'] = signal.bandpass[0]
+    default['fBandpassHighHz'] = signal.bandpass[1]
+    default['SpatialFilterMatrix'] = signal.spatial_matrix
+    default['bDisableSpectrumEvaluation'] = int(signal.disable_spectrum_evaluation)
+    default['fFFTWindowSize'] = signal.n_samples
+    default['fSmoothingFactor'] = signal.smoothing_factor
+    signal_dict = OrderedDict([('DerivedSignal', default)])
+    with open(filename, 'w') as f:
+        f.write(unparse(signal_dict, pretty=True))
+
+
+from pynfb.signals import DerivedSignal
+def load_signal(filename, channels_labels):
+    signal = xml_file_to_odict(filename)
+    default = vectors_defaults['vSignals']['DerivedSignal'][0].copy()
+    for key, value in default.items():
+        default[key] = signal.get(key, value)
+    signal = default
+
+    if isinstance(signal['SpatialFilterMatrix'], str):
+        if signal['SpatialFilterMatrix'] == '':
+            spatial_filter = None
+        else:
+            spatial_filter = read_spatial_filter(signal['SpatialFilterMatrix'],
+                                                 channels_labels)
+    elif isinstance(signal['SpatialFilterMatrix'], list):
+        spatial_filter = array(signal['SpatialFilterMatrix']).astype(float)
+    else:
+        raise TypeError ('\'SpatialFilterMatrix\' must be string or list (vector)')
+
+    s = DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
+                      bandpass_low=signal['fBandpassLowHz'],
+                      name=signal['sSignalName'],
+                      n_channels=len(channels_labels),
+                      spatial_filter=spatial_filter,
+                      disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
+                      n_samples=signal['fFFTWindowSize'],
+                      smoothing_factor=signal['fSmoothingFactor'])
+    return s
+
+
 if __name__ == '__main__':
-    odict = xml_file_to_params('settings/pilot.xml')
-    params_to_xml_file(odict, 'settings/pilot_rewrite.xml')
+    #odict = xml_file_to_params('settings/pilot.xml')
+    #params_to_xml_file(odict, 'settings/pilot_rewrite.xml')
+    from pynfb.signals import DerivedSignal
+    save_signal(DerivedSignal(), 'sig.1')

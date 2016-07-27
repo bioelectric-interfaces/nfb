@@ -13,7 +13,7 @@ class Table(QtGui.QTableWidget):
         self.names = [signal.name for signal in signals]
 
         # set size and names
-        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Spatial filter', 'Open SSD']
+        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Spatial filter', 'Open SSD', 'Save signal']
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
@@ -28,12 +28,17 @@ class Table(QtGui.QTableWidget):
             self.update_row(ind)
 
 
-        # open buttons
+        # buttons
         self.buttons = []
+        self.save_buttons = []
         for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
             self.buttons.append(open_ssd_btn)
             self.setCellWidget(ind, self.columns.index('Open SSD'), open_ssd_btn)
+            save_btn = QtGui.QPushButton('Save')
+            self.save_buttons.append(save_btn)
+            self.setCellWidget(ind, self.columns.index('Save signal'), save_btn)
+
 
         # formatting
         self.current_row = None
@@ -99,7 +104,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
-        self.setMinimumWidth(500)
+        self.setMinimumWidth(600)
 
         # table
         self.table = Table(self.signals)
@@ -117,9 +122,18 @@ class SignalsSSDManager(QtGui.QDialog):
 
         for j, button in enumerate(self.table.buttons):
             button.clicked.connect(lambda: self.run_ssd())
-
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
-            
+
+        for j, button in enumerate(self.table.save_buttons):
+            button.clicked.connect(lambda: self.save_signal())
+            button.setEnabled(isinstance(self.signals[j], DerivedSignal))
+
+
+    def save_signal(self, row=None):
+        if row is None:
+            row = self.table.save_buttons.index(self.sender())
+        print('Simulation: signal', row, self.signals[row].name, 'saved')
+
 
     def run_ssd(self, row=None):
         if row is None:
