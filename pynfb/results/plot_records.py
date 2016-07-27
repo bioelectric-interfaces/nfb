@@ -5,6 +5,7 @@ import os
 import glob
 
 dir_name = max(glob.glob(os.path.join('./', '*/')), key=os.path.getmtime)
+dir_name = 'C:\\Users\\Nikolai\\Downloads\\composite_res\\'
 print(dir_name)
 f = plt.figure()
 ax = f.add_subplot(211)

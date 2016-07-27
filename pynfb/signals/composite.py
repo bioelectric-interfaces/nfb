@@ -35,11 +35,20 @@ class CompositeSignal:
             self.n_acc + chunk_size)
         self.std_acc = self.var_acc ** 0.5
         self.n_acc += chunk_size
-        if self.scaling_flag:
+        if self.scaling_flag and self.std>0:
             self.current_sample = (self.current_sample - self.mean) / self.std
         pass
 
-    def update_statistics(self, mean=None, std=None):
+    def update_statistics(self, mean=None, std=None, raw=None, emulate=False):
+        mean_chunk_size = 8
+        self.reset_statistic_acc()
+        for signal in self.signals:
+            signal.buffer *= 0
+        for k in range(0, raw.shape[0] - mean_chunk_size, mean_chunk_size):
+            chunk = raw[k:k + mean_chunk_size]
+            for signal in self.signals:
+                signal.update(chunk)
+            self.update(chunk)
         self.mean = mean if (mean is not None) else self.mean_acc
         self.std = std if (std is not None) else self.std_acc
         self.reset_statistic_acc()

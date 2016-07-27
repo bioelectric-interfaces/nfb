@@ -157,13 +157,6 @@ class SignalsSSDManager(QtGui.QDialog):
         modified_flag = len(rejections)>0 or bandpass is not None or filter is not None
         self.table.update_row(row, modified=modified_flag)
 
-        # emulate signal with new spatial filter
-        signal = self.signals[row]
-        signal.reset_statistic_acc()
-        mean_chunk_size = 8
-        for k in range(0, self.x.shape[0] - mean_chunk_size, mean_chunk_size):
-            chunk = self.x[k:k + mean_chunk_size]
-            signal.update(chunk)
 
     def ok_button_action(self):
         for row in range(self.table.rowCount()):
