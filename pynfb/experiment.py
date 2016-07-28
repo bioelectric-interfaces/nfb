@@ -7,7 +7,7 @@ from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
-from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py
+from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals
 from .io.xml import params_to_xml_file
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
@@ -82,10 +82,14 @@ class Experiment():
         save_h5py(self.dir_name + 'signals.h5', self.signals_recorder[:self.samples_counter],
                   'protocol' + str(self.current_protocol_index + 1))
 
+
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
             signals=self.signals_recorder[:self.samples_counter])
+
+        save_signals(self.dir_name + 'signals_stats.h5', self.signals,
+                     group_name='protocol' + str(self.current_protocol_index + 1))
 
         # reset samples counter
         self.samples_counter = 0
@@ -283,6 +287,10 @@ class Experiment():
         self.samples_counter = 0
         self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
+
+        # save init signals
+        save_signals(self.dir_name + 'signals_stats.h5', self.signals,
+                     group_name='protocol0')
 
         # windows
         self.main = MainWindow(signals=self.signals,
