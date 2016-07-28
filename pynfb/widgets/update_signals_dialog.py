@@ -13,7 +13,7 @@ class Table(QtGui.QTableWidget):
         self.names = [signal.name for signal in signals]
 
         # set size and names
-        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Spatial filter', 'Open SSD', 'Save signal']
+        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'Open SSD']
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
@@ -30,14 +30,14 @@ class Table(QtGui.QTableWidget):
 
         # buttons
         self.buttons = []
-        self.save_buttons = []
+        self.drop_rejections_buttons = []
         for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
             self.buttons.append(open_ssd_btn)
             self.setCellWidget(ind, self.columns.index('Open SSD'), open_ssd_btn)
-            save_btn = QtGui.QPushButton('Save')
-            self.save_buttons.append(save_btn)
-            self.setCellWidget(ind, self.columns.index('Save signal'), save_btn)
+            save_btn = QtGui.QPushButton('Drop')
+            self.drop_rejections_buttons.append(save_btn)
+            self.setCellWidget(ind, self.columns.index('Drop rejections'), save_btn)
 
 
         # formatting
@@ -104,7 +104,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(620)
 
         # table
         self.table = Table(self.signals)
@@ -124,25 +124,30 @@ class SignalsSSDManager(QtGui.QDialog):
             button.clicked.connect(lambda: self.run_ssd())
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
 
-        for j, button in enumerate(self.table.save_buttons):
-            button.clicked.connect(lambda: self.save_signal())
+        for j, button in enumerate(self.table.drop_rejections_buttons):
+            button.clicked.connect(lambda: self.drop_rejections())
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
 
-
-    def save_signal(self, row=None):
-        if row is None:
-            row = self.table.save_buttons.index(self.sender())
-        print('Simulation: signal', row, self.signals[row].name, 'saved')
-        fname = QtGui.QFileDialog.getSaveFileName(self, 'Save file', './')
-        from pynfb.io.xml import save_signal
-        save_signal(self.signals[row], fname)
-
+    def drop_rejections(self):
+        row = self.table.drop_rejections_buttons.index(self.sender())
+        if len(self.signals[row].rejections) > 0:
+            quit_msg = "Are you sure you want to drop {} rejections of signal \"{}\"?".format(
+                len(self.signals[row].rejections),
+                self.signals[row].name)
+            reply = QtGui.QMessageBox.question(self, 'Message',
+                                               quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.Yes:
+                self.signals[row].update_rejections(rejections=[], append=False)
+                self.table.update_row(row, modified=True)
 
     def run_ssd(self, row=None):
         if row is None:
             row = self.table.buttons.index(self.sender())
 
-        filter, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(self.x, self.pos,
+        x = self.x
+        for rejection in self.signals[row].rejections:
+            x = np.dot(x, rejection)
+        filter, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, self.pos,
                                                                                         self.channels_names,
                                                                                         sampling_freq=
                                                                                         self.sampling_freq)
@@ -152,7 +157,7 @@ class SignalsSSDManager(QtGui.QDialog):
         if bandpass is not None:
             self.signals[row].update_bandpass(bandpass)
 
-        self.signals[row].update_rejections(rejections, append=False)
+        self.signals[row].update_rejections(rejections, append=True)
 
         modified_flag = len(rejections)>0 or bandpass is not None or filter is not None
         self.table.update_row(row, modified=modified_flag)
