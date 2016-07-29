@@ -94,9 +94,6 @@ class Experiment():
         # reset samples counter
         self.samples_counter = 0
 
-        # reset reward
-        self.reward.reset()
-
         # reset buffer if previous protocol has true value in update_statistics_in_the_end
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
             self.main.signals_buffer *= 0
@@ -113,9 +110,12 @@ class Experiment():
                     self.protocols_sequence[self.current_protocol_index].mock_samples_file_path,
                     self.protocols_sequence[self.current_protocol_index].mock_samples_protocol)
             self.main.status.update()
+
+
             self.reward.threshold = self.protocols_sequence[self.current_protocol_index].reward_threshold
             reward_signal_id = self.protocols_sequence[self.current_protocol_index].reward_signal_id
             self.reward.signal = self.signals[reward_signal_id]
+            self.reward.set_enabled(isinstance(self.protocols_sequence[self.current_protocol_index], FeedbackProtocol))
 
         else:
             # status
@@ -270,6 +270,8 @@ class Experiment():
         from pynfb.reward import Reward
         self.reward = Reward(self.signals[self.protocols[0].reward_signal_id],
                              threshold=self.protocols[0].reward_threshold)
+
+        self.reward.set_enabled(isinstance(self.protocols_sequence[0], FeedbackProtocol))
 
         # timer
         # self.main_timer = QtCore.QTimer(self.app)
