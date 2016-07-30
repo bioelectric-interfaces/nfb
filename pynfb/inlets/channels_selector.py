@@ -40,10 +40,14 @@ class ChannelsSelector:
 
         # all indices
         self.indices = [j for j in include_indices if j not in exclude_indices]
+        self.other_indices = [j for j in range(self.inlet.get_n_channels()) if j in exclude_indices]
 
     def get_next_chunk(self):
         chunk = self.inlet.get_next_chunk()
-        return chunk[:, self.indices] if (chunk is not None) else None
+        if chunk is not None:
+            return chunk[:, self.indices], chunk[:, self.other_indices]
+        else:
+            return None, None
 
     def update_action(self):
         pass
@@ -56,6 +60,9 @@ class ChannelsSelector:
 
     def get_n_channels(self):
         return len(self.indices)
+
+    def get_n_channels_other(self):
+        return len(self.other_indices)
 
 
     def get_channels_labels(self):

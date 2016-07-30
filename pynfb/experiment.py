@@ -41,7 +41,7 @@ class Experiment():
         :return: None
         """
         # get next chunk
-        chunk = self.stream.get_next_chunk() if self.stream is not None else None
+        chunk, other_chunk = self.stream.get_next_chunk() if self.stream is not None else (None, None)
         if chunk is not None:
             # update and collect current samples
             for i, signal in enumerate(self.signals):
@@ -53,6 +53,8 @@ class Experiment():
                 if self.samples_counter < self.experiment_n_samples:
                     self.raw_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = chunk[:,
                                                                                                     :self.n_channels]
+
+                    self.raw_recorder_other[self.samples_counter:self.samples_counter + chunk.shape[0]] = other_chunk
                     for s, sample in enumerate(self.current_samples):
                         self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0], s] = sample
                     self.samples_counter += chunk.shape[0]
@@ -78,6 +80,8 @@ class Experiment():
         """
         # save raw and signals samples
         save_h5py(self.dir_name + 'raw.h5', self.raw_recorder[:self.samples_counter],
+                  'protocol' + str(self.current_protocol_index + 1))
+        save_h5py(self.dir_name + 'raw_other.h5', self.raw_recorder_other[:self.samples_counter],
                   'protocol' + str(self.current_protocol_index + 1))
         save_h5py(self.dir_name + 'signals.h5', self.signals_recorder[:self.samples_counter],
                   'protocol' + str(self.current_protocol_index + 1))
@@ -173,6 +177,7 @@ class Experiment():
         self.stream = ChannelsSelector(stream, exclude=self.params['sReference'])
         self.freq = self.stream.get_frequency()
         self.n_channels = self.stream.get_n_channels()
+        self.n_channels_other = self.stream.get_n_channels_other()
         channels_labels = self.stream.get_channels_labels()
 
         # signals
@@ -288,6 +293,7 @@ class Experiment():
         self.experiment_n_samples = max_protocol_n_samples
         self.samples_counter = 0
         self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels)) * np.nan
+        self.raw_recorder_other = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels_other)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
 
         # save init signals
