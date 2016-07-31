@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from multiprocessing import Process
+from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
 from .generators import run_eeg_sim
@@ -31,6 +31,7 @@ class Experiment():
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
         os.makedirs(self.dir_name)
         self.mock_signals_buffer = None
+        self.pool = Pool(4)
         self.restart()
 
         pass
@@ -78,22 +79,24 @@ class Experiment():
         Change protocol
         :return: None
         """
-        # save raw and signals samples
-        save_h5py(self.dir_name + 'raw.h5', self.raw_recorder[:self.samples_counter],
-                  'protocol' + str(self.current_protocol_index + 1))
-        save_h5py(self.dir_name + 'raw_other.h5', self.raw_recorder_other[:self.samples_counter],
-                  'protocol' + str(self.current_protocol_index + 1))
-        save_h5py(self.dir_name + 'signals.h5', self.signals_recorder[:self.samples_counter],
-                  'protocol' + str(self.current_protocol_index + 1))
-
+        # save raw and signals samples asynchronously
+        protocol_number_str = 'protocol' + str(self.current_protocol_index + 1)
+        self.pool.apply_async(save_h5py, args=(self.dir_name + 'raw.h5',
+                                               self.raw_recorder[:self.samples_counter],
+                                               protocol_number_str))
+        self.pool.apply_async(save_h5py, args=(self.dir_name + 'raw_other.h5',
+                                               self.raw_recorder_other[:self.samples_counter],
+                                               protocol_number_str))
+        self.pool.apply_async(save_h5py, args=(self.dir_name + 'signals.h5',
+                                               self.signals_recorder[:self.samples_counter],
+                                               protocol_number_str))
 
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
             signals=self.signals_recorder[:self.samples_counter])
 
-        save_signals(self.dir_name + 'signals_stats.h5', self.signals,
-                     group_name='protocol' + str(self.current_protocol_index + 1))
+        self.pool.apply_async(save_signals, (self.dir_name + 'signals_stats.h5', self.signals, protocol_number_str))
 
         # reset samples counter
         self.samples_counter = 0
