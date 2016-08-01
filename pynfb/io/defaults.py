@@ -20,6 +20,7 @@ vectors_defaults = OrderedDict([
     ('sFTHostnamePort', 'localhost:1972'),
     ('bPlotRaw', 1),
     ('bPlotSignals', 1),
+    ('fRewardPeriodS', 0.25),
     ('sReference', ''),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!

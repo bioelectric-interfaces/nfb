@@ -277,7 +277,8 @@ class Experiment():
         # reward
         from pynfb.reward import Reward
         self.reward = Reward(self.signals[self.protocols[0].reward_signal_id],
-                             threshold=self.protocols[0].reward_threshold)
+                             threshold=self.protocols[0].reward_threshold,
+                             rate_of_increase=self.params['fRewardPeriodS'])
 
         self.reward.set_enabled(isinstance(self.protocols_sequence[0], FeedbackProtocol))
 

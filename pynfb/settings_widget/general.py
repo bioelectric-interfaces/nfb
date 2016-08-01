@@ -37,6 +37,14 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_signals_check.clicked.connect(self.plot_signals_checkbox_event)
         self.form_layout.addRow('&Plot signals:', self.plot_signals_check)
 
+        # reward period
+        self.reward_period = QtGui.QDoubleSpinBox()
+        self.reward_period.setRange(0.05, 10)
+        self.reward_period.setSingleStep(0.01)
+        self.reward_period.setMaximumWidth(100)
+        self.reward_period.valueChanged.connect(self.reward_period_changed_event)
+        self.form_layout.addRow('&Reward period [s]:', self.reward_period)
+
         self.reset()
         # self.stream
 
@@ -52,10 +60,14 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def plot_signals_checkbox_event(self):
         self.params['bPlotSignals'] = int(self.plot_signals_check.isChecked())
 
+    def reward_period_changed_event(self):
+        self.params['fRewardPeriodS'] = self.reward_period.value()
+
     def reset(self):
         self.params = self.parent().params
         self.name.setText(self.params['sExperimentName'])
         self.reference.setText(self.params['sReference'])
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
+        self.reward_period.setValue(self.params['fRewardPeriodS'])
         self.inlet.reset()
