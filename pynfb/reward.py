@@ -1,7 +1,7 @@
 import time
 
 class Reward:
-    def __init__(self, signal, threshold=0.9, rate_of_increase=0.2):
+    def __init__(self, signal, threshold=0.9, rate_of_increase=0.5):
         self.score = 0
         self.signal = signal
         self.threshold = threshold
