@@ -73,6 +73,7 @@ class ClickableBarplot(pg.PlotWidget):
         self.parent = parent
         self.rectangles = []
         self.underlines = []
+        self.bin_level = None
         self.ticks = []
         self.current = None
 
@@ -136,8 +137,15 @@ class ClickableBarplot(pg.PlotWidget):
         for item in self.underlines + self.ticks:
             self.removeItem(item)
 
-
-
+    def update_bin_level(self, delta=1, y=1):
+        if self.bin_level is not None:
+            self.removeItem(self.bin_level)
+        x1 = self.current_x()
+        x2 = x1 + delta
+        item = QtGui.QGraphicsLineItem(QtCore.QLineF(x1, y, x2, y))
+        item.setPen(STYLE['underline-central'])
+        self.bin_level = item
+        self.addItem(item)
 
     def reset_y(self, y):
         self.y = y

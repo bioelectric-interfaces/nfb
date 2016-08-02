@@ -45,6 +45,7 @@ class TopomapSelector(QtGui.QWidget):
         self.component_spinbox = QtGui.QSpinBox()
         self.component_spinbox.setRange(1, len(names))
         self.component_spinbox.valueChanged.connect(self.change_topomap)
+        self.component_spinbox.valueChanged.connect(self.draw_lambda_level)
         component_layout.addWidget(QtGui.QLabel('Component:'))
         component_layout.addWidget(self.component_spinbox)
 
@@ -63,6 +64,7 @@ class TopomapSelector(QtGui.QWidget):
         self.selector = ClickableBarplot(self)
         layout.addWidget(self.selector, 2)
         self.selector.changed.connect(self.underline_central_band)
+        self.selector.changed.connect(self.draw_lambda_level)
 
         # first ssd analysis
         self.recompute_ssd()
@@ -122,7 +124,7 @@ class TopomapSelector(QtGui.QWidget):
                                                                         regularization_coef=parameters['regularizator'],
                                                                         flanker_delta=self.flanker_delta,
                                                                         flanker_margin=self.flanker_margin)
-        self.selector.plot(self.freqs, self.major_vals)
+        self.selector.plot(self.freqs, self.major_vals[:, 0])
         self.selector.set_current_by_value(current_x)
         self.change_topomap()
 
@@ -135,6 +137,10 @@ class TopomapSelector(QtGui.QWidget):
         self.selector.underline(x1, x2, 'central')
         self.selector.add_xtick(x1 - self.flanker_margin - self.flanker_delta)
         self.selector.add_xtick(x2 + self.flanker_margin + self.flanker_delta)
+
+    def draw_lambda_level(self):
+        self.selector.update_bin_level(self.x_delta,
+                                       self.major_vals[self.selector.current_index(), self.current_topomap])
 
 
 if __name__ == '__main__':
