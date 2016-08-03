@@ -56,6 +56,8 @@ vectors_defaults = OrderedDict([
             ('sFb_type', 'Baseline'),
             # ('dBand', ''),
             ('cString', ''),
+            ('bUseExtraMessage', 0),
+            ('cString2', ''),
             ('fBlinkDurationMs', 50),
             ('fBlinkThreshold', 0),
             ('sMockSignalFilePath', ''),
