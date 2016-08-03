@@ -2,6 +2,7 @@ from PyQt4 import QtGui, QtCore
 import sys
 
 from pynfb.protocols import SelectSSDFilterWidget
+from pynfb.protocols.user_inputs import SelectCSPFilterWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.signals import DerivedSignal
 
@@ -13,7 +14,8 @@ class Table(QtGui.QTableWidget):
         self.names = [signal.name for signal in signals]
 
         # set size and names
-        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'Open SSD']
+        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'Open SSD',
+                        'Open CSP']
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
@@ -31,10 +33,14 @@ class Table(QtGui.QTableWidget):
         # buttons
         self.buttons = []
         self.drop_rejections_buttons = []
+        self.csp_buttons = []
         for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
             self.buttons.append(open_ssd_btn)
             self.setCellWidget(ind, self.columns.index('Open SSD'), open_ssd_btn)
+            btn = QtGui.QPushButton('Open')
+            self.csp_buttons.append(btn)
+            self.setCellWidget(ind, self.columns.index('Open CSP'), btn)
             save_btn = QtGui.QPushButton('Drop')
             self.drop_rejections_buttons.append(save_btn)
             self.setCellWidget(ind, self.columns.index('Drop rejections'), save_btn)
@@ -104,7 +110,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
-        self.setMinimumWidth(620)
+        self.setMinimumWidth(700)
 
         # table
         self.table = Table(self.signals)
@@ -124,6 +130,10 @@ class SignalsSSDManager(QtGui.QDialog):
             button.clicked.connect(lambda: self.run_ssd())
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
 
+        for j, button in enumerate(self.table.csp_buttons):
+            button.clicked.connect(lambda: self.run_ssd(csp=True))
+            button.setEnabled(isinstance(self.signals[j], DerivedSignal))
+
         for j, button in enumerate(self.table.drop_rejections_buttons):
             button.clicked.connect(lambda: self.drop_rejections())
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
@@ -140,14 +150,18 @@ class SignalsSSDManager(QtGui.QDialog):
                 self.signals[row].update_rejections(rejections=[], append=False)
                 self.table.update_row(row, modified=True)
 
-    def run_ssd(self, row=None):
-        if row is None:
+    def run_ssd(self, row=None, csp=False):
+        if row is None and not csp:
             row = self.table.buttons.index(self.sender())
+        elif row is None and csp:
+            row = self.table.csp_buttons.index(self.sender())
 
         x = self.x
         for rejection in self.signals[row].rejections:
             x = np.dot(x, rejection)
-        filter, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, self.pos,
+
+        SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
+        filter, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
                                                                                         self.channels_names,
                                                                                         sampling_freq=
                                                                                         self.sampling_freq)
