@@ -37,9 +37,10 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         # update checkboxes layout
         update_layout = QtGui.QVBoxLayout()
         self.update_band_checkbox = QtGui.QCheckBox('Update band')
-        self.update_band_checkbox.setChecked(True)
-        self.update_filter_checkbox = QtGui.QCheckBox('Update spatial filter (from SSD)')
-        self.update_filter_checkbox.setChecked(True)
+        self.update_band_checkbox.setChecked(selector_class==TopomapSelector)
+        self.update_filter_checkbox = QtGui.QCheckBox(
+            'Update spatial filter (from {})'.format('SSD' if selector_class==TopomapSelector else 'CSP'))
+        self.update_filter_checkbox.setChecked(selector_class==TopomapSelector)
         self.manual_filter_checkbox = QtGui.QCheckBox('Update spatial filter (manual)')
         self.manual_filter_checkbox.setChecked(False)
 
@@ -118,11 +119,11 @@ if __name__ == '__main__':
     y = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol2')
     x = np.vstack((x[:y.shape[0]], y))
     pos = ch_names_to_2d_pos(channels_names)
-
+    fs = 500
     # double ssd reject test
     for _k in range(3):
         filter, bandpass, rejections = SelectCSPFilterWidget.select_filter_and_bandpass(x, pos, names=channels_names,
-                                                                            sampling_freq=1000)
+                                                                            sampling_freq=fs)
         # ff = np.zeros((filter.shape[0], filter.shape[0]))
         # ff[:, 0] = filter
         # filter = ff
