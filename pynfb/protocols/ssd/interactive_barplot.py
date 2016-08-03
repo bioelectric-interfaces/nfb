@@ -68,7 +68,7 @@ class ClickableBar(QtGui.QGraphicsRectItem):
 
 class ClickableBarplot(pg.PlotWidget):
     changed = QtCore.pyqtSignal()
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, xlabel='Hz', **kwargs):
         super(ClickableBarplot, self).__init__(parent=parent, **kwargs)
         self.parent = parent
         self.rectangles = []
@@ -76,6 +76,7 @@ class ClickableBarplot(pg.PlotWidget):
         self.bin_level = None
         self.ticks = []
         self.current = None
+        self.getPlotItem().getAxis('bottom').setLabel(xlabel)
 
     def plot(self, x, y):
         self.clear()
@@ -88,7 +89,6 @@ class ClickableBarplot(pg.PlotWidget):
         self.current = 0
         self.set_current(0)
         self.setYRange(-0.05*max(y), max(y))
-        self.getPlotItem().getAxis('bottom').setLabel('Hz')
 
     def set_all_not_current(self):
         self.current = None

@@ -49,7 +49,7 @@ class TopomapSelector(QtGui.QWidget):
         self.topomap_drawn = [False for topomap in self.topomaps]
 
         # selector barplot init
-        self.selector = ClickableBarplot(self)
+        self.selector = ClickableBarplot(self, xlabel='Eigenvalues')
         layout.addWidget(self.selector, 2)
         # self.selector.changed.connect(self.change_topomap)
 
