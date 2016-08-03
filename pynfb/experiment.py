@@ -65,11 +65,13 @@ class Experiment():
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
             # redraw protocols
+            is_half_time = self.samples_counter >= self.current_protocol_n_samples//2
             if self.protocols_sequence[self.current_protocol_index].mock_samples_file_path is None:
-                self.subject.update_protocol_state(self.current_samples, chunk_size=chunk.shape[0])
+                self.subject.update_protocol_state(self.current_samples, chunk_size=chunk.shape[0],
+                                                   is_half_time=is_half_time)
             else:
                 mock_samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
-                self.subject.update_protocol_state(mock_samples, chunk_size=chunk.shape[0])
+                self.subject.update_protocol_state(mock_samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples:
                 self.next_protocol()
@@ -230,7 +232,8 @@ class Experiment():
                         ch_names=channels_labels,
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
-                        reward_signal_id=reward_signal_id
+                        reward_signal_id=reward_signal_id,
+                        half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None
                     ))
             elif protocol['sFb_type'] == 'CircleFeedback':
                 self.protocols.append(

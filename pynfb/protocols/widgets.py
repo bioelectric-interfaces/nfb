@@ -81,15 +81,18 @@ class BaselineProtocolWidgetPainter(Painter):
 
     def prepare_widget(self, widget):
         super(BaselineProtocolWidgetPainter, self).prepare_widget(widget)
-        text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text),
+        self.text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text),
                                 anchor=(0.5, 0.5))
-        text_item.setTextWidth(500)
-        widget.addItem(text_item)
+        self.text_item.setTextWidth(500)
+        widget.addItem(self.text_item)
         self.plotItem = widget.plotItem
 
     def redraw_state(self, sample):
         pass
 
+    def set_message(self, text):
+        self.text = text
+        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
 class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
     def __init__(self, threshold=2000, time_ms=50, show_reward=False):

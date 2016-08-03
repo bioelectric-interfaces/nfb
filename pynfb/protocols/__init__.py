@@ -32,7 +32,7 @@ class Protocol:
         self.ch_names = ch_names
         pass
 
-    def update_state(self, samples, chunk_size=1):
+    def update_state(self, samples, chunk_size=1, is_half_time=False):
         if self.source_signal_id is not None:
             self.widget_painter.redraw_state(samples[self.source_signal_id])
         else:
@@ -76,12 +76,22 @@ class Protocol:
 
 
 class BaselineProtocol(Protocol):
-    def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, text='Relax', **kwargs):
+    def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, text='Relax', half_time_text=None,
+                 **kwargs):
         kwargs['name'] = name
         kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
         super().__init__(signals, **kwargs)
         self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
+        self.half_time_text_change = half_time_text is not None
+        self.half_time_text = half_time_text
+        self.is_half_time = False
         pass
+
+    def update_state(self, samples, chunk_size=1, is_half_time=False):
+        if self.half_time_text_change:
+            if is_half_time and not self.is_half_time:
+                self.is_half_time = True
+                self.widget_painter.set_message(self.half_time_text)
 
 
 class FeedbackProtocol(Protocol):
