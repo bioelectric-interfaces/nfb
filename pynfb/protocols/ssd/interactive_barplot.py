@@ -97,7 +97,7 @@ class ClickableBarplot(pg.PlotWidget):
         pass
 
     def current_index(self):
-        return self.rectangles.index(self.current)
+        return self.rectangles.index(self.current) if self.current is not None else None
 
     def current_x(self):
         return self.current.x if self.current is not None else 0

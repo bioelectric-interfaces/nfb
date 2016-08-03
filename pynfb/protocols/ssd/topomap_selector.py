@@ -23,7 +23,7 @@ class TopomapSelector(QtGui.QWidget):
 
         # Sliders
         self.sliders = Sliders()
-        self.sliders.apply_button.clicked.connect(self.recompute_ssd)
+        self.sliders.apply_button.clicked.connect(self.recompute)
         v_layout.addWidget(self.sliders)
 
         # ssd properetires
@@ -67,7 +67,7 @@ class TopomapSelector(QtGui.QWidget):
         self.selector.changed.connect(self.draw_lambda_level)
 
         # first ssd analysis
-        self.recompute_ssd()
+        self.recompute()
 
     def change_topomap(self):
         self.topomap.setHidden(True)
@@ -103,14 +103,14 @@ class TopomapSelector(QtGui.QWidget):
 
     def update_data(self, data):
         self.data = data
-        self.recompute_ssd()
+        self.recompute()
 
     def get_current_bandpass(self):
         x1 = self.selector.current_x()
         x2 = x1 + self.x_delta
         return x1 - self.flanker_margin - self.flanker_delta, x2 + self.flanker_margin + self.flanker_delta
 
-    def recompute_ssd(self):
+    def recompute(self):
         self.topomap_drawn = [False for _topomap in self.topomaps]
         current_x = self.selector.current_x()
         parameters = self.sliders.getValues()

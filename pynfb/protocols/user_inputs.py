@@ -7,7 +7,7 @@ from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 
 
 class SelectSSDFilterWidget(QtGui.QDialog):
-    def __init__(self, data, pos, names=None, sampling_freq=500, parent=None):
+    def __init__(self, data, pos, names=None, sampling_freq=500, parent=None, selector_class=TopomapSelector):
         super(SelectSSDFilterWidget, self).__init__(parent)
         self.data = data
         self.rejections = []
@@ -21,7 +21,7 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         layout.addWidget(top_label)
 
         # topomap selector
-        self.selector = TopomapSelector(data, pos, names=names, sampling_freq=sampling_freq)
+        self.selector = selector_class(data, pos, names=names, sampling_freq=sampling_freq)
         layout.addWidget(self.selector)
 
         # reject, select radio
@@ -61,23 +61,21 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         # selected filter
         self.filter = self.selector.get_current_filter()
 
-
-
     def reject_data(self):
         rejection = self.selector.get_current_filter(reject=True)
         self.rejections.append(rejection)
         self.data = np.dot(self.data, self.selector.get_current_filter(reject=True))
         self.selector.update_data(self.data)
-        self.selector.recompute_ssd()
+        self.selector.recompute()
 
     def select_action(self):
         self.filter = self.selector.get_current_filter()
         self.bandpass = self.selector.get_current_bandpass()
         self.close()
 
-    @staticmethod
-    def select_filter_and_bandpass(data, pos, names=None, sampling_freq=500, parent=None):
-        selector = SelectSSDFilterWidget(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
+    @classmethod
+    def select_filter_and_bandpass(cls, data, pos, names=None, sampling_freq=500, parent=None):
+        selector = cls(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
         _result = selector.exec_()
         if selector.update_filter_checkbox.isChecked():
             filter = selector.filter
@@ -88,6 +86,14 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         return (filter,
                 selector.bandpass if selector.update_band_checkbox.isChecked() else None,
                 selector.rejections)
+
+
+from pynfb.protocols.ssd.topomap_selector_csp import TopomapSelector as CSPSelector
+class SelectCSPFilterWidget(SelectSSDFilterWidget):
+    def __init__(self, *args, **kwargs):
+        kwargs['selector_class'] = CSPSelector
+        super(SelectCSPFilterWidget, self).__init__(*args, **kwargs)
+
 
 if __name__ == '__main__':
     import numpy as np
@@ -105,7 +111,7 @@ if __name__ == '__main__':
 
     # double ssd reject test
     for _k in range(3):
-        filter, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, pos, names=channels_names,
+        filter, bandpass, rejections = SelectCSPFilterWidget.select_filter_and_bandpass(x, pos, names=channels_names,
                                                                             sampling_freq=1000)
         # ff = np.zeros((filter.shape[0], filter.shape[0]))
         # ff[:, 0] = filter
