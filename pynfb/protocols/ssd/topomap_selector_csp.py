@@ -74,7 +74,7 @@ class TopomapSelector(QtGui.QWidget):
 
     def update_data(self, data):
         self.data = data
-        self.recompute_ssd()
+        self.recompute()
 
     def recompute(self):
         self.topomap_drawn = [False for _topomap in self.topomaps]
@@ -83,13 +83,11 @@ class TopomapSelector(QtGui.QWidget):
             current = 0
         parameters = self.sliders.getValues()
         self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
-        def csp_analysis(x, sampling_frequency, bandpass, regularization_coefficient):
-            n_channels = self.data.shape[1]
-            return np.arange(n_channels)+1, np.random.randn(n_channels, n_channels), np.random.randn(n_channels, n_channels)
-        self.major_vals, self.topographies, self.filters = csp_analysis(self.data,
-                                                                        sampling_frequency=self.sampling_freq,
-                                                                        bandpass=self.bandpass,
-                                                                        regularization_coefficient=parameters['regularizator'])
+        from pynfb.protocols.ssd.csp import csp
+        self.major_vals, self.filters, self.topographies = csp(self.data,
+                                                               fs=self.sampling_freq,
+                                                               band=self.bandpass,
+                                                               regularization_coef=parameters['regularizator'])
         self.selector.plot(np.arange(self.data.shape[1])+0.5, self.major_vals)
         self.selector.set_current(current)
         self.change_topomap()
@@ -115,12 +113,23 @@ if __name__ == '__main__':
 
     import numpy as np
     from pynfb.widgets.helpers import ch_names_to_2d_pos
-    ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
-                'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
-    channels_names = np.array(ch_names)
+    # ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
+    #             'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
+    # channels_names = np.array(ch_names)
     # x = np.loadtxt('example_recordings.txt')[:, channels_names!='Cz']
-    channels_names = list(channels_names[channels_names!='Cz'])
-    x = np.random.randn(10000, len(channels_names))
+    # channels_names = list(channels_names[channels_names!='Cz'])
+    # x = np.random.randn(10000, len(channels_names))
+
+
+    channels_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc2', 'Fc6', 'Ft10', 'T7', 'C3',
+                      'Cz',
+                      'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz',
+                      'O2']
+    from pynfb.io.hdf5 import load_h5py
+
+    x = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol1')
+    y = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol2')
+    x = np.vstack((x[:y.shape[0]], y))
 
     print(x.shape, channels_names)
     pos = ch_names_to_2d_pos(channels_names)

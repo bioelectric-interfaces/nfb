@@ -107,6 +107,16 @@ if __name__ == '__main__':
     x = np.random.randn(1000, len(ch_names)-1) #np.loadtxt('ssd/example_recordings.txt')[:, channels_names != 'Cz']
 
     channels_names = list(channels_names[channels_names != 'Cz'])
+
+    channels_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc2', 'Fc6', 'Ft10', 'T7', 'C3',
+                      'Cz',
+                      'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz',
+                      'O2']
+    from pynfb.io.hdf5 import load_h5py
+
+    x = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol1')
+    y = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol2')
+    x = np.vstack((x[:y.shape[0]], y))
     pos = ch_names_to_2d_pos(channels_names)
 
     # double ssd reject test
