@@ -72,12 +72,20 @@ class SelectSSDFilterWidget(QtGui.QDialog):
     def select_action(self):
         self.filter = self.selector.get_current_filter()
         self.bandpass = self.selector.get_current_bandpass()
+        self.accept()
         self.close()
 
     @classmethod
     def select_filter_and_bandpass(cls, data, pos, names=None, sampling_freq=500, parent=None):
         selector = cls(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
-        _result = selector.exec_()
+        result = selector.exec_()
+
+        # if window closed, return nothing
+        if result == 0:
+            return None, None, []
+
+        # if select button was pressed, return filter (or None if corresponding checkbox was not checked),
+        # bandpass (or None if corresponding checkbox was not checked) and all added rejections
         if selector.update_filter_checkbox.isChecked():
             filter = selector.filter
         elif selector.manual_filter_checkbox.isChecked():
