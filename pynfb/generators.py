@@ -14,11 +14,11 @@ ch_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc
             'Poo9h', 'Poo1', 'Poo2', 'Poo10h', 'Aux 1.1', 'Aux 1.2', 'Aux 2.1', 'Aux 2.2', 'Aux 3.1', 'Aux 3.2',
             'Aux 4.1', 'Aux 4.2']
 
-ch_names32 = ['Fp1','Fp2','F7','F3','Fz','F4','F8','Ft9','Fc5','Fc1','Fc2','Fc6','Ft10','T3','C3','Cz','C4','T4','Tp9',
-              'Cp5','Cp1','Cp2','Cp6','Tp10','T5','P3','Pz','P4','T6','O1','Oz','O2']
+ch_names32 = ['Fp1','Fp2','F7','F3','Fz','F4','F8','Ft9','Fc5','Fc1','Fc2','Fc6','Ft10','T7','C3','Cz','C4','T8','Tp9',
+              'Cp5','Cp1','Cp2','Cp6','Tp10','P7','P3','Pz','P4','P8','O1','Oz','O2']
 
 
-def run_eeg_sim(n_channels=50, freq=1000, chunk_size=0, source_buffer=None, name='example'):
+def run_eeg_sim(n_channels=32, freq=1000, chunk_size=0, source_buffer=None, name='example'):
     """
     Make LSL Stream Outlet and send source_buffer data or simulate sin data
     :param n_channels: number of channels
@@ -33,7 +33,7 @@ def run_eeg_sim(n_channels=50, freq=1000, chunk_size=0, source_buffer=None, name
                       channel_format='float32', source_id='myuid34234')
 
     # channels labels (in accordance with XDF format, see also code.google.com/p/xdf)
-    labels = ch_names[:n_channels]
+    labels = ch_names32[:n_channels]
     chns = info.desc().append_child("channels")
     for label in labels:
         ch = chns.append_child("channel")
