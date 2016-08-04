@@ -5,7 +5,7 @@ from pynfb.protocols import SelectSSDFilterWidget
 from pynfb.protocols.user_inputs import SelectCSPFilterWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.signals import DerivedSignal
-
+from numpy import dot
 
 class Table(QtGui.QTableWidget):
     def __init__(self, signals, *args):
@@ -158,7 +158,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         x = self.x
         for rejection in self.signals[row].rejections:
-            x = np.dot(x, rejection)
+            x = dot(x, rejection)
 
         SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
         filter, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
