@@ -31,7 +31,7 @@ class Experiment():
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
         os.makedirs(self.dir_name)
         self.mock_signals_buffer = None
-        self.pool = Pool(4)
+        self.pool = Pool()
         self.restart()
 
         pass
@@ -51,16 +51,16 @@ class Experiment():
 
             # record data
             if self.main.player_panel.start.isChecked():
-                if self.samples_counter < self.experiment_n_samples:
-                    self.raw_recorder[self.samples_counter:self.samples_counter + chunk.shape[0]] = chunk[:,
-                                                                                                    :self.n_channels]
-
-                    self.raw_recorder_other[self.samples_counter:self.samples_counter + chunk.shape[0]] = other_chunk
-                    for s, sample in enumerate(self.current_samples):
-                        self.signals_recorder[self.samples_counter:self.samples_counter + chunk.shape[0], s] = sample
-                    self.samples_counter += chunk.shape[0]
                 self.reward.update()
                 self.subject.figure.update_reward(self.reward.get_score())
+                if self.samples_counter < self.experiment_n_samples:
+                    chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
+                    self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
+                    self.reward_recorder[chunk_slice] = self.reward.get_score()
+                    self.raw_recorder_other[chunk_slice] = other_chunk
+                    for s, sample in enumerate(self.current_samples):
+                        self.signals_recorder[chunk_slice, s] = sample
+                    self.samples_counter += chunk.shape[0]
 
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
@@ -91,6 +91,9 @@ class Experiment():
                                                protocol_number_str))
         self.pool.apply_async(save_h5py, args=(self.dir_name + 'signals.h5',
                                                self.signals_recorder[:self.samples_counter],
+                                               protocol_number_str))
+        self.pool.apply_async(save_h5py, args=(self.dir_name + 'reward.h5',
+                                               self.reward_recorder[:self.samples_counter],
                                                protocol_number_str))
 
         # close previous protocol
@@ -302,6 +305,7 @@ class Experiment():
         self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels)) * np.nan
         self.raw_recorder_other = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels_other)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
+        self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
         save_signals(self.dir_name + 'signals_stats.h5', self.signals,
