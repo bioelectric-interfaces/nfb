@@ -2,6 +2,7 @@ import os
 import sys
 from PyQt4 import QtGui
 from pynfb.protocols.widgets import *
+from numpy import isnan
 
 pg.setConfigOptions(antialias=True)
 
@@ -102,6 +103,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.source_freq = freq
         self.experiment = experiment
+        self.signals = signals
 
         # player panel
         self.player_panel = PlayerButtonsWidget(parent=self)
@@ -117,13 +119,20 @@ class MainWindow(QtGui.QMainWindow):
         # derived signals viewers
         signals_layout = pg.GraphicsLayoutWidget(self)
         self.signal_curves = []
+        self.statistics_lines = []
         for signal in signals:
             roi_figure = signals_layout.addPlot(labels={'left': signal.name})
             signals_layout.nextRow()
             curve = roi_figure.plot().curve
             self.signal_curves.append(curve)
+            self.statistics_lines.append([roi_figure.plot().curve,
+                                          roi_figure.plot().curve,
+                                          roi_figure.plot().curve])
+
         self.signals_buffer = np.zeros((8000, n_signals))
         self.signals_curves_x_net = np.linspace(0, 8000 / self.source_freq, 8000 / 8)
+
+        self.update_statistics_lines()
 
         # raw data viewer
         self.raw = pg.PlotWidget(self)
@@ -181,6 +190,20 @@ class MainWindow(QtGui.QMainWindow):
         self.time_counter = 0
         self.t0 = time.time()
         self.t = self.t0
+
+    def update_statistics_lines(self):
+        for j, (mean_line, std_line1, std_line2) in enumerate(self.statistics_lines):
+            if not isnan(self.signals[j].mean) and not isnan(self.signals[j].std):
+                mean_line.setData(x=[0, 8000 / self.source_freq], y=[0, 0])
+                mean_line.setPen(pg.mkPen(176, 35, 48, 150))
+                std_line1.setData(x=[0, 8000 / self.source_freq], y=[1, 1])
+                std_line2.setData(x=[0, 8000 / self.source_freq], y=[-1, -1])
+                std_line1.setPen(pg.mkPen(51, 152, 188, 150))
+                std_line2.setPen(pg.mkPen(51, 152, 188, 150))
+            else:
+                mean_line.setPen(None)
+                std_line1.setPen(None)
+                std_line2.setPen(None)
 
     def redraw_signals(self, samples, chunk, samples_counter):
 

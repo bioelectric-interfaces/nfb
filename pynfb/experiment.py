@@ -109,6 +109,7 @@ class Experiment():
         # reset buffer if previous protocol has true value in update_statistics_in_the_end
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
             self.main.signals_buffer *= 0
+        self.main.update_statistics_lines()
 
         if self.current_protocol_index < len(self.protocols_sequence) - 1:
 
