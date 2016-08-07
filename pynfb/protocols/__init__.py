@@ -66,12 +66,17 @@ class Protocol:
 
         # update statistics action
         if self.update_statistics_in_the_end:
+            stats_previous = [(signal.mean, signal.std) for signal in self.signals]
             if self.source_signal_id is not None:
-                self.signals[self.source_signal_id].update_statistics(raw=raw, emulate=self.ssd_in_the_end)
+                self.signals[self.source_signal_id].update_statistics(raw=raw, emulate=self.ssd_in_the_end,
+                                                                      stats_previous=stats_previous,
+                                                                      signals_recorder=signals)
                 self.signals[self.source_signal_id].enable_scaling()
             else:
                 for signal in self.signals:
-                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end)
+                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
+                                             stats_previous=stats_previous,
+                                             signals_recorder=signals)
                     signal.enable_scaling()
 
 

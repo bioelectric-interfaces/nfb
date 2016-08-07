@@ -114,7 +114,8 @@ class DerivedSignal():
         amplitude = np.abs(cut_f_signal).mean()
         return amplitude
 
-    def update_statistics(self, mean=None, std=None, raw=None, emulate=False):
+    def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
+                          signals_recorder=None, stats_previous=None):
         if raw is not None and emulate:
             self.reset_statistic_acc()
             mean_chunk_size = 8
