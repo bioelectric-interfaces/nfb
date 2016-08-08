@@ -47,8 +47,12 @@ class CompositeSignal:
         for j, signal_data in enumerate(signals_data.T):
             if np.isfinite(stats_previous[j][0]) and np.isfinite(stats_previous[j][1]):
                 signal_data = signal_data * stats_previous[j][1] + stats_previous[j][0]
-            signals_data[:, j] = (signal_data - self.signals[j].mean) / self.signals[j].std
-        actual_data = self.expression_lambda(*signals_data.T)
+            if self.signals[j].std > 0:
+                signals_data[:, j] = (signal_data - self.signals[j].mean) / self.signals[j].std
+        if signals_data.shape[1] > 1:
+            actual_data = self.expression_lambda(*signals_data.T)
+        else:
+            actual_data = np.apply_along_axis(self.expression_lambda, 0, signals_data)
         self.mean = mean if (mean is not None) else actual_data.mean()
         self.std = std if (std is not None) else actual_data.std()
         self.reset_statistic_acc()
