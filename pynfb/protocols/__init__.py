@@ -3,12 +3,18 @@ from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.widgets.update_signals_dialog import SignalsSSDManager
+from copy import deepcopy
+from numpy.random import randint
+from numpy import vstack
 
+
+from pynfb.signals import CompositeSignal
+from pynfb.io.hdf5 import load_h5py
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
-                 ssd_in_the_end=False, timer=None, freq=500, ch_names=None):
+                 ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -30,16 +36,39 @@ class Protocol:
         self.timer = timer
         self.freq = freq
         self.ch_names = ch_names
+        self.mock_previous = mock_previous
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
         if self.source_signal_id is not None:
-            self.widget_painter.redraw_state(samples[self.source_signal_id])
+            if self.mock_previous == 0:
+                self.widget_painter.redraw_state(samples[self.source_signal_id])
+            else:
+                mock_chunk = self.mock_recordings[self.mock_samples_counter:self.mock_samples_counter + chunk_size]
+                if isinstance(self.mock, CompositeSignal):
+                    for signal in self.mock.signals:
+                        signal.update(mock_chunk)
+
+                self.mock.update(mock_chunk)
+                self.mock_samples_counter += chunk_size
+                self.mock_samples_counter %= self.mock_recordings.shape[0]
+                self.widget_painter.redraw_state(self.mock.current_sample)
         else:
             self.widget_painter.redraw_state(samples[0])  # if source signal is 'ALL'
 
     def update_statistics(self):
         pass
+
+    def prepare_raw_mock_if_necessary(self, mock_raw):
+        print('mock shape', mock_raw.shape)
+        if self.mock_previous:
+            if self.source_signal_id is None:
+                raise ValueError('If mock_previous is True, source signal should be single')
+            self.mock_samples_counter = 0
+            self.mock = deepcopy(self.signals[self.source_signal_id])
+            rand_start_ind = randint(0, mock_raw.shape[0])
+            self.mock_recordings = vstack((mock_raw[rand_start_ind:], mock_raw[:rand_start_ind]))
+            print('**** Success prepare')
 
     def close_protocol(self, raw=None, signals=None):
         # action if ssd in the end checkbox was checked

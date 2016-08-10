@@ -62,6 +62,7 @@ vectors_defaults = OrderedDict([
             ('fBlinkThreshold', 0),
             ('sMockSignalFilePath', ''),
             ('sMockSignalFileDataset', 'protocol1'),
+            ('iMockPrevious', 0),
             ('sRewardSignal', ''),
             ('bRewardThreshold', 0),
             ('bShowReward', 0)

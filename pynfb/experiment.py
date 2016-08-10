@@ -66,12 +66,15 @@ class Experiment():
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
             # redraw protocols
             is_half_time = self.samples_counter >= self.current_protocol_n_samples//2
-            if self.protocols_sequence[self.current_protocol_index].mock_samples_file_path is None:
-                self.subject.update_protocol_state(self.current_samples, chunk_size=chunk.shape[0],
-                                                   is_half_time=is_half_time)
+            current_protocol = self.protocols_sequence[self.current_protocol_index]
+            if current_protocol.mock_previous > 0:
+                samples = current_protocol.mock.current_sample
+            elif current_protocol.mock_samples_file_path is not None:
+                samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
             else:
-                mock_samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
-                self.subject.update_protocol_state(mock_samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+                samples = self.current_samples
+            self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples:
                 self.next_protocol()
@@ -104,6 +107,7 @@ class Experiment():
         self.pool.apply_async(save_signals, (self.dir_name + 'signals_stats.h5', self.signals, protocol_number_str))
 
         # reset samples counter
+        previous_counter = self.samples_counter
         self.samples_counter = 0
 
         # reset buffer if previous protocol has true value in update_statistics_in_the_end
@@ -115,20 +119,30 @@ class Experiment():
 
             # update current protocol index and n_samples
             self.current_protocol_index += 1
-            self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
+            current_protocol = self.protocols_sequence[self.current_protocol_index]
+            self.current_protocol_n_samples = self.freq * current_protocol.duration
+
+            # prepare mock from raw if necessary
+            if current_protocol.mock_previous:
+                if current_protocol.mock_previous == self.current_protocol_index:
+                    mock_raw = self.raw_recorder[:previous_counter]
+                else:
+                    mock_raw = load_h5py(self.dir_name + 'raw.h5', 'protocol' + str(current_protocol.mock_previous))
+                current_protocol.prepare_raw_mock_if_necessary(mock_raw)
+
             # change protocol widget
-            self.subject.change_protocol(self.protocols_sequence[self.current_protocol_index])
-            if self.protocols_sequence[self.current_protocol_index].mock_samples_file_path is not None:
+            self.subject.change_protocol(current_protocol)
+            if current_protocol.mock_samples_file_path is not None:
                 self.mock_signals_buffer = load_h5py(
-                    self.protocols_sequence[self.current_protocol_index].mock_samples_file_path,
-                    self.protocols_sequence[self.current_protocol_index].mock_samples_protocol)
+                    current_protocol.mock_samples_file_path,
+                    current_protocol.mock_samples_protocol)
             self.main.status.update()
 
 
-            self.reward.threshold = self.protocols_sequence[self.current_protocol_index].reward_threshold
-            reward_signal_id = self.protocols_sequence[self.current_protocol_index].reward_signal_id
-            self.reward.signal = self.signals[reward_signal_id]
-            self.reward.set_enabled(isinstance(self.protocols_sequence[self.current_protocol_index], FeedbackProtocol))
+            self.reward.threshold = current_protocol.reward_threshold
+            reward_signal_id = current_protocol.reward_signal_id
+            self.reward.signal = self.signals[reward_signal_id] # TODO: REward for MOCK
+            self.reward.set_enabled(isinstance(current_protocol, FeedbackProtocol))
 
         else:
             # status
@@ -173,10 +187,14 @@ class Experiment():
                                   kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                           'name': self.params['sStreamName']})
             self.thread.start()
+            from time import sleep
+            sleep(2)
         elif self.params['sInletType'] == 'lsl_generator':
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
             self.thread.start()
+            from time import sleep
+            sleep(2)
         if self.params['sInletType'] == 'ftbuffer':
             hostname, port = self.params['sFTHostnamePort'].split(':')
             port = int(port)
@@ -247,6 +265,7 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
                         mock_samples_path=mock_path,
+                        mock_previous=int(protocol['iMockPrevious']),
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
                         ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
                         freq=self.freq,
