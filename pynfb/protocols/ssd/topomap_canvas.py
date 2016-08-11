@@ -24,7 +24,7 @@ class TopographicMapCanvas(FigureCanvas):
                                    QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def update_figure(self, data, pos=None, names=None, show_names=None):
+    def update_figure(self, data, pos=None, names=None, show_names=None, show_colorbar=True):
         if pos is None:
             pos = ch_names_to_2d_pos(names)
         data = np.array(data)
@@ -48,9 +48,10 @@ class TopographicMapCanvas(FigureCanvas):
                                              markersize=3),
                             vmin=v_min,
                             vmax=v_max)
-        self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax = self.axes)
-        self.colorbar.ax.tick_params(labelsize=6)
-        self.colorbar.ax.set_xticklabels(self.colorbar.ax.get_xticklabels(), rotation=90)
+        if show_colorbar:
+            self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax = self.axes)
+            self.colorbar.ax.tick_params(labelsize=6)
+            self.colorbar.ax.set_xticklabels(self.colorbar.ax.get_xticklabels(), rotation=90)
         self.draw()
 
     def test_update_figure(self):
