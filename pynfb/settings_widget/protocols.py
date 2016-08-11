@@ -136,6 +136,18 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
         self.set_enabled_mock_settings()
 
+        mock_previos_layput = QtGui.QHBoxLayout()
+        self.mock_previous = QtGui.QSpinBox()
+        self.mock_previous.setRange(1, 100)
+        self.enable_mock_previous = QtGui.QCheckBox()
+        self.enable_mock_previous.stateChanged.connect(
+            lambda: self.mock_previous.setEnabled(self.enable_mock_previous.isChecked()))
+        self.enable_mock_previous.stateChanged.connect(self.set_enabled_mock_settings)
+        mock_previos_layput.addWidget(self.enable_mock_previous)
+        mock_previos_layput.addWidget(QtGui.QLabel('Protocol #'))
+        mock_previos_layput.addWidget(self.mock_previous)
+        self.form_layout.addRow('Mock from previous\nprotocol raw data', mock_previos_layput)
+
         # message text edit
         self.message = QtGui.QTextEdit()
         self.message.setMaximumHeight(50)
@@ -187,7 +199,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_duration_ms.setEnabled(flag)
 
     def set_enabled_mock_settings(self):
-        flag = (self.type.currentText() == 'CircleFeedback')
+        flag = (self.type.currentText() == 'CircleFeedback' and not self.enable_mock_previous.isChecked())
         self.mock_file.setEnabled(flag)
         self.mock_dataset.setEnabled(flag)
 
@@ -217,6 +229,9 @@ class ProtocolDialog(QtGui.QDialog):
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.show_reward.setChecked(current_protocol['bShowReward'])
         self.reward_threshold.setValue(current_protocol['bRewardThreshold'])
+        self.enable_mock_previous.setChecked(current_protocol['iMockPrevious'] > 0)
+        self.mock_previous.setValue(current_protocol['iMockPrevious'])
+        self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         pass
 
     def save_and_close(self):
@@ -237,5 +252,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())
         self.params[current_signal_index]['bRewardThreshold'] = self.reward_threshold.value()
+        self.params[current_signal_index]['iMockPrevious'] = (
+            self.mock_previous.value() if self.enable_mock_previous.isChecked() else 0)
         self.parent().reset_items()
         self.close()
