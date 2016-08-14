@@ -99,7 +99,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.update_statistics = QtGui.QCheckBox()
         self.ssd_in_the_end = QtGui.QCheckBox()
         self.ssd_in_the_end.clicked.connect(self.update_source_signal_combo_box)
-        self.form_layout.addRow('&Open signal manager\nin the end (SSD, CSP):', self.ssd_in_the_end)
+        self.form_layout.addRow('&Open signal manager\nin the end (SSD, CSP, ICA):', self.ssd_in_the_end)
         self.form_layout.addRow('&Update statistics:', self.update_statistics)
 
         # source signal combo box
