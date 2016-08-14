@@ -1,13 +1,11 @@
 from PyQt4 import QtGui, QtCore
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
-from pyqtgraph import PlotWidget, PlotItem
-import sys
-
-from pynfb.protocols import SelectSSDFilterWidget
-from pynfb.protocols.user_inputs import SelectCSPFilterWidget
-from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
-from pynfb.signals import DerivedSignal
-from numpy import dot
+from pyqtgraph import PlotWidget
+from mne import create_info
+from mne.io import RawArray
+from mne.channels import read_montage
+from mne.preprocessing import ICA
+import numpy as np
 
 class Table(QtGui.QTableWidget):
     def __init__(self, time_series, topographies, channel_names, fs, *args):
@@ -21,7 +19,7 @@ class Table(QtGui.QTableWidget):
         # set size and names
         self.columns = ['Select', 'Topography', 'Time series (push to switch mode)']
         self.setColumnCount(len(self.columns))
-        self.setRowCount(len(time_series))
+        self.setRowCount(time_series.shape[1])
         self.setHorizontalHeaderLabels(self.columns)
 
         # columns widgets
@@ -51,8 +49,8 @@ class Table(QtGui.QTableWidget):
                 plot_widget.setXLink(_previous_plot_link)
                 plot_widget.setYLink(_previous_plot_link)
             _previous_plot_link = plot_widget
-            plot_widget.plot(x=np.arange(self.time_series.shape[1])/fs)
-            plot_widget.plot(y=self.time_series[ind])
+            plot_widget.plot(x=np.arange(self.time_series.shape[0])/fs)
+            plot_widget.plot(y=self.time_series[:, ind])
             plot_widget.setMaximumHeight(self.row_items_max_height)
             self.plot_items.append(plot_widget)
             self.setCellWidget(ind, 2, plot_widget)
@@ -74,14 +72,14 @@ class Table(QtGui.QTableWidget):
     def set_spectrum_mode(self, flag=False):
         self.is_spectrum_mode = flag
         for ind, plot_item in enumerate(self.plot_items):
-            y = self.time_series[ind]
+            y = self.time_series[:, ind]
             if flag:
                 y = np.abs(np.fft.fft(y) / y.shape[0])
                 x = np.fft.fftfreq(y.shape[-1], d=1/self.fs)
                 plot_item.plot(x=x[:y.shape[0]//2], y=y[:y.shape[0]//2], clear=True)
                 self.columns[-1] = 'Spectrum'
             else:
-                plot_item.plot(x=np.arange(self.time_series.shape[1]) / fs, y=y, clear=True)
+                plot_item.plot(x=np.arange(self.time_series.shape[0]) / fs, y=y, clear=True)
                 self.columns[-1] = 'Time series'
         self.plot_items[-1].autoRange()
         self.setHorizontalHeaderLabels(self.columns)
@@ -90,11 +88,20 @@ class Table(QtGui.QTableWidget):
 
 
 class ICADialog(QtGui.QWidget):
-    def __init__(self, time_series, topographies, channel_names, fs, parent=None):
+    def __init__(self, raw_data, channel_names, fs, parent=None):
         super(ICADialog, self).__init__(parent)
+        # attributes
+        self.data = raw_data
+        self.channel_names = channel_names
+        self.n_channels = len(channel_names)
+        raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', read_montage('standard_1005')))
+        ica = ICA(method='extended-infomax')
+        ica.fit(raw_inst)
         # layout
+        self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
         layout = QtGui.QVBoxLayout(self)
-        table = Table(time_series, topographies, channel_names, fs)
+        # table = Table(ica.get_sources(raw_inst).to_data_frame().as_matrix(), self.unmixing_matrix, channel_names, fs)
+        table = Table(np.dot(self.data, self.unmixing_matrix), self.unmixing_matrix, channel_names, fs)
         layout.addWidget(table)
 
 if __name__ == '__main__':
@@ -107,7 +114,26 @@ if __name__ == '__main__':
                 'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz', 'O2']
     channels = channels[:n_channels]
 
-    x = np.array([np.sin(10*(f+1)*2*np.pi*np.arange(0, 10, 1/fs)) for f in range(n_channels)])
-    w = ICADialog(x + 0*np.random.randn(n_channels, x.shape[1]), np.random.randn(n_channels, n_channels), channels, fs)
+    x = np.array([np.sin(10*(f+1)*2*np.pi*np.arange(0, 10, 1/fs)) for f in range(n_channels)]).T
+
+    # Generate sample data
+    np.random.seed(0)
+    n_samples = 2000
+    time = np.linspace(0, 8, n_samples)
+
+    s1 = np.sin(2 * time)  # Signal 1 : sinusoidal signal
+    s2 = np.sign(np.sin(3 * time))  # Signal 2 : square signal
+    from scipy import signal
+    s3 = signal.sawtooth(2 * np.pi * time)  # Signal 3: saw tooth signal
+
+    S = np.c_[s1, s2, s3]
+    S += 0.1 * np.random.normal(size=S.shape)  # Add noise
+
+    S /= S.std(axis=0)  # Standardize data
+    # Mix data
+    A = np.array([[1, 1, 1], [0.5, 2, 1.0], [1.5, 1.0, 2.0]])  # Mixing matrix
+    x = np.dot(S, A.T)  # Generate observations
+
+    w = ICADialog(x, channels, fs)
     w.show()
     app.exec_()
