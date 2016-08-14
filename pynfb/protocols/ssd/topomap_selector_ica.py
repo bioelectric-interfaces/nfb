@@ -84,25 +84,57 @@ class Table(QtGui.QTableWidget):
         self.plot_items[-1].autoRange()
         self.setHorizontalHeaderLabels(self.columns)
 
+    def get_checked_rows(self):
+        return [j for j, checkbox in enumerate(self.checkboxes) if checkbox.isChecked()]
 
 
 
-class ICADialog(QtGui.QWidget):
+
+class ICADialog(QtGui.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None):
         super(ICADialog, self).__init__(parent)
+
         # attributes
         self.data = raw_data
         self.channel_names = channel_names
         self.n_channels = len(channel_names)
+        self.rejection = None
+
+        # unmixing matrix estimation
         raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', read_montage('standard_1005')))
         ica = ICA(method='extended-infomax')
         ica.fit(raw_inst)
-        # layout
         self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
-        layout = QtGui.QVBoxLayout(self)
+
+        # table
         # table = Table(ica.get_sources(raw_inst).to_data_frame().as_matrix(), self.unmixing_matrix, channel_names, fs)
-        table = Table(np.dot(self.data, self.unmixing_matrix), self.unmixing_matrix, channel_names, fs)
-        layout.addWidget(table)
+        self.table = Table(np.dot(self.data, self.unmixing_matrix), self.unmixing_matrix, channel_names, fs)
+
+        # reject selected button
+        self.reject_button = QtGui.QPushButton('Reject and Close')
+        self.reject_button.setMaximumWidth(100)
+        self.reject_button.clicked.connect(self.reject_and_close)
+
+        # layout
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(self.table)
+        layout.addWidget(self.reject_button)
+
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowMaximizeButtonHint )
+
+
+    def reject_and_close(self):
+        unmixing_matrix = self.unmixing_matrix.copy()
+        inv = np.linalg.pinv(self.unmixing_matrix)
+        unmixing_matrix[:, self.table.get_checked_rows()] = 0
+        self.rejection = np.dot(unmixing_matrix, inv)
+        self.close()
+
+    @classmethod
+    def get_rejection(cls, raw_data, channel_names, fs):
+        selector = cls(raw_data, channel_names, fs)
+        result = selector.exec_()
+        return selector.rejection
 
 if __name__ == '__main__':
     import numpy as np
@@ -134,6 +166,7 @@ if __name__ == '__main__':
     A = np.array([[1, 1, 1], [0.5, 2, 1.0], [1.5, 1.0, 2.0]])  # Mixing matrix
     x = np.dot(S, A.T)  # Generate observations
 
-    w = ICADialog(x, channels, fs)
-    w.show()
-    app.exec_()
+    for j in range(4):
+        rejection = ICADialog.get_rejection(x, channels, fs)
+        if rejection is not None:
+            x = np.dot(x, rejection)
