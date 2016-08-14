@@ -2,6 +2,7 @@ from PyQt4 import QtGui, QtCore
 import sys
 
 from pynfb.protocols import SelectSSDFilterWidget
+from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 from pynfb.protocols.user_inputs import SelectCSPFilterWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.signals import DerivedSignal
@@ -15,7 +16,7 @@ class Table(QtGui.QTableWidget):
 
         # set size and names
         self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'Open SSD',
-                        'Open CSP']
+                        'Open CSP', 'Open ICA']
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
@@ -34,6 +35,7 @@ class Table(QtGui.QTableWidget):
         self.buttons = []
         self.drop_rejections_buttons = []
         self.csp_buttons = []
+        self.ica_buttons = []
         for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
             self.buttons.append(open_ssd_btn)
@@ -41,6 +43,9 @@ class Table(QtGui.QTableWidget):
             btn = QtGui.QPushButton('Open')
             self.csp_buttons.append(btn)
             self.setCellWidget(ind, self.columns.index('Open CSP'), btn)
+            btn = QtGui.QPushButton('Open')
+            self.ica_buttons.append(btn)
+            self.setCellWidget(ind, self.columns.index('Open ICA'), btn)
             save_btn = QtGui.QPushButton('Drop')
             self.drop_rejections_buttons.append(save_btn)
             self.setCellWidget(ind, self.columns.index('Drop rejections'), save_btn)
@@ -110,7 +115,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
-        self.setMinimumWidth(700)
+        self.setMinimumWidth(750)
 
         # table
         self.table = Table(self.signals)
@@ -134,6 +139,10 @@ class SignalsSSDManager(QtGui.QDialog):
             button.clicked.connect(lambda: self.run_ssd(csp=True))
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
 
+        for j, button in enumerate(self.table.ica_buttons):
+            button.clicked.connect(lambda: self.run_ssd(ica=True))
+            button.setEnabled(isinstance(self.signals[j], DerivedSignal))
+
         for j, button in enumerate(self.table.drop_rejections_buttons):
             button.clicked.connect(lambda: self.drop_rejections())
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
@@ -150,8 +159,10 @@ class SignalsSSDManager(QtGui.QDialog):
                 self.signals[row].update_rejections(rejections=[], append=False)
                 self.table.update_row(row, modified=True)
 
-    def run_ssd(self, row=None, csp=False):
-        if row is None and not csp:
+    def run_ssd(self, row=None, csp=False, ica=False):
+        if row is None and ica:
+            row = self.table.ica_buttons.index(self.sender())
+        elif row is None and not csp:
             row = self.table.buttons.index(self.sender())
         elif row is None and csp:
             row = self.table.csp_buttons.index(self.sender())
@@ -160,10 +171,16 @@ class SignalsSSDManager(QtGui.QDialog):
         for rejection in self.signals[row].rejections:
             x = dot(x, rejection)
 
-        SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
-        filter, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
-                                                                                        self.channels_names,
-                                                                                        sampling_freq=
+        if ica:
+            rejection = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq)
+            rejections = [rejection] if rejection is not None else []
+            filter = None
+            bandpass = None
+        else:
+            SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
+            filter, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
+                                                                                            self.channels_names,
+                                                                                            sampling_freq=
                                                                                         self.sampling_freq)
         if filter is not None:
             self.signals[row].update_spatial_filter(filter)
@@ -193,7 +210,7 @@ if __name__ == '__main__':
     signals +=[CompositeSignal(signals, '', 'Composite')]
     app = QtGui.QApplication([])
 
-    x = np.random.rand(1000, 4)
+    x = np.random.randn(1000, 4)
     from pynfb.widgets.helpers import ch_names_to_2d_pos
     channels = ['Cz', 'Fp1', 'Fp2', 'Pz']
 
