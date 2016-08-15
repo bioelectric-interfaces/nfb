@@ -51,7 +51,7 @@ class Experiment():
 
             # record data
             if self.main.player_panel.start.isChecked():
-                self.reward.update()
+                self.reward.update(chunk.shape[0])
                 self.subject.figure.update_reward(self.reward.get_score())
                 if self.samples_counter < self.experiment_n_samples:
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
@@ -304,7 +304,8 @@ class Experiment():
         from pynfb.reward import Reward
         self.reward = Reward(self.signals[self.protocols[0].reward_signal_id],
                              threshold=self.protocols[0].reward_threshold,
-                             rate_of_increase=self.params['fRewardPeriodS'])
+                             rate_of_increase=self.params['fRewardPeriodS'],
+                             fs=self.freq)
 
         self.reward.set_enabled(isinstance(self.protocols_sequence[0], FeedbackProtocol))
 
