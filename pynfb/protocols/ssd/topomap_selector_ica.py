@@ -138,7 +138,7 @@ class ICADialog(QtGui.QDialog):
         self.rejection = None
 
         # unmixing matrix estimation
-        raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', read_montage('standard_1005')))
+        raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
         ica = ICA(method='extended-infomax')
         ica.fit(raw_inst)
         self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
