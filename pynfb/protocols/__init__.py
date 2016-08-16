@@ -45,14 +45,11 @@ class Protocol:
                 self.widget_painter.redraw_state(samples[self.source_signal_id])
             else:
                 mock_chunk = self.mock_recordings[self.mock_samples_counter:self.mock_samples_counter + chunk_size]
-                if isinstance(self.mock, CompositeSignal):
-                    for signal in self.mock.signals:
-                        signal.update(mock_chunk)
-
-                self.mock.update(mock_chunk)
+                for signal in self.mock:
+                    signal.update(mock_chunk)
                 self.mock_samples_counter += chunk_size
                 self.mock_samples_counter %= self.mock_recordings.shape[0]
-                self.widget_painter.redraw_state(self.mock.current_sample)
+                self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample)
         else:
             self.widget_painter.redraw_state(samples[0])  # if source signal is 'ALL'
 
@@ -65,7 +62,10 @@ class Protocol:
             if self.source_signal_id is None:
                 raise ValueError('If mock_previous is True, source signal should be single')
             self.mock_samples_counter = 0
-            self.mock = deepcopy(self.signals[self.source_signal_id])
+            self.mock = deepcopy(self.signals)
+            for signal in self.mock:
+                if isinstance(signal, CompositeSignal):
+                    signal.signals = [self.mock[j] for j in range(len(signal.signals))]
             rand_start_ind = randint(0, mock_raw.shape[0])
             self.mock_recordings = vstack((mock_raw[rand_start_ind:], mock_raw[:rand_start_ind]))
             print('**** Success prepare')

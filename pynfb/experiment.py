@@ -51,12 +51,10 @@ class Experiment():
 
             # record data
             if self.main.player_panel.start.isChecked():
-                self.reward.update(chunk.shape[0])
                 self.subject.figure.update_reward(self.reward.get_score())
                 if self.samples_counter < self.experiment_n_samples:
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
-                    self.reward_recorder[chunk_slice] = self.reward.get_score()
                     self.raw_recorder_other[chunk_slice] = other_chunk
                     for s, sample in enumerate(self.current_samples):
                         self.signals_recorder[chunk_slice, s] = sample
@@ -65,14 +63,21 @@ class Experiment():
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
             # redraw protocols
-            is_half_time = self.samples_counter >= self.current_protocol_n_samples//2
+            is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
             current_protocol = self.protocols_sequence[self.current_protocol_index]
             if current_protocol.mock_previous > 0:
-                samples = current_protocol.mock.current_sample
+                samples = [signal.current_sample for signal in current_protocol.mock]
             elif current_protocol.mock_samples_file_path is not None:
                 samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
             else:
                 samples = self.current_samples
+
+            self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
+            if (self.main.player_panel.start.isChecked() and
+                self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
+                self.reward_recorder[self.samples_counter-chunk.shape[0]:self.samples_counter] = self.reward.get_score()
+
+            # subject update
             self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
 
             # change protocol if current_protocol_n_samples has been reached
@@ -138,10 +143,9 @@ class Experiment():
                     current_protocol.mock_samples_protocol)
             self.main.status.update()
 
-
             self.reward.threshold = current_protocol.reward_threshold
             reward_signal_id = current_protocol.reward_signal_id
-            self.reward.signal = self.signals[reward_signal_id] # TODO: REward for MOCK
+            self.reward.signal = self.signals[reward_signal_id]  # TODO: REward for MOCK
             self.reward.set_enabled(isinstance(current_protocol, FeedbackProtocol))
 
         else:
@@ -158,7 +162,6 @@ class Experiment():
             # save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
             params_to_xml_file(self.params, self.dir_name + 'settings.xml')
             self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
-
 
     def restart(self):
         if self.main_timer is not None:
@@ -235,7 +238,7 @@ class Experiment():
 
         for protocol in self.params['vProtocols']:
             source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
-            reward_signal_id = signal_names.index(protocol['sRewardSignal']) if protocol['sRewardSignal']!='' else 0
+            reward_signal_id = signal_names.index(protocol['sRewardSignal']) if protocol['sRewardSignal'] != '' else 0
             print(protocol['sRewardSignal'], reward_signal_id)
             mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
                          protocol['sMockSignalFileDataset'])
@@ -302,7 +305,7 @@ class Experiment():
 
         # reward
         from pynfb.reward import Reward
-        self.reward = Reward(self.signals[self.protocols[0].reward_signal_id],
+        self.reward = Reward(self.protocols[0].reward_signal_id,
                              threshold=self.protocols[0].reward_threshold,
                              rate_of_increase=self.params['fRewardPeriodS'],
                              fs=self.freq)
