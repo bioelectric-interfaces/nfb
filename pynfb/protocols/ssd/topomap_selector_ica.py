@@ -8,20 +8,18 @@ from mne.preprocessing import ICA
 import numpy as np
 from sklearn.metrics import mutual_info_score
 
-def mutual_info(x, y, bins=None):
-    bins = len(x) // 5 if bins is None else bins
+def mutual_info(x, y, bins=100):
     c_xy = np.histogram2d(x, y, bins)[0]
     mi = mutual_info_score(None, None, contingency=c_xy)
     return mi
 
 class Table(QtGui.QTableWidget):
-    def __init__(self, time_series, topographies, channel_names, fs, scores=None,*args):
+    def __init__(self, time_series, topographies, channel_names, fs, scores,*args):
         self.row_items_max_height = 125
         self.time_series = time_series
         self.topographies = topographies
         self.channel_names = channel_names
         self.fs = fs
-        self.order = list(range(len(self.channel_names))) if scores is None else np.argsort(scores)
 
         super(Table, self).__init__(*args)
         # set size and names
@@ -80,6 +78,7 @@ class Table(QtGui.QTableWidget):
         self.is_spectrum_mode = False
 
         # reorder
+        self.order = np.argsort(scores)
         self.reorder()
 
     def changeHorizontalHeader(self, index):
@@ -138,12 +137,17 @@ class ICADialog(QtGui.QDialog):
         self.rejection = None
 
         # unmixing matrix estimation
+
+        from time import time
+        timer = time()
         raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
         ica = ICA(method='extended-infomax')
         ica.fit(raw_inst)
         self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
+        self.topographies = np.dot(ica.mixing_matrix_.T, ica.pca_components_[:ica.n_components_]).T
         self.components = np.dot(self.data, self.unmixing_matrix)
-
+        print('ICA time elapsed = {}s'.format(time() - timer))
+        timer = time()
         # sort by fp1 or fp2
         sort_layout = QtGui.QHBoxLayout()
         self.sort_combo = QtGui.QComboBox()
@@ -157,6 +161,7 @@ class ICADialog(QtGui.QDialog):
             fp1_or_fp2_index = upper_channels_names.index('FP2')
         if fp1_or_fp2_index < 0:
             fp1_or_fp2_index = 0
+        print('Sorting channel is', fp1_or_fp2_index)
         self.sort_combo.setCurrentIndex(fp1_or_fp2_index)
         self.sort_combo.currentIndexChanged.connect(self.sort_by_mutual)
         sort_layout.addWidget(QtGui.QLabel('Sort by: '))
@@ -166,11 +171,12 @@ class ICADialog(QtGui.QDialog):
         # mutual sorting
         scores = [mutual_info(self.components[:, j], self.data[:, fp1_or_fp2_index])
                   for j in range(self.components.shape[1])]
-
+        print('Mutual info scores time elapsed = {}s'.format(time() - timer))
+        timer = time()
         # table
         # table = Table(ica.get_sources(raw_inst).to_data_frame().as_matrix(), self.unmixing_matrix, channel_names, fs)
-        self.table = Table(self.components, self.unmixing_matrix, channel_names, fs, scores)
-
+        self.table = Table(self.components, self.topographies, channel_names, fs, scores)
+        print('Table drawing time elapsed = {}s'.format(time() - timer))
         # reject selected button
         self.reject_button = QtGui.QPushButton('Reject and Close')
         self.reject_button.setMaximumWidth(100)
