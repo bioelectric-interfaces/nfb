@@ -30,6 +30,8 @@ class ChannelsSelector:
                     exclude_indices = [j - int(start_from_1) for j in exclude]
                 elif isinstance(exclude[0], str):
                     names = [n.upper() for n in self.inlet.get_channels_labels()]
+                    print('Channels labels:', names)
+                    print('Exclude:', [r.upper() for r in exclude])
                     exclude_indices = [names.index(r.upper()) for r in exclude]
                 else:
                     raise TypeError('Exclude must contain int or str instances')
