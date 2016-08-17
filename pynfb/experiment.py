@@ -109,7 +109,7 @@ class Experiment():
             raw=self.raw_recorder[:self.samples_counter],
             signals=self.signals_recorder[:self.samples_counter])
 
-        self.pool.apply_async(save_signals, (self.dir_name + 'signals_stats.h5', self.signals, protocol_number_str))
+        save_signals(self.dir_name + 'signals_stats.h5', self.signals, protocol_number_str)
 
         # reset samples counter
         previous_counter = self.samples_counter

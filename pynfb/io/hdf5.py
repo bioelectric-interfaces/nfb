@@ -22,6 +22,7 @@ def load_h5py_all_samples(file_path):
 
 
 def save_signals(file_path, signals, group_name='protocol0'):
+    print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
         for signal in signals:
@@ -37,7 +38,7 @@ def save_signals(file_path, signals, group_name='protocol0'):
                 raise TypeError ('Bad signal type')
             signal_group.create_dataset('mean', data=np.array(signal.mean))
             signal_group.create_dataset('std', data=np.array(signal.std))
-
+    pass
 if __name__ == '__main__':
     a = np.random.random(size=(300, 30))
     save_h5py('temp.h5', a, 'a')
