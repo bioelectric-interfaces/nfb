@@ -14,7 +14,7 @@ from pynfb.io.hdf5 import load_h5py
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
-                 ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0):
+                 ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -37,6 +37,7 @@ class Protocol:
         self.freq = freq
         self.ch_names = ch_names
         self.mock_previous = mock_previous
+        self.drop_outliers = drop_outliers
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
@@ -96,7 +97,8 @@ class Protocol:
             if self.source_signal_id is not None:
                 self.signals[self.source_signal_id].update_statistics(raw=raw, emulate=self.ssd_in_the_end,
                                                                       stats_previous=stats_previous,
-                                                                      signals_recorder=signals)
+                                                                      signals_recorder=signals,
+                                                                      drop_outliers=self.drop_outliers)
                 self.signals[self.source_signal_id].enable_scaling()
             else:
                 updated_derived_signals_recorder = []
@@ -104,14 +106,17 @@ class Protocol:
                     updated_derived_signals_recorder.append(
                         signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
                                                  stats_previous=stats_previous,
-                                                 signals_recorder=signals))
+                                                 signals_recorder=signals,
+                                                 drop_outliers=self.drop_outliers
+                                                 ))
                     signal.enable_scaling()
                 updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
                 for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
                     signal.update_statistics(raw=raw,
                                              stats_previous=stats_previous,
                                              signals_recorder=signals,
-                                             updated_derived_signals_recorder=updated_derived_signals_recorder)
+                                             updated_derived_signals_recorder=updated_derived_signals_recorder,
+                                             drop_outliers=self.drop_outliers)
                     signal.enable_scaling()
 
 

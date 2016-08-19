@@ -41,7 +41,8 @@ class CompositeSignal:
         pass
 
     def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
-                          signals_recorder=None, stats_previous=None, updated_derived_signals_recorder=None):
+                          signals_recorder=None, stats_previous=None, updated_derived_signals_recorder=None,
+                          drop_outliers=0):
         from time import time
         timer = time()
         if updated_derived_signals_recorder is None:
@@ -54,11 +55,17 @@ class CompositeSignal:
         else:
             signals_data = updated_derived_signals_recorder.copy()
         if signals_data.shape[1] > 1:
-            actual_data = self.expression_lambda(*signals_data.T)
+            signal_recordings = self.expression_lambda(*signals_data.T)
         else:
-            actual_data = np.apply_along_axis(self.expression_lambda, 0, signals_data)
-        self.mean = mean if (mean is not None) else actual_data.mean()
-        self.std = std if (std is not None) else actual_data.std()
+            signal_recordings = np.apply_along_axis(self.expression_lambda, 0, signals_data)
+        # drop outliers
+        if drop_outliers and signal_recordings.std() > 0:
+            signal_recordings_clear = signal_recordings[
+                np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
+        else:
+            signal_recordings_clear = signal_recordings
+        self.mean = mean if (mean is not None) else signal_recordings_clear.mean()
+        self.std = std if (std is not None) else signal_recordings_clear.std()
         self.reset_statistic_acc()
         print('*** COMPOSITE TIME ELAPSED', time() - timer)
 

@@ -117,7 +117,7 @@ class DerivedSignal():
         return amplitude
 
     def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
-                          signals_recorder=None, stats_previous=None):
+                          signals_recorder=None, stats_previous=None, drop_outliers=0):
         if raw is not None and emulate:
             signal_recordings = np.zeros_like(signals_recorder[:, self.ind])
             self.reset_statistic_acc()
@@ -131,8 +131,14 @@ class DerivedSignal():
         mean_prev, std_prev = stats_previous[self.ind]
         if np.isfinite(mean_prev) and np.isfinite(std_prev):
             signal_recordings = signals_recorder * std_prev + mean_prev
-        self.mean = mean if (mean is not None) else signal_recordings.mean()
-        self.std = std if (std is not None) else signal_recordings.std()
+        # drop outliers:
+        if drop_outliers and signal_recordings.std() > 0:
+                signal_recordings_clear = signal_recordings[
+                    np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
+        else:
+            signal_recordings_clear = signal_recordings
+        self.mean = mean if (mean is not None) else signal_recordings_clear.mean()
+        self.std = std if (std is not None) else signal_recordings_clear.std()
         return (signal_recordings - self.mean) / (self.std if self.std > 0 else 1)
 
     def update_spatial_filter(self, spatial_filter=None):

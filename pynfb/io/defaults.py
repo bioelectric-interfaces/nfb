@@ -46,6 +46,7 @@ vectors_defaults = OrderedDict([
             # ('sSignalComposition', 'Simple'),
             # ('nMSecondsPerWindow', ''),
             ('bUpdateStatistics', 0),
+            ('iDropOutliers', 0),
             ('bSSDInTheEnd', 0),
             # ('bStopAfter', False),
             # ('bShowFBRect', False),

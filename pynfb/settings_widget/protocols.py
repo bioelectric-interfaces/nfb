@@ -102,6 +102,11 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Open signal manager\nin the end (SSD, CSP, ICA):', self.ssd_in_the_end)
         self.form_layout.addRow('&Update statistics:', self.update_statistics)
 
+        self.drop_outliers = QtGui.QSpinBox()
+        self.form_layout.addRow('&Drop outliers [std]:', self.drop_outliers)
+        self.update_statistics.stateChanged.connect(lambda:
+                                                    self.drop_outliers.setEnabled(self.update_statistics.isChecked()))
+
         # source signal combo box
         self.source_signal = QtGui.QComboBox()
         self.form_layout.addRow('&Signal:', self.source_signal)
@@ -213,6 +218,8 @@ class ProtocolDialog(QtGui.QDialog):
         current_protocol = self.params[self.parent().list.currentRow()]
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
+        self.drop_outliers.setValue(current_protocol['iDropOutliers'])
+        self.drop_outliers.setEnabled(self.update_statistics.isChecked())
         self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
         self.source_signal.setCurrentIndex(
             self.source_signal.findText(current_protocol['fbSource'], QtCore.Qt.MatchFixedString))
@@ -239,6 +246,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['sProtocolName'] = self.name.text()
         self.params[current_signal_index]['fDuration'] = self.duration.value()
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
+        self.params[current_signal_index]['iDropOutliers'] = (
+            self.drop_outliers.value() if self.update_statistics.isChecked() else 0)
         self.params[current_signal_index]['bSSDInTheEnd'] = int(self.ssd_in_the_end.isChecked())
         self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
