@@ -5,11 +5,13 @@ from pynfb.io import save_spatial_filter
 
 
 class DerivedSignal():
-    def __init__(self, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_filter=None,
+    def __init__(self, ind, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None, spatial_filter=None,
                  source_freq=500, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1):
         # n_samples hot fix:
         print('**** n_samples type is', type(n_samples))
+        # id
+        self.ind = ind
         self.n_samples = int(n_samples)
         # signal name
         self.name = name
@@ -117,14 +119,21 @@ class DerivedSignal():
     def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
                           signals_recorder=None, stats_previous=None):
         if raw is not None and emulate:
+            signal_recordings = np.zeros_like(signals_recorder[:, self.ind])
             self.reset_statistic_acc()
             mean_chunk_size = 8
             for k in range(0, raw.shape[0] - mean_chunk_size, mean_chunk_size):
                 chunk = raw[k:k + mean_chunk_size]
                 self.update(chunk)
-        self.mean = mean if (mean is not None) else self.mean_acc
-        self.std = std if (std is not None) else self.std_acc
-        self.reset_statistic_acc()
+                signal_recordings[k:k + mean_chunk_size] = self.current_sample
+        else:
+            signal_recordings = signals_recorder[:, self.ind]
+        mean_prev, std_prev = stats_previous[self.ind]
+        if np.isfinite(mean_prev) and np.isfinite(std_prev):
+            signal_recordings = signals_recorder * std_prev + mean_prev
+        self.mean = mean if (mean is not None) else signal_recordings.mean()
+        self.std = std if (std is not None) else signal_recordings.std()
+        return (signal_recordings - self.mean) / (self.std if self.std > 0 else 1)
 
     def update_spatial_filter(self, spatial_filter=None):
         if spatial_filter is not None:

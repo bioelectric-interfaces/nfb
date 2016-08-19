@@ -211,7 +211,8 @@ class Experiment():
         channels_labels = self.stream.get_channels_labels()
 
         # signals
-        self.signals = [DerivedSignal(bandpass_high=signal['fBandpassHighHz'],
+        self.signals = [DerivedSignal(ind=ind,
+                                      bandpass_high=signal['fBandpassHighHz'],
                                       bandpass_low=signal['fBandpassLowHz'],
                                       name=signal['sSignalName'],
                                       n_channels=self.n_channels,
@@ -222,13 +223,14 @@ class Experiment():
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'])
-                        for signal in self.params['vSignals']['DerivedSignal']]
+                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal'])]
 
         # composite signals
         self.composite_signals = [CompositeSignal([s for s in self.signals],
                                                   signal['sExpression'],
-                                                  signal['sSignalName'])
-                                  for signal in self.params['vSignals']['CompositeSignal']]
+                                                  signal['sSignalName'],
+                                                  ind=ind + len(self.signals))
+                                  for ind, signal in enumerate(self.params['vSignals']['CompositeSignal'])]
         self.signals += self.composite_signals
         self.current_samples = np.zeros_like(self.signals)
 

@@ -8,7 +8,7 @@ from numpy.random import randint
 from numpy import vstack
 
 
-from pynfb.signals import CompositeSignal
+from pynfb.signals import CompositeSignal, DerivedSignal
 from pynfb.io.hdf5 import load_h5py
 
 class Protocol:
@@ -84,10 +84,7 @@ class Protocol:
             pos = ch_names_to_2d_pos(channels_names)
 
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self.freq)
-            if self.source_signal_id is not None:
-                signal_manager.run_ssd(row=self.source_signal_id)
-            else:
-                signal_manager.exec_()
+            signal_manager.exec_()
 
             # run main timer
             if self.timer:
@@ -102,10 +99,19 @@ class Protocol:
                                                                       signals_recorder=signals)
                 self.signals[self.source_signal_id].enable_scaling()
             else:
-                for signal in self.signals:
-                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
+                updated_derived_signals_recorder = []
+                for s, signal in enumerate([signal for signal in self.signals if isinstance(signal, DerivedSignal)]):
+                    updated_derived_signals_recorder.append(
+                        signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
+                                                 stats_previous=stats_previous,
+                                                 signals_recorder=signals))
+                    signal.enable_scaling()
+                updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
+                for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
+                    signal.update_statistics(raw=raw,
                                              stats_previous=stats_previous,
-                                             signals_recorder=signals)
+                                             signals_recorder=signals,
+                                             updated_derived_signals_recorder=updated_derived_signals_recorder)
                     signal.enable_scaling()
 
 

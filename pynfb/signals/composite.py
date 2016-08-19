@@ -5,12 +5,13 @@ class CompositeSignal:
     """
     Class for composite signal
     """
-    def __init__(self, signals, expression, name):
+    def __init__(self, signals, expression, name, ind):
         """
         Constructor
         :param signals: list of all signals
         :param expression: str expression
         """
+        self.id = ind
         self.name = name
         self.signals = signals
         self._signals_names = [signal.name for signal in self.signals]
@@ -40,15 +41,18 @@ class CompositeSignal:
         pass
 
     def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
-                          signals_recorder=None, stats_previous=None):
+                          signals_recorder=None, stats_previous=None, updated_derived_signals_recorder=None):
         from time import time
         timer = time()
-        signals_data = signals_recorder[:, :len(self.signals)].copy()
-        for j, signal_data in enumerate(signals_data.T):
-            if np.isfinite(stats_previous[j][0]) and np.isfinite(stats_previous[j][1]):
-                signal_data = signal_data * stats_previous[j][1] + stats_previous[j][0]
-            if self.signals[j].std > 0:
-                signals_data[:, j] = (signal_data - self.signals[j].mean) / self.signals[j].std
+        if updated_derived_signals_recorder is None:
+            signals_data = signals_recorder[:, :len(self.signals)].copy()
+            for j, signal_data in enumerate(signals_data.T):
+                if np.isfinite(stats_previous[j][0]) and np.isfinite(stats_previous[j][1]):
+                    signal_data = signal_data * stats_previous[j][1] + stats_previous[j][0]
+                if self.signals[j].std > 0:
+                    signals_data[:, j] = (signal_data - self.signals[j].mean) / self.signals[j].std
+        else:
+            signals_data = updated_derived_signals_recorder.copy()
         if signals_data.shape[1] > 1:
             actual_data = self.expression_lambda(*signals_data.T)
         else:
