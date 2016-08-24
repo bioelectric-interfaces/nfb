@@ -107,16 +107,21 @@ class BandWidget(QtGui.QWidget):
 class SignalsSSDManager(QtGui.QDialog):
     test_signal = QtCore.pyqtSignal()
     test_closed_signal = QtCore.pyqtSignal()
-    def __init__(self, signals, x, pos, channels_names, sampling_freq=1000, message=None, **kwargs):
+    def __init__(self, signals, x, pos, channels_names, protocol, signals_rec, protocols, sampling_freq=1000,
+                 message=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # attributes
         self.signals = [signal for signal in signals if isinstance(signal, DerivedSignal)]
         self.init_signals = deepcopy(self.signals)
+        self.all_signals = signals
         self.x = x
         self.pos = pos
         self.channels_names = channels_names
         self.sampling_freq = sampling_freq
+        self.protocol = protocol
+        self.signals_rec = signals_rec
+        self.stats = [(signal.mean, signal.std, signal.scaling_flag) for signal in signals]
 
         #layout
         layout = QtGui.QVBoxLayout(self)
@@ -135,10 +140,10 @@ class SignalsSSDManager(QtGui.QDialog):
         layout.addLayout(bottom_layout)
 
         # ok button
-        ok_button = QtGui.QPushButton('Continue')
-        ok_button.clicked.connect(self.ok_button_action)
-        ok_button.setMaximumWidth(100)
-        ok_button.setMinimumHeight(25)
+        self.ok_button = QtGui.QPushButton('Continue')
+        self.ok_button.clicked.connect(self.ok_button_action)
+        self.ok_button.setMaximumWidth(100)
+        self.ok_button.setMinimumHeight(25)
 
         # revert changes
         self.revert_button = QtGui.QPushButton('Revert changes')
@@ -152,12 +157,17 @@ class SignalsSSDManager(QtGui.QDialog):
         self.test_button.setMaximumWidth(100)
         self.test_button.setMinimumHeight(25)
 
+        self.combo_protocols = QtGui.QComboBox()
+        protocols_names = [prot.name for prot in protocols]
+        self.combo_protocols.addItems(protocols_names)
+
         # add to bottom layout
         bottom_layout.addWidget(self.test_button)
+        bottom_layout.addWidget(self.combo_protocols)
         bottom_layout.addWidget(self.revert_button)
-        bottom_layout.addWidget(ok_button)
+        bottom_layout.addWidget(self.ok_button)
 
-        self.test_button.hide()
+        #self.test_button.hide()
 
 
         for j, button in enumerate(self.table.buttons):
@@ -181,11 +191,23 @@ class SignalsSSDManager(QtGui.QDialog):
         if self.test_button.text() == 'Test':
             print('Test run')
             self.test_button.setText('Close test')
+            self.revert_button.setDisabled(True)
+            self.ok_button.setDisabled(True)
+            self.combo_protocols.setDisabled(True)
+            self.protocol.update_mean_std(self.x, self.signals_rec, must=True)
+            #self.main.update_statistics_lines()
             self.test_signal.emit()
             self.setModal(False)
         else:
             print('Test close')
             self.test_button.setText('Test')
+            self.revert_button.setEnabled(True)
+            self.ok_button.setEnabled(True)
+            self.combo_protocols.setEnabled(True)
+            for j, (mean, std, flag) in enumerate(self.stats):
+                self.all_signals[j].mean = mean
+                self.all_signals[j].std = std
+                self.all_signals[j].scaling_flag = flag
             self.test_closed_signal.emit()
             self.setModal(False)
         # self.close()
@@ -268,6 +290,6 @@ if __name__ == '__main__':
     from pynfb.widgets.helpers import ch_names_to_2d_pos
     channels = ['Cz', 'Fp1', 'Fp2', 'Pz']
 
-    w = SignalsSSDManager(signals, x, ch_names_to_2d_pos(channels), channels)
+    w = SignalsSSDManager(signals, x, ch_names_to_2d_pos(channels), channels, None, None, [])
     w.show()
     app.exec_()

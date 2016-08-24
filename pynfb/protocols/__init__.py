@@ -73,7 +73,7 @@ class Protocol:
             self.mock_recordings = vstack((mock_raw[rand_start_ind:], mock_raw[:rand_start_ind]))
             print('**** Success prepare')
 
-    def close_protocol(self, raw=None, signals=None):
+    def close_protocol(self, raw=None, signals=None, protocols=list()):
         # action if ssd in the end checkbox was checked
         if self.ssd_in_the_end:
 
@@ -86,16 +86,23 @@ class Protocol:
             x = raw
             pos = ch_names_to_2d_pos(channels_names)
 
-            signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self.freq)
-            signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(self))
+            signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
+                                               sampling_freq=self.freq)
+            signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(
+                protocols[signal_manager.combo_protocols.currentIndex()]
+            ))
+            signal_manager.test_closed_signal.connect(self.experiment.close_test_protocol)
             signal_manager.exec_()
 
             # run main timer
             if self.timer:
                 self.timer.start(1000 * 1. / self.freq)
 
+        self.update_mean_std(raw, signals)
+
+    def update_mean_std(self, raw, signals, must=False):
         # update statistics action
-        if self.update_statistics_in_the_end:
+        if self.update_statistics_in_the_end or must:
             stats_previous = [(signal.mean, signal.std) for signal in self.signals]
             if self.source_signal_id is not None:
                 self.signals[self.source_signal_id].update_statistics(raw=raw, emulate=self.ssd_in_the_end,

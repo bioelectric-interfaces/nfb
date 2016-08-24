@@ -94,6 +94,13 @@ class Experiment():
 
         self.subject.change_protocol(protocol)
 
+    def close_test_protocol(self):
+        if self.main_timer.isActive():
+            self.main_timer.stop()
+        self.samples_counter = 0
+        self.main.signals_buffer *= 0
+        self.test_mode = True
+
     def next_protocol(self):
         """
         Change protocol
@@ -117,7 +124,8 @@ class Experiment():
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
-            signals=self.signals_recorder[:self.samples_counter])
+            signals=self.signals_recorder[:self.samples_counter],
+            protocols=self.protocols)
 
         save_signals(self.dir_name + 'signals_stats.h5', self.signals, protocol_number_str)
 
