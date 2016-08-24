@@ -81,8 +81,18 @@ class Experiment():
             self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
 
             # change protocol if current_protocol_n_samples has been reached
-            if self.samples_counter >= self.current_protocol_n_samples:
+            if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
                 self.next_protocol()
+
+    def start_test_protocol(self, protocol):
+        print('Experiment: test')
+        if not self.main_timer.isActive():
+            self.main_timer.start(1000 * 1. / self.freq)
+        self.samples_counter = 0
+        self.main.signals_buffer *= 0
+        self.test_mode = True
+
+        self.subject.change_protocol(protocol)
 
     def next_protocol(self):
         """
@@ -164,6 +174,8 @@ class Experiment():
             self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
 
     def restart(self):
+
+        self.test_mode = False
         if self.main_timer is not None:
             self.main_timer.stop()
         if self.stream is not None:
@@ -261,7 +273,8 @@ class Experiment():
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id,
-                        half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None
+                        half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
+                        experiment=self
                     ))
             elif protocol['sFb_type'] == 'CircleFeedback':
                 self.protocols.append(
@@ -280,7 +293,8 @@ class Experiment():
                         ch_names=channels_labels,
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
-                        reward_signal_id=reward_signal_id))
+                        reward_signal_id=reward_signal_id,
+                        experiment=self))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(
@@ -298,7 +312,8 @@ class Experiment():
                         ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
-                        reward_signal_id=reward_signal_id))
+                        reward_signal_id=reward_signal_id,
+                        experiment=self))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 

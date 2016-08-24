@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from PyQt4 import QtGui, QtCore
 import sys
 
@@ -103,11 +105,14 @@ class BandWidget(QtGui.QWidget):
 
 
 class SignalsSSDManager(QtGui.QDialog):
+    test_signal = QtCore.pyqtSignal()
+    test_closed_signal = QtCore.pyqtSignal()
     def __init__(self, signals, x, pos, channels_names, sampling_freq=1000, message=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # attributes
         self.signals = [signal for signal in signals if isinstance(signal, DerivedSignal)]
+        self.init_signals = deepcopy(self.signals)
         self.x = x
         self.pos = pos
         self.channels_names = channels_names
@@ -125,11 +130,35 @@ class SignalsSSDManager(QtGui.QDialog):
         if message is not None:
             layout.addWidget(QtGui.QLabel(message))
 
+        # bottom layout
+        bottom_layout = QtGui.QHBoxLayout()
+        layout.addLayout(bottom_layout)
+
         # ok button
-        ok_button = QtGui.QPushButton('OK')
+        ok_button = QtGui.QPushButton('Continue')
         ok_button.clicked.connect(self.ok_button_action)
         ok_button.setMaximumWidth(100)
-        layout.addWidget(ok_button)
+        ok_button.setMinimumHeight(25)
+
+        # revert changes
+        self.revert_button = QtGui.QPushButton('Revert changes')
+        self.revert_button.clicked.connect(self.revert_changes)
+        self.revert_button.setMaximumWidth(100)
+        self.revert_button.setMinimumHeight(25)
+
+        # test protocol
+        self.test_button = QtGui.QPushButton('Test')
+        self.test_button.clicked.connect(self.test_action)
+        self.test_button.setMaximumWidth(100)
+        self.test_button.setMinimumHeight(25)
+
+        # add to bottom layout
+        bottom_layout.addWidget(self.test_button)
+        bottom_layout.addWidget(self.revert_button)
+        bottom_layout.addWidget(ok_button)
+
+        self.test_button.hide()
+
 
         for j, button in enumerate(self.table.buttons):
             button.clicked.connect(lambda: self.run_ssd())
@@ -146,6 +175,31 @@ class SignalsSSDManager(QtGui.QDialog):
         for j, button in enumerate(self.table.drop_rejections_buttons):
             button.clicked.connect(lambda: self.drop_rejections())
             button.setEnabled(isinstance(self.signals[j], DerivedSignal))
+
+
+    def test_action(self):
+        if self.test_button.text() == 'Test':
+            print('Test run')
+            self.test_button.setText('Close test')
+            self.test_signal.emit()
+            self.setModal(False)
+        else:
+            print('Test close')
+            self.test_button.setText('Test')
+            self.test_closed_signal.emit()
+            self.setModal(False)
+        # self.close()
+
+    def revert_changes(self):
+        quit_msg = "Are you sure you want to revert all changes?"
+        reply = QtGui.QMessageBox.question(self, 'Message',
+                                           quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        if reply == QtGui.QMessageBox.Yes:
+            for j, signal in enumerate(self.signals):
+                signal.update_rejections(self.init_signals[j].rejections, append=False)
+                signal.update_spatial_filter(self.init_signals[j].spatial_filter)
+                signal.update_bandpass(self.init_signals[j].bandpass)
+                self.table.update_row(j, modified=False)
 
     def drop_rejections(self):
         row = self.table.drop_rejections_buttons.index(self.sender())
@@ -206,8 +260,8 @@ class SignalsSSDManager(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
     from pynfb.signals import CompositeSignal
-    signals = [DerivedSignal(name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=4) for k in range(3)]
-    signals +=[CompositeSignal(signals, '', 'Composite')]
+    signals = [DerivedSignal(ind = k, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=4) for k in range(3)]
+    signals +=[CompositeSignal(signals, '', 'Composite', 3)]
     app = QtGui.QApplication([])
 
     x = np.random.randn(1000, 4)
