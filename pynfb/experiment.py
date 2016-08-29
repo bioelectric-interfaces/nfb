@@ -99,7 +99,7 @@ class Experiment():
             self.main_timer.stop()
         self.samples_counter = 0
         self.main.signals_buffer *= 0
-        self.test_mode = True
+        self.test_mode = False
 
     def next_protocol(self):
         """
