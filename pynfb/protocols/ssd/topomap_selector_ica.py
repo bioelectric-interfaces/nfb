@@ -127,7 +127,7 @@ class Table(QtGui.QTableWidget):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None):
+    def __init__(self, raw_data, channel_names, fs, parent=None, ica=None):
         super(ICADialog, self).__init__(parent)
 
         # attributes
@@ -141,8 +141,12 @@ class ICADialog(QtGui.QDialog):
         from time import time
         timer = time()
         raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
-        ica = ICA(method='extended-infomax')
-        ica.fit(raw_inst)
+        if ica is None:
+            self.ica = ICA(method='extended-infomax')
+            self.ica.fit(raw_inst)
+            ica = self.ica
+        else:
+            self.ica = ica
         self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
         self.topographies = np.dot(ica.mixing_matrix_.T, ica.pca_components_[:ica.n_components_]).T
         self.components = np.dot(self.data, self.unmixing_matrix)
@@ -207,10 +211,10 @@ class ICADialog(QtGui.QDialog):
         self.close()
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs):
-        selector = cls(raw_data, channel_names, fs)
+    def get_rejection(cls, raw_data, channel_names, fs, ica=None):
+        selector = cls(raw_data, channel_names, fs, ica=ica)
         result = selector.exec_()
-        return selector.rejection
+        return selector.rejection, selector.ica
 
 if __name__ == '__main__':
     import numpy as np

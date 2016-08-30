@@ -122,6 +122,7 @@ class SignalsSSDManager(QtGui.QDialog):
         self.protocol = protocol
         self.signals_rec = signals_rec
         self.stats = [(signal.mean, signal.std, signal.scaling_flag) for signal in signals]
+        self.ica = None
 
         #layout
         layout = QtGui.QVBoxLayout(self)
@@ -248,8 +249,10 @@ class SignalsSSDManager(QtGui.QDialog):
             x = dot(x, rejection)
 
         if ica:
-            rejection = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq)
-            rejections = [rejection] if rejection is not None else []
+            ica_rejection, self.ica = ICADialog.get_rejection(self.x, self.channels_names, self.sampling_freq,
+                                                              ica=self.ica)
+            self.signals[row].update_ica_rejection(ica_rejection)
+            rejections = []
             filter = None
             bandpass = None
         else:

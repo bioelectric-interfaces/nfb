@@ -29,6 +29,8 @@ def save_signals(file_path, signals, group_name='protocol0'):
             signal_group = main_group.create_group(signal.name)
             if isinstance(signal, DerivedSignal):
                 signal_group.attrs['type'] = u'derived'
+                signal_group.create_dataset('ica_rejection', data=np.array(signal.ica_rejection if signal.ica_rejection
+                                                                           is not None else []))
                 signal_group.create_dataset('rejections', data=np.array(signal.rejections))
                 signal_group.create_dataset('spatial_filter', data=np.array(signal.spatial_filter))
                 signal_group.create_dataset('bandpass', data=np.array(signal.bandpass))

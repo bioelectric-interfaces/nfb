@@ -28,6 +28,7 @@ class DerivedSignal():
         self.n_acc = 0
 
         # rejections matrices list
+        self.ica_rejection = None
         self.rejections = []
 
         # spatial filter
@@ -147,6 +148,8 @@ class DerivedSignal():
         self.spatial_matrix = self.spatial_filter
         for matrix in self.rejections[-1::-1]:
             self.spatial_matrix = np.dot(matrix, self.spatial_matrix)
+        if self.ica_rejection is not None:
+            self.spatial_matrix = np.dot(self.ica_rejection, self.spatial_matrix)
 
     def append_spatial_matrix_list(self, matrix):
         self.rejections.append(matrix)
@@ -157,6 +160,10 @@ class DerivedSignal():
             self.rejections += rejections
         else:
             self.rejections = rejections.copy()
+        self.update_spatial_filter()
+
+    def update_ica_rejection(self, rejection=None):
+        self.ica_rejection = rejection
         self.update_spatial_filter()
 
     def update_bandpass(self, bandpass):
@@ -191,3 +198,4 @@ class DerivedSignal():
         else:
             self.spatial_filter = spatial_filter
         self.spatial_matrix = spatial_filter.copy()
+        self.ica_rejection = None
