@@ -92,8 +92,13 @@ class Table(QtGui.QTableWidget):
         for ind, plot_item in enumerate(self.plot_items):
             y = self.time_series[:, ind]
             if flag:
-                y = np.abs(np.fft.fft(y) / y.shape[0])
-                x = np.fft.fftfreq(y.shape[-1], d=1/self.fs)
+                window = int(4 * self.fs)
+                if len(y) >= window:
+                    y = np.mean([np.abs(np.fft.fft(y[j:j + window])**2 / y.shape[0])
+                                  for j in range(0, y.shape[0] - window, window//2)], axis=0)
+                else:
+                    y = np.abs(np.fft.fft(y) / y.shape[0])**2
+                x = np.fft.fftfreq(window, d=1/self.fs)
                 plot_item.plot(x=x[:y.shape[0]//2], y=y[:y.shape[0]//2], clear=True)
                 self.columns[-1] = 'Spectrum'
             else:
@@ -247,6 +252,6 @@ if __name__ == '__main__':
     x = np.dot(S, A.T)  # Generate observations
 
     for j in range(4):
-        rejection = ICADialog.get_rejection(x, channels, fs)
+        rejection, _ = ICADialog.get_rejection(x, channels, fs)
         if rejection is not None:
             x = np.dot(x, rejection)

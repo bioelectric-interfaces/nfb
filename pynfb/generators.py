@@ -18,7 +18,7 @@ ch_names32 = ['Fp1','Fp2','F7','F3','Fz','F4','F8','Ft9','Fc5','Fc1','Fc2','Fc6'
               'Cp5','Cp1','Cp2','Cp6','Tp10','P7','P3','Pz','P4','P8','O1','Oz','O2']
 
 
-def run_eeg_sim(n_channels=32, freq=1000, chunk_size=0, source_buffer=None, name='example'):
+def run_eeg_sim(n_channels=32, freq=500, chunk_size=0, source_buffer=None, name='example'):
     """
     Make LSL Stream Outlet and send source_buffer data or simulate sin data
     :param n_channels: number of channels
