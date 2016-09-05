@@ -73,6 +73,8 @@ class Table(QtGui.QTableWidget):
 
         # rejection
         n_rejections = len(signal.rejections)
+        if signal.ica_rejection is not None:
+            n_rejections += 1
         self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem(str(n_rejections)))
 
         # spatial filter
@@ -220,13 +222,14 @@ class SignalsSSDManager(QtGui.QDialog):
         if reply == QtGui.QMessageBox.Yes:
             for j, signal in enumerate(self.signals):
                 signal.update_rejections(self.init_signals[j].rejections, append=False)
+                signal.update_ica_rejection(rejection=self.init_signals[j].ica_rejection)
                 signal.update_spatial_filter(self.init_signals[j].spatial_filter)
                 signal.update_bandpass(self.init_signals[j].bandpass)
                 self.table.update_row(j, modified=False)
 
     def drop_rejections(self):
         row = self.table.drop_rejections_buttons.index(self.sender())
-        if len(self.signals[row].rejections) > 0:
+        if len(self.signals[row].rejections) > 0 or self.signals[row].rejections is not None:
             quit_msg = "Are you sure you want to drop {} rejections of signal \"{}\"?".format(
                 len(self.signals[row].rejections),
                 self.signals[row].name)
@@ -234,6 +237,7 @@ class SignalsSSDManager(QtGui.QDialog):
                                                quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 self.signals[row].update_rejections(rejections=[], append=False)
+                self.signals[row].update_ica_rejection(rejection=None)
                 self.table.update_row(row, modified=True)
 
     def run_ssd(self, row=None, csp=False, ica=False):
@@ -245,11 +249,13 @@ class SignalsSSDManager(QtGui.QDialog):
             row = self.table.csp_buttons.index(self.sender())
 
         x = self.x
+        if self.signals[row].ica_rejection is not None:
+            x = dot(x, self.signals[row].ica_rejection)
         for rejection in self.signals[row].rejections:
             x = dot(x, rejection)
 
         if ica:
-            ica_rejection, self.ica = ICADialog.get_rejection(self.x, self.channels_names, self.sampling_freq,
+            ica_rejection, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
                                                               ica=self.ica)
             self.signals[row].update_ica_rejection(ica_rejection)
             rejections = []
