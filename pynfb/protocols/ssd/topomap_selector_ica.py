@@ -97,7 +97,7 @@ class Table(QtGui.QTableWidget):
                 plot_item.plot(x=x[:y.shape[0]//2], y=y[:y.shape[0]//2], clear=True)
                 self.columns[-1] = 'Spectrum'
             else:
-                plot_item.plot(x=np.arange(self.time_series.shape[0]) / fs, y=y, clear=True)
+                plot_item.plot(x=np.arange(self.time_series.shape[0]) / self.fs, y=y, clear=True)
                 self.columns[-1] = 'Time series'
         self.plot_items[-1].autoRange()
         self.setHorizontalHeaderLabels(self.columns)
