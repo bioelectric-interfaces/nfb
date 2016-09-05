@@ -110,6 +110,9 @@ class Table(QtGui.QTableWidget):
     def get_checked_rows(self):
         return [j for j, checkbox in enumerate(self.checkboxes) if checkbox.isChecked()]
 
+    def get_unchecked_rows(self):
+        return [j for j, checkbox in enumerate(self.checkboxes) if not checkbox.isChecked()]
+
     def reorder(self, order=None):
         self.order = self.order[-1::-1] if order is None else order
         for ind, new_ind in enumerate(self.order):
@@ -188,8 +191,11 @@ class ICADialog(QtGui.QDialog):
         print('Table drawing time elapsed = {}s'.format(time() - timer))
         # reject selected button
         self.reject_button = QtGui.QPushButton('Reject and Close')
+        self.select_button = QtGui.QPushButton('Select and Close')
         self.reject_button.setMaximumWidth(100)
         self.reject_button.clicked.connect(self.reject_and_close)
+        self.select_button.setMaximumWidth(100)
+        self.select_button.clicked.connect(lambda: self.reject_and_close(select=True))
 
 
         #self.sort_button.clicked.connect(lambda : self.table.reorder())
@@ -198,7 +204,11 @@ class ICADialog(QtGui.QDialog):
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.table)
         layout.addLayout(sort_layout)
-        layout.addWidget(self.reject_button)
+        buttons_layout = QtGui.QHBoxLayout()
+        buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
+        buttons_layout.addWidget(self.reject_button)
+        buttons_layout.addWidget(self.select_button)
+        layout.addLayout(buttons_layout)
 
         # enable maximize btn
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowMaximizeButtonHint )
@@ -208,10 +218,11 @@ class ICADialog(QtGui.QDialog):
         scores = [mutual_info(self.components[:, j], self.data[:, ind]) for j in range(self.components.shape[1])]
         self.table.set_scores(scores)
 
-    def reject_and_close(self):
+    def reject_and_close(self, select=False):
+        indexes = self.table.get_checked_rows() if not select else self.table.get_unchecked_rows()
         unmixing_matrix = self.unmixing_matrix.copy()
         inv = np.linalg.pinv(self.unmixing_matrix)
-        unmixing_matrix[:, self.table.get_checked_rows()] = 0
+        unmixing_matrix[:, indexes] = 0
         self.rejection = np.dot(unmixing_matrix, inv)
         self.close()
 
