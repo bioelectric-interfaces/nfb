@@ -255,9 +255,16 @@ class SignalsSSDManager(QtGui.QDialog):
             x = dot(x, rejection)
 
         if ica:
-            ica_rejection, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                              ica=self.ica)
-            self.signals[row].update_ica_rejection(ica_rejection)
+            reply = QtGui.QMessageBox.Yes
+            if len(self.signals[row].rejections) > 0:
+                reply = QtGui.QMessageBox.question(self, 'Message',
+                                                   'Rejections already exist. Are you sure you want to do ICA?'
+                                                   ' (ICA should be the first)',
+                                                   QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.Yes:
+                ica_rejection, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
+                                                                  ica=self.ica)
+                self.signals[row].update_ica_rejection(ica_rejection)
             rejections = []
             filter = None
             bandpass = None
