@@ -1,6 +1,8 @@
 from PyQt4 import QtGui, QtCore
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pyqtgraph import PlotWidget
+from pyqtgraph import setConfigOption
+setConfigOption('leftButtonPan', False)
 from mne import create_info
 from mne.io import RawArray
 from mne.channels import read_montage
@@ -23,7 +25,7 @@ class Table(QtGui.QTableWidget):
 
         super(Table, self).__init__(*args)
         # set size and names
-        self.columns = ['Select', 'Mutual info', 'Topography', 'Time series (push to switch mode)']
+        self.columns = ['Reject', 'Mutual info', 'Topography', 'Time series (push to switch mode)']
         self.setColumnCount(len(self.columns))
         self.setRowCount(time_series.shape[1])
         self.setHorizontalHeaderLabels(self.columns)
@@ -39,7 +41,7 @@ class Table(QtGui.QTableWidget):
             # checkboxes
             checkbox = QtGui.QCheckBox()
             self.checkboxes.append(checkbox)
-            self.setCellWidget(ind, self.columns.index('Select'), checkbox)
+            self.setCellWidget(ind, self.columns.index('Reject'), checkbox)
 
             # topographies
             topo_canvas = TopographicMapCanvas()
@@ -59,6 +61,7 @@ class Table(QtGui.QTableWidget):
             plot_widget.plot(x=np.arange(self.time_series.shape[0])/fs)
             plot_widget.plot(y=self.time_series[:, ind])
             plot_widget.setMaximumHeight(self.row_items_max_height)
+            plot_widget.plotItem.getViewBox().state['wheelScaleFactor'] = 0
             self.plot_items.append(plot_widget)
             self.setCellWidget(ind, 3, plot_widget)
 
@@ -80,12 +83,21 @@ class Table(QtGui.QTableWidget):
         # reorder
         self.order = np.argsort(scores)
         self.reorder()
+        self.rejection_mode = True
 
     def changeHorizontalHeader(self, index):
         if index == 3:
             self.set_spectrum_mode(flag=not self.is_spectrum_mode)
         if index == self.columns.index('Mutual info'):
             self.reorder()
+        if index == 0:
+            if self.rejection_mode:
+                self.columns[0] = 'Select'
+                self.rejection_mode = False
+            else:
+                self.columns[0] = 'Reject'
+                self.rejection_mode = True
+        self.setHorizontalHeaderLabels(self.columns)
 
     def set_spectrum_mode(self, flag=False):
         self.is_spectrum_mode = flag
@@ -108,7 +120,6 @@ class Table(QtGui.QTableWidget):
         self.plot_items[-1].autoRange()
         if flag:
             self.plot_items[-1].setXRange(0, 60)
-        self.setHorizontalHeaderLabels(self.columns)
 
     def get_checked_rows(self):
         return [j for j, checkbox in enumerate(self.checkboxes) if checkbox.isChecked()]
@@ -193,12 +204,9 @@ class ICADialog(QtGui.QDialog):
         self.table = Table(self.components, self.topographies, channel_names, fs, scores)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
         # reject selected button
-        self.reject_button = QtGui.QPushButton('Reject and Close')
-        self.select_button = QtGui.QPushButton('Select and Close')
+        self.reject_button = QtGui.QPushButton('Make filter')
         self.reject_button.setMaximumWidth(100)
         self.reject_button.clicked.connect(self.reject_and_close)
-        self.select_button.setMaximumWidth(100)
-        self.select_button.clicked.connect(lambda: self.reject_and_close(select=True))
 
 
         #self.sort_button.clicked.connect(lambda : self.table.reorder())
@@ -210,7 +218,6 @@ class ICADialog(QtGui.QDialog):
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
         buttons_layout.addWidget(self.reject_button)
-        buttons_layout.addWidget(self.select_button)
         layout.addLayout(buttons_layout)
 
         # enable maximize btn
@@ -222,6 +229,7 @@ class ICADialog(QtGui.QDialog):
         self.table.set_scores(scores)
 
     def reject_and_close(self, select=False):
+        select = not self.table.rejection_mode
         indexes = self.table.get_checked_rows() if not select else self.table.get_unchecked_rows()
         unmixing_matrix = self.unmixing_matrix.copy()
         inv = np.linalg.pinv(self.unmixing_matrix)
