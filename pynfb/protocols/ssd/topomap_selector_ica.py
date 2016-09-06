@@ -104,7 +104,10 @@ class Table(QtGui.QTableWidget):
             else:
                 plot_item.plot(x=np.arange(self.time_series.shape[0]) / self.fs, y=y, clear=True)
                 self.columns[-1] = 'Time series'
+
         self.plot_items[-1].autoRange()
+        if flag:
+            self.plot_items[-1].setXRange(0, 60)
         self.setHorizontalHeaderLabels(self.columns)
 
     def get_checked_rows(self):
