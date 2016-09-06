@@ -113,6 +113,9 @@ class SignalsSSDManager(QtGui.QDialog):
                  message=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
+        # name
+        self.setWindowTitle('Signals manager')
+
         # attributes
         self.signals = [signal for signal in signals if isinstance(signal, DerivedSignal)]
         self.init_signals = deepcopy(self.signals)
@@ -257,9 +260,10 @@ class SignalsSSDManager(QtGui.QDialog):
         if ica:
             reply = QtGui.QMessageBox.Yes
             if len(self.signals[row].rejections) > 0:
-                reply = QtGui.QMessageBox.question(self, 'Message',
-                                                   'Rejections already exist. Are you sure you want to do ICA?'
-                                                   ' (ICA should be the first)',
+                reply = QtGui.QMessageBox.question(self, 'Warning',
+                                                   'Changing ICA base selection will '
+                                                   'invalidate the current rejections (CSP, SSD). '
+                                                   'Are you sure you want to continue?',
                                                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 ica_rejection, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
