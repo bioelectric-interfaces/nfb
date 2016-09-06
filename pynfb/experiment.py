@@ -205,13 +205,7 @@ class Experiment():
         # run raw
         self.thread = None
         if self.params['sInletType'] == 'lsl_from_file':
-            source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
-            self.thread = Process(target=run_eeg_sim, args=(),
-                                  kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
-                                          'name': self.params['sStreamName']})
-            self.thread.start()
-            from time import sleep
-            sleep(2)
+            self.restart_lsl_from_file()
         elif self.params['sInletType'] == 'lsl_generator':
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
@@ -377,6 +371,20 @@ class Experiment():
                                plot_signals_flag=self.params['bPlotSignals'],
                                channels_labels=channels_labels)
         self.subject = self.main.subject_window
+
+        if self.params['sInletType'] == 'lsl_from_file':
+            self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
+
+    def restart_lsl_from_file(self):
+        if self.thread is not None:
+            self.thread.terminate()
+        source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+        self.thread = Process(target=run_eeg_sim, args=(),
+                              kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
+                                      'name': self.params['sStreamName']})
+        self.thread.start()
+        from time import sleep
+        sleep(2)
 
     def destroy(self):
         if self.thread is not None:

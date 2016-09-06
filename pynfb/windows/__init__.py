@@ -1,6 +1,7 @@
 import os
 import sys
 from PyQt4 import QtGui
+from PyQt4.QtCore import pyqtSignal
 from pynfb.protocols.widgets import *
 from numpy import isnan
 
@@ -18,6 +19,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
 
 
 class PlayerButtonsWidget(QtGui.QWidget):
+    start_clicked = pyqtSignal()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # init buttons
@@ -46,6 +48,7 @@ class PlayerButtonsWidget(QtGui.QWidget):
     def start_clicked_event(self):
         self.restart.setEnabled(True)
         if self.start.isChecked():
+            self.start_clicked.emit()
             self.start.setIcon(QtGui.QIcon(static_path + '/imag/pause.png'))
         else:
             self.start.setIcon(QtGui.QIcon(static_path + '/imag/play-button.png'))
