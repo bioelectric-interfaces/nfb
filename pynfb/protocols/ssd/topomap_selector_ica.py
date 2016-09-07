@@ -16,6 +16,10 @@ def mutual_info(x, y, bins=100):
     return mi
 
 class Table(QtGui.QTableWidget):
+    one_selected = QtCore.pyqtSignal()
+    more_one_selected = QtCore.pyqtSignal()
+    no_one_selected = QtCore.pyqtSignal()
+
     def __init__(self, time_series, topographies, channel_names, fs, scores,*args):
         self.row_items_max_height = 125
         self.time_series = time_series
@@ -25,7 +29,7 @@ class Table(QtGui.QTableWidget):
 
         super(Table, self).__init__(*args)
         # set size and names
-        self.columns = ['Reject', 'Mutual info', 'Topography', 'Time series (push to switch mode)']
+        self.columns = ['Selection', 'Mutual info', 'Topography', 'Time series (push to switch mode)']
         self.setColumnCount(len(self.columns))
         self.setRowCount(time_series.shape[1])
         self.setHorizontalHeaderLabels(self.columns)
@@ -41,7 +45,7 @@ class Table(QtGui.QTableWidget):
             # checkboxes
             checkbox = QtGui.QCheckBox()
             self.checkboxes.append(checkbox)
-            self.setCellWidget(ind, self.columns.index('Reject'), checkbox)
+            self.setCellWidget(ind, self.columns.index('Selection'), checkbox)
 
             # topographies
             topo_canvas = TopographicMapCanvas()
@@ -83,21 +87,58 @@ class Table(QtGui.QTableWidget):
         # reorder
         self.order = np.argsort(scores)
         self.reorder()
-        self.rejection_mode = True
+
+        # checkbox signals
+        for checkbox in self.checkboxes:
+            checkbox.stateChanged.connect(self.checkboxes_state_changed)
+
+        header = self.horizontalHeader()
+        header.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        header.customContextMenuRequested.connect(self.handleHeaderMenu)
+
+    def contextMenuEvent(self, pos):
+        if self.columnAt(pos.x()) == 0:
+            self.open_checkbox_menu()
+
+    def handleHeaderMenu(self, pos):
+        if self.horizontalHeader().logicalIndexAt(pos) == 0:
+            self.open_checkbox_menu()
+
+    def open_checkbox_menu(self):
+        menu = QtGui.QMenu()
+        for name, method in zip(['Revert selection', 'Select all', 'Clear selection'],
+                                [self.revert_selection, self.select_all, self.clear_selection]):
+            action = QtGui.QAction(name, self)
+            action.triggered.connect(method)
+            menu.addAction(action)
+        menu.exec_(QtGui.QCursor.pos())
+
+    def revert_selection(self):
+        for checkbox in self.checkboxes:
+            checkbox.setChecked(not checkbox.isChecked())
+
+    def select_all(self):
+        for checkbox in self.checkboxes:
+            checkbox.setChecked(True)
+
+    def clear_selection(self):
+        for checkbox in self.checkboxes:
+            checkbox.setChecked(False)
+
+    def checkboxes_state_changed(self):
+        checked = self.get_checked_rows()
+        if len(checked) == 0:
+            self.no_one_selected.emit()
+        elif len(checked) == 1:
+            self.one_selected.emit()
+        else:
+            self.more_one_selected.emit()
 
     def changeHorizontalHeader(self, index):
         if index == 3:
             self.set_spectrum_mode(flag=not self.is_spectrum_mode)
         if index == self.columns.index('Mutual info'):
             self.reorder()
-        if index == 0:
-            if self.rejection_mode:
-                self.columns[0] = 'Select'
-                self.rejection_mode = False
-            else:
-                self.columns[0] = 'Reject'
-                self.rejection_mode = True
-        self.setHorizontalHeaderLabels(self.columns)
 
     def set_spectrum_mode(self, flag=False):
         self.is_spectrum_mode = flag
@@ -151,6 +192,9 @@ class Table(QtGui.QTableWidget):
 class ICADialog(QtGui.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None, ica=None):
         super(ICADialog, self).__init__(parent)
+        self.setWindowTitle('ICA')
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(400)
 
         # attributes
         self.data = raw_data
@@ -204,9 +248,12 @@ class ICADialog(QtGui.QDialog):
         self.table = Table(self.components, self.topographies, channel_names, fs, scores)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
         # reject selected button
-        self.reject_button = QtGui.QPushButton('Make filter')
-        self.reject_button.setMaximumWidth(100)
+        self.reject_button = QtGui.QPushButton('Reject selection')
+        self.spatial_button = QtGui.QPushButton('Make spatial filter')
+        self.reject_button.setMaximumWidth(150)
+        self.spatial_button.setMaximumWidth(150)
         self.reject_button.clicked.connect(self.reject_and_close)
+        self.spatial_button.clicked.connect(self.spatial_and_close)
 
 
         #self.sort_button.clicked.connect(lambda : self.table.reorder())
@@ -218,24 +265,46 @@ class ICADialog(QtGui.QDialog):
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
         buttons_layout.addWidget(self.reject_button)
+        buttons_layout.addWidget(self.spatial_button)
         layout.addLayout(buttons_layout)
 
         # enable maximize btn
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowMaximizeButtonHint )
+
+        # checkboxes behavior
+        self.table.no_one_selected.connect(lambda: self.reject_button.setDisabled(True))
+        self.table.no_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
+        self.table.one_selected.connect(lambda: self.reject_button.setDisabled(False))
+        self.table.one_selected.connect(lambda: self.spatial_button.setDisabled(False))
+        self.table.more_one_selected.connect(lambda: self.reject_button.setDisabled(False))
+        self.table.more_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
+        self.table.checkboxes_state_changed()
+
+        # ctrl+a short cut
+        self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_A), self),
+                     QtCore.SIGNAL('activated()'), self.down)
+
+    def down(self):
+        if len(self.table.get_unchecked_rows()) == 0:
+            self.table.clear_selection()
+        else:
+            self.table.select_all()
 
     def sort_by_mutual(self):
         ind = self.sort_combo.currentIndex()
         scores = [mutual_info(self.components[:, j], self.data[:, ind]) for j in range(self.components.shape[1])]
         self.table.set_scores(scores)
 
-    def reject_and_close(self, select=False):
-        select = not self.table.rejection_mode
-        indexes = self.table.get_checked_rows() if not select else self.table.get_unchecked_rows()
+    def reject_and_close(self):
+        indexes = self.table.get_checked_rows()
         unmixing_matrix = self.unmixing_matrix.copy()
         inv = np.linalg.pinv(self.unmixing_matrix)
         unmixing_matrix[:, indexes] = 0
         self.rejection = np.dot(unmixing_matrix, inv)
         self.close()
+
+    def spatial_and_close(self):
+        print('* Spatial')
 
     @classmethod
     def get_rejection(cls, raw_data, channel_names, fs, ica=None):
