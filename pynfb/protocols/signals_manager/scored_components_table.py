@@ -5,6 +5,36 @@ from pyqtgraph import PlotWidget
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 
 
+class BarLabelWidget(QtGui.QWidget):
+    def __init__(self, value, max_value, min_value=0):
+        super(BarLabelWidget, self).__init__()
+        self.max_value = max_value
+        self.min_value = min_value
+        self.value = value
+
+    def set_values(self, value, max_value, min_value=0):
+        self.max_value = max_value
+        self.min_value = min_value
+        self.value = value
+
+    def paintEvent(self, e):
+        qp = QtGui.QPainter()
+        qp.begin(self)
+        self.draw_value(e, qp)
+        qp.end()
+
+    def draw_value(self, event, qp):
+        size = self.size()
+        qp.setPen(QtCore.Qt.white)
+        qp.setBrush(QtGui.QColor(51, 152, 188, 50))
+        padding = 50 if 50 < size.height() else 0
+        qp.drawRect(0, 0 + padding,
+                    int(size.width() * (self.value - self.min_value) / (self.max_value - self.min_value)) - 1,
+                    size.height() - 2 * padding - 1)
+        qp.setPen(QtCore.Qt.black)
+        qp.drawText(1, size.height()//2 + 1, str(round(self.value, 5)))
+
+
 class ScoredComponentsTable(QtGui.QTableWidget):
     one_selected = QtCore.pyqtSignal()
     more_one_selected = QtCore.pyqtSignal()
@@ -62,9 +92,9 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             self.setCellWidget(ind, 3, plot_widget)
 
             # scores
-            checkbox = QtGui.QLabel(str(scores[ind]))
-            self.scores.append(checkbox)
-            self.setCellWidget(ind, self.columns.index('Mutual info'), checkbox)
+            score_widget = BarLabelWidget(scores[ind], max(scores), min(scores))
+            self.scores.append(score_widget)
+            self.setCellWidget(ind, self.columns.index('Mutual info'), score_widget)
 
         # formatting
         self.current_row = None
@@ -192,7 +222,9 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             self.removeRow(self.rowCount() - 1)
 
     def set_scores(self, scores):
+        max_score = max(scores)
+        min_score = max(scores)
         for j, score in enumerate(self.scores):
-            score.setText(str(scores[j]))
+            score.set_values(scores[j], max_score, min_score)
         self.order = np.argsort(scores)
         self.reorder()

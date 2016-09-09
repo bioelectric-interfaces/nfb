@@ -4,6 +4,7 @@ from mne.io import RawArray
 from mne.preprocessing import ICA
 from sklearn.metrics import mutual_info_score
 from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
+import numpy as np
 
 
 def mutual_info(x, y, bins=100):
