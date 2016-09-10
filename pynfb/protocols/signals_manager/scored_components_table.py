@@ -223,8 +223,25 @@ class ScoredComponentsTable(QtGui.QTableWidget):
 
     def set_scores(self, scores):
         max_score = max(scores)
-        min_score = max(scores)
+        min_score = min(scores)
         for j, score in enumerate(self.scores):
             score.set_values(scores[j], max_score, min_score)
         self.order = np.argsort(scores)
         self.reorder()
+
+    def redraw(self, time_series, topographies, scores):
+        print(scores)
+        # components
+        self.time_series = time_series
+        self.set_spectrum_mode()
+
+        # topographies
+        self.topographies = topographies
+        for ind in range(self.rowCount()):
+            widget = self.cellWidget(self.order[ind], self.columns.index('Topography'))
+            widget.update_figure(self.topographies[:, ind], names=self.channel_names, show_names=[],
+                                      show_colorbar=False)
+            self.topographies_items[self.order[ind]] = widget
+
+        # scores
+        self.set_scores(scores)
