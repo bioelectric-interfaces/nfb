@@ -266,8 +266,8 @@ class SignalsSSDManager(QtGui.QDialog):
                                                    'Are you sure you want to continue?',
                                                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
-                ica_rejection, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                                  ica=self.ica)
+                ica_rejection, spatial, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
+                                                                           unmixing_matrix=self.ica)
                 self.signals[row].update_ica_rejection(ica_rejection)
             rejections = []
             filter = None

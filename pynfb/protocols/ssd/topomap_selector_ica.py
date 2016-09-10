@@ -5,6 +5,8 @@ from mne.preprocessing import ICA
 from sklearn.metrics import mutual_info_score
 from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
+from pynfb.protocols.ssd.sliders_csp import Sliders
+from pynfb.widgets.helpers import ch_names_to_2d_pos
 
 
 def mutual_info(x, y, bins=100):
@@ -13,9 +15,9 @@ def mutual_info(x, y, bins=100):
     return mi
 
 
-class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, ica=None):
-        super(ICADialog, self).__init__(parent)
+class CSPDialog(QtGui.QDialog):
+    def __init__(self, raw_data, channel_names, fs, parent=None):
+        super(CSPDialog, self).__init__(parent)
         self.setWindowTitle('ICA')
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
@@ -25,22 +27,141 @@ class ICADialog(QtGui.QDialog):
         self.channel_names = channel_names
         self.n_channels = len(channel_names)
         self.rejection = None
+        self.spatial = None
+        self.ica = None
+
+        # csp properetires
+        self.bandpass = (None, None)
+        self.names = channel_names
+        self.pos = ch_names_to_2d_pos(self.names)
+        self.sampling_freq = fs
+
+        # Sliders
+        self.sliders = Sliders()
+        self.sliders.apply_button.clicked.connect(self.recompute)
 
         # unmixing matrix estimation
         from time import time
         timer = time()
-        raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
-        if ica is None:
-            self.ica = ICA(method='extended-infomax')
-            self.ica.fit(raw_inst)
-            ica = self.ica
+        self.unmixing_matrix = None
+        self.topographies = None
+        self.scores = None
+        self.components = None
+        self.table = None
+        self.recompute()
+        print('CSP time elapsed = {}s'.format(time() - timer))
+        timer = time()
+
+        print('Mutual info scores time elapsed = {}s'.format(time() - timer))
+        timer = time()
+        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, self.scores)
+        print('Table drawing time elapsed = {}s'.format(time() - timer))
+
+        # reject selected button
+        self.reject_button = QtGui.QPushButton('Reject selection')
+        self.spatial_button = QtGui.QPushButton('Make spatial filter')
+        self.reject_button.setMaximumWidth(150)
+        self.spatial_button.setMaximumWidth(150)
+        self.reject_button.clicked.connect(self.reject_and_close)
+        self.spatial_button.clicked.connect(self.spatial_and_close)
+
+        # self.sort_button.clicked.connect(lambda : self.table.reorder())
+
+        # layout
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(self.table)
+        layout.addWidget(self.sliders)
+        buttons_layout = QtGui.QHBoxLayout()
+        buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
+        buttons_layout.addWidget(self.reject_button)
+        buttons_layout.addWidget(self.spatial_button)
+        layout.addLayout(buttons_layout)
+
+        # enable maximize btn
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowMaximizeButtonHint)
+
+        # checkboxes behavior
+        self.table.no_one_selected.connect(lambda: self.reject_button.setDisabled(True))
+        self.table.no_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
+        self.table.one_selected.connect(lambda: self.reject_button.setDisabled(False))
+        self.table.one_selected.connect(lambda: self.spatial_button.setDisabled(False))
+        self.table.more_one_selected.connect(lambda: self.reject_button.setDisabled(False))
+        self.table.more_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
+
+        self.table.checkboxes_state_changed()
+
+    def recompute(self):
+        parameters = self.sliders.getValues()
+        self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
+        from pynfb.protocols.ssd.csp import csp
+        self.scores, self.unmixing_matrix, self.topographies = csp(self.data,
+                                                               fs=self.sampling_freq,
+                                                               band=self.bandpass,
+                                                               regularization_coef=parameters['regularizator'])
+        self.components = np.dot(self.data, self.unmixing_matrix)
+        if self.table is not None:
+            self.table.redraw(self.components, self.topographies, self.scores)
+
+    def sort_by_mutual(self):
+        ind = self.sort_combo.currentIndex()
+        scores = [mutual_info(self.components[:, j], self.data[:, ind]) for j in range(self.components.shape[1])]
+        self.table.set_scores(scores)
+
+    def reject_and_close(self):
+        indexes = self.table.get_checked_rows()
+        unmixing_matrix = self.unmixing_matrix.copy()
+        inv = np.linalg.pinv(self.unmixing_matrix)
+        unmixing_matrix[:, indexes] = 0
+        self.rejection = np.dot(unmixing_matrix, inv)
+        self.close()
+
+    def spatial_and_close(self):
+        index = self.table.get_checked_rows()[0]
+        self.spatial =  self.unmixing_matrix[:, index]
+        print(index)
+        self.close()
+
+    @classmethod
+    def get_rejection(cls, raw_data, channel_names, fs):
+        selector = cls(raw_data, channel_names, fs)
+        result = selector.exec_()
+        return selector.rejection, selector.ica, selector.spatial
+
+
+
+
+class ICADialog(QtGui.QDialog):
+    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None):
+        super(ICADialog, self).__init__(parent)
+        self.setWindowTitle('ICA')
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(400)
+
+        # attributes
+        self.data = raw_data
+        self.channel_names = channel_names
+        self.pos = ch_names_to_2d_pos(channel_names)
+        self.n_channels = len(channel_names)
+        self.rejection = None
+        self.spatial = None
+        self.bandpass = (None, None)
+
+        # unmixing matrix estimation
+        from time import time
+        timer = time()
+        if unmixing_matrix is None:
+            raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
+            ica = ICA(method='extended-infomax')
+            ica.fit(raw_inst)
+            self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
+            # self.topographies = np.dot(ica.mixing_matrix_.T, ica.pca_components_[:ica.n_components_]).T
         else:
-            self.ica = ica
-        self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
-        self.topographies = np.dot(ica.mixing_matrix_.T, ica.pca_components_[:ica.n_components_]).T
+            self.unmixing_matrix = unmixing_matrix
+        self.topographies = np.linalg.inv(self.unmixing_matrix).T
         self.components = np.dot(self.data, self.unmixing_matrix)
         print('ICA time elapsed = {}s'.format(time() - timer))
         timer = time()
+
         # sort by fp1 or fp2
         sort_layout = QtGui.QHBoxLayout()
         self.sort_combo = QtGui.QComboBox()
@@ -66,10 +187,11 @@ class ICADialog(QtGui.QDialog):
                   for j in range(self.components.shape[1])]
         print('Mutual info scores time elapsed = {}s'.format(time() - timer))
         timer = time()
+
         # table
-        # table = Table(ica.get_sources(raw_inst).to_data_frame().as_matrix(), self.unmixing_matrix, channel_names, fs)
         self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, scores)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
+
         # reject selected button
         self.reject_button = QtGui.QPushButton('Reject selection')
         self.spatial_button = QtGui.QPushButton('Make spatial filter')
@@ -77,8 +199,6 @@ class ICADialog(QtGui.QDialog):
         self.spatial_button.setMaximumWidth(150)
         self.reject_button.clicked.connect(self.reject_and_close)
         self.spatial_button.clicked.connect(self.spatial_and_close)
-
-        # self.sort_button.clicked.connect(lambda : self.table.reorder())
 
         # layout
         layout = QtGui.QVBoxLayout(self)
@@ -117,13 +237,16 @@ class ICADialog(QtGui.QDialog):
         self.close()
 
     def spatial_and_close(self):
-        print('* Spatial')
+        index = self.table.get_checked_rows()[0]
+        self.spatial =  self.unmixing_matrix[:, index]
+        print(index)
+        self.close()
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, ica=None):
-        selector = cls(raw_data, channel_names, fs, ica=ica)
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None):
+        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix)
         result = selector.exec_()
-        return selector.rejection, selector.ica
+        return selector.rejection, selector.spatial, selector.unmixing_matrix
 
 
 if __name__ == '__main__':
@@ -159,6 +282,6 @@ if __name__ == '__main__':
     x = np.dot(S, A.T)  # Generate observations
 
     for j in range(4):
-        rejection, _ = ICADialog.get_rejection(x, channels, fs)
+        rejection, spatial, unmixing = ICADialog.get_rejection(x, channels, fs)
         if rejection is not None:
             x = np.dot(x, rejection)
