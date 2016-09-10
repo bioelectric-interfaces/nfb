@@ -198,7 +198,7 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             else:
                 plot_item.plot(x=np.arange(self.time_series.shape[0]) / self.fs, y=y, clear=True)
                 self.columns[-1] = 'Time series'
-
+        self.setHorizontalHeaderLabels(self.columns)
         self.plot_items[-1].autoRange()
         if flag:
             self.plot_items[-1].setXRange(0, 60)
