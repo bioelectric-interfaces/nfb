@@ -131,7 +131,7 @@ class CSPDialog(QtGui.QDialog):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None):
+    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica'):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle('ICA')
         self.setMinimumWidth(800)
@@ -142,59 +142,79 @@ class ICADialog(QtGui.QDialog):
         self.channel_names = channel_names
         self.pos = ch_names_to_2d_pos(channel_names)
         self.n_channels = len(channel_names)
+        self.sampling_freq = fs
         self.rejection = None
         self.spatial = None
-        self.bandpass = (None, None)
+        self.bandpass = None
+        self.table = None
+
+        if mode == 'csp':
+            # Sliders
+            self.sliders = Sliders()
+            self.sliders.apply_button.clicked.connect(self.recompute)
 
         # unmixing matrix estimation
+        self.unmixing_matrix = None
+        self.topographies = None
+        self.scores = None
+        self.components = None
         from time import time
         timer = time()
         if unmixing_matrix is None:
-            raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
-            ica = ICA(method='extended-infomax')
-            ica.fit(raw_inst)
-            self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
+            if mode == 'ica':
+                raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
+                ica = ICA(method='extended-infomax')
+                ica.fit(raw_inst)
+                self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
             # self.topographies = np.dot(ica.mixing_matrix_.T, ica.pca_components_[:ica.n_components_]).T
+            elif mode == 'csp':
+                self.recompute()
+            else:
+                raise TypeError('Wrong mode name')
+
         else:
             self.unmixing_matrix = unmixing_matrix
         self.topographies = np.linalg.inv(self.unmixing_matrix).T
         self.components = np.dot(self.data, self.unmixing_matrix)
-        print('ICA time elapsed = {}s'.format(time() - timer))
+        print('ICA/CSP time elapsed = {}s'.format(time() - timer))
         timer = time()
 
-        # sort by fp1 or fp2
-        sort_layout = QtGui.QHBoxLayout()
-        self.sort_combo = QtGui.QComboBox()
-        self.sort_combo.setMaximumWidth(100)
-        self.sort_combo.addItems(channel_names)
-        fp1_or_fp2_index = -1
-        upper_channels_names = [ch.upper() for ch in channel_names]
-        if 'FP1' in upper_channels_names:
-            fp1_or_fp2_index = upper_channels_names.index('FP1')
-        if fp1_or_fp2_index < 0 and 'FP2' in upper_channels_names:
-            fp1_or_fp2_index = upper_channels_names.index('FP2')
-        if fp1_or_fp2_index < 0:
-            fp1_or_fp2_index = 0
-        print('Sorting channel is', fp1_or_fp2_index)
-        self.sort_combo.setCurrentIndex(fp1_or_fp2_index)
-        self.sort_combo.currentIndexChanged.connect(self.sort_by_mutual)
-        sort_layout.addWidget(QtGui.QLabel('Sort by: '))
-        sort_layout.addWidget(self.sort_combo)
-        sort_layout.setAlignment(QtCore.Qt.AlignLeft)
+        if mode == 'ica':
+            # sort by fp1 or fp2
+            sort_layout = QtGui.QHBoxLayout()
+            self.sort_combo = QtGui.QComboBox()
+            self.sort_combo.setMaximumWidth(100)
+            self.sort_combo.addItems(channel_names)
+            fp1_or_fp2_index = -1
+            upper_channels_names = [ch.upper() for ch in channel_names]
+            if 'FP1' in upper_channels_names:
+                fp1_or_fp2_index = upper_channels_names.index('FP1')
+            if fp1_or_fp2_index < 0 and 'FP2' in upper_channels_names:
+                fp1_or_fp2_index = upper_channels_names.index('FP2')
+            if fp1_or_fp2_index < 0:
+                fp1_or_fp2_index = 0
+            print('Sorting channel is', fp1_or_fp2_index)
+            self.sort_combo.setCurrentIndex(fp1_or_fp2_index)
+            self.sort_combo.currentIndexChanged.connect(self.sort_by_mutual)
+            sort_layout.addWidget(QtGui.QLabel('Sort by: '))
+            sort_layout.addWidget(self.sort_combo)
+            sort_layout.setAlignment(QtCore.Qt.AlignLeft)
 
-        # mutual sorting
-        scores = [mutual_info(self.components[:, j], self.data[:, fp1_or_fp2_index])
-                  for j in range(self.components.shape[1])]
-        print('Mutual info scores time elapsed = {}s'.format(time() - timer))
-        timer = time()
+            # mutual sorting
+            self.scores = [mutual_info(self.components[:, j], self.data[:, fp1_or_fp2_index])
+                      for j in range(self.components.shape[1])]
+            print('Mutual info scores time elapsed = {}s'.format(time() - timer))
+            timer = time()
+
 
         # table
-        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, scores)
+        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, self.scores)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
 
         # reject selected button
         self.reject_button = QtGui.QPushButton('Reject selection')
         self.spatial_button = QtGui.QPushButton('Make spatial filter')
+        self.add_to_all_checkbox = QtGui.QCheckBox('Add to all signals')
         self.reject_button.setMaximumWidth(150)
         self.spatial_button.setMaximumWidth(150)
         self.reject_button.clicked.connect(self.reject_and_close)
@@ -203,11 +223,17 @@ class ICADialog(QtGui.QDialog):
         # layout
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.table)
-        layout.addLayout(sort_layout)
+        self.update_band_checkbox = QtGui.QCheckBox('Update band')
+        if mode == 'csp':
+            layout.addWidget(self.sliders)
+            layout.addWidget(self.update_band_checkbox)
+        if mode == 'ica':
+            layout.addLayout(sort_layout)
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
         buttons_layout.addWidget(self.reject_button)
         buttons_layout.addWidget(self.spatial_button)
+        buttons_layout.addWidget(self.add_to_all_checkbox)
         layout.addLayout(buttons_layout)
 
         # enable maximize btn
@@ -225,8 +251,8 @@ class ICADialog(QtGui.QDialog):
 
     def sort_by_mutual(self):
         ind = self.sort_combo.currentIndex()
-        scores = [mutual_info(self.components[:, j], self.data[:, ind]) for j in range(self.components.shape[1])]
-        self.table.set_scores(scores)
+        self.scores = [mutual_info(self.components[:, j], self.data[:, ind]) for j in range(self.components.shape[1])]
+        self.table.set_scores(self.scores)
 
     def reject_and_close(self):
         indexes = self.table.get_checked_rows()
@@ -242,11 +268,28 @@ class ICADialog(QtGui.QDialog):
         print(index)
         self.close()
 
+    def recompute(self):
+        parameters = self.sliders.getValues()
+        self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
+        from pynfb.protocols.ssd.csp import csp
+        self.scores, self.unmixing_matrix, self.topographies = csp(self.data,
+                                                                   fs=self.sampling_freq,
+                                                                   band=self.bandpass,
+                                                                   regularization_coef=parameters['regularizator'])
+        self.components = np.dot(self.data, self.unmixing_matrix)
+        if self.table is not None:
+            self.table.redraw(self.components, self.topographies, self.scores)
+
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None):
-        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix)
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica'):
+        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode)
         result = selector.exec_()
-        return selector.rejection, selector.spatial, selector.unmixing_matrix
+        bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None
+        return (selector.rejection,
+                selector.spatial,
+                selector.unmixing_matrix,
+                bandpass,
+                selector.add_to_all_checkbox.isChecked())
 
 
 if __name__ == '__main__':

@@ -82,7 +82,7 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             plot_widget = PlotWidget(enableMenu=False)
             if _previous_plot_link is not None:
                 plot_widget.setXLink(_previous_plot_link)
-                plot_widget.setYLink(_previous_plot_link)
+                # plot_widget.setYLink(_previous_plot_link)
             _previous_plot_link = plot_widget
             plot_widget.plot(x=np.arange(self.time_series.shape[0]) / fs)
             plot_widget.plot(y=self.time_series[:, ind])

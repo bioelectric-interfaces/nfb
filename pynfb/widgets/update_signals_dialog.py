@@ -17,8 +17,8 @@ class Table(QtGui.QTableWidget):
         self.names = [signal.name for signal in signals]
 
         # set size and names
-        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'Open SSD',
-                        'Open CSP', 'Open ICA']
+        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'SSD',
+                        'CSP', 'ICA']
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
@@ -41,13 +41,13 @@ class Table(QtGui.QTableWidget):
         for ind, _w in enumerate(self.names):
             open_ssd_btn = QtGui.QPushButton('Open')
             self.buttons.append(open_ssd_btn)
-            self.setCellWidget(ind, self.columns.index('Open SSD'), open_ssd_btn)
+            self.setCellWidget(ind, self.columns.index('SSD'), open_ssd_btn)
             btn = QtGui.QPushButton('Open')
             self.csp_buttons.append(btn)
-            self.setCellWidget(ind, self.columns.index('Open CSP'), btn)
+            self.setCellWidget(ind, self.columns.index('CSP'), btn)
             btn = QtGui.QPushButton('Open')
             self.ica_buttons.append(btn)
-            self.setCellWidget(ind, self.columns.index('Open ICA'), btn)
+            self.setCellWidget(ind, self.columns.index('ICA'), btn)
             save_btn = QtGui.QPushButton('Drop')
             self.drop_rejections_buttons.append(save_btn)
             self.setCellWidget(ind, self.columns.index('Drop rejections'), save_btn)
@@ -127,7 +127,7 @@ class SignalsSSDManager(QtGui.QDialog):
         self.protocol = protocol
         self.signals_rec = signals_rec
         self.stats = [(signal.mean, signal.std, signal.scaling_flag) for signal in signals]
-        self.ica = None
+        self.ica_unmixing_matrix = None
 
         #layout
         layout = QtGui.QVBoxLayout(self)
@@ -257,6 +257,8 @@ class SignalsSSDManager(QtGui.QDialog):
         for rejection in self.signals[row].rejections:
             x = dot(x, rejection)
 
+        to_all = False
+        ica_rejection = None
         if ica:
             reply = QtGui.QMessageBox.Yes
             if len(self.signals[row].rejections) > 0:
@@ -266,28 +268,34 @@ class SignalsSSDManager(QtGui.QDialog):
                                                    'Are you sure you want to continue?',
                                                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
-                ica_rejection, spatial, self.ica = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                                           unmixing_matrix=self.ica)
-                self.signals[row].update_ica_rejection(ica_rejection)
+                result = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
+                                                 unmixing_matrix=self.ica_unmixing_matrix)
+                ica_rejection, filter, self.ica_unmixing_matrix, bandpass, to_all = result
             rejections = []
-            filter = None
-            bandpass = None
+        elif csp:
+            rejection, filter, _, bandpass, to_all = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
+                                                                     mode='csp')
+            rejections = [rejection] if rejection is not None else []
         else:
             SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
             filter, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
-                                                                                            self.channels_names,
-                                                                                            sampling_freq=
-                                                                                        self.sampling_freq)
-        if filter is not None:
-            self.signals[row].update_spatial_filter(filter)
+                                                                                         self.channels_names,
+                                                                                         sampling_freq=
+                                                                                         self.sampling_freq)
 
-        if bandpass is not None:
-            self.signals[row].update_bandpass(bandpass)
 
-        self.signals[row].update_rejections(rejections, append=True)
-
-        modified_flag = len(rejections)>0 or bandpass is not None or filter is not None
-        self.table.update_row(row, modified=modified_flag)
+        rows = range(len(self.signals)) if to_all else [row]
+        print(to_all, rows)
+        for row_ in rows:
+            if ica_rejection is not None:
+                self.signals[row_].update_ica_rejection(ica_rejection)
+            if filter is not None:
+                self.signals[row_].update_spatial_filter(filter)
+            if bandpass is not None:
+                self.signals[row_].update_bandpass(bandpass)
+            self.signals[row_].update_rejections(rejections, append=True)
+            modified_flag = len(rejections)>0 or bandpass is not None or filter is not None
+            self.table.update_row(row_, modified=modified_flag)
 
 
     def ok_button_action(self):
