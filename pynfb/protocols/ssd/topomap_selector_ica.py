@@ -133,7 +133,7 @@ class CSPDialog(QtGui.QDialog):
 class ICADialog(QtGui.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica'):
         super(ICADialog, self).__init__(parent)
-        self.setWindowTitle('ICA')
+        self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
