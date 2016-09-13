@@ -3,6 +3,8 @@ from datetime import datetime
 from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
+
+from pynfb.widgets.helpers import WaitMessage
 from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
@@ -182,6 +184,7 @@ class Experiment():
             self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
 
     def restart(self):
+        wait_bar = WaitMessage('Experiment is starting. Please wait ...').show_and_return()
 
         self.test_mode = False
         if self.main_timer is not None:
@@ -374,6 +377,8 @@ class Experiment():
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
+
+        wait_bar.close()
 
     def restart_lsl_from_file(self):
         if self.thread is not None:

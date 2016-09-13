@@ -77,7 +77,7 @@ class SelectSSDFilterWidget(QtGui.QDialog):
 
     @classmethod
     def select_filter_and_bandpass(cls, data, pos, names=None, sampling_freq=500, parent=None):
-        wait_bar = WaitMessage('SSD processing. Please wait ...').show_and_return()
+        wait_bar = WaitMessage('SSD is processed. Please wait ...').show_and_return()
         selector = cls(data, pos, names=names, sampling_freq=sampling_freq, parent=parent)
         wait_bar.close()
 

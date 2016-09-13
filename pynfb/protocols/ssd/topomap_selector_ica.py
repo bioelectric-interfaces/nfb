@@ -168,7 +168,7 @@ class ICADialog(QtGui.QDialog):
 
     @classmethod
     def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica'):
-        wait_bar = WaitMessage(mode.upper() + ' processing. Please wait ...').show_and_return()
+        wait_bar = WaitMessage(mode.upper() + ' is processed. Please wait ...').show_and_return()
         selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode)
         wait_bar.close()
         result = selector.exec_()
