@@ -1,3 +1,5 @@
+from PyQt4 import QtGui, QtCore
+
 try:
     from mne.channels import read_montage
     from mne import pick_channels
@@ -21,3 +23,20 @@ def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005'):
 if __name__ == '__main__':
     #print(ch_names_to_2d_pos(['Cz', 'F8', 'F7', 'Cz']))
     print(ch_names_to_2d_pos(['Cz', 'Fp1']))
+
+
+class WaitMessage(QtGui.QWidget):
+    def __init__(self, text=''):
+        super(WaitMessage, self).__init__()
+        self.setWindowModality(QtCore.Qt.ApplicationModal)
+        layout = QtGui.QHBoxLayout(self)
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        msg = QtGui.QLabel(text or 'Please wait ...')
+        layout.addWidget(msg)
+        self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
+        self.resize(200, 100)
+
+    def show_and_return(self):
+        self.show()
+        self.repaint()
+        return self

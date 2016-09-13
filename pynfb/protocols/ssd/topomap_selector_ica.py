@@ -3,131 +3,17 @@ from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
 from sklearn.metrics import mutual_info_score
+
 from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
 from pynfb.protocols.ssd.sliders_csp import Sliders
-from pynfb.widgets.helpers import ch_names_to_2d_pos
+from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
 
 
 def mutual_info(x, y, bins=100):
     c_xy = np.histogram2d(x, y, bins)[0]
     mi = mutual_info_score(None, None, contingency=c_xy)
     return mi
-
-
-class CSPDialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None):
-        super(CSPDialog, self).__init__(parent)
-        self.setWindowTitle('ICA')
-        self.setMinimumWidth(800)
-        self.setMinimumHeight(400)
-
-        # attributes
-        self.data = raw_data
-        self.channel_names = channel_names
-        self.n_channels = len(channel_names)
-        self.rejection = None
-        self.spatial = None
-        self.ica = None
-
-        # csp properetires
-        self.bandpass = (None, None)
-        self.names = channel_names
-        self.pos = ch_names_to_2d_pos(self.names)
-        self.sampling_freq = fs
-
-        # Sliders
-        self.sliders = Sliders()
-        self.sliders.apply_button.clicked.connect(self.recompute)
-
-        # unmixing matrix estimation
-        from time import time
-        timer = time()
-        self.unmixing_matrix = None
-        self.topographies = None
-        self.scores = None
-        self.components = None
-        self.table = None
-        self.recompute()
-        print('CSP time elapsed = {}s'.format(time() - timer))
-        timer = time()
-
-        print('Mutual info scores time elapsed = {}s'.format(time() - timer))
-        timer = time()
-        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, self.scores)
-        print('Table drawing time elapsed = {}s'.format(time() - timer))
-
-        # reject selected button
-        self.reject_button = QtGui.QPushButton('Reject selection')
-        self.spatial_button = QtGui.QPushButton('Make spatial filter')
-        self.reject_button.setMaximumWidth(150)
-        self.spatial_button.setMaximumWidth(150)
-        self.reject_button.clicked.connect(self.reject_and_close)
-        self.spatial_button.clicked.connect(self.spatial_and_close)
-
-        # self.sort_button.clicked.connect(lambda : self.table.reorder())
-
-        # layout
-        layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(self.table)
-        layout.addWidget(self.sliders)
-        buttons_layout = QtGui.QHBoxLayout()
-        buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
-        buttons_layout.addWidget(self.reject_button)
-        buttons_layout.addWidget(self.spatial_button)
-        layout.addLayout(buttons_layout)
-
-        # enable maximize btn
-        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowMaximizeButtonHint)
-
-        # checkboxes behavior
-        self.table.no_one_selected.connect(lambda: self.reject_button.setDisabled(True))
-        self.table.no_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
-        self.table.one_selected.connect(lambda: self.reject_button.setDisabled(False))
-        self.table.one_selected.connect(lambda: self.spatial_button.setDisabled(False))
-        self.table.more_one_selected.connect(lambda: self.reject_button.setDisabled(False))
-        self.table.more_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
-
-        self.table.checkboxes_state_changed()
-
-    def recompute(self):
-        parameters = self.sliders.getValues()
-        self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
-        from pynfb.protocols.ssd.csp import csp
-        self.scores, self.unmixing_matrix, self.topographies = csp(self.data,
-                                                               fs=self.sampling_freq,
-                                                               band=self.bandpass,
-                                                               regularization_coef=parameters['regularizator'])
-        self.components = np.dot(self.data, self.unmixing_matrix)
-        if self.table is not None:
-            self.table.redraw(self.components, self.topographies, self.scores)
-
-    def sort_by_mutual(self):
-        ind = self.sort_combo.currentIndex()
-        scores = [mutual_info(self.components[:, j], self.data[:, ind]) for j in range(self.components.shape[1])]
-        self.table.set_scores(scores)
-
-    def reject_and_close(self):
-        indexes = self.table.get_checked_rows()
-        unmixing_matrix = self.unmixing_matrix.copy()
-        inv = np.linalg.pinv(self.unmixing_matrix)
-        unmixing_matrix[:, indexes] = 0
-        self.rejection = np.dot(unmixing_matrix, inv)
-        self.close()
-
-    def spatial_and_close(self):
-        index = self.table.get_checked_rows()[0]
-        self.spatial =  self.unmixing_matrix[:, index]
-        print(index)
-        self.close()
-
-    @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs):
-        selector = cls(raw_data, channel_names, fs)
-        result = selector.exec_()
-        return selector.rejection, selector.ica, selector.spatial
-
-
 
 
 class ICADialog(QtGui.QDialog):
@@ -282,7 +168,9 @@ class ICADialog(QtGui.QDialog):
 
     @classmethod
     def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica'):
+        wait_bar = WaitMessage(mode.upper() + ' processing. Please wait ...').show_and_return()
         selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode)
+        wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None
         return (selector.rejection,
