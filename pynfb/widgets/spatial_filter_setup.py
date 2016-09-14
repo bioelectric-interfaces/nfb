@@ -47,11 +47,14 @@ class Table(QtGui.QTableWidget):
 
 
 class SpatialFilterSetup(QtGui.QDialog):
-    def __init__(self, ch_names, weights=None, message=None, **kwargs):
+    def __init__(self, ch_names, weights=None, message=None, title='Spatial filter', **kwargs):
         super(SpatialFilterSetup, self).__init__(**kwargs)
         #
         self.ch_names = ch_names
         self.weights = weights if weights is not None else [0. for _j in self.ch_names]
+
+        # title
+        self.setWindowTitle(title)
 
         # layout
         layout = QtGui.QGridLayout(self)
@@ -101,8 +104,8 @@ class SpatialFilterSetup(QtGui.QDialog):
         self.close()
 
     @staticmethod
-    def get_filter(ch_names, weights=None, message=None):
-        selector = SpatialFilterSetup(ch_names, weights=weights, message=message)
+    def get_filter(ch_names, **kwargs):
+        selector = SpatialFilterSetup(ch_names, **kwargs)
         _result = selector.exec_()
         return selector.weights
 

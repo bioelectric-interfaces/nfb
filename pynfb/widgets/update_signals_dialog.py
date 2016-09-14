@@ -4,17 +4,19 @@ from PyQt4 import QtGui, QtCore
 import sys
 
 from pynfb.protocols import SelectSSDFilterWidget
+from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 from pynfb.protocols.user_inputs import SelectCSPFilterWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.signals import DerivedSignal
 from numpy import dot
 
-class Table(QtGui.QTableWidget):
-    def __init__(self, signals, *args):
-        super(Table, self).__init__(*args)
+class SignalsTable(QtGui.QTableWidget):
+    def __init__(self, signals, channels_names, *args):
+        super(SignalsTable, self).__init__(*args)
         self.signals = signals
         self.names = [signal.name for signal in signals]
+        self.channels_names = channels_names
 
         # set size and names
         self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'SSD',
@@ -59,6 +61,7 @@ class Table(QtGui.QTableWidget):
         self.verticalHeader().setVisible(False)
         self.resizeColumnsToContents()
 
+
     def update_row(self, ind, modified=False):
         signal = self.signals[ind]
         # status
@@ -78,8 +81,44 @@ class Table(QtGui.QTableWidget):
         self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem(str(n_rejections)))
 
         # spatial filter
-        text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
-        self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
+        scale = 80
+        topo_canvas = TopographicMapCanvas()
+        topo_canvas.setMaximumHeight(scale - 2)
+        topo_canvas.setMaximumWidth(scale)
+        topo_canvas.update_figure(self.signals[ind].spatial_filter, names=self.channels_names, show_names=[],
+                                  show_colorbar=False)
+        #text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
+        #self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
+
+        self.setCellWidget(ind, self.columns.index('Spatial filter'), topo_canvas)
+        self.setRowHeight(ind, scale)
+
+    def contextMenuEvent(self, pos):
+        if self.columnAt(pos.x()) == self.columns.index('Spatial filter'):
+            self.open_selection_menu(self.rowAt(pos.y()))
+
+    def open_selection_menu(self, row):
+        menu = QtGui.QMenu()
+        action = QtGui.QAction('Edit', self)
+        action.triggered.connect(lambda: self.edit_spatial_filter(row))
+        menu.addAction(action)
+        action = QtGui.QAction('Set zeros', self)
+        action.triggered.connect(lambda: self.edit_spatial_filter(row, set_zeros=True))
+        menu.addAction(action)
+        menu.exec_(QtGui.QCursor.pos())
+
+    def edit_spatial_filter(self, row, set_zeros=False):
+        signal = self.signals[row]
+        if set_zeros:
+            filter_ = np.zeros_like(signal.spatial_filter)
+        else:
+            filter_ = SpatialFilterSetup.get_filter(
+                self.channels_names,
+                weights=signal.spatial_filter,
+                message='Please modify spatial filter for "{}"'.format(signal.name),
+                title='"{}" spatial filter'.format(signal.name))
+        signal.update_spatial_filter(filter_)
+        self.update_row(row, modified=True)
 
 class BandWidget(QtGui.QWidget):
     def __init__(self, max_freq=10000, **kwargs):
@@ -131,10 +170,10 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
-        self.setMinimumWidth(750)
+        self.setMinimumWidth(800)
 
         # table
-        self.table = Table(self.signals)
+        self.table = SignalsTable(self.signals, self.channels_names)
         layout.addWidget(self.table)
 
         # message
