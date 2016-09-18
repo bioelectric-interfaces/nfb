@@ -3,9 +3,11 @@ from PyQt4 import QtGui, QtCore
 
 class ChannelTroubleWarning(QtGui.QDialog):
     pause_clicked = QtCore.pyqtSignal()
+    continue_clicked = QtCore.pyqtSignal()
+    closed = QtCore.pyqtSignal()
 
-    def __init__(self, channels=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, channels=None, parent=None):
+        super().__init__(parent)
         # title
         self.setWindowTitle('Warning')
 
@@ -23,12 +25,12 @@ class ChannelTroubleWarning(QtGui.QDialog):
         label = QtGui.QLabel(self.message)
         self.ignore_flag = False
         self.ignore_checkbox = QtGui.QCheckBox("Don't show this warning again")
-        continue_button = QtGui.QPushButton('Continue')
+        self.continue_button = QtGui.QPushButton('Continue')
         self.pause_button = QtGui.QPushButton('Pause')
 
         # buttons handlers
         self.pause_button.clicked.connect(self.handle_pause_button)
-        continue_button.clicked.connect(self.close)
+        self.continue_button.clicked.connect(self.handle_continue_button)
 
         # layouts
         v_layout = QtGui.QVBoxLayout(self)
@@ -40,13 +42,18 @@ class ChannelTroubleWarning(QtGui.QDialog):
         v_layout.addWidget(self.ignore_checkbox)
         v_layout.addLayout(h_layout)
         h_layout.addWidget(self.pause_button)
-        h_layout.addWidget(continue_button)
+        h_layout.addWidget(self.continue_button)
 
     def handle_pause_button(self):
         self.pause_button.setDisabled(True)
         self.pause_clicked.emit()
 
+    def handle_continue_button(self):
+        self.continue_clicked.emit()
+        self.close()
+
     def closeEvent(self, QCloseEvent):
+        self.closed.emit()
         self.ignore_flag = self.ignore_checkbox.isChecked()
         super().closeEvent(QCloseEvent)
 

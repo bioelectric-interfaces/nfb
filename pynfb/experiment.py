@@ -4,6 +4,7 @@ from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
 
+from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
 from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
@@ -29,13 +30,14 @@ class Experiment():
         self.main_timer = None
         self.stream = None
         self.thread = None
+        self.catch_channels_trouble = False
+        self.channels_trouble_opened = False
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
         os.makedirs(self.dir_name)
         self.mock_signals_buffer = None
         self.pool = Pool()
         self.restart()
-
         pass
 
     def update(self):
@@ -46,6 +48,7 @@ class Experiment():
         # get next chunk
         chunk, other_chunk = self.stream.get_next_chunk() if self.stream is not None else (None, None)
         if chunk is not None:
+
             # update and collect current samples
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
@@ -61,6 +64,30 @@ class Experiment():
                     for s, sample in enumerate(self.current_samples):
                         self.signals_recorder[chunk_slice, s] = sample
                     self.samples_counter += chunk.shape[0]
+
+                    if self.samples_counter > self.seconds:
+                        self.seconds += 2 * self.freq
+                        raw_std_new = np.std(self.raw_recorder[self.samples_counter - self.freq :
+                                                                    self.samples_counter], 0)
+
+                        if self.raw_std is None:
+                            self.raw_std = raw_std_new
+                        else:
+                            if self.catch_channels_trouble and not self.channels_trouble_opened and any(
+                                            raw_std_new > 7 * self.raw_std):
+                                print('TROUBLE!!!')
+                                w = ChannelTroubleWarning(['Cp', 'Cz'], self.main)
+                                w.pause_clicked.connect(self.handle_channels_trouble_pause)
+                                w.continue_clicked.connect(
+                                    lambda: self.handle_channels_trouble_continue(w.pause_button.isEnabled())
+                                )
+                                w.show()
+                                self.channels_trouble_opened = True
+                                w.closed.connect(self.set_channels_trouble_opened)
+                                self.catch_channels_trouble = w.ignore_flag
+                            self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
+
+
 
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
@@ -86,6 +113,9 @@ class Experiment():
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
                 self.next_protocol()
 
+    def set_channels_trouble_opened(self, flag=False):
+        self.channels_trouble_opened = flag
+
     def start_test_protocol(self, protocol):
         print('Experiment: test')
         if not self.main_timer.isActive():
@@ -96,12 +126,23 @@ class Experiment():
 
         self.subject.change_protocol(protocol)
 
+
     def close_test_protocol(self):
         if self.main_timer.isActive():
             self.main_timer.stop()
         self.samples_counter = 0
         self.main.signals_buffer *= 0
         self.test_mode = False
+
+    def handle_channels_trouble_pause(self):
+        print('pause clicked')
+        if self.main.player_panel.start.isChecked():
+            self.main.player_panel.start.click()
+
+    def handle_channels_trouble_continue(self, pause_enabled):
+        print('continue clicked')
+        if not pause_enabled and not self.main.player_panel.start.isChecked():
+            self.main.player_panel.start.click()
 
     def next_protocol(self):
         """
@@ -134,6 +175,7 @@ class Experiment():
         # reset samples counter
         previous_counter = self.samples_counter
         self.samples_counter = 0
+        self.seconds = self.freq
 
         # reset buffer if previous protocol has true value in update_statistics_in_the_end
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
@@ -226,6 +268,9 @@ class Experiment():
         self.n_channels = self.stream.get_n_channels()
         self.n_channels_other = self.stream.get_n_channels_other()
         channels_labels = self.stream.get_channels_labels()
+
+        self.seconds = 2 * self.freq
+        self.raw_std = None
 
         # signals
         self.signals = [DerivedSignal(ind=ind,

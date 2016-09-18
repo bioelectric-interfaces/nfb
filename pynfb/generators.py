@@ -56,6 +56,8 @@ def run_eeg_sim(n_channels=32, freq=500, chunk_size=0, source_buffer=None, name=
         else:
             sample = np.sin(2 * np.pi * time.time() * 50) * 0 + np.sin(2 * np.pi * time.time() * freqs)
             sample *= (np.sin(2 * np.pi * time.time() * 0.25) + 1) * ampl
+        if c > 20000:
+            sample[0] *= 100
         # push sample end sleep 1/freq sec
         outlet.push_sample(sample)
         time.sleep(1. / freq)
