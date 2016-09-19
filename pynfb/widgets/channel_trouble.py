@@ -53,8 +53,8 @@ class ChannelTroubleWarning(QtGui.QDialog):
         self.close()
 
     def closeEvent(self, QCloseEvent):
-        self.closed.emit()
         self.ignore_flag = self.ignore_checkbox.isChecked()
+        self.closed.emit()
         super().closeEvent(QCloseEvent)
 
 
