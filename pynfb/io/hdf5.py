@@ -21,12 +21,14 @@ def load_h5py_all_samples(file_path):
     return np.vstack(data)
 
 
-def save_signals(file_path, signals, group_name='protocol0'):
+def save_signals(file_path, signals, group_name='protocol0', raw_data=None, signals_data=None, raw_other_data=None,
+                 reward_data=None):
     print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
+        signals_group = main_group.create_group('signals_stats')
         for signal in signals:
-            signal_group = main_group.create_group(signal.name)
+            signal_group = signals_group.create_group(signal.name)
             if isinstance(signal, DerivedSignal):
                 signal_group.attrs['type'] = u'derived'
                 signal_group.create_dataset('ica_rejection', data=np.array(signal.ica_rejection if signal.ica_rejection
@@ -40,6 +42,14 @@ def save_signals(file_path, signals, group_name='protocol0'):
                 raise TypeError ('Bad signal type')
             signal_group.create_dataset('mean', data=np.array(signal.mean))
             signal_group.create_dataset('std', data=np.array(signal.std))
+        if raw_data is not None:
+            main_group.create_dataset('raw_data', data=raw_data)
+        if signals_data is not None:
+            main_group.create_dataset('signals_data', data=signals_data)
+        if raw_other_data is not None:
+            main_group.create_dataset('raw_other_data', data=raw_other_data)
+        if reward_data is not None:
+            main_group.create_dataset('reward_data', data=reward_data)
     pass
 if __name__ == '__main__':
     a = np.random.random(size=(300, 30))

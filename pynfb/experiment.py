@@ -35,7 +35,6 @@ class Experiment():
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
         os.makedirs(self.dir_name)
         self.mock_signals_buffer = None
-        self.pool = Pool()
         self.restart()
         pass
 
@@ -146,18 +145,6 @@ class Experiment():
         """
         # save raw and signals samples asynchronously
         protocol_number_str = 'protocol' + str(self.current_protocol_index + 1)
-        self.pool.apply_async(save_h5py, args=(self.dir_name + 'raw.h5',
-                                               self.raw_recorder[:self.samples_counter],
-                                               protocol_number_str))
-        self.pool.apply_async(save_h5py, args=(self.dir_name + 'raw_other.h5',
-                                               self.raw_recorder_other[:self.samples_counter],
-                                               protocol_number_str))
-        self.pool.apply_async(save_h5py, args=(self.dir_name + 'signals.h5',
-                                               self.signals_recorder[:self.samples_counter],
-                                               protocol_number_str))
-        self.pool.apply_async(save_h5py, args=(self.dir_name + 'reward.h5',
-                                               self.reward_recorder[:self.samples_counter],
-                                               protocol_number_str))
 
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
@@ -165,7 +152,11 @@ class Experiment():
             signals=self.signals_recorder[:self.samples_counter],
             protocols=self.protocols)
 
-        save_signals(self.dir_name + 'signals_stats.h5', self.signals, protocol_number_str)
+        save_signals(self.dir_name + 'experiment_data.h5', self.signals, protocol_number_str,
+                     raw_data=self.raw_recorder[:self.samples_counter],
+                     raw_other_data=self.raw_recorder_other[:self.samples_counter],
+                     signals_data=self.signals_recorder[:self.samples_counter],
+                     reward_data=self.reward_recorder[:self.samples_counter])
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -397,7 +388,7 @@ class Experiment():
         self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
-        save_signals(self.dir_name + 'signals_stats.h5', self.signals,
+        save_signals(self.dir_name + 'experiment_data.h5', self.signals,
                      group_name='protocol0')
 
         # windows
