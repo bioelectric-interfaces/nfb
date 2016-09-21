@@ -335,7 +335,7 @@ class SignalsSSDManager(QtGui.QDialog):
             rejections = [rejection] if rejection is not None else []
         else:
             SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
-            filter, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
+            filter, topography, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
                                                                                          self.channels_names,
                                                                                          sampling_freq=
                                                                                          self.sampling_freq)

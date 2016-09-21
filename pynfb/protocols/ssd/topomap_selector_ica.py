@@ -31,6 +31,7 @@ class ICADialog(QtGui.QDialog):
         self.sampling_freq = fs
         self.rejection = None
         self.spatial = None
+        self.topography = None
         self.bandpass = None
         self.table = None
 

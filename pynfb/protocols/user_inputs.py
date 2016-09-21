@@ -11,6 +11,7 @@ class SelectSSDFilterWidget(QtGui.QDialog):
         super(SelectSSDFilterWidget, self).__init__(parent)
         self.data = data
         self.rejections = []
+        self.topography = None
 
         # layout
         layout = QtGui.QVBoxLayout()
@@ -71,6 +72,7 @@ class SelectSSDFilterWidget(QtGui.QDialog):
 
     def select_action(self):
         self.filter = self.selector.get_current_filter()
+        self.topography = self.selector.get_current_topo()
         self.bandpass = self.selector.get_current_bandpass()
         self.accept()
         self.close()
@@ -95,7 +97,7 @@ class SelectSSDFilterWidget(QtGui.QDialog):
             filter = SpatialFilterSetup.get_filter(names, message='Please modify spatial filter for current signal')
         else:
             filter = None
-        return (filter,
+        return (filter, selector.topography,
                 selector.bandpass if selector.update_band_checkbox.isChecked() else None,
                 selector.rejections)
 
