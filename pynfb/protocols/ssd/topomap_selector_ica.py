@@ -151,6 +151,7 @@ class ICADialog(QtGui.QDialog):
     def spatial_and_close(self):
         index = self.table.get_checked_rows()[0]
         self.spatial =  self.unmixing_matrix[:, index]
+        self.topography = self.topographies[:, index]
         print(index)
         self.close()
 
@@ -174,7 +175,7 @@ class ICADialog(QtGui.QDialog):
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None
         return (selector.rejection,
-                selector.spatial,
+                selector.spatial, selector.topography,
                 selector.unmixing_matrix,
                 bandpass,
                 selector.add_to_all_checkbox.isChecked())

@@ -24,7 +24,8 @@ class TopographicMapCanvas(FigureCanvas):
                                    QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def update_figure(self, data, pos=None, names=None, show_names=None, show_colorbar=True):
+    def update_figure(self, data, pos=None, names=None, show_names=None, show_colorbar=True, central_text=None,
+                      right_bottom_text=None):
         if pos is None:
             pos = ch_names_to_2d_pos(names)
         data = np.array(data)
@@ -48,11 +49,27 @@ class TopographicMapCanvas(FigureCanvas):
                                              markersize=3),
                             vmin=v_min,
                             vmax=v_max)
+        if central_text is not None:
+            self.axes.text(0, 0, central_text,
+                horizontalalignment='center',
+                verticalalignment='center')
+        if right_bottom_text is not None:
+            self.axes.text(0.65, -0.65, right_bottom_text,
+                horizontalalignment='right',
+                verticalalignment='bottom')
+
+
         if show_colorbar:
             self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax = self.axes)
             self.colorbar.ax.tick_params(labelsize=6)
             self.colorbar.ax.set_xticklabels(self.colorbar.ax.get_xticklabels(), rotation=90)
         self.draw()
+
+    def draw_central_text(self, text='', right_bottom_text=''):
+        data = np.random.randn(3)*0
+        pos = np.array([(0, 0), (1, -1), (-1, -1)])
+        self.update_figure(data, pos, central_text=text, names=[], show_colorbar=False,
+                           right_bottom_text=right_bottom_text)
 
     def test_update_figure(self):
         data = np.random.randn(3)

@@ -33,6 +33,7 @@ class DerivedSignal():
 
         # spatial filter
         self.spatial_filter = np.zeros((n_channels,))
+        self.spatial_filter_topography = None
         if spatial_filter is None:
             self.spatial_filter[0] = 0
         else:
@@ -142,14 +143,15 @@ class DerivedSignal():
         self.std = std if (std is not None) else signal_recordings_clear.std()
         return (signal_recordings - self.mean) / (self.std if self.std > 0 else 1)
 
-    def update_spatial_filter(self, spatial_filter=None):
+    def update_spatial_filter(self, spatial_filter=None, topography=None):
         if spatial_filter is not None:
             self.spatial_filter = np.array(spatial_filter)
         self.spatial_matrix = self.spatial_filter
-        for matrix in self.rejections[-1::-1]:
+        for matrix in reversed(self.rejections):
             self.spatial_matrix = np.dot(matrix, self.spatial_matrix)
         if self.ica_rejection is not None:
             self.spatial_matrix = np.dot(self.ica_rejection, self.spatial_matrix)
+        self.spatial_filter_topography = topography if topography is not None else self.spatial_filter_topography
 
     def append_spatial_matrix_list(self, matrix):
         self.rejections.append(matrix)
@@ -186,16 +188,3 @@ class DerivedSignal():
         """
         save_spatial_filter(file_path, self.spatial_matrix, channels_labels=channels_labels)
 
-    def reset_spatial_matrix(self, spatial_filter=None):
-        """
-        Drop all rejections and set spatial_matrix = spatial_filter
-        :param spatial_filter: if spatial_filter is None then spatial_filter = 0
-        :return:
-        """
-        self.rejections = []
-        if spatial_filter is None:
-            self.spatial_filter *= 0
-        else:
-            self.spatial_filter = spatial_filter
-        self.spatial_matrix = spatial_filter.copy()
-        self.ica_rejection = None

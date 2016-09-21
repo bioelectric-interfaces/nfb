@@ -12,11 +12,16 @@ from pynfb.signals import DerivedSignal
 from numpy import dot
 
 class SignalsTable(QtGui.QTableWidget):
+    show_topography_name = {True: 'topography', False: 'filter'}
+
     def __init__(self, signals, channels_names, *args):
         super(SignalsTable, self).__init__(*args)
         self.signals = signals
         self.names = [signal.name for signal in signals]
         self.channels_names = channels_names
+
+        # show topography flag
+        self.show_topography = False
 
         # set size and names
         self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'SSD',
@@ -33,7 +38,6 @@ class SignalsTable(QtGui.QTableWidget):
             name_item.setFlags(QtCore.Qt.ItemIsEnabled)
             self.setItem(ind, self.columns.index('Signal'), name_item)
             self.update_row(ind)
-
 
         # buttons
         self.buttons = []
@@ -54,7 +58,6 @@ class SignalsTable(QtGui.QTableWidget):
             self.drop_rejections_buttons.append(save_btn)
             self.setCellWidget(ind, self.columns.index('Drop rejections'), save_btn)
 
-
         # formatting
         self.current_row = None
         self.horizontalHeader().setStretchLastSection(True)
@@ -62,7 +65,8 @@ class SignalsTable(QtGui.QTableWidget):
         self.resizeColumnsToContents()
 
 
-    def update_row(self, ind, modified=False):
+
+    def update_row(self, ind, modified=False, show_topography=False):
         signal = self.signals[ind]
         # status
         modified_item = QtGui.QTableWidgetItem('Yes' if modified else 'No')
@@ -85,8 +89,12 @@ class SignalsTable(QtGui.QTableWidget):
         topo_canvas = TopographicMapCanvas()
         topo_canvas.setMaximumHeight(scale - 2)
         topo_canvas.setMaximumWidth(scale)
-        topo_canvas.update_figure(self.signals[ind].spatial_filter, names=self.channels_names, show_names=[],
-                                  show_colorbar=False)
+        data = self.signals[ind].spatial_filter if not show_topography else self.signals[ind].spatial_filter_topography
+        if data is None:
+            topo_canvas.draw_central_text('Not found', right_bottom_text=self.show_topography_name[show_topography])
+        else:
+            topo_canvas.update_figure(data, names=self.channels_names, show_names=[],
+                                      show_colorbar=False, right_bottom_text=self.show_topography_name[show_topography])
         #text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
         #self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
 
@@ -97,6 +105,12 @@ class SignalsTable(QtGui.QTableWidget):
         if self.columnAt(pos.x()) == self.columns.index('Spatial filter'):
             self.open_selection_menu(self.rowAt(pos.y()))
 
+    def switch_filter_topography(self):
+        self.show_topography = not self.show_topography
+        for row in range(self.rowCount()):
+            self.update_row(row, show_topography=self.show_topography)
+
+
     def open_selection_menu(self, row):
         menu = QtGui.QMenu()
         action = QtGui.QAction('Edit', self)
@@ -104,6 +118,9 @@ class SignalsTable(QtGui.QTableWidget):
         menu.addAction(action)
         action = QtGui.QAction('Set zeros', self)
         action.triggered.connect(lambda: self.edit_spatial_filter(row, set_zeros=True))
+        menu.addAction(action)
+        action = QtGui.QAction('Show ' + ('topography' if not self.show_topography else 'filter'), self)
+        action.triggered.connect(self.switch_filter_topography)
         menu.addAction(action)
         menu.exec_(QtGui.QCursor.pos())
 
@@ -298,6 +315,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         to_all = False
         ica_rejection = None
+        topography = None
         if ica:
             reply = QtGui.QMessageBox.Yes
             if len(self.signals[row].rejections) > 0:
@@ -309,10 +327,10 @@ class SignalsSSDManager(QtGui.QDialog):
             if reply == QtGui.QMessageBox.Yes:
                 result = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
                                                  unmixing_matrix=self.ica_unmixing_matrix)
-                ica_rejection, filter, self.ica_unmixing_matrix, bandpass, to_all = result
+                ica_rejection, filter, topography, self.ica_unmixing_matrix, bandpass, to_all = result
             rejections = []
         elif csp:
-            rejection, filter, _, bandpass, to_all = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
+            rejection, filter, topography, _, bandpass, to_all = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
                                                                      mode='csp')
             rejections = [rejection] if rejection is not None else []
         else:
@@ -329,7 +347,7 @@ class SignalsSSDManager(QtGui.QDialog):
             if ica_rejection is not None:
                 self.signals[row_].update_ica_rejection(ica_rejection)
             if filter is not None:
-                self.signals[row_].update_spatial_filter(filter)
+                self.signals[row_].update_spatial_filter(filter, topography=topography)
             if bandpass is not None:
                 self.signals[row_].update_bandpass(bandpass)
             self.signals[row_].update_rejections(rejections, append=True)
