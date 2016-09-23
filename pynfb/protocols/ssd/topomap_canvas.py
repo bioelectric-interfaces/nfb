@@ -25,7 +25,7 @@ class TopographicMapCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
     def update_figure(self, data, pos=None, names=None, show_names=None, show_colorbar=True, central_text=None,
-                      right_bottom_text=None):
+                      right_bottom_text=None, show_not_found_symbol=False):
         if pos is None:
             pos = ch_names_to_2d_pos(names)
         data = np.array(data)
@@ -38,7 +38,8 @@ class TopographicMapCanvas(FigureCanvas):
         mask = np.array([name.upper() in show_names for name in names]) if names else None
         v_min, v_max = None, None
         if (data == data[0]).all():
-            data += np.random.uniform(-1e-3, 1e-3, size=len(data))
+            data[0] += 0.1
+            data[1] -= 0.1
             v_min, v_max = -1, 1
         a, b = plot_topomap(data, pos, axes=self.axes, show=False, contours=0, names=names, show_names=True,
                             mask=mask,
@@ -50,26 +51,26 @@ class TopographicMapCanvas(FigureCanvas):
                             vmin=v_min,
                             vmax=v_max)
         if central_text is not None:
-            self.axes.text(0, 0, central_text,
-                horizontalalignment='center',
-                verticalalignment='center')
-        if right_bottom_text is not None:
-            self.axes.text(0.65, -0.65, right_bottom_text,
-                horizontalalignment='right',
-                verticalalignment='bottom')
+            self.axes.text(0, 0, central_text, horizontalalignment='center', verticalalignment='center')
 
+        if right_bottom_text is not None:
+            self.axes.text(0.65, -0.65, right_bottom_text, horizontalalignment='center', verticalalignment='center')
+
+        if show_not_found_symbol:
+            self.axes.text(0, 0, '/', horizontalalignment='center', verticalalignment='center')
+            self.axes.text(0, 0, 'O', size=10, horizontalalignment='center', verticalalignment='center')
 
         if show_colorbar:
-            self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax = self.axes)
+            self.colorbar = self.fig.colorbar(a, orientation='horizontal', ax=self.axes)
             self.colorbar.ax.tick_params(labelsize=6)
             self.colorbar.ax.set_xticklabels(self.colorbar.ax.get_xticklabels(), rotation=90)
         self.draw()
 
-    def draw_central_text(self, text='', right_bottom_text=''):
+    def draw_central_text(self, text='', right_bottom_text='', show_not_found_symbol=False):
         data = np.random.randn(3)*0
         pos = np.array([(0, 0), (1, -1), (-1, -1)])
         self.update_figure(data, pos, central_text=text, names=[], show_colorbar=False,
-                           right_bottom_text=right_bottom_text)
+                           right_bottom_text=right_bottom_text, show_not_found_symbol=show_not_found_symbol)
 
     def test_update_figure(self):
         data = np.random.randn(3)
