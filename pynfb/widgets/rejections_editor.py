@@ -5,19 +5,18 @@ class RejectionIcon(QtGui.QLabel):
     def __init__(self, rank=1, type_str='ICA'):
         super(RejectionIcon, self).__init__()
         self.setAlignment(QtCore.Qt.AlignCenter)
-        self.setText('{}\nrank = {}'.format(type_str, rank))
+        self.setText('{}\n rank = {} '.format(type_str, rank))
 
 
-class MultiTopographiesCanvas(QtGui.QTableWidget):
+class RejectionsWidget(QtGui.QTableWidget):
     rejection_deleted = QtCore.pyqtSignal(int)
 
-    def __init__(self, pos, names):
-        super(MultiTopographiesCanvas, self).__init__()
+    def __init__(self):
+        super(RejectionsWidget, self).__init__()
         self.horizontalHeader().hide()
         self.verticalHeader().hide()
+        self.verticalHeader().setStretchLastSection(True)
         self.setRowCount(1)
-        self.pos = pos
-        self.names = names
         self.rejections = []
 
     def add_item(self, rank, type_str):
@@ -26,6 +25,10 @@ class MultiTopographiesCanvas(QtGui.QTableWidget):
         self.setCellWidget(0, self.columnCount() - 1, RejectionIcon(rank, type_str))
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
+
+    def set_rejections(self, rejections):
+        for rejection in rejections.list:
+            self.add_item(rejection.rank, rejection.type_str)
 
     def contextMenuEvent(self, pos):
         self.open_selection_menu(self.columnAt(pos.x()), self.rowAt(pos.y()))
@@ -46,16 +49,16 @@ class MultiTopographiesCanvas(QtGui.QTableWidget):
         self.rejection_deleted.emit(column)
 
 
+if __name__ == '__main__':
+    a = QtGui.QApplication([])
 
-a = QtGui.QApplication([])
+    import numpy as np
+    w = RejectionsWidget()
 
-import numpy as np
-w = MultiTopographiesCanvas(pos=np.array([(0, 0), (0, 1), (1, -1)]), names=['Cp', 'Cz', 'Fp1'])
-
-w.show()
-w.add_item(1, 'ICA')
-w.add_item(3, 'CSP')
-w.add_item(3, 'CSP')
-w.add_item(4, 'CSP')
-w.rejection_deleted.connect(lambda x: print(x, 'deleted'))
-a.exec_()
+    w.show()
+    w.add_item(1, 'ICA')
+    w.add_item(3, 'CSP')
+    w.add_item(3, 'CSP')
+    w.add_item(4, 'CSP')
+    w.rejection_deleted.connect(lambda x: print(x, 'deleted'))
+    a.exec_()

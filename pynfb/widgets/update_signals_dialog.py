@@ -7,6 +7,7 @@ from pynfb.protocols import SelectSSDFilterWidget
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 from pynfb.protocols.user_inputs import SelectCSPFilterWidget
+from pynfb.widgets.rejections_editor import RejectionsWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.signals import DerivedSignal
 from numpy import dot
@@ -24,7 +25,7 @@ class SignalsTable(QtGui.QTableWidget):
         self.show_topography = False
 
         # set size and names
-        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Drop rejections', 'Spatial filter', 'SSD',
+        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Spatial filter', 'SSD',
                         'CSP', 'ICA']
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
@@ -54,9 +55,6 @@ class SignalsTable(QtGui.QTableWidget):
             btn = QtGui.QPushButton('Open')
             self.ica_buttons.append(btn)
             self.setCellWidget(ind, self.columns.index('ICA'), btn)
-            save_btn = QtGui.QPushButton('Drop')
-            self.drop_rejections_buttons.append(save_btn)
-            self.setCellWidget(ind, self.columns.index('Drop rejections'), save_btn)
 
         # formatting
         self.current_row = None
@@ -79,10 +77,10 @@ class SignalsTable(QtGui.QTableWidget):
         self.setCellWidget(ind, self.columns.index('Band'), band_widget)
 
         # rejection
-        n_rejections = len(signal.rejections)
-        if signal.ica_rejection is not None:
-            n_rejections += 1
-        self.setItem(ind, self.columns.index('Rejections'), QtGui.QTableWidgetItem(str(n_rejections)))
+        rejections = RejectionsWidget()
+        rejections.set_rejections(signal.rejections)
+        rejections.rejection_deleted.connect(lambda ind: signal.drop_rejection(ind))
+        self.setCellWidget(ind, self.columns.index('Rejections'), rejections)
 
         # spatial filter
         scale = 80
@@ -307,11 +305,7 @@ class SignalsSSDManager(QtGui.QDialog):
         elif row is None and csp:
             row = self.table.csp_buttons.index(self.sender())
 
-        x = self.x
-        if self.signals[row].ica_rejection is not None:
-            x = dot(x, self.signals[row].ica_rejection)
-        for rejection in self.signals[row].rejections:
-            x = dot(x, rejection)
+        x = dot(self.x, self.signals[row].rejections.get_prod())
 
         to_all = False
         ica_rejection = None

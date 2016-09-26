@@ -7,6 +7,7 @@ from sklearn.metrics import mutual_info_score
 from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
 from pynfb.protocols.ssd.sliders_csp import Sliders
+from pynfb.signals.rejections import Rejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
 
 
@@ -34,6 +35,7 @@ class ICADialog(QtGui.QDialog):
         self.topography = None
         self.bandpass = None
         self.table = None
+        self.mode = mode
 
         if mode == 'csp':
             # Sliders
@@ -146,7 +148,8 @@ class ICADialog(QtGui.QDialog):
         unmixing_matrix = self.unmixing_matrix.copy()
         inv = np.linalg.pinv(self.unmixing_matrix)
         unmixing_matrix[:, indexes] = 0
-        self.rejection = np.dot(unmixing_matrix, inv)
+        self.rejection = Rejection(np.dot(unmixing_matrix, inv), rank=len(indexes), type_str=self.mode,
+                                   topographies=self.topographies[:, indexes])
         self.close()
 
     def spatial_and_close(self):

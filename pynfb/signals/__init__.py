@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.fftpack import rfft, irfft, fftfreq
 from .composite import CompositeSignal
+from .rejections import Rejections
 from pynfb.io import save_spatial_filter
 
 
@@ -28,8 +29,7 @@ class DerivedSignal():
         self.n_acc = 0
 
         # rejections matrices list
-        self.ica_rejection = None
-        self.rejections = []
+        self.rejections = Rejections(n_channels)
 
         # spatial filter
         self.spatial_filter = np.zeros((n_channels,))
@@ -146,30 +146,24 @@ class DerivedSignal():
     def update_spatial_filter(self, spatial_filter=None, topography=None):
         if spatial_filter is not None:
             self.spatial_filter = np.array(spatial_filter)
-        self.spatial_matrix = self.spatial_filter
-        for matrix in reversed(self.rejections):
-            self.spatial_matrix = np.dot(matrix, self.spatial_matrix)
-        if self.ica_rejection is not None:
-            self.spatial_matrix = np.dot(self.ica_rejection, self.spatial_matrix)
+        self.spatial_matrix = np.dot(self.rejections.get_prod(), self.spatial_filter)
         self.spatial_filter_topography = topography if topography is not None else self.spatial_filter_topography
 
-    def append_spatial_matrix_list(self, matrix):
-        self.rejections.append(matrix)
-        self.update_spatial_filter()
-
     def update_rejections(self, rejections, append=False):
-        if append:
-            self.rejections += rejections
-        else:
-            self.rejections = rejections.copy()
+        self.rejections.update_list(rejections, append=append)
         self.update_spatial_filter()
 
     def update_ica_rejection(self, rejection=None):
-        self.ica_rejection = rejection
+        self.rejections.update_ica(rejection)
         self.update_spatial_filter()
 
     def update_bandpass(self, bandpass):
         self.bandpass = bandpass
+
+    def drop_rejection(self, ind):
+        self.rejections.drop(ind)
+        self.update_spatial_filter()
+        print(self.rejections)
 
     def reset_statistic_acc(self):
         self.mean_acc = 0
