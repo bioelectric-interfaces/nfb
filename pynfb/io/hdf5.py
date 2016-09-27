@@ -34,6 +34,8 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
                 rejections_group = signal_group.create_group('rejections')
                 for k, rejection in enumerate(signal.rejections.list):
                     dataset = rejections_group.create_dataset('rejection'+str(k+1), data=np.array(rejection.val))
+                    rejections_group.create_dataset('rejection' + str(k + 1) + '_topographies',
+                                                    data=np.array(rejection.topographies))
                     dataset.attrs['type'] = rejection.type_str
                     dataset.attrs['rank'] = rejection.rank
                 signal_group.create_dataset('spatial_filter', data=np.array(signal.spatial_filter))
