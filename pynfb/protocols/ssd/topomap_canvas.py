@@ -54,7 +54,7 @@ class TopographicMapCanvas(FigureCanvas):
             self.axes.text(0, 0, central_text, horizontalalignment='center', verticalalignment='center')
 
         if right_bottom_text is not None:
-            self.axes.text(0.65, -0.65, right_bottom_text, horizontalalignment='center', verticalalignment='center')
+            self.axes.text(-0.65, 0.65, right_bottom_text, horizontalalignment='left', verticalalignment='top')
 
         if show_not_found_symbol:
             self.axes.text(0, 0, '/', horizontalalignment='center', verticalalignment='center')

@@ -13,7 +13,7 @@ from pynfb.signals import DerivedSignal
 from numpy import dot
 
 class SignalsTable(QtGui.QTableWidget):
-    show_topography_name = {True: 'topography', False: 'filter'}
+    show_topography_name = {True: 'Topography', False: 'Filter'}
 
     def __init__(self, signals, channels_names, *args):
         super(SignalsTable, self).__init__(*args)
@@ -21,24 +21,27 @@ class SignalsTable(QtGui.QTableWidget):
         self.names = [signal.name for signal in signals]
         self.channels_names = channels_names
 
-        # show topography flag
-        self.show_topography = False
 
         # set size and names
-        self.columns = ['Signal', 'Modified', 'Band', 'Rejections', 'Spatial filter', 'SSD',
-                        'CSP', 'ICA']
+        self.columns = ['Signal', 'Band', 'Rejections', 'Spatial filter', 'SSD', 'CSP', 'ICA']
+        self.columns_width = [80, 150, 150, 80, 50, 50, 50]
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
 
         # set ch names
+        self.show_topography = []
         for ind, signal in enumerate(signals):
+            # show topography flag
+            self.show_topography.append(False)
 
             # name
             name_item = QtGui.QTableWidgetItem(signal.name)
             name_item.setFlags(QtCore.Qt.ItemIsEnabled)
+            name_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.setItem(ind, self.columns.index('Signal'), name_item)
             self.update_row(ind)
+
 
         # buttons
         self.buttons = []
@@ -62,14 +65,14 @@ class SignalsTable(QtGui.QTableWidget):
         self.verticalHeader().setVisible(False)
         self.resizeColumnsToContents()
 
+        for ind, width in enumerate(self.columns_width):
+            self.setColumnWidth(ind, width)
 
 
-    def update_row(self, ind, modified=False, show_topography=False):
+
+    def update_row(self, ind, modified=False):
         signal = self.signals[ind]
-        # status
-        modified_item = QtGui.QTableWidgetItem('Yes' if modified else 'No')
-        modified_item.setFlags(QtCore.Qt.ItemIsEnabled)
-        self.setItem(ind, self.columns.index('Modified'), modified_item)
+        show_topography = self.show_topography[ind]
 
         # band
         band_widget = BandWidget()
@@ -77,9 +80,13 @@ class SignalsTable(QtGui.QTableWidget):
         self.setCellWidget(ind, self.columns.index('Band'), band_widget)
 
         # rejection
-        rejections = RejectionsWidget()
-        rejections.set_rejections(signal.rejections)
-        rejections.rejection_deleted.connect(lambda ind: signal.drop_rejection(ind))
+        if len(signal.rejections) == 0:
+            rejections = QtGui.QLabel('Empty')
+            rejections.setAlignment(QtCore.Qt.AlignCenter)
+        else:
+            rejections = RejectionsWidget(self.channels_names, signal_name=self.signals[ind].name)
+            rejections.set_rejections(signal.rejections)
+            rejections.rejection_deleted.connect(lambda ind: signal.drop_rejection(ind))
         self.setCellWidget(ind, self.columns.index('Rejections'), rejections)
 
         # spatial filter
@@ -89,7 +96,7 @@ class SignalsTable(QtGui.QTableWidget):
         topo_canvas.setMaximumWidth(scale)
         data = self.signals[ind].spatial_filter if not show_topography else self.signals[ind].spatial_filter_topography
         if data is None:
-            topo_canvas.draw_central_text('Not found', right_bottom_text=self.show_topography_name[show_topography])
+            topo_canvas.draw_central_text("not\nfound", right_bottom_text=self.show_topography_name[show_topography])
         else:
             topo_canvas.update_figure(data, names=self.channels_names, show_names=[],
                                       show_colorbar=False, right_bottom_text=self.show_topography_name[show_topography])
@@ -103,10 +110,10 @@ class SignalsTable(QtGui.QTableWidget):
         if self.columnAt(pos.x()) == self.columns.index('Spatial filter'):
             self.open_selection_menu(self.rowAt(pos.y()))
 
-    def switch_filter_topography(self):
-        self.show_topography = not self.show_topography
+    def switch_filter_topography(self, row):
+        self.show_topography[row] = not self.show_topography[row]
         for row in range(self.rowCount()):
-            self.update_row(row, show_topography=self.show_topography)
+            self.update_row(row)
 
 
     def open_selection_menu(self, row):
@@ -117,8 +124,8 @@ class SignalsTable(QtGui.QTableWidget):
         action = QtGui.QAction('Set zeros', self)
         action.triggered.connect(lambda: self.edit_spatial_filter(row, set_zeros=True))
         menu.addAction(action)
-        action = QtGui.QAction('Show ' + ('topography' if not self.show_topography else 'filter'), self)
-        action.triggered.connect(self.switch_filter_topography)
+        action = QtGui.QAction('Show ' + ('topography' if not self.show_topography[row] else 'filter'), self)
+        action.triggered.connect(lambda: self.switch_filter_topography(row))
         menu.addAction(action)
         menu.exec_(QtGui.QCursor.pos())
 
@@ -185,10 +192,12 @@ class SignalsSSDManager(QtGui.QDialog):
 
         #layout
         layout = QtGui.QVBoxLayout(self)
-        self.setMinimumWidth(800)
 
         # table
         self.table = SignalsTable(self.signals, self.channels_names)
+
+        self.setMinimumWidth(sum(self.table.columns_width) + 25)
+        self.setMinimumHeight(400)
         layout.addWidget(self.table)
 
         # message
@@ -278,8 +287,7 @@ class SignalsSSDManager(QtGui.QDialog):
                                            quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
         if reply == QtGui.QMessageBox.Yes:
             for j, signal in enumerate(self.signals):
-                signal.update_rejections(self.init_signals[j].rejections, append=False)
-                signal.update_ica_rejection(rejection=self.init_signals[j].ica_rejection)
+                signal.rejections = self.init_signals[j].rejections
                 signal.update_spatial_filter(self.init_signals[j].spatial_filter)
                 signal.update_bandpass(self.init_signals[j].bandpass)
                 self.table.update_row(j, modified=False)

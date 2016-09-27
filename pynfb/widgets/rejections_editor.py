@@ -1,5 +1,7 @@
 from PyQt4 import QtGui, QtCore
 
+from pynfb.widgets.multi_topographies import TopographiesDialog
+
 
 class RejectionIcon(QtGui.QLabel):
     def __init__(self, rank=1, type_str='ICA'):
@@ -11,16 +13,20 @@ class RejectionIcon(QtGui.QLabel):
 class RejectionsWidget(QtGui.QTableWidget):
     rejection_deleted = QtCore.pyqtSignal(int)
 
-    def __init__(self):
+    def __init__(self, channels_names, signal_name=''):
         super(RejectionsWidget, self).__init__()
         self.horizontalHeader().hide()
         self.verticalHeader().hide()
         self.verticalHeader().setStretchLastSection(True)
         self.setRowCount(1)
         self.rejections = []
+        self.topographies = []
+        self.signal_name = signal_name
+        self.channels_names = channels_names
 
-    def add_item(self, rank, type_str):
+    def add_item(self, rank, type_str, topographies=None):
         self.rejections.append((rank, type_str))
+        self.topographies.append(topographies)
         self.setColumnCount(self.columnCount() + 1)
         self.setCellWidget(0, self.columnCount() - 1, RejectionIcon(rank, type_str))
         self.resizeColumnsToContents()
@@ -28,7 +34,7 @@ class RejectionsWidget(QtGui.QTableWidget):
 
     def set_rejections(self, rejections):
         for rejection in rejections.list:
-            self.add_item(rejection.rank, rejection.type_str)
+            self.add_item(rejection.rank, rejection.type_str, rejection.topographies)
 
     def contextMenuEvent(self, pos):
         self.open_selection_menu(self.columnAt(pos.x()), self.rowAt(pos.y()))
@@ -39,7 +45,23 @@ class RejectionsWidget(QtGui.QTableWidget):
             action = QtGui.QAction('Delete', self)
             action.triggered.connect(lambda: self.delete_rejection(column, row))
             menu.addAction(action)
+
+            action = QtGui.QAction('Show topographies', self)
+            action.triggered.connect(lambda: self.show_topographies(column, row))
+            menu.addAction(action)
+
             menu.exec_(QtGui.QCursor.pos())
+
+    def show_topographies(self, column, row):
+        canvas = TopographiesDialog(
+            names=self.channels_names,
+            title='Signal "{}": {} rejection topographies'.format(self.signal_name, self.rejections[column][1]),
+            parent=self)
+        if self.topographies[column] is not None:
+            for topography in self.topographies[column].T:
+                canvas.table.add_topography(topography)
+        canvas.show()
+
 
     def delete_rejection(self, column, row):
         self.rejections.pop(column)
@@ -53,7 +75,7 @@ if __name__ == '__main__':
     a = QtGui.QApplication([])
 
     import numpy as np
-    w = RejectionsWidget()
+    w = RejectionsWidget(['Cp1', 'Cp2', 'Fp1'])
 
     w.show()
     w.add_item(1, 'ICA')
