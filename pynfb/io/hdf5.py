@@ -14,10 +14,21 @@ def load_h5py(file_path, dataset_name='dataset'):
         data = f[dataset_name][:]
     return data
 
+def load_h5py_protocol_signals(file_path, protocol_name='protocol1'):
+    with h5py.File(file_path, 'r') as f:
+        if isinstance(f[protocol_name], h5py.Dataset):
+            data = f[protocol_name][:]
+        else:
+            data = f['{}/signals_data'.format(protocol_name)][:]
+    return data
+
 
 def load_h5py_all_samples(file_path):
     with h5py.File(file_path, 'r') as f:
-        data = [f['protocol' + str(j+1)][:] for j in range(len(f.keys()))]
+        if isinstance(f['protocol1'], h5py.Dataset):
+            data = [f['protocol' + str(j + 1)][:] for j in range(len(f.keys()))]
+        else:
+            data = [f['protocol{}/raw_data'.format(j + 1)][:] for j in range(len(f.keys()) - 1)]
     return np.vstack(data)
 
 
@@ -56,15 +67,5 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
             main_group.create_dataset('reward_data', data=reward_data)
     pass
 if __name__ == '__main__':
-    a = np.random.random(size=(300, 30))
-    save_h5py('temp.h5', a, 'a')
-    a1 = load_h5py('temp.h5', 'a')
-    print(np.allclose(a, a1))
-
-    c = np.linspace(0, 1, 3)
-    save_h5py('temp.h5', c, 'c')
-    c1 = load_h5py('temp.h5', 'c')
-    print(np.allclose(c, c1))
-
-    a1 = load_h5py('temp.h5', 'a')
-    print(np.allclose(a, a1))
+    load_h5py('C:\\Users\\Nikolai\PycharmProjects\pynfb_repo\\nfb\pynfb\\results\MU_test_AN_09-29_17-15-38'
+                          '\experiment_data.h5')

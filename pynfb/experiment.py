@@ -10,7 +10,7 @@ from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
-from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals
+from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, load_h5py_protocol_signals
 from .io.xml import params_to_xml_file
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
@@ -186,7 +186,7 @@ class Experiment():
             # change protocol widget
             self.subject.change_protocol(current_protocol)
             if current_protocol.mock_samples_file_path is not None:
-                self.mock_signals_buffer = load_h5py(
+                self.mock_signals_buffer = load_h5py_protocol_signals(
                     current_protocol.mock_samples_file_path,
                     current_protocol.mock_samples_protocol)
             self.main.status.update()
