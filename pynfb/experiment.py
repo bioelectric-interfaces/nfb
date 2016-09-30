@@ -180,7 +180,8 @@ class Experiment():
                 if current_protocol.mock_previous == self.current_protocol_index:
                     mock_raw = self.raw_recorder[:previous_counter]
                 else:
-                    mock_raw = load_h5py(self.dir_name + 'raw.h5', 'protocol' + str(current_protocol.mock_previous))
+                    mock_raw = load_h5py(self.dir_name + 'experiment_data.h5',
+                                         'protocol{}/raw_data'.format(current_protocol.mock_previous))
                 current_protocol.prepare_raw_mock_if_necessary(mock_raw)
 
             # change protocol widget
