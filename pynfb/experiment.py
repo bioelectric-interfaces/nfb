@@ -16,6 +16,7 @@ from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
 from .signals import DerivedSignal, CompositeSignal
 from .windows import MainWindow
+from ._titles import WAIT_BAR_MESSAGES
 
 
 # helpers
@@ -213,7 +214,7 @@ class Experiment():
             self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
 
     def restart(self):
-        wait_bar = WaitMessage('Experiment is starting. Please wait ...').show_and_return()
+        wait_bar = WaitMessage(WAIT_BAR_MESSAGES['EXPERIMENT_START']).show_and_return()
 
         self.test_mode = False
         if self.main_timer is not None:

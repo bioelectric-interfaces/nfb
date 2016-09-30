@@ -9,6 +9,7 @@ import numpy as np
 from pynfb.protocols.ssd.sliders_csp import Sliders
 from pynfb.signals.rejections import Rejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
+from pynfb._titles import WAIT_BAR_MESSAGES
 
 
 def mutual_info(x, y, bins=100):
@@ -173,7 +174,7 @@ class ICADialog(QtGui.QDialog):
 
     @classmethod
     def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica'):
-        wait_bar = WaitMessage(mode.upper() + ' is processed. Please wait ...').show_and_return()
+        wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
         selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode)
         wait_bar.close()
         result = selector.exec_()
