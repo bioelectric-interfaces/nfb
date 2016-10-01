@@ -66,7 +66,8 @@ vectors_defaults = OrderedDict([
             ('iMockPrevious', 0),
             ('sRewardSignal', ''),
             ('bRewardThreshold', 0),
-            ('bShowReward', 0)
+            ('bShowReward', 0),
+            ('bPauseAfter', 0)
         ])])])),
     ('vPSequence', OrderedDict([
         ('s', ['Protocol'])])),

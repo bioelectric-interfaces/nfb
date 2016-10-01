@@ -15,7 +15,7 @@ class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
-                 experiment=None):
+                 experiment=None, pause_after=False):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -40,6 +40,7 @@ class Protocol:
         self.mock_previous = mock_previous
         self.drop_outliers = drop_outliers
         self.experiment = experiment
+        self.pause_after = pause_after
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
@@ -99,6 +100,9 @@ class Protocol:
                 self.timer.start(1000 * 1. / self.freq)
 
         self.update_mean_std(raw, signals)
+
+        if self.pause_after:
+            self.experiment.handle_channels_trouble_pause()
 
     def update_mean_std(self, raw, signals, must=False):
         # update statistics action
