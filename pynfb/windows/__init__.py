@@ -45,12 +45,13 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.setMaximumWidth(200)
         self.setMinimumWidth(100)
 
-        styles = ["background-color: #{0}{0}{0}".format(str(hex(j))[2:]) for j in range(12, 16)]
+        styles = ["background-color: #{}".format(color) for color in ["FFFFFF", "F8FFFB", "F2FFF8", "ECFFF4", "E6FFF1",
+                                                                      "DFFFED", "D9FFEA", "D3FFE6", "CDFFE3", "C7FFE0"]]
         styles += styles[::-1]
 
         # animation doesn't work for strings but provides an appropriate delay
         animation = QtCore.QPropertyAnimation(self.start, 'styleSheet')
-        animation.setDuration(50)
+        animation.setDuration(40)
 
         states = [QtCore.QState() for style in styles]
         for j, style in enumerate(styles):
