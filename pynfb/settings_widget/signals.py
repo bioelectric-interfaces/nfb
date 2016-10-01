@@ -68,36 +68,54 @@ class SignalDialog(QtGui.QDialog):
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + signal_name)
         self.form_layout = QtGui.QFormLayout(self)
+
         # name
         self.name = QtGui.QLineEdit(self)
         self.name.setText(signal_name)
         self.form_layout.addRow('&Name:', self.name)
         validator = QtGui.QRegExpValidator(QtCore.QRegExp("^[a-zA-Z0-9_]+$"))
         self.name.setValidator(validator)
+
         # spatial filter
         self.spatial_filter = FileSelectorLine(parent=self)
         self.form_layout.addRow('Spatial filter:', self.spatial_filter)
+
         # disable spectrum evaluation
         self.disable_spectrum = QtGui.QCheckBox()
         self.disable_spectrum.stateChanged.connect(self.disable_spectrum_event)
         self.form_layout.addRow('&Disable spectrum \nevaluation:', self.disable_spectrum)
+
         # bandpass
         self.bandpass_low = QtGui.QSpinBox()
         self.bandpass_low.setRange(0, 250)
         self.bandpass_low.setValue(0)
-        self.form_layout.addRow('&Bandpass low [Hz]:', self.bandpass_low)
         self.bandpass_high = QtGui.QSpinBox()
         self.bandpass_high.setRange(0, 250)
         self.bandpass_high.setValue(250)
-        self.form_layout.addRow('&Bandpass high [Hz]:', self.bandpass_high)
+        bandpass_widget = QtGui.QWidget()
+        bandpass_layout = QtGui.QHBoxLayout(bandpass_widget)
+        bandpass_layout.setMargin(0)
+        label = QtGui.QLabel('low:')
+        label.setMaximumWidth(20)
+        bandpass_layout.addWidget(label)
+        bandpass_layout.addWidget(self.bandpass_low)
+        label = QtGui.QLabel('high:')
+        label.setMaximumWidth(25)
+        bandpass_layout.addWidget(label)
+        bandpass_layout.addWidget(self.bandpass_high)
+        self.form_layout.addRow('&Bandpass [Hz]:', bandpass_widget)
+
+        # fft window size
         self.window_size = QtGui.QSpinBox()
         self.window_size.setRange(1, 100000)
         self.form_layout.addRow('&FFT window size:', self.window_size)
+
         # exponential smoothing factor
         self.smoothing_factor = QtGui.QDoubleSpinBox()
         self.smoothing_factor.setRange(0, 1)
         self.smoothing_factor.setSingleStep(0.1)
         self.form_layout.addRow('&Smoothing factor:', self.smoothing_factor)
+
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
