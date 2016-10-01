@@ -1,6 +1,6 @@
 import os
 import sys
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
 from pynfb.protocols.widgets import *
 from numpy import isnan
@@ -45,13 +45,36 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.setMaximumWidth(200)
         self.setMinimumWidth(100)
 
+        styles = ["background-color: #{0}{0}{0}".format(str(hex(j))[2:]) for j in range(12, 16)]
+        styles += styles[::-1]
+
+        # animation doesn't work for strings but provides an appropriate delay
+        animation = QtCore.QPropertyAnimation(self.start, 'styleSheet')
+        animation.setDuration(50)
+
+        states = [QtCore.QState() for style in styles]
+        for j, style in enumerate(styles):
+            states[j].assignProperty(self.start, 'styleSheet', style)
+            states[j].addTransition(states[j].propertiesAssigned, states[(j+1) % len(styles)])
+        self.init_state = states[0]
+
+
+        self.machine = QtCore.QStateMachine()
+        self.machine.addDefaultAnimation(animation)
+        for state in states:
+            self.machine.addState(state)
+        self.machine.setInitialState(states[0])
+        self.machine.start()
+
     def start_clicked_event(self):
         self.restart.setEnabled(True)
         if self.start.isChecked():
             self.start_clicked.emit()
             self.start.setIcon(QtGui.QIcon(static_path + '/imag/pause.png'))
+            self.machine.stop()
         else:
             self.start.setIcon(QtGui.QIcon(static_path + '/imag/play-button.png'))
+            self.machine.start()
 
     def restart_clicked_event(self):
         self.start.setChecked(False)
