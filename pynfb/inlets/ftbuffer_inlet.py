@@ -37,6 +37,9 @@ class FieldTripBufferInlet:
         with open(file, 'w') as f:
             f.write(str(self.ftc.getHeader()))
 
+    def info_as_xml(self):
+        return str(self.ftc.getHeader())
+
     def get_frequency(self):
         return self.ftc.getHeader().fSample
 

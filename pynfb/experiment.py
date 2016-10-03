@@ -10,8 +10,9 @@ from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
-from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, load_h5py_protocol_signals
-from .io.xml import params_to_xml_file
+from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, \
+    save_xml_str_to_hdf5_dataset
+from .io.xml import params_to_xml_file, params_to_xml
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
 from .signals import DerivedSignal, CompositeSignal
@@ -32,9 +33,6 @@ class Experiment():
         self.stream = None
         self.thread = None
         self.catch_channels_trouble = True
-        timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
-        self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
-        os.makedirs(self.dir_name)
         self.mock_signals_buffer = None
         self.restart()
         pass
@@ -157,7 +155,8 @@ class Experiment():
                      raw_data=self.raw_recorder[:self.samples_counter],
                      raw_other_data=self.raw_recorder_other[:self.samples_counter],
                      signals_data=self.signals_recorder[:self.samples_counter],
-                     reward_data=self.reward_recorder[:self.samples_counter])
+                     reward_data=self.reward_recorder[:self.samples_counter],
+                     protocol_name=self.protocols_sequence[self.current_protocol_index].name)
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -210,10 +209,14 @@ class Experiment():
 
             # save_h5py(self.dir_name + 'raw.h5', self.main.raw_recorder)
             # save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
-            params_to_xml_file(self.params, self.dir_name + 'settings.xml')
-            self.stream.save_info(self.dir_name + 'lsl_stream_info.xml')
 
     def restart(self):
+
+        timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
+        self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
+        os.makedirs(self.dir_name)
+
+
         wait_bar = WaitMessage(WAIT_BAR_MESSAGES['EXPERIMENT_START']).show_and_return()
 
         self.test_mode = False
@@ -252,6 +255,8 @@ class Experiment():
         else:
             stream = LSLInlet(name=self.params['sStreamName'])
         self.stream = ChannelsSelector(stream, exclude=self.params['sReference'])
+        self.stream.save_info(self.dir_name + 'stream_info.xml')
+        save_xml_str_to_hdf5_dataset(self.dir_name + 'experiment_data.h5', self.stream.info_as_xml(), 'stream_info.xml')
         self.freq = self.stream.get_frequency()
         self.n_channels = self.stream.get_n_channels()
         self.n_channels_other = self.stream.get_n_channels_other()
@@ -395,6 +400,10 @@ class Experiment():
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,
                      group_name='protocol0')
+
+        # save settings
+        params_to_xml_file(self.params, self.dir_name + 'settings.xml')
+        save_xml_str_to_hdf5_dataset(self.dir_name + 'experiment_data.h5', params_to_xml(self.params), 'settings.xml')
 
         # windows
         self.main = MainWindow(signals=self.signals,

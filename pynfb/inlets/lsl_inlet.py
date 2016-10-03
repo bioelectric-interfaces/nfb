@@ -33,6 +33,9 @@ class LSLInlet:
         with open(file, 'w') as f:
             f.write(self.inlet.info().as_xml())
 
+    def info_as_xml(self):
+        return self.inlet.info().as_xml()
+
     def get_frequency(self):
         return self.inlet.info().nominal_srate()
 

@@ -63,14 +63,17 @@ def xml_file_to_params(filename=None):
 
 
 def params_to_xml_file(params, filename):
+    with open(filename, 'w') as f:
+        f.write(params_to_xml(params))
+
+def params_to_xml(params):
     odict = params.copy()
-    #odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
+    # odict['vSignals'] = OrderedDict([('DerivedSignal', params['vSignals'])])
     odict['vProtocols'] = OrderedDict([('FeedbackProtocol', params['vProtocols'])])
     odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])
     xml_odict = OrderedDict([('NeurofeedbackSignalSpecs', odict.copy())])
-    with open(filename, 'w') as f:
-        f.write(unparse(xml_odict, pretty=True))
-    pass
+    xml = unparse(xml_odict, pretty=True)
+    return xml
 
 
 def save_signal(signal, filename):

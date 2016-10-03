@@ -33,10 +33,11 @@ def load_h5py_all_samples(file_path):
 
 
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, signals_data=None, raw_other_data=None,
-                 reward_data=None):
+                 reward_data=None, protocol_name='unknown'):
     print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
+        main_group.attrs['name'] = protocol_name
         signals_group = main_group.create_group('signals_stats')
         for signal in signals:
             signal_group = signals_group.create_group(signal.name)
@@ -66,6 +67,25 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
         if reward_data is not None:
             main_group.create_dataset('reward_data', data=reward_data)
     pass
+
+
+def save_xml_str_to_hdf5_dataset(file_path, xml='', dataset_name='something.xml'):
+    # Write the xml file...
+    with h5py.File(file_path, 'a') as f:
+        str_type = h5py.new_vlen(str)
+        ds = f.create_dataset(dataset_name, shape=(2,), dtype=str_type)
+        ds[:] = xml
+
+def load_xml_str_from_hdf5_dataset(file_path, dataset_name='something.xml'):
+    with h5py.File(file_path, 'r') as f:
+        xml = f[dataset_name][0]
+    return xml
+
+
+
 if __name__ == '__main__':
-    load_h5py('C:\\Users\\Nikolai\PycharmProjects\pynfb_repo\\nfb\pynfb\\results\MU_test_AN_09-29_17-15-38'
-                          '\experiment_data.h5')
+    save_xml_str_to_hdf5_dataset('test.h5', 'asf1', '1st')
+    save_xml_str_to_hdf5_dataset('test.h5', 'asf2', '2nd')
+    with h5py.File('test.h5', 'r') as f:
+        print(list(f.keys()))
+

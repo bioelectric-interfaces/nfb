@@ -57,6 +57,9 @@ class ChannelsSelector:
     def save_info(self, file):
         return self.inlet.save_info(file)
 
+    def info_as_xml(self):
+        return self.inlet.info_as_xml()
+
     def get_frequency(self):
         return self.inlet.get_frequency()
 
