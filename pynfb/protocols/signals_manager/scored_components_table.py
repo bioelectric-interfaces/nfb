@@ -94,7 +94,7 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             # scores
             score_widget = BarLabelWidget(scores[ind], max(scores), min(scores))
             self.scores.append(score_widget)
-            self.setCellWidget(ind, self.columns.index('Mutual info'), score_widget)
+            self.setCellWidget(ind, self.columns.index(scores_name), score_widget)
 
         # formatting
         self.current_row = None
@@ -178,7 +178,7 @@ class ScoredComponentsTable(QtGui.QTableWidget):
     def handle_header_click(self, index):
         if index == 3:
             self.set_spectrum_mode(flag=not self.is_spectrum_mode)
-        if index == self.columns.index('Mutual info'):
+        if index == 1:
             self.reorder()
 
     def set_spectrum_mode(self, flag=False):

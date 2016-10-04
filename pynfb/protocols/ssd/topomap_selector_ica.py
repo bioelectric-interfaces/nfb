@@ -96,9 +96,10 @@ class ICADialog(QtGui.QDialog):
             print('Mutual info scores time elapsed = {}s'.format(time() - timer))
             timer = time()
 
-
+        scores_name = 'Mutual info' if mode == 'ica' else 'Eigenvalues'
         # table
-        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, self.scores)
+        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, self.scores,
+                                           scores_name=scores_name)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
 
         # reject selected button
