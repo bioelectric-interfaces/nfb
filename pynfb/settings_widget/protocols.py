@@ -190,6 +190,7 @@ class ProtocolDialog(QtGui.QDialog):
     def update_source_signal_combo_box(self):
         text = self.source_signal.currentText()
         self.source_signal.clear()
+        self.reward_signal.clear()
         if self.type.currentText() == 'Baseline':
             self.source_signal.addItem('All')
         all_signals = self.parent().parent().params['vSignals']
