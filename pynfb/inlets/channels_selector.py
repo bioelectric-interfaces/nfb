@@ -55,10 +55,19 @@ class ChannelsSelector:
         pass
 
     def save_info(self, file):
-        return self.inlet.save_info(file)
+        try:
+            return self.inlet.save_info(file)
+        except UnicodeDecodeError:
+            print("Warning: stream info wasn't saved, because user name id nonlatin")
+            pass
 
     def info_as_xml(self):
-        return self.inlet.info_as_xml()
+        try:
+            return self.inlet.info_as_xml()
+        except UnicodeDecodeError:
+            print("Warning: stream info wasn't saved, because user name id nonlatin")
+            pass
+
 
     def get_frequency(self):
         return self.inlet.get_frequency()
