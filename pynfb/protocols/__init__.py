@@ -1,3 +1,4 @@
+from pynfb.helpers.beep import SingleBeep
 from pynfb.protocols.widgets import *
 from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
@@ -6,10 +7,10 @@ from pynfb.widgets.update_signals_dialog import SignalsSSDManager
 from copy import deepcopy
 from numpy.random import randint
 from numpy import vstack
-
-
+from PyQt4.QtCore import QCoreApplication
 from pynfb.signals import CompositeSignal, DerivedSignal
 from pynfb.io.hdf5 import load_h5py
+
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
@@ -144,11 +145,13 @@ class BaselineProtocol(Protocol):
         self.half_time_text_change = half_time_text is not None
         self.half_time_text = half_time_text
         self.is_half_time = False
+        self.beep = SingleBeep()
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
         if self.half_time_text_change:
             if is_half_time and not self.is_half_time:
+                self.beep.try_to_play()
                 self.is_half_time = True
                 self.widget_painter.set_message(self.half_time_text)
 

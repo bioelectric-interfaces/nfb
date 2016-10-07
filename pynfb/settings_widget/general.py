@@ -1,4 +1,6 @@
 from PyQt4 import QtGui
+
+from pynfb.helpers.beep import SingleBeep
 from .inlet import InletSettingsWidget
 
 class GeneralSettingsWidget(QtGui.QWidget):
@@ -44,6 +46,12 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.reward_period.setMaximumWidth(100)
         self.reward_period.valueChanged.connect(self.reward_period_changed_event)
         self.form_layout.addRow('&Reward period [s]:', self.reward_period)
+
+        # beep button
+        beep_button = QtGui.QPushButton('Beep')
+        beep_button.setMaximumWidth(100)
+        beep_button.clicked.connect(lambda : SingleBeep().try_to_play())
+        self.form_layout.addRow('&Test beep sound:', beep_button)
 
         self.reset()
         # self.stream

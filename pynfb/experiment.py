@@ -65,7 +65,7 @@ class Experiment():
                     # catch channels trouble
                     if self.samples_counter > self.seconds:
                         self.seconds += 2 * self.freq
-                        raw_std_new = np.std(self.raw_recorder[self.samples_counter - self.freq :
+                        raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq) :
                                                                     self.samples_counter], 0)
                         if self.raw_std is None:
                             self.raw_std = raw_std_new
@@ -387,7 +387,7 @@ class Experiment():
         self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
 
         # experiment number of samples
-        max_protocol_n_samples = max([self.freq * p.duration for p in self.protocols_sequence])
+        max_protocol_n_samples = int(max([self.freq * p.duration for p in self.protocols_sequence]))
 
         # data recorders
         self.experiment_n_samples = max_protocol_n_samples
