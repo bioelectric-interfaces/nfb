@@ -329,6 +329,7 @@ class Experiment():
                         source_signal_id=source_signal_id,
                         mock_samples_path=mock_path,
                         mock_previous=int(protocol['iMockPrevious']),
+                        reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
                         pause_after=bool(protocol['bPauseAfter']),
                         drop_outliers=int(protocol['iDropOutliers']),
