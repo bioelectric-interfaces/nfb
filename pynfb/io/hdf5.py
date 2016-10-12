@@ -28,7 +28,8 @@ def load_h5py_all_samples(file_path):
         if isinstance(f['protocol1'], h5py.Dataset):
             data = [f['protocol' + str(j + 1)][:] for j in range(len(f.keys()))]
         else:
-            data = [f['protocol{}/raw_data'.format(j + 1)][:] for j in range(len(f.keys()) - 1)]
+            data = [f['protocol{}/raw_data'.format(j + 1)][:] for j in range(len(f.keys()) - 1)
+                    if 'protocol{}/raw_data'.format(j + 1) in f]
     return np.vstack(data)
 
 
@@ -78,9 +79,15 @@ def save_xml_str_to_hdf5_dataset(file_path, xml='', dataset_name='something.xml'
 
 def load_xml_str_from_hdf5_dataset(file_path, dataset_name='something.xml'):
     with h5py.File(file_path, 'r') as f:
-        xml = f[dataset_name][0]
-    return xml
+        if dataset_name in f:
+            xml_ = f[dataset_name][0]
+            return xml_
+        else:
+            raise DatasetNotFound('Dataset "{}" not found in file "{}"'.format(dataset_name, file_path))
 
+
+class DatasetNotFound(Exception):
+    pass
 
 
 

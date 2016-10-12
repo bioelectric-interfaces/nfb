@@ -18,7 +18,7 @@ ch_names32 = ['Fp1','Fp2','F7','F3','Fz','F4','F8','Ft9','Fc5','Fc1','Fc2','Fc6'
               'Cp5','Cp1','Cp2','Cp6','Tp10','P7','P3','Pz','P4','P8','O1','Oz','O2']
 
 
-def run_eeg_sim(n_channels=32, freq=500, chunk_size=0, source_buffer=None, name='example'):
+def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', labels=None):
     """
     Make LSL Stream Outlet and send source_buffer data or simulate sin data
     :param n_channels: number of channels
@@ -28,12 +28,19 @@ def run_eeg_sim(n_channels=32, freq=500, chunk_size=0, source_buffer=None, name=
     :param name: name of outlet
     :return:
     """
+    # default freq
+    freq = freq or 500
+
+    # labels and n_channels
+    labels = labels or ch_names32
+    n_channels = len(labels) if labels is not None else 32
+
     # stream info
     info = StreamInfo(name=name, type='EEG', channel_count=n_channels, nominal_srate=freq,
                       channel_format='float32', source_id='myuid34234')
 
     # channels labels (in accordance with XDF format, see also code.google.com/p/xdf)
-    labels = ch_names32[:n_channels]
+
     chns = info.desc().append_child("channels")
     for label in labels:
         ch = chns.append_child("channel")

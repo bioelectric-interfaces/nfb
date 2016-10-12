@@ -11,8 +11,8 @@ from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
 from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, \
-    save_xml_str_to_hdf5_dataset
-from .io.xml_ import params_to_xml_file, params_to_xml
+    save_xml_str_to_hdf5_dataset, load_xml_str_from_hdf5_dataset, DatasetNotFound
+from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
 from .signals import DerivedSignal, CompositeSignal
@@ -430,9 +430,17 @@ class Experiment():
         if self.thread is not None:
             self.thread.terminate()
         source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+        try:
+            xml_str = load_xml_str_from_hdf5_dataset(self.params['sRawDataFilePath'], 'stream_info.xml')
+            labels, fs = get_lsl_info_from_xml(xml_str)
+            print('Using {} channels and fs={}.'.format(len(labels), fs))
+        except (FileNotFoundError, DatasetNotFound):
+            print('Channels labels and fs not found. Using default 32 channels and fs=500Hz.')
+            labels = None
+            fs = None
         self.thread = Process(target=run_eeg_sim, args=(),
                               kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
-                                      'name': self.params['sStreamName']})
+                                      'name': self.params['sStreamName'], 'labels': labels, 'freq': fs})
         self.thread.start()
         from time import sleep
         sleep(2)
