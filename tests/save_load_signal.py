@@ -1,4 +1,4 @@
-from pynfb.io.xml import save_signal, load_signal
+from pynfb.io.xml_ import save_signal, load_signal
 
 from pynfb.signals import DerivedSignal
 

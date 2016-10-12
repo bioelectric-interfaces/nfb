@@ -4,7 +4,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 
 from pynfb.experiment import Experiment
-from pynfb.io.xml import xml_file_to_params
+from pynfb.io.xml_ import xml_file_to_params
 from pynfb.settings_widget.general import GeneralSettingsWidget
 from pynfb.settings_widget.inlet import InletSettingsWidget
 from pynfb.settings_widget.protocol_sequence import ProtocolSequenceSettingsWidget

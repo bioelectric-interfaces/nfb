@@ -3,6 +3,7 @@ from pynfb.io.xmltodict import parse, unparse
 from collections import OrderedDict
 from pynfb.io.defaults import *
 from numpy import array
+import xml.etree.ElementTree as ET
 
 
 
@@ -119,9 +120,20 @@ def load_signal(filename, channels_labels):
                       smoothing_factor=signal['fSmoothingFactor'])
     return s
 
+def get_lsl_channels_from_xml(xml_str_or_file):
+    try:
+        tree = ET.parse(xml_str_or_file)
+        root = tree.getroot()
+    except FileNotFoundError:
+        root = ET.fromstring(xml_str_or_file)
+    channels = [k.find('label').text for k in root.find('desc').find('channels').findall('channel')]
+    return channels
+
 
 if __name__ == '__main__':
     #odict = xml_file_to_params('settings/pilot.xml')
     #params_to_xml_file(odict, 'settings/pilot_rewrite.xml')
-    from pynfb.signals import DerivedSignal
-    save_signal(DerivedSignal(), 'sig.1')
+    from pynfb.io.hdf5 import load_xml_str_from_hdf5_dataset
+    xml_str = load_xml_str_from_hdf5_dataset('../results/MU_test_AN_10-10_21-22-21/experiment_data.h5',
+                                             'stream_info.xml')
+    print(get_lsl_channels_from_xml(xml_str))

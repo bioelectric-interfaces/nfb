@@ -12,7 +12,7 @@ from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
 from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, \
     save_xml_str_to_hdf5_dataset
-from .io.xml import params_to_xml_file, params_to_xml
+from .io.xml_ import params_to_xml_file, params_to_xml
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
 from .signals import DerivedSignal, CompositeSignal

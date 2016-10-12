@@ -9,7 +9,7 @@ sys.path.insert(0, full_path)
 from pynfb.settings_widget import SettingsWidget
 from PyQt4 import QtGui
 import sys
-from pynfb.io.xml import *
+from pynfb.io.xml_ import *
 
 
 class TheMainWindow(QtGui.QMainWindow):

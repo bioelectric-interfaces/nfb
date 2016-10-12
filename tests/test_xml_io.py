@@ -1,4 +1,4 @@
-from pynfb.io.xml import *
+from pynfb.io.xml_ import *
 
 odict = read_xml_to_dict('pynfb/io/settings/pilot.xml')
 print(odict)
