@@ -146,16 +146,17 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
         self.set_enabled_mock_settings()
 
+        # mock previous
         mock_previos_layput = QtGui.QHBoxLayout()
         self.mock_previous = QtGui.QSpinBox()
         self.mock_previous.setRange(1, 100)
         self.enable_mock_previous = QtGui.QCheckBox()
-        self.enable_mock_previous.stateChanged.connect(
-            lambda: self.mock_previous.setEnabled(self.enable_mock_previous.isChecked()))
-        self.enable_mock_previous.stateChanged.connect(self.set_enabled_mock_settings)
+        self.enable_mock_previous.stateChanged.connect(self.handle_enable_mock_previous)
+        self.reverse_mock_previous = QtGui.QCheckBox('Reverse')
         mock_previos_layput.addWidget(self.enable_mock_previous)
         mock_previos_layput.addWidget(QtGui.QLabel('Protocol #'))
         mock_previos_layput.addWidget(self.mock_previous)
+        mock_previos_layput.addWidget(self.reverse_mock_previous)
         self.form_layout.addRow('Mock from previous\nprotocol raw data', mock_previos_layput)
 
         # message text edit
@@ -186,6 +187,11 @@ class ProtocolDialog(QtGui.QDialog):
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
         self.form_layout.addRow(self.save_button)
+
+    def handle_enable_mock_previous(self):
+        self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.set_enabled_mock_settings()
 
     def update_source_signal_combo_box(self):
         text = self.source_signal.currentText()
@@ -245,7 +251,9 @@ class ProtocolDialog(QtGui.QDialog):
         self.reward_threshold.setValue(current_protocol['bRewardThreshold'])
         self.enable_mock_previous.setChecked(current_protocol['iMockPrevious'] > 0)
         self.mock_previous.setValue(current_protocol['iMockPrevious'])
+        self.reverse_mock_previous.setChecked(current_protocol['bReverseMockPrevious'])
         self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         pass
 
     def save_and_close(self):
@@ -271,5 +279,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['bRewardThreshold'] = self.reward_threshold.value()
         self.params[current_signal_index]['iMockPrevious'] = (
             self.mock_previous.value() if self.enable_mock_previous.isChecked() else 0)
+        self.params[current_signal_index]['bReverseMockPrevious'] = (
+            int(self.reverse_mock_previous.isChecked()) if self.enable_mock_previous.isChecked() else 0)
         self.parent().reset_items()
         self.close()

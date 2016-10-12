@@ -64,6 +64,7 @@ vectors_defaults = OrderedDict([
             ('sMockSignalFilePath', ''),
             ('sMockSignalFileDataset', 'protocol1'),
             ('iMockPrevious', 0),
+            ('bReverseMockPrevious', 0),
             ('sRewardSignal', ''),
             ('bRewardThreshold', 0),
             ('bShowReward', 0),
