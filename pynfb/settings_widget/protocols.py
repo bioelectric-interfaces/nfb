@@ -124,8 +124,16 @@ class ProtocolDialog(QtGui.QDialog):
         self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
         self.type.currentIndexChanged.connect(self.set_enabled_mock_settings)
         self.type.currentIndexChanged.connect(self.update_source_signal_combo_box)
+        self.type.currentIndexChanged.connect(
+            lambda: self.circle_border.setEnabled(self.type.currentText() == 'CircleFeedback'))
         # self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
+
+        # random circle bound
+        self.circle_border = QtGui.QComboBox()
+        self.circle_border.addItems(['Sin', 'Random'])
+        self.form_layout.addRow('&Circle border:', self.circle_border)
+
 
         # threshold blink settings
         self.blink_duration_ms = QtGui.QSpinBox()
@@ -238,6 +246,8 @@ class ProtocolDialog(QtGui.QDialog):
             self.source_signal.findText(current_protocol['fbSource'], QtCore.Qt.MatchFixedString))
         self.type.setCurrentIndex(
             self.type.findText(current_protocol['sFb_type'], QtCore.Qt.MatchFixedString))
+        self.circle_border.setCurrentIndex(current_protocol['iRandomBound'])
+        self.circle_border.setEnabled(self.type.currentText() == 'CircleFeedback')
         self.blink_duration_ms.setValue(current_protocol['fBlinkDurationMs'])
         self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
@@ -267,6 +277,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['bSSDInTheEnd'] = int(self.ssd_in_the_end.isChecked())
         self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
+        self.params[current_signal_index]['iRandomBound'] = self.circle_border.currentIndex()
         self.params[current_signal_index]['fBlinkDurationMs'] = self.blink_duration_ms.value()
         self.params[current_signal_index]['fBlinkThreshold'] = self.blink_threshold.value()
         self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()

@@ -48,12 +48,12 @@ class Painter:
 
 
 class CircleFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius = 3):
+    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0):
         super(CircleFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.noise_scaler = noise_scaler
         self.x = np.linspace(-np.pi/2, np.pi/2, 100)
-        self.noise = np.sin(15*self.x)*0.5-0.5
-        #self.noise = np.random.uniform(-0.5, 0.5, 100)-0.5
+        np.random.seed(42)
+        self.noise = np.sin(15*self.x)*0.5-0.5 if not circle_border else np.random.uniform(-0.5, 0.5, 100)-0.5
         self.widget = None
         self.radius = radius
 

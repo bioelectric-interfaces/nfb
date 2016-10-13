@@ -68,7 +68,8 @@ vectors_defaults = OrderedDict([
             ('sRewardSignal', ''),
             ('bRewardThreshold', 0),
             ('bShowReward', 0),
-            ('bPauseAfter', 0)
+            ('bPauseAfter', 0),
+            ('iRandomBound', 0)
         ])])])),
     ('vPSequence', OrderedDict([
         ('s', ['Protocol'])])),

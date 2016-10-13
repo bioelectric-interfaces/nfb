@@ -328,6 +328,7 @@ class Experiment():
                         name=protocol['sProtocolName'],
                         source_signal_id=source_signal_id,
                         mock_samples_path=mock_path,
+                        circle_border=protocol['iRandomBound'],
                         mock_previous=int(protocol['iMockPrevious']),
                         reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
                         update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
