@@ -144,6 +144,7 @@ class BaselineProtocol(Protocol):
         kwargs['name'] = name
         kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
         super().__init__(signals, **kwargs)
+        self.text = text
         self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
         self.half_time_text_change = half_time_text is not None
         self.half_time_text = half_time_text
@@ -157,6 +158,12 @@ class BaselineProtocol(Protocol):
                 self.beep.try_to_play()
                 self.is_half_time = True
                 self.widget_painter.set_message(self.half_time_text)
+
+    def close_protocol(self, **kwargs):
+        self.is_half_time = False
+        self.beep = SingleBeep()
+        self.widget_painter.set_message(self.text)
+        super(BaselineProtocol, self).close_protocol(**kwargs)
 
 
 class FeedbackProtocol(Protocol):
