@@ -19,14 +19,13 @@ def mutual_info(x, y, bins=100):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica'):
+    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
         # attributes
-        self.data = raw_data
         self.channel_names = channel_names
         self.pos = ch_names_to_2d_pos(channel_names)
         self.n_channels = len(channel_names)
@@ -37,6 +36,11 @@ class ICADialog(QtGui.QDialog):
         self.bandpass = None
         self.table = None
         self.mode = mode
+
+        # data preprocessing:
+        from scipy.signal import butter, filtfilt
+        b, a = butter(4, [0.5 / (0.5 * fs), 35 / (0.5 * fs)], btype='bandpass')
+        self.data = filtfilt(b, a, raw_data, axis=0)
 
         if mode == 'csp':
             # Sliders
