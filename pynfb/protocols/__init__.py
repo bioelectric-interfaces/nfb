@@ -162,8 +162,9 @@ class BaselineProtocol(Protocol):
     def close_protocol(self, **kwargs):
         self.is_half_time = False
         self.beep = SingleBeep()
-        self.widget_painter.set_message(self.text)
+        self.widget_painter.set_message('')
         super(BaselineProtocol, self).close_protocol(**kwargs)
+        self.widget_painter.set_message(self.text)
 
 
 class FeedbackProtocol(Protocol):
