@@ -23,13 +23,13 @@ def load_h5py_protocol_signals(file_path, protocol_name='protocol1'):
     return data
 
 
-def load_h5py_all_samples(file_path):
+def load_h5py_all_samples(file_path, raw=True):
     with h5py.File(file_path, 'r') as f:
         if isinstance(f['protocol1'], h5py.Dataset):
             data = [f['protocol' + str(j + 1)][:] for j in range(len(f.keys()))]
         else:
-            data = [f['protocol{}/raw_data'.format(j + 1)][:] for j in range(len(f.keys()) - 1)
-                    if 'protocol{}/raw_data'.format(j + 1) in f]
+            keys = ['protocol{}/{}_data'.format(j + 1, 'raw' if raw else 'signals') for  j in range(len(f.keys()) - 1)]
+            data = [f[key][:] for key in keys if key in f]
     return np.vstack(data)
 
 

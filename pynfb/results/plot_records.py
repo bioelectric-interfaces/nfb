@@ -10,13 +10,11 @@ print(dir_name)
 f = plt.figure()
 ax = f.add_subplot(211)
 ch = 20
-ax.plot(load_h5py_all_samples(dir_name+'raw_other.h5'))
+h5file = 'C:\\Users\\Nikolai\Downloads\pilot\pilot_Plackhin_1_10-20_12-03-01\experiment_data.h5'
+ax.plot(load_h5py_all_samples(h5file))
 ax.set_ylabel('Raw{}'.format(ch))
 ax = f.add_subplot(212, sharex=ax)
-ax.plot(load_h5py_all_samples(dir_name+'signals.h5'))
+ax.plot(load_h5py_all_samples(h5file, raw=False))
 ax.set_ylabel('Signals')
 plt.show()
 
-
-print(load_h5py_all_samples(dir_name+'raw_other.h5').shape)
-print(load_h5py_all_samples(dir_name+'raw.h5').shape)
