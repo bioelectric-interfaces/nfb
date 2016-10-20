@@ -33,7 +33,7 @@ class TheMainWindow(QtGui.QMainWindow):
         openFile.setStatusTip('Open new File')
         openFile.triggered.connect(self.open_event)
         # save file action
-        saveFile = QtGui.QAction(QtGui.QIcon('save.png'), 'Save', self)
+        saveFile = QtGui.QAction(QtGui.QIcon('save.png'), 'Save as..', self)
         saveFile.setShortcut('Ctrl+S')
         saveFile.setStatusTip('Save settings file')
         saveFile.triggered.connect(self.save_event)
