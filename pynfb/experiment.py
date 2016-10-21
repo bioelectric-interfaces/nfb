@@ -14,7 +14,7 @@ from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, 
     save_xml_str_to_hdf5_dataset, load_xml_str_from_hdf5_dataset, DatasetNotFound
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
-from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, SSDProtocol
+from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol
 from .signals import DerivedSignal, CompositeSignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -360,6 +360,25 @@ class Experiment():
                         ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
+                        reward_signal_id=reward_signal_id,
+                        experiment=self))
+            elif protocol['sFb_type'] == 'Video':
+                self.protocols.append(
+                    VideoProtocol(
+                        self.signals,
+                        duration=protocol['fDuration'],
+                        name=protocol['sProtocolName'],
+                        source_signal_id=source_signal_id,
+                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                        pause_after=bool(protocol['bPauseAfter']),
+                        drop_outliers=int(protocol['iDropOutliers']),
+                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
+                        freq=self.freq,
+                        timer=self.main_timer,
+                        ch_names=channels_labels,
+                        show_reward=bool(protocol['bShowReward']),
+                        reward_threshold=protocol['bRewardThreshold'],
+                        video_path=protocol['sVideoPath'],
                         reward_signal_id=reward_signal_id,
                         experiment=self))
             else:
