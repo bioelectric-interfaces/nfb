@@ -3,7 +3,7 @@ from PyQt4 import QtGui, QtCore
 from pynfb.io.defaults import vectors_defaults as defaults
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'CircleFeedback', 'ThresholdBlink']
+protocols_types = ['Baseline', 'CircleFeedback', 'ThresholdBlink', 'Video']
 
 
 class ProtocolsSettingsWidget(QtGui.QWidget):
@@ -126,6 +126,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.type.currentIndexChanged.connect(self.update_source_signal_combo_box)
         self.type.currentIndexChanged.connect(
             lambda: self.circle_border.setEnabled(self.type.currentText() == 'CircleFeedback'))
+        self.type.currentIndexChanged.connect(
+            lambda: self.video_path.setEnabled(self.type.currentText() == 'Video'))
         # self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
 
@@ -190,6 +192,9 @@ class ProtocolDialog(QtGui.QDialog):
         self.show_reward = QtGui.QCheckBox()
         self.form_layout.addRow('&Show reward:', self.show_reward)
 
+        # video path
+        self.video_path = FileSelectorLine()
+        self.form_layout.addRow('&Video file:', self.video_path)
 
         # ok button
         self.save_button = QtGui.QPushButton('Save')
@@ -228,6 +233,9 @@ class ProtocolDialog(QtGui.QDialog):
         self.mock_file.setEnabled(flag)
         self.mock_dataset.setEnabled(flag)
 
+    def set_enabled_video_settings(self):
+        flag = self.type.currentText() == 'Video'
+
     def open(self):
         self.update_source_signal_combo_box()
         self.reset_items()
@@ -264,6 +272,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.reverse_mock_previous.setChecked(current_protocol['bReverseMockPrevious'])
         self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.video_path.path.setText(current_protocol['sVideoPath'])
+        self.video_path.setEnabled(self.type.currentText() == 'Video')
         pass
 
     def save_and_close(self):
@@ -292,5 +302,6 @@ class ProtocolDialog(QtGui.QDialog):
             self.mock_previous.value() if self.enable_mock_previous.isChecked() else 0)
         self.params[current_signal_index]['bReverseMockPrevious'] = (
             int(self.reverse_mock_previous.isChecked()) if self.enable_mock_previous.isChecked() else 0)
+        self.params[current_signal_index]['sVideoPath'] = self.video_path.path.text()
         self.parent().reset_items()
         self.close()
