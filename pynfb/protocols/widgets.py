@@ -66,7 +66,7 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
 
     def redraw_state(self, sample):
         if np.ndim(sample)>0:
-            sample = np.sum(np.abs(sample))
+            sample = np.sum(sample)
         noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
         noise = self.noise*noise_ampl
         self.p1.setData(self.radius * np.sin(self.x)*(1+noise), self.radius * np.cos(self.x)*(1+noise))
@@ -135,3 +135,73 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
 
         self.previous_sample = previous_sample
         pass
+
+
+class VideoProtocolWidgetPainter(Painter):
+    def __init__(self, video_file_path):
+        super(VideoProtocolWidgetPainter, self).__init__()
+        self.widget = None
+        self.video = None
+        self.timer = time.time()
+        self.timer_period = 1 / 30
+        self.frame_counter = 0
+        self.n_frames = None
+        self.err_msg = "Could't open video file. "
+        import os.path
+        if os.path.isfile(video_file_path):
+            try:
+                import imageio as imageio
+                self.video = imageio.get_reader(video_file_path,  'ffmpeg')
+                self.n_frames = self.video.get_length() - 1
+            except ImportError as e:
+                print(e.msg)
+                self.err_msg += e.msg
+        else:
+            self.err_msg = "No file {}".format(video_file_path)
+
+
+    def prepare_widget(self, widget):
+        super(VideoProtocolWidgetPainter, self).prepare_widget(widget)
+        if self.video is not None:
+            self.img = pg.ImageItem()
+            self.img.setScale(10 / self.video.get_data(0).shape[1])
+            self.img.rotate(-90)
+            self.img.setX(-5)
+            self.img.setY(5/self.video.get_data(0).shape[1]*self.video.get_data(0).shape[0])
+            widget.addItem(self.img)
+
+        else:
+            text_item = pg.TextItem(html='<center><font size="6" color="#a92f41">{}'
+                                         '</font></center>'.format(self.err_msg),
+                                    anchor=(0.5, 0.5))
+            text_item.setTextWidth(500)
+            widget.addItem(text_item)
+
+    def redraw_state(self, sample):
+        if self.video is not None:
+            timer = time.time()
+            if timer - self.timer > self.timer_period:
+                self.timer = timer
+                self.frame_counter = (self.frame_counter + 1) % self.n_frames
+                self.img.setImage(self.video.get_data(self.frame_counter))
+            pass
+
+
+if __name__ == '__main__':
+    from PyQt4 import QtGui
+    from PyQt4 import QtCore
+    from time import sleep
+    import numpy as np
+    a = QtGui.QApplication([])
+    w = ProtocolWidget()
+    w.show()
+    b = VideoProtocolWidgetPainter('C:\\Users\\Nikolai\PycharmProjects\\nfb\pynfb\protocols\\video\small.mp4')
+    b.prepare_widget(w)
+    timer = QtCore.QTimer()
+    timer.start(1000/30)
+    timer.timeout.connect(lambda: b.redraw_state(np.random.normal(scale=0.2)))
+    a.exec_()
+    #for k in range(10000):
+    #    sleep(1/30)
+    #    b.redraw_state(np.random.normal(size=1))
+
