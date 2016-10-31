@@ -8,11 +8,13 @@ pilot_dir = 'C:\\Users\\Nikolai\\Downloads\\pilot'
 
 experiments = ['pilot_2mok_nikolay_10-18_15-25-45',
                'pilot_2mok_Plackhin_10-20_11-54-00',
-               'pilot_2mok_Tatiana_10-18_15-56-49']
+               'pilot_2mok_Tatiana_10-18_15-56-49',
+               'pilot_2mok_Polyakova_10-24_15-16-52']
 
 experiments_main = ['pilot_Nikolay_2_10-18_14-57-23',
                     'pilot_Plackhin_1_10-20_12-03-01',
-                    'pilot_Tatiana_2_10-18_16-00-44']
+                    'pilot_Tatiana_2_10-18_16-00-44',
+                    'pilot_Polyakova_1_10-24_15-21-18']
 
 
 import h5py
@@ -39,8 +41,14 @@ for experiment, experiment_main in zip(experiments, experiments_main):
     results[experiment] = [np.array([raw[:, labels.index(channel)] for channel in channels]) for raw in raw_data]
 
 import pylab as plt
+plt.plot(results[experiments[3]][1][0])
+plt.show()
 
-channel = 'C4'
+from scipy.stats import ttest_ind, ttest_1samp
+
+f = plt.figure()
+channel = 'C3'
+all_pows = []
 from scipy.fftpack import rfft, irfft, fftfreq
 for exp_j, experiment in enumerate(experiments):
     print(experiment)
@@ -48,7 +56,7 @@ for exp_j, experiment in enumerate(experiments):
     pows = np.zeros((3, n_windows))
     for protocol_j in range(3):
         data = results[experiment][protocol_j][channels.index(channel), :]
-        n_taps = 1000
+        n_taps = 2000
         for ind, j in enumerate(range(0, len(data) - n_taps, len(data)//n_windows)):
             f_signal = rfft(data[j:j+n_taps])
             w = fftfreq(n_taps, d=1. / fs*2)
@@ -65,6 +73,29 @@ for exp_j, experiment in enumerate(experiments):
     plt.title('Relative mean power in {} with rejections: ICA_artifacts and CSP_alpha'.format(channel)) # with rejections: ICA_artifacts and CSP_alpha
     print(n_pows.mean(1))
     print(n_pows.std(1))
+    all_pows.append(n_pows)
+
+all_pows = np.array(all_pows)
+
+print(all_pows[:,0])
+print(ttest_1samp(all_pows[:,0].flatten(), 1))
+print(ttest_1samp(all_pows[:,1].flatten(), 1))
+print(ttest_1samp(all_pows[:,2].flatten(), 1))
 plt.legend(experiments)
 plt.savefig(channel+'.png', dpi=200)
+
+
+plt.show()
+
+plt.figure()
+plt.hist(all_pows[:,0].flatten(), bins=30)
+
+plt.show()
+
+plt.figure()
+plt.hist(all_pows[:,1].flatten(), bins=30)
+plt.show()
+
+plt.figure()
+plt.hist(all_pows[:,2].flatten(), bins=30)
 plt.show()
