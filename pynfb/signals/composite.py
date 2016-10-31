@@ -64,8 +64,8 @@ class CompositeSignal:
                 np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
         else:
             signal_recordings_clear = signal_recordings
-        self.mean = mean if (mean is not None) else signal_recordings_clear.mean()
-        self.std = std if (std is not None) else signal_recordings_clear.std()
+        self.mean = mean if (mean is not None) else np.mean(signal_recordings_clear)
+        self.std = std if (std is not None) else np.std(signal_recordings_clear)
         self.reset_statistic_acc()
         print('*** COMPOSITE TIME ELAPSED', time() - timer)
 
