@@ -27,12 +27,12 @@ class GeneralSettingsWidget(QtGui.QWidget):
         # reference
         self.form_layout.addRow('Reference:', None)
         self.reference = QtGui.QLineEdit(self)
-        self.reference.setPlaceholderText('Print channels to exclude (names or numbers)')
+        self.reference.setPlaceholderText('Print channels to exclude (labels)')
         self.reference.textChanged.connect(self.reference_changed_event)
         self.form_layout.addRow('&    Exclude channels:', self.reference)
 
         self.reference_sub = QtGui.QLineEdit(self)
-        self.reference_sub.setPlaceholderText('Print subtractive channel (name or number)')
+        self.reference_sub.setPlaceholderText('Print subtractive channel (labels)')
         self.reference_sub.textChanged.connect(self.reference_sub_changed_event)
         self.form_layout.addRow('&    Subtract channel from other:', self.reference_sub)
 

@@ -2,7 +2,7 @@ import numpy as np
 
 
 class ChannelsSelector:
-    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=False):
+    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None):
         self.inlet = inlet
         names = [n.upper() for n in self.inlet.get_channels_labels()]
         # get channels indices to select
@@ -21,7 +21,7 @@ class ChannelsSelector:
             include_indices = list(range(self.inlet.get_n_channels()))
 
         # channel to subtract
-        if subtractive_channel is not None:
+        if (subtractive_channel is not None) and (subtractive_channel != ''):
             if isinstance(subtractive_channel, int):
                 self.sub_channel_index = subtractive_channel - int(start_from_1)
             elif isinstance(subtractive_channel, str):
@@ -39,7 +39,7 @@ class ChannelsSelector:
                 elif isinstance(exclude[0], str):
                     print('Channels labels:', names)
                     print('Exclude:', [r.upper() for r in exclude])
-                    exclude_indices = [names.index(r.upper()) for r in exclude]
+                    exclude_indices = [names.index(r.upper()) for r in exclude if r.upper() in names]
                 else:
                     raise TypeError('Exclude must contain int or str instances')
             else:
@@ -55,7 +55,6 @@ class ChannelsSelector:
         # all indices
         self.indices = [j for j in include_indices if j not in exclude_indices]
         self.other_indices = [j for j in range(self.inlet.get_n_channels()) if j in exclude_indices]
-
 
 
     def get_next_chunk(self):

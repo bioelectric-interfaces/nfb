@@ -19,7 +19,6 @@ from .signals import DerivedSignal, CompositeSignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
 
-
 # helpers
 def int_or_none(string):
     return int(string) if len(string) > 0 else None
@@ -454,6 +453,8 @@ class Experiment():
         try:
             xml_str = load_xml_str_from_hdf5_dataset(self.params['sRawDataFilePath'], 'stream_info.xml')
             labels, fs = get_lsl_info_from_xml(xml_str)
+            exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(self.params['sReference'])]
+            labels = [label for label in labels if label.upper() not in exclude]
             print('Using {} channels and fs={}.'.format(len(labels), fs))
         except (FileNotFoundError, DatasetNotFound):
             print('Channels labels and fs not found. Using default 32 channels and fs=500Hz.')
