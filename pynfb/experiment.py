@@ -254,7 +254,8 @@ class Experiment():
             stream = FieldTripBufferInlet(hostname, port)
         else:
             stream = LSLInlet(name=self.params['sStreamName'])
-        self.stream = ChannelsSelector(stream, exclude=self.params['sReference'])
+        self.stream = ChannelsSelector(stream, exclude=self.params['sReference'],
+                                       subtractive_channel=self.params['sReferenceSub'])
         self.stream.save_info(self.dir_name + 'stream_info.xml')
         save_xml_str_to_hdf5_dataset(self.dir_name + 'experiment_data.h5', self.stream.info_as_xml(), 'stream_info.xml')
         self.freq = self.stream.get_frequency()

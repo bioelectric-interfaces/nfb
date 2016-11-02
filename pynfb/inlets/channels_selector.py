@@ -2,9 +2,9 @@ import numpy as np
 
 
 class ChannelsSelector:
-    def __init__(self, inlet, include=None, exclude=None, start_from_1=True):
+    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=False):
         self.inlet = inlet
-
+        names = [n.upper() for n in self.inlet.get_channels_labels()]
         # get channels indices to select
         if include:
             include = self.parse_channels_string(include)
@@ -12,7 +12,6 @@ class ChannelsSelector:
                 if isinstance(include[0], int):
                     include_indices = [j - int(start_from_1) for j in include]
                 elif isinstance(include[0], str):
-                    names = [n.upper() for n in self.inlet.get_channels_labels()]
                     include_indices = [names.index(r.upper()) for r in include]
                 else:
                     raise TypeError('Reference list must contain int or str instances')
@@ -20,6 +19,15 @@ class ChannelsSelector:
                 raise TypeError('Reference list must be list or None')
         else:
             include_indices = list(range(self.inlet.get_n_channels()))
+
+        # channel to subtract
+        if subtractive_channel is not None:
+            if isinstance(subtractive_channel, int):
+                self.sub_channel_index = subtractive_channel - int(start_from_1)
+            elif isinstance(subtractive_channel, str):
+                self.sub_channel_index = names.index(subtractive_channel.upper())
+        else:
+            self.sub_channel_index = None
 
         # exclude channels
 
@@ -29,7 +37,6 @@ class ChannelsSelector:
                 if isinstance(exclude[0], int):
                     exclude_indices = [j - int(start_from_1) for j in exclude]
                 elif isinstance(exclude[0], str):
-                    names = [n.upper() for n in self.inlet.get_channels_labels()]
                     print('Channels labels:', names)
                     print('Exclude:', [r.upper() for r in exclude])
                     exclude_indices = [names.index(r.upper()) for r in exclude]
@@ -40,14 +47,24 @@ class ChannelsSelector:
         else:
             exclude_indices = []
 
+        # exclude subtractive channel
+        if self.sub_channel_index is not None:
+            if self.sub_channel_index not in exclude_indices:
+                exclude_indices.append(self.sub_channel_index)
+
         # all indices
         self.indices = [j for j in include_indices if j not in exclude_indices]
         self.other_indices = [j for j in range(self.inlet.get_n_channels()) if j in exclude_indices]
 
+
+
     def get_next_chunk(self):
         chunk = self.inlet.get_next_chunk()
         if chunk is not None:
-            return chunk[:, self.indices], chunk[:, self.other_indices]
+            if self.sub_channel_index is None:
+                return chunk[:, self.indices], chunk[:, self.other_indices]
+            else:
+                return chunk[:, self.indices] - chunk[:, [self.sub_channel_index]], chunk[:, self.other_indices]
         else:
             return None, None
 

@@ -22,6 +22,7 @@ vectors_defaults = OrderedDict([
     ('bPlotSignals', 1),
     ('fRewardPeriodS', 0.25),
     ('sReference', ''),
+    ('sReferenceSub', ''),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),

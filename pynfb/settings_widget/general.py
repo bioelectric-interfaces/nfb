@@ -25,10 +25,16 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.form_layout.addRow('&Inlet:', self.inlet)
 
         # reference
+        self.form_layout.addRow('Reference:', None)
         self.reference = QtGui.QLineEdit(self)
-        self.reference.setPlaceholderText('Print reference (names or numbers)')
+        self.reference.setPlaceholderText('Print channels to exclude (names or numbers)')
         self.reference.textChanged.connect(self.reference_changed_event)
-        self.form_layout.addRow('&Reference:', self.reference)
+        self.form_layout.addRow('&    Exclude channels:', self.reference)
+
+        self.reference_sub = QtGui.QLineEdit(self)
+        self.reference_sub.setPlaceholderText('Print subtractive channel (name or number)')
+        self.reference_sub.textChanged.connect(self.reference_sub_changed_event)
+        self.form_layout.addRow('&    Subtract channel from other:', self.reference_sub)
 
         # plot raw flag
         self.plot_raw_check = QtGui.QCheckBox()
@@ -62,6 +68,9 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def reference_changed_event(self):
         self.params['sReference'] = self.reference.text()
 
+    def reference_sub_changed_event(self):
+        self.params['sReferenceSub'] = self.reference_sub.text()
+
     def plot_raw_checkbox_event(self):
         self.params['bPlotRaw'] = int(self.plot_raw_check.isChecked())
 
@@ -75,6 +84,7 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.params = self.parent().params
         self.name.setText(self.params['sExperimentName'])
         self.reference.setText(self.params['sReference'])
+        self.reference_sub.setText(self.params['sReferenceSub'])
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
