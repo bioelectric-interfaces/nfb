@@ -40,6 +40,9 @@ class Rejections():
             prod = dot(prod, rejection.val)
         return prod
 
+    def get_list(self):
+        return [rejection.val for rejection in self.list]
+
     def update_list(self, rejections, append=False):
         if append:
             self.list += rejections

@@ -6,6 +6,7 @@ from scipy.signal import *
 
 import pandas as pd
 import seaborn as sns
+import pickle
 
 def dc_blocker(x, r=0.99):
     # DC Blocker https://ccrma.stanford.edu/~jos/fp/DC_Blocker.html
@@ -18,7 +19,7 @@ def dc_blocker(x, r=0.99):
 pilot_dir = 'C:\\Users\\Nikolai\\Downloads\\pilot'
 
 
-experiments1 = ['pilot_Nikolay_1_10-17_13-57-56',
+experiments1 = [# 'pilot_Nikolay_1_10-17_13-57-56', #BAD NO FILTERS
                 'pilot_Plackhin_1_10-20_12-03-01',
                 'pilot_Tatiana_1_10-17_15-04-39',
                 'pilot_Polyakova_1_10-24_15-21-18']
@@ -26,7 +27,7 @@ experiments1 = ['pilot_Nikolay_1_10-17_13-57-56',
 experiments2 = ['pilot_Nikolay_2_10-18_14-57-23',
                 'pilot_Tatiana_2_10-18_16-00-44']
 
-experiments = experiments1
+experiments = experiments2
 
 
 import h5py
@@ -37,22 +38,21 @@ fs = None
 channel = 'C3'
 n_samples = 7500
 
-for experiment in experiments:
-    with h5py.File('{}\\{}\\{}'.format(pilot_dir, experiment, 'experiment_data.h5')) as f:
-        rejections = [f['protocol1/signals_stats/left/rejections/rejection{}'.format(j+1)][:] for j in range(2)]
-        rejection = rejections[0]#np.dot(rejections[0], rejections[1])
+new_rejections_file = 'new_rejections.pkl'
+with open(new_rejections_file, 'rb') as handle:
+    new_rejections = pickle.load(handle)
+
+
+for experiment in experiments[:]:
+    rejections = new_rejections[experiment]
+    rejection = np.dot(rejections[0], rejections[1])
 
     with h5py.File('{}\\{}\\{}'.format(pilot_dir, experiment, 'experiment_data.h5')) as f:
 
-        raw_data = [np.dot(f['protocol{}/raw_data'.format(j)][:], rejection) for j in [3, 2, 14]]
 
-        raw_data = [raw_data[0][:7500], raw_data[1][:7500], raw_data[2][:7500], raw_data[1][7500:15000], raw_data[2][7500:15000]]
-        print(raw_data)
-        print([f['protocol{}'.format(j)].attrs['name'] for j in [3, 2, 14]])
 
         labels_, fs_ = get_lsl_info_from_xml(f['stream_info.xml'][0])
-        labels_ = [label for label in labels_ if label not in ['A1', 'A2', 'AUX']]
-        n_samples_ = min([len(raw_data[k]) for k in range(len(raw_data))])
+        # n_samples_ = min([len(raw_data[k]) for k in range(len(raw_data))])
         if labels:
             assert labels == labels_, 'Labels should be the same'
         if fs:
@@ -60,6 +60,20 @@ for experiment in experiments:
         labels = labels_
         fs = fs_
 
+        print(labels_)
+        channels = [label for label in labels_ if label not in ['A1', 'A2', 'AUX']]
+        pz_index = channels.index('Pz')
+
+        raw_data = []
+        for j in [3, 2, 14]:
+            raw = f['protocol{}/raw_data'.format(j)][:]
+            raw = raw[:, np.arange(raw.shape[1]) != pz_index]
+            raw_data.append(raw)
+
+        raw_data = [raw_data[0][:7500], raw_data[1][:7500], raw_data[2][:7500], raw_data[1][7500:15000],
+                    raw_data[2][7500:15000]]
+        print(raw_data)
+        print([f['protocol{}'.format(j)].attrs['name'] for j in [3, 2, 14]])
 
         results[experiment] = np.array([raw[:, labels.index(channel)] for raw in raw_data]).T
         print(results[experiment][0].shape)
