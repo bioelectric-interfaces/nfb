@@ -27,7 +27,7 @@ experiments1 = [# 'pilot_Nikolay_1_10-17_13-57-56', #BAD NO FILTERS
 experiments2 = ['pilot_Nikolay_2_10-18_14-57-23',
                 'pilot_Tatiana_2_10-18_16-00-44']
 
-experiments = experiments2
+experiments = experiments1
 
 
 import h5py
@@ -42,10 +42,19 @@ new_rejections_file = 'new_rejections.pkl'
 with open(new_rejections_file, 'rb') as handle:
     new_rejections = pickle.load(handle)
 
-
+use_pz = False
+reject_alpha = False
 for experiment in experiments[:]:
-    rejections = new_rejections[experiment]
-    rejection = np.dot(rejections[0], rejections[1])
+    if use_pz:
+        rejections = new_rejections[experiment]
+    else:
+        with h5py.File('{}\\{}\\{}'.format(pilot_dir, experiment, 'experiment_data.h5')) as f:
+            rejections = [f['protocol1/signals_stats/left/rejections/rejection{}'.format(j + 1)][:] for j in range(2)]
+
+    rejection = rejections[0]
+
+    if reject_alpha:
+        rejection = np.dot(rejection, rejections[1])
 
     with h5py.File('{}\\{}\\{}'.format(pilot_dir, experiment, 'experiment_data.h5')) as f:
 
@@ -65,15 +74,16 @@ for experiment in experiments[:]:
         pz_index = channels.index('Pz')
 
         raw_data = []
-        for j in [3, 2, 14]:
+        for j in [3, 2, 14, 13]:
             raw = f['protocol{}/raw_data'.format(j)][:]
-            raw = raw[:, np.arange(raw.shape[1]) != pz_index]
-            raw_data.append(raw)
+            if use_pz:
+                raw = raw[:, np.arange(raw.shape[1]) != pz_index]
+            raw_data.append(np.dot(raw, rejection))
 
         raw_data = [raw_data[0][:7500], raw_data[1][:7500], raw_data[2][:7500], raw_data[1][7500:15000],
-                    raw_data[2][7500:15000]]
+                    raw_data[2][7500:15000], np.concatenate([raw_data[3], raw_data[3][:2500]])]
         print(raw_data)
-        print([f['protocol{}'.format(j)].attrs['name'] for j in [3, 2, 14]])
+        print([f['protocol{}'.format(j)].attrs['name'] for j in [3, 2, 14, 13]])
 
         results[experiment] = np.array([raw[:, labels.index(channel)] for raw in raw_data]).T
         print(results[experiment][0].shape)
@@ -82,12 +92,13 @@ print('asfaef', results)
 b, a = butter(3, [9 / fs * 2, 14 / fs * 2], 'band')
 f = plt.figure()
 
-axs = [f.add_subplot(5, 1, k+1) for k in range(5)]
+axs = [f.add_subplot(6, 1, k+1) for k in range(6)]
 for experiment in experiments:
     x = filtfilt(b, a, results[experiment], axis=0)
-    x = (x - x[:, 0].mean()) / x[:, 0].std()
+    print(x.shape)
+    x = (x - np.median(x[:, 0], axis=0)) / x[:, 0].std()
     results[experiment] = x
-    for k in range(5):
+    for k in range(6):
         axs[k].plot(x[:, k])
         axs[k].set_ylim(-4, 4)
 plt.show()
@@ -98,7 +109,7 @@ n_taps = n_samples//n_windows
 print('n_taps', n_taps)
 for experiment in experiments:
     x = results[experiment]
-    pow_ = np.zeros((n_windows, 5))
+    pow_ = np.zeros((n_windows, 6))
     for i, ind in enumerate(range(0, n_samples-n_taps+1, n_taps)):
         pow_[i] = (x[ind:ind+n_taps, :]**2).mean(0)
     powers[experiment] = pow_
@@ -109,9 +120,9 @@ import pandas as pd
 from scipy.stats import ttest_ind, levene
 results_df = pd.DataFrame()
 tests = pd.DataFrame()
-protocols = ['background', 'before-right', 'after-right', 'before-left', 'after-left']
+protocols = ['background', 'before-right', 'after-right', 'before-left', 'after-left', 'last-rest']
 for i_exp, experiment in enumerate(experiments):
-    for i_protocol in range(5):
+    for i_protocol in range(6):
         pows = powers[experiments[i_exp]][:, i_protocol]
         results_df = results_df.append(pd.DataFrame({'subj': experiment.split('_')[1],
                         'protocol': protocols[i_protocol],
@@ -124,6 +135,7 @@ for i_exp, experiment in enumerate(experiments):
 
 ax = sns.boxplot(x="protocol", y="power", hue="subj", data=results_df)
 tests.to_csv('circle_border_tests' + '.csv')
+plt.ylim(0, 4)
 plt.savefig('circle_border.png', dpi=200)
 print(tests)
 
