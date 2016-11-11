@@ -12,13 +12,17 @@ import pickle
 pilot_dir = 'C:\\Users\\Nikolai\\Downloads\\pilot'
 
 
-experiments1 = [#'pilot_Nikolay_1_10-17_13-57-56', #BAD NO FILTERS
+experiments1 = ['pilot_Nikolay_1_10-17_13-57-56', #BAD NO FILTERS
                 'pilot_Plackhin_1_10-20_12-03-01',
                 'pilot_Tatiana_1_10-17_15-04-39',
-                'pilot_Polyakova_1_10-24_15-21-18']
+                'pilot_Polyakova_1_10-24_15-21-18',
+                'pilot_Emelyannikov29_1_11-09_20-14-28']
 
 experiments2 = ['pilot_Nikolay_2_10-18_14-57-23',
-                'pilot_Tatiana_2_10-18_16-00-44']
+                'pilot_Plackhin_2_10-21_13-09-27',
+                'pilot_Tatiana_2_10-18_16-00-44',
+                'pilot_Polyakova_2_10-25_14-19-56',
+                'pilot_Emelyannikov29_2_11-10_19-47-25']
 
 experiments = experiments1 + experiments2
 experiment_pairs = [('pilot_Tatiana_1_10-17_15-04-39', 'pilot_Tatiana_2_10-18_16-00-44')]
@@ -45,7 +49,7 @@ new_rejections_file = 'new_rejections.pkl'
 with open(new_rejections_file, 'rb') as handle:
     new_rejections = pickle.load(handle)
 
-use_pz = True
+use_pz = False
 reject_alpha = True
 for experiment in experiments[:]:
     print('\n\nEXPERIMENT', experiment)
