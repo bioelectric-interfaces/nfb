@@ -64,7 +64,7 @@ class TopomapWidget(pg.PlotWidget):
 
     def set_topomap(self, data):
         tmap = self.topomap.get_topomap(data)
-        self.img.setImage(tmap)
+        self.img.setImage(tmap.T)
 
 
 if __name__ == '__main__':

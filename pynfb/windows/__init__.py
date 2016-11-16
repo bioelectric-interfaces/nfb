@@ -5,6 +5,10 @@ from PyQt4.QtCore import pyqtSignal
 from pynfb.protocols.widgets import *
 from numpy import isnan
 
+from pynfb.widgets.helpers import ch_names_to_2d_pos
+from pynfb.widgets.topography import TopomapWidget
+from pynfb.helpers.dc_blocker import DCBlocker
+
 pg.setConfigOptions(antialias=True)
 
 static_path = full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../static')
@@ -190,6 +194,13 @@ class MainWindow(QtGui.QMainWindow):
             c.setPos(0, i + 1)
             self.curves.append(c)
 
+        # topomaper
+        pos = ch_names_to_2d_pos(channels_labels)
+        self.topomaper = TopomapWidget(pos)
+
+        # dc_blocker
+        self.dc_blocker = DCBlocker()
+
         # main window layout
         layout = pg.LayoutWidget(self)
         layout.addWidget(signals_layout, 0, 0, 1, 3)
@@ -198,7 +209,8 @@ class MainWindow(QtGui.QMainWindow):
         layout.addWidget(self.autoscale_raw_chekbox, 1, 1, 1, 1)
         layout.addWidget(self.raw, 2, 0, 1, 3)
         layout.addWidget(self.player_panel, 3, 0, 1, 1)
-        layout.addWidget(self.timer_label, 3, 1, 1, 2)
+        layout.addWidget(self.timer_label, 3, 1, 1, 1)
+        layout.addWidget(self.topomaper, 3, 2, 1, 1)
         layout.addWidget(self.status, 4, 0, 1, 3)
         layout.layout.setRowStretch(0, 2)
         layout.layout.setRowStretch(2, 2)
@@ -245,11 +257,14 @@ class MainWindow(QtGui.QMainWindow):
         # raw signals
         if self.plot_raw_chekbox.isChecked():
             self.raw_buffer[:-chunk.shape[0]] = self.raw_buffer[chunk.shape[0]:]
-            self.raw_buffer[-chunk.shape[0]:] = chunk[:, :self.n_channels]
+            self.raw_buffer[-chunk.shape[0]:] = self.dc_blocker.filter(chunk[:, :self.n_channels])
             for i in range(0, self.n_channels, 1):
                 self.curves[i].setData(self.x_mesh, self.raw_buffer[:, i] / self.scaler)
             if self.autoscale_raw_chekbox.isChecked() and self.time_counter % 10 == 0:
                 self.scaler = 0.8 * self.scaler + 0.2 * (np.max(self.raw_buffer) - np.min(self.raw_buffer)) / 0.75
+
+        # topomaper
+        self.topomaper.set_topomap(np.abs(self.raw_buffer[-50:]).mean(0))
 
         # timer
         if self.time_counter % 10 == 0:

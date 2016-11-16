@@ -1,8 +1,11 @@
 import numpy as np
 
 
+
+
 class ChannelsSelector:
     def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None):
+        self.last_y = 0
         self.inlet = inlet
         names = [n.upper() for n in self.inlet.get_channels_labels()]
         # get channels indices to select
@@ -60,12 +63,23 @@ class ChannelsSelector:
     def get_next_chunk(self):
         chunk = self.inlet.get_next_chunk()
         if chunk is not None:
+            # chunk = self.dc_blocker(chunk)
             if self.sub_channel_index is None:
                 return chunk[:, self.indices], chunk[:, self.other_indices]
             else:
                 return chunk[:, self.indices] - chunk[:, [self.sub_channel_index]], chunk[:, self.other_indices]
         else:
             return None, None
+
+
+    def dc_blocker(self, x, r=0.99):
+        # DC Blocker https://ccrma.stanford.edu/~jos/fp/DC_Blocker.html
+        y = np.zeros_like(x)
+        y[0] = self.last_y
+        for n in range(1, x.shape[0]):
+            y[n] = x[n] - x[n - 1] + r * y[n - 1]
+        self.last_y = y[-1]
+        return y
 
     def update_action(self):
         pass
