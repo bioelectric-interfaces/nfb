@@ -6,6 +6,7 @@ from pynfb.protocols.widgets import *
 from numpy import isnan
 
 from pynfb.widgets.helpers import ch_names_to_2d_pos
+from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
 from pynfb.helpers.dc_blocker import DCBlocker
 
@@ -167,32 +168,17 @@ class MainWindow(QtGui.QMainWindow):
 
         # raw data viewer
         self.raw = pg.PlotWidget(self)
+        self.raw_viewer = RawViewer(freq, channels_labels)
         self.n_channels = n_channels
         self.n_samples = 2000
-        self.raw_buffer = np.zeros((self.n_samples, self.n_channels))
-        self.scaler = 1
-        self.curves = []
-        self.x_mesh = np.linspace(0, self.n_samples / self.source_freq, self.n_samples)
-        self.raw.setYRange(0, min(8, self.n_channels))
-        self.raw.setXRange(0, self.n_samples / self.source_freq)
-        self.raw.getPlotItem().showAxis('right')
-        self.raw.getPlotItem().getAxis('right').setTicks(
-            [[(val, tick) for val, tick in zip(range(1, n_channels + 1, 2), range(1, n_channels + 1, 2))],
-             [(val, tick) for val, tick in zip(range(1, n_channels + 1), range(1, n_channels + 1))]])
-        self.raw.getPlotItem().getAxis('left').setTicks(
-            [[(val, tick) for val, tick in zip(range(1, n_channels + 1), channels_labels)]])
-        self.raw.showGrid(x=None, y=True, alpha=1)
+
+
         self.plot_raw_chekbox = QtGui.QCheckBox('plot raw')
         self.plot_raw_chekbox.setChecked(plot_raw_flag)
         self.plot_signals_chekbox = QtGui.QCheckBox('plot signals')
         self.plot_signals_chekbox.setChecked(plot_signals_flag)
         self.autoscale_raw_chekbox = QtGui.QCheckBox('autoscale')
         self.autoscale_raw_chekbox.setChecked(True)
-        for i in range(self.n_channels):
-            c = LSLPlotDataItem(pen=(i, self.n_channels * 1.3))
-            self.raw.addItem(c)
-            c.setPos(0, i + 1)
-            self.curves.append(c)
 
         # topomaper
         pos = ch_names_to_2d_pos(channels_labels)
@@ -207,7 +193,7 @@ class MainWindow(QtGui.QMainWindow):
         layout.addWidget(self.plot_raw_chekbox, 1, 0, 1, 1)
         layout.addWidget(self.plot_signals_chekbox, 1, 2, 1, 1)
         layout.addWidget(self.autoscale_raw_chekbox, 1, 1, 1, 1)
-        layout.addWidget(self.raw, 2, 0, 1, 3)
+        layout.addWidget(self.raw_viewer, 2, 0, 1, 3)
         layout.addWidget(self.player_panel, 3, 0, 1, 1)
         layout.addWidget(self.timer_label, 3, 1, 1, 1)
         layout.addWidget(self.topomaper, 3, 2, 1, 1)
@@ -256,15 +242,14 @@ class MainWindow(QtGui.QMainWindow):
 
         # raw signals
         if self.plot_raw_chekbox.isChecked():
-            self.raw_buffer[:-chunk.shape[0]] = self.raw_buffer[chunk.shape[0]:]
-            self.raw_buffer[-chunk.shape[0]:] = self.dc_blocker.filter(chunk[:, :self.n_channels])
-            for i in range(0, self.n_channels, 1):
-                self.curves[i].setData(self.x_mesh, self.raw_buffer[:, i] / self.scaler)
-            if self.autoscale_raw_chekbox.isChecked() and self.time_counter % 10 == 0:
-                self.scaler = 0.8 * self.scaler + 0.2 * (np.max(self.raw_buffer) - np.min(self.raw_buffer)) / 0.75
+
+            if self.time_counter < 10:
+                self.raw_viewer.update_std(chunk)
+            else:
+                self.raw_viewer.set_chunk(chunk)
 
         # topomaper
-        self.topomaper.set_topomap(np.abs(self.raw_buffer[-50:]).mean(0))
+        self.topomaper.set_topomap(np.abs(self.raw_viewer.raw_buffer[-50:]).mean(0))
 
         # timer
         if self.time_counter % 10 == 0:
