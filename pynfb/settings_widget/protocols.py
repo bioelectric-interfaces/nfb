@@ -127,6 +127,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.type.currentIndexChanged.connect(
             lambda: self.circle_border.setEnabled(self.type.currentText() == 'CircleFeedback'))
         self.type.currentIndexChanged.connect(
+            lambda: self.m_signal.setEnabled(self.type.currentText() == 'CircleFeedback'))
+        self.type.currentIndexChanged.connect(
+            lambda: self.m_signal_threshold.setEnabled(self.type.currentText() == 'CircleFeedback'))
+        self.type.currentIndexChanged.connect(
             lambda: self.video_path.setEnabled(self.type.currentText() == 'Video'))
         # self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
@@ -168,6 +172,15 @@ class ProtocolDialog(QtGui.QDialog):
         mock_previos_layput.addWidget(self.mock_previous)
         mock_previos_layput.addWidget(self.reverse_mock_previous)
         self.form_layout.addRow('Mock from previous\nprotocol raw data', mock_previos_layput)
+
+        # muscular signal
+        self.m_signal = QtGui.QComboBox()
+        self.m_signal_threshold = QtGui.QDoubleSpinBox()
+        muscular_layout = QtGui.QHBoxLayout()
+        muscular_layout.addWidget(self.m_signal)
+        muscular_layout.addWidget(QtGui.QLabel('Threshold:'))
+        muscular_layout.addWidget(self.m_signal_threshold)
+        self.form_layout.addRow('Muscular signal:', muscular_layout)
 
         # message text edit
         self.message = QtGui.QTextEdit()
@@ -274,6 +287,14 @@ class ProtocolDialog(QtGui.QDialog):
         self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.video_path.path.setText(current_protocol['sVideoPath'])
         self.video_path.setEnabled(self.type.currentText() == 'Video')
+        signals = ([d['sSignalName'] for d in self.parent().parent().params['vSignals']['DerivedSignal']] +
+                   [d['sSignalName'] for d in self.parent().parent().params['vSignals']['CompositeSignal']])
+        self.m_signal.addItems(['None'] + signals)
+        self.m_signal.setEnabled(self.type.currentText() == 'CircleFeedback')
+        self.m_signal_threshold.setEnabled(self.type.currentText() == 'CircleFeedback')
+        current_index = self.m_signal.findText(current_protocol['sMSignal'], QtCore.Qt.MatchFixedString)
+        self.m_signal.setCurrentIndex(current_index if current_index > -1 else 0)
+        self.m_signal_threshold.setValue(current_protocol['fMSignalThreshold'])
         pass
 
     def save_and_close(self):
@@ -303,5 +324,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['bReverseMockPrevious'] = (
             int(self.reverse_mock_previous.isChecked()) if self.enable_mock_previous.isChecked() else 0)
         self.params[current_signal_index]['sVideoPath'] = self.video_path.path.text()
+        self.params[current_signal_index]['sMSignal'] = self.m_signal.currentText()
+        self.params[current_signal_index]['sMSignalThreshold'] = self.m_signal_threshold.value()
         self.parent().reset_items()
         self.close()
