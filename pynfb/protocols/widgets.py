@@ -64,7 +64,7 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
         fill = pg.FillBetweenItem(self.p1, self.p2, brush=(229, 223, 213, 25))
         widget.addItem(fill)
 
-    def redraw_state(self, sample):
+    def redraw_state(self, sample, m_sample):
         if np.ndim(sample)>0:
             sample = np.sum(sample)
         noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
@@ -87,7 +87,7 @@ class BaselineProtocolWidgetPainter(Painter):
         widget.addItem(self.text_item)
         self.plotItem = widget.plotItem
 
-    def redraw_state(self, sample):
+    def redraw_state(self, sample, m_sample):
         pass
 
     def set_message(self, text):
@@ -111,7 +111,7 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
         self.fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 25))
         widget.addItem(self.fill)
 
-    def redraw_state(self, samples):
+    def redraw_state(self, samples, m_sample):
         samples = np.abs(samples)
         if np.ndim(samples)==0:
             samples = samples.reshape((1,))
@@ -177,7 +177,7 @@ class VideoProtocolWidgetPainter(Painter):
             text_item.setTextWidth(500)
             widget.addItem(text_item)
 
-    def redraw_state(self, sample):
+    def redraw_state(self, sample, m_sample):
         if self.video is not None:
             timer = time.time()
             if timer - self.timer > self.timer_period:
@@ -199,7 +199,7 @@ if __name__ == '__main__':
     b.prepare_widget(w)
     timer = QtCore.QTimer()
     timer.start(1000/30)
-    timer.timeout.connect(lambda: b.redraw_state(np.random.normal(scale=0.2)))
+    timer.timeout.connect(lambda: b.redraw_state(np.random.normal(scale=0.2), np.random.normal(scale=0.2)))
     a.exec_()
     #for k in range(10000):
     #    sleep(1/30)

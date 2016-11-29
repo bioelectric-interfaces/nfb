@@ -299,6 +299,8 @@ class Experiment():
             print(protocol['sRewardSignal'], reward_signal_id)
             mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
                          protocol['sMockSignalFileDataset'])
+            m_signal = protocol['sMSignal']
+            m_signal_index = None if m_signal not in signal_names else signal_names.index(m_signal)
             if protocol['sFb_type'] == 'Baseline':
                 self.protocols.append(
                     BaselineProtocol(
@@ -318,7 +320,8 @@ class Experiment():
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id,
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
-                        experiment=self
+                        experiment=self,
+                        m_signal_index=m_signal_index
                     ))
             elif protocol['sFb_type'] == 'CircleFeedback':
                 self.protocols.append(
@@ -341,7 +344,8 @@ class Experiment():
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id,
-                        experiment=self))
+                        experiment=self,
+                        m_signal_index=m_signal_index))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(
@@ -361,7 +365,8 @@ class Experiment():
                         show_reward=bool(protocol['bShowReward']),
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id,
-                        experiment=self))
+                        experiment=self,
+                        m_signal_index=m_signal_index))
             elif protocol['sFb_type'] == 'Video':
                 self.protocols.append(
                     VideoProtocol(
@@ -380,7 +385,8 @@ class Experiment():
                         reward_threshold=protocol['bRewardThreshold'],
                         video_path=protocol['sVideoPath'],
                         reward_signal_id=reward_signal_id,
-                        experiment=self))
+                        experiment=self,
+                        m_signal_index=m_signal_index))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 

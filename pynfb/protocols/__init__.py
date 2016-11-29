@@ -16,7 +16,7 @@ class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
-                 experiment=None, pause_after=False, reverse_mock_previous=False):
+                 experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -43,21 +43,23 @@ class Protocol:
         self.drop_outliers = drop_outliers
         self.experiment = experiment
         self.pause_after = pause_after
+        self.m_signal_id = m_signal_index
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
+        m_sample = None if self.m_signal_id is None else samples[self.m_signal_id]
         if self.source_signal_id is not None:
             if self.mock_previous == 0:
-                self.widget_painter.redraw_state(samples[self.source_signal_id])
+                self.widget_painter.redraw_state(samples[self.source_signal_id], m_sample)
             else:
                 mock_chunk = self.mock_recordings[self.mock_samples_counter:self.mock_samples_counter + chunk_size]
                 for signal in self.mock:
                     signal.update(mock_chunk)
                 self.mock_samples_counter += chunk_size
                 self.mock_samples_counter %= self.mock_recordings.shape[0]
-                self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample)
+                self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample, m_sample)
         else:
-            self.widget_painter.redraw_state(samples[0])  # if source signal is 'ALL'
+            self.widget_painter.redraw_state(samples[0], m_sample)  # if source signal is 'ALL'
 
     def update_statistics(self):
         pass
