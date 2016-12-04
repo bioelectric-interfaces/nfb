@@ -48,7 +48,7 @@ class Painter:
 
 
 class CircleFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0):
+    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1):
         super(CircleFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.noise_scaler = noise_scaler
         self.x = np.linspace(-np.pi/2, np.pi/2, 100)
@@ -56,15 +56,29 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
         self.noise = np.sin(15*self.x)*0.5-0.5 if not circle_border else np.random.uniform(-0.5, 0.5, 100)-0.5
         self.widget = None
         self.radius = radius
+        self.m_threshold = m_threshold
 
     def prepare_widget(self, widget):
         super(CircleFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
         self.p1 = widget.plot(np.sin(self.x), np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
         self.p2 = widget.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
         fill = pg.FillBetweenItem(self.p1, self.p2, brush=(229, 223, 213, 25))
+        self.fill = fill
         widget.addItem(fill)
 
+    def set_red_state(self, flag):
+        if flag:
+            self.p1.setPen(pg.mkPen(176, 35, 48))
+            self.p2.setPen(pg.mkPen(176, 35, 48))
+            self.fill.setBrush(176, 35, 48, 25)
+        else:
+            self.p1.setPen(pg.mkPen(229, 223, 213))
+            self.p2.setPen(pg.mkPen(229, 223, 213))
+            self.fill.setBrush(229, 223, 213, 25)
+
     def redraw_state(self, sample, m_sample):
+        if m_sample is not None:
+            self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
         noise_ampl = -np.tanh(sample + self.noise_scaler) + 1

@@ -321,7 +321,7 @@ class Experiment():
                         reward_signal_id=reward_signal_id,
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
                         experiment=self,
-                        m_signal_index=m_signal_index
+                        m_signal_index=m_signal_index,
                     ))
             elif protocol['sFb_type'] == 'CircleFeedback':
                 self.protocols.append(
@@ -345,7 +345,8 @@ class Experiment():
                         reward_threshold=protocol['bRewardThreshold'],
                         reward_signal_id=reward_signal_id,
                         experiment=self,
-                        m_signal_index=m_signal_index))
+                        m_signal_index=m_signal_index,
+                        m_threshold=protocol['fMSignalThreshold']))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(

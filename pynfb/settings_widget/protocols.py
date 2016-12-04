@@ -176,6 +176,7 @@ class ProtocolDialog(QtGui.QDialog):
         # muscular signal
         self.m_signal = QtGui.QComboBox()
         self.m_signal_threshold = QtGui.QDoubleSpinBox()
+        self.m_signal_threshold.setSingleStep(0.01)
         muscular_layout = QtGui.QHBoxLayout()
         muscular_layout.addWidget(self.m_signal)
         muscular_layout.addWidget(QtGui.QLabel('Threshold:'))
@@ -325,6 +326,6 @@ class ProtocolDialog(QtGui.QDialog):
             int(self.reverse_mock_previous.isChecked()) if self.enable_mock_previous.isChecked() else 0)
         self.params[current_signal_index]['sVideoPath'] = self.video_path.path.text()
         self.params[current_signal_index]['sMSignal'] = self.m_signal.currentText()
-        self.params[current_signal_index]['sMSignalThreshold'] = self.m_signal_threshold.value()
+        self.params[current_signal_index]['fMSignalThreshold'] = self.m_signal_threshold.value()
         self.parent().reset_items()
         self.close()

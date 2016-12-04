@@ -167,7 +167,7 @@ class MainWindow(QtGui.QMainWindow):
         self.update_statistics_lines()
 
         # raw data viewer
-        self.raw = pg.PlotWidget(self)
+        # self.raw = pg.PlotWidget(self)
         self.raw_viewer = RawViewer(freq, channels_labels)
         self.n_channels = n_channels
         self.n_samples = 2000
