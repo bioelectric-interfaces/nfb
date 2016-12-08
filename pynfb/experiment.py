@@ -4,6 +4,7 @@ from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
 
+from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
 from .generators import run_eeg_sim
@@ -203,6 +204,7 @@ class Experiment():
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
             self.subject.close()
+            plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
 
