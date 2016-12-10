@@ -148,35 +148,18 @@ class MainWindow(QtGui.QMainWindow):
         # timer label
         self.timer_label = QtGui.QLabel('tf')
 
-        # derived signals viewers
-        signals_layout = pg.GraphicsLayoutWidget(self)
-        self.signal_curves = []
-        self.statistics_lines = []
-        for signal in signals:
-            roi_figure = signals_layout.addPlot(labels={'left': signal.name})
-            signals_layout.nextRow()
-            curve = roi_figure.plot().curve
-            self.signal_curves.append(curve)
-            self.statistics_lines.append([roi_figure.plot().curve,
-                                          roi_figure.plot().curve,
-                                          roi_figure.plot().curve])
-
-        self.signals_buffer = np.zeros((8000, n_signals))
-        self.signals_curves_x_net = np.linspace(0, 8000 / self.source_freq, 8000 / 8)
-
-        self.update_statistics_lines()
+        # signals viewer
+        self.signals_viewer = RawViewer(freq, channels_labels=[signal.name for signal in signals], show_levels=True)
 
         # raw data viewer
-        # self.raw = pg.PlotWidget(self)
         self.raw_viewer = RawViewer(freq, channels_labels)
         self.n_channels = n_channels
         self.n_samples = 2000
 
-
-        self.plot_raw_chekbox = QtGui.QCheckBox('plot raw')
-        self.plot_raw_chekbox.setChecked(plot_raw_flag)
-        self.plot_signals_chekbox = QtGui.QCheckBox('plot signals')
-        self.plot_signals_chekbox.setChecked(plot_signals_flag)
+        self.plot_raw_checkbox = QtGui.QCheckBox('plot raw')
+        self.plot_raw_checkbox.setChecked(plot_raw_flag)
+        self.plot_signals_checkbox = QtGui.QCheckBox('plot signals')
+        self.plot_signals_checkbox.setChecked(plot_signals_flag)
         self.autoscale_raw_chekbox = QtGui.QCheckBox('autoscale')
         self.autoscale_raw_chekbox.setChecked(True)
 
@@ -189,9 +172,9 @@ class MainWindow(QtGui.QMainWindow):
 
         # main window layout
         layout = pg.LayoutWidget(self)
-        layout.addWidget(signals_layout, 0, 0, 1, 3)
-        layout.addWidget(self.plot_raw_chekbox, 1, 0, 1, 1)
-        layout.addWidget(self.plot_signals_chekbox, 1, 2, 1, 1)
+        layout.addWidget(self.signals_viewer, 0, 0, 1, 3)
+        layout.addWidget(self.plot_raw_checkbox, 1, 0, 1, 1)
+        layout.addWidget(self.plot_signals_checkbox, 1, 2, 1, 1)
         layout.addWidget(self.autoscale_raw_chekbox, 1, 1, 1, 1)
         layout.addWidget(self.raw_viewer, 2, 0, 1, 3)
         layout.addWidget(self.player_panel, 3, 0, 1, 1)
@@ -213,35 +196,25 @@ class MainWindow(QtGui.QMainWindow):
 
         # time counter
         self.time_counter = 0
+        self.time_counter1 = 0
         self.t0 = time.time()
         self.t = self.t0
 
     def update_statistics_lines(self):
-        for j, (mean_line, std_line1, std_line2) in enumerate(self.statistics_lines):
-            if not isnan(self.signals[j].mean) and not isnan(self.signals[j].std):
-                mean_line.setData(x=[0, 8000 / self.source_freq], y=[0, 0])
-                mean_line.setPen(pg.mkPen(176, 35, 48, 150))
-                std_line1.setData(x=[0, 8000 / self.source_freq], y=[1, 1])
-                std_line2.setData(x=[0, 8000 / self.source_freq], y=[-1, -1])
-                std_line1.setPen(pg.mkPen(51, 152, 188, 150))
-                std_line2.setPen(pg.mkPen(51, 152, 188, 150))
-            else:
-                mean_line.setPen(None)
-                std_line1.setPen(None)
-                std_line2.setPen(None)
+        pass
 
     def redraw_signals(self, samples, chunk, samples_counter):
 
         # derived signals
-        if self.plot_signals_chekbox.isChecked():
-            data_buffer = self.signals_buffer
-            data_buffer[:-chunk.shape[0]] = data_buffer[chunk.shape[0]:]
-            for s, sample in enumerate(samples):
-                data_buffer[-chunk.shape[0]:, s] = sample
-                self.signal_curves[s].setData(x=self.signals_curves_x_net, y=data_buffer[::8, s])
+        if self.plot_signals_checkbox.isChecked():
+            if self.time_counter1 < 10:
+                self.signals_viewer.update_std(np.dot(np.ones((chunk.shape[0], 1)), samples[None, :]))
+                self.signals_viewer.update_levels()
+            else:
+                self.signals_viewer.set_chunk(np.dot(np.ones((chunk.shape[0], 1)), samples[None, :]))
 
         # raw signals
-        if self.plot_raw_chekbox.isChecked():
+        if self.plot_raw_checkbox.isChecked():
 
             if self.time_counter < 10:
                 self.raw_viewer.update_std(chunk)
@@ -259,6 +232,7 @@ class MainWindow(QtGui.QMainWindow):
                     .format(samples_counter, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
             self.t = t_curr
         self.time_counter += 1
+        self.time_counter1 += 1
 
     def restart_experiment(self):
         self.status.restart()

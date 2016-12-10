@@ -28,7 +28,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
         return x, y
 
 class RawViewer(pg.PlotWidget):
-    def __init__(self, fs, channels_labels, parent=None, buffer_time_sec=5):
+    def __init__(self, fs, channels_labels, parent=None, buffer_time_sec=5, show_levels=False):
         super(RawViewer, self).__init__(parent)
         # cross
         cross = CrossButtonsWidget(self)
@@ -49,7 +49,8 @@ class RawViewer(pg.PlotWidget):
         self.scaler = 1.
         self.curves = []
         self.x_mesh = np.linspace(0, self.n_samples / fs, self.n_samples)
-        self.setYRange(0, min(8, n_channels))
+
+        self.setYRange(0, min(8, n_channels + 2))
         self.setXRange(0, self.n_samples / fs)
         self.getPlotItem().showAxis('right')
         self.getPlotItem().getAxis('right').setTicks(
@@ -62,6 +63,10 @@ class RawViewer(pg.PlotWidget):
             self.addItem(c)
             c.setPos(0, i + 1)
             self.curves.append(c)
+        self.show_levels_flag = False
+        if show_levels:
+            self.show_levels_flag = True
+            self.show_levels()
 
     def update_std(self, chunk):
         if self.std is None:
@@ -75,9 +80,10 @@ class RawViewer(pg.PlotWidget):
         self.update()
 
     def update(self):
+        std = 1 if self.std is None else self.std
         for i in range(0, self.n_channels, 1):
             self.curves[i].setData(self.x_mesh[:self.n_samples_to_display],
-                                   self.raw_buffer[-self.n_samples_to_display:, i] * self.scaler / self.std)
+                                   self.raw_buffer[-self.n_samples_to_display:, i] * self.scaler / std)
         self.setXRange(0, self.x_mesh[self.n_samples_to_display-1])
 
     def update_scaler(self, increase=False):
@@ -86,6 +92,7 @@ class RawViewer(pg.PlotWidget):
         if self.scaler < 0:
             self.scaler = 0
         self.update()
+        self.update_levels()
 
     def update_n_samples_to_display(self, increase=False):
         step = int(self.fs * 0.5)
@@ -95,6 +102,26 @@ class RawViewer(pg.PlotWidget):
         elif self.n_samples_to_display > self.n_samples:
             self.n_samples_to_display = self.n_samples
         self.update()
+        self.update_levels()
+
+    def show_levels(self):
+        pens = (pg.mkPen(51, 152, 188, 150), pg.mkPen(176, 35, 48, 150))
+        self.levels = {'zero': [], 'p1': [], 'm1': []}
+        for i in range(self.n_channels):
+            for level, val in zip(['zero', 'p1', 'm1'], [0, 1, -1]):
+                c = LSLPlotDataItem(pen=pens[1] if level == 'zero' else pens[0])
+                self.addItem(c)
+                c.setPos(0, i + 1)
+                self.levels[level].append(c)
+        self.update_levels()
+
+    def update_levels(self):
+        if self.show_levels_flag:
+            for i in range(self.n_channels):
+                for level, val in zip(['zero', 'p1', 'm1'], [0, 1, -1]):
+                    self.levels[level][i].setData(self.x_mesh[:self.n_samples_to_display],
+                              self.x_mesh[:self.n_samples_to_display]*0 + val * self.scaler / (self.std or 1))
+
 
 if __name__ == '__main__':
     a = QtGui.QApplication([])

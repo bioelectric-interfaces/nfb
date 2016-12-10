@@ -161,12 +161,10 @@ class Experiment():
         # reset samples counter
         previous_counter = self.samples_counter
         self.samples_counter = 0
-        self.seconds = self.freq
-
-        # reset buffer if previous protocol has true value in update_statistics_in_the_end
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
-            self.main.signals_buffer *= 0
-        self.main.update_statistics_lines()
+            self.main.time_counter1 = 0
+            self.main.signals_viewer.raw_buffer *= 0
+        self.seconds = self.freq
 
         if self.current_protocol_index < len(self.protocols_sequence) - 1:
 
