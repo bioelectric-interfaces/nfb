@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Results file structure &#8212; NFB Lab 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="NFB Lab 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to NFB Lab’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="results-file-structure">
+<h1>Results file structure<a class="headerlink" href="#results-file-structure" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><strong>protocol0</strong> (group; initial stats of signals)</li>
+<li><strong>protocol1</strong> (group; recorded data and signals stats after the first protocol, see <a class="reference internal" href="#protocolk"><span class="std std-ref">protocol&lt;k&gt;</span></a>)</li>
+<li>...</li>
+</ul>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>protocol&lt;k&gt;</strong> (group; recorded data and signals stats after the &lt;k&gt;-th protocol)</dt>
+<dd><ul class="first last">
+<li><p class="first"><strong>raw_data</strong> (dataset; raw data recordings except <em>ignored</em> channels)</p>
+</li>
+<li><p class="first"><strong>raw_other_data</strong> (dataset; <em>ignored</em> channels, for example , for example reference channel)</p>
+</li>
+<li><p class="first"><strong>reward_data</strong> (dataset; reward dinamics time series)</p>
+</li>
+<li><p class="first"><strong>signals_data</strong> (dataset; signals data recordings)</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>signals_stats</strong> (group; signals stats for every signal)</dt>
+<dd><ul class="first last">
+<li><p class="first"><strong>signal_name1</strong> (group; stats for signal &#8220;signal_name1&#8221;, see <strong>signal_name&lt;m&gt;</strong>)</p>
+</li>
+<li><p class="first"><strong>signal_name2</strong> (group; stats for signal &#8220;signal_name2&#8221;, see <strong>signal_name&lt;m&gt;</strong>)</p>
+</li>
+<li><p class="first"><strong>...</strong></p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>signal_name&lt;m&gt;</strong> (group; stats for signal &#8220;signal_name&lt;m&gt;&#8221;)</dt>
+<dd><ul class="first last">
+<li><p class="first"><strong>mean</strong> (dataset; mean value of signal &#8220;signal_name&lt;m&gt;&#8221;)</p>
+</li>
+<li><p class="first"><strong>std</strong> (dataset; std value of signal &#8220;signal_name&lt;m&gt;&#8221;)</p>
+</li>
+<li><p class="first"><strong>bandpass</strong> (dataset; bandpass for signal &#8220;signal_name&lt;m&gt;&#8221;, for Derived signal only)</p>
+</li>
+<li><p class="first"><strong>spatial_filter</strong> (dataset; spatial filter dataset for signal &#8220;signal_name&lt;m&gt;&#8221;, for Derived signal only)</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>rejections</strong> (group; rejections for signal &#8220;signal_name&lt;m&gt;&#8221;, for Derived signal only)</dt>
+<dd><ul class="first last simple">
+<li><strong>rejection1</strong> (dataset; the first rejection dataset for signal &#8220;signal_name&lt;m&gt;&#8221;)</li>
+<li><strong>rejection2</strong> (dataset; the second rejection dataset for signal &#8220;signal_name&lt;m&gt;&#8221;)</li>
+<li><strong>...</strong></li>
+<li><strong>rejection&lt;j&gt;</strong> (dataset; the &lt;j&gt;-th rejection dataset for signal &#8220;signal_name&lt;m&gt;&#8221;)</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to NFB Lab&#8217;s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/experiment_results_file.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Nikolai Smetanin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/experiment_results_file.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
