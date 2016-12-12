@@ -28,7 +28,7 @@ class LSLPlotDataItem(pg.PlotDataItem):
         return x, y
 
 class RawViewer(pg.PlotWidget):
-    def __init__(self, fs, channels_labels, parent=None, buffer_time_sec=5, show_levels=False):
+    def __init__(self, fs, channels_labels, parent=None, buffer_time_sec=5, overlap=False):
         super(RawViewer, self).__init__(parent)
         # cross
         cross = CrossButtonsWidget(self)
@@ -52,19 +52,25 @@ class RawViewer(pg.PlotWidget):
 
         self.setYRange(0, min(8, n_channels + 2))
         self.setXRange(0, self.n_samples / fs)
+
         self.getPlotItem().showAxis('right')
-        self.getPlotItem().getAxis('right').setTicks(
-            [[(val, tick) for val, tick in zip(range(1, n_channels + 1, 2), range(1, n_channels + 1, 2))],
-             [(val, tick) for val, tick in zip(range(1, n_channels + 1), range(1, n_channels + 1))]])
-        self.getPlotItem().getAxis('left').setTicks(
-            [[(val, tick) for val, tick in zip(range(1, n_channels + 1), channels_labels)]])
+        if not overlap:
+            self.getPlotItem().getAxis('right').setTicks(
+                [[(val, tick) for val, tick in zip(range(1, n_channels + 1, 2), range(1, n_channels + 1, 2))],
+                 [(val, tick) for val, tick in zip(range(1, n_channels + 1), range(1, n_channels + 1))]])
+            self.getPlotItem().getAxis('left').setTicks(
+                [[(val, tick) for val, tick in zip(range(1, n_channels + 1), channels_labels)]])
+        else:
+            self.getPlotItem().addLegend(offset=(-30, 30))
         for i in range(n_channels):
-            c = LSLPlotDataItem(pen=(i, n_channels * 1.3))
+            c = LSLPlotDataItem(pen=(i, n_channels * 1.3), name=channels_labels[i])
             self.addItem(c)
-            c.setPos(0, i + 1)
+            if not overlap:
+                c.setPos(0, i + 1)
             self.curves.append(c)
         self.show_levels_flag = False
-        if show_levels:
+        self.overlap = overlap
+        if overlap:
             self.show_levels_flag = True
             self.show_levels()
 
@@ -107,17 +113,18 @@ class RawViewer(pg.PlotWidget):
     def show_levels(self):
         pens = (pg.mkPen(51, 152, 188, 150), pg.mkPen(176, 35, 48, 150))
         self.levels = {'zero': [], 'p1': [], 'm1': []}
-        for i in range(self.n_channels):
+        for i in (range(self.n_channels) if not self.overlap else [0]):
             for level, val in zip(['zero', 'p1', 'm1'], [0, 1, -1]):
                 c = LSLPlotDataItem(pen=pens[1] if level == 'zero' else pens[0])
                 self.addItem(c)
-                c.setPos(0, i + 1)
+                if not self.overlap:
+                    c.setPos(0, i + 1)
                 self.levels[level].append(c)
         self.update_levels()
 
     def update_levels(self):
         if self.show_levels_flag:
-            for i in range(self.n_channels):
+            for i in (range(self.n_channels) if not self.overlap else [0]):
                 for level, val in zip(['zero', 'p1', 'm1'], [0, 1, -1]):
                     self.levels[level][i].setData(self.x_mesh[:self.n_samples_to_display],
                               self.x_mesh[:self.n_samples_to_display]*0 + val * self.scaler / (self.std or 1))
