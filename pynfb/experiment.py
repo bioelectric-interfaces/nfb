@@ -20,6 +20,7 @@ from .signals import DerivedSignal, CompositeSignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
 
+
 # helpers
 def int_or_none(string):
     return int(string) if len(string) > 0 else None
@@ -65,8 +66,8 @@ class Experiment():
                     # catch channels trouble
                     if self.samples_counter > self.seconds:
                         self.seconds += 2 * self.freq
-                        raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq) :
-                                                                    self.samples_counter], 0)
+                        raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq):
+                        self.samples_counter], 0)
                         if self.raw_std is None:
                             self.raw_std = raw_std_new
                         else:
@@ -79,8 +80,6 @@ class Experiment():
                                 w.show()
                                 self.catch_channels_trouble = False
                             self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
-
-
 
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
@@ -96,8 +95,9 @@ class Experiment():
 
             self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
             if (self.main.player_panel.start.isChecked() and
-                self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
-                self.reward_recorder[self.samples_counter-chunk.shape[0]:self.samples_counter] = self.reward.get_score()
+                            self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
+                self.reward_recorder[
+                self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
 
             # subject update
             self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
@@ -118,7 +118,6 @@ class Experiment():
         self.test_mode = True
 
         self.subject.change_protocol(protocol)
-
 
     def close_test_protocol(self):
         if self.main_timer.isActive():
@@ -215,7 +214,6 @@ class Experiment():
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
         os.makedirs(self.dir_name)
 
-
         wait_bar = WaitMessage(WAIT_BAR_MESSAGES['EXPERIMENT_START']).show_and_return()
 
         self.test_mode = False
@@ -294,100 +292,65 @@ class Experiment():
         signal_names = [signal.name for signal in self.signals]
 
         for protocol in self.params['vProtocols']:
+            # some general protocol arguments
             source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
             reward_signal_id = signal_names.index(protocol['sRewardSignal']) if protocol['sRewardSignal'] != '' else 0
-            print(protocol['sRewardSignal'], reward_signal_id)
             mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
                          protocol['sMockSignalFileDataset'])
             m_signal = protocol['sMSignal']
             m_signal_index = None if m_signal not in signal_names else signal_names.index(m_signal)
+
+            # general protocol arguments dictionary
+            kwargs = dict(
+                source_signal_id=source_signal_id,
+                name=protocol['sProtocolName'],
+                duration=protocol['fDuration'],
+                update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                mock_samples_path=mock_path,
+                show_reward=bool(protocol['bShowReward']),
+                reward_signal_id=reward_signal_id,
+                reward_threshold=protocol['bRewardThreshold'],
+                # ssd_in_the_end = False,
+                timer=self.main_timer,
+                freq=self.freq,
+                ch_names=channels_labels,
+                mock_previous=int(protocol['iMockPrevious']),
+                drop_outliers=int(protocol['iDropOutliers']),
+                experiment=self,
+                pause_after=bool(protocol['bPauseAfter']),
+                reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
+                m_signal_index=m_signal_index
+            )
+
+            # type specific arguments
             if protocol['sFb_type'] == 'Baseline':
                 self.protocols.append(
                     BaselineProtocol(
                         self.signals,
-                        duration=protocol['fDuration'],
-                        name=protocol['sProtocolName'],
-                        source_signal_id=source_signal_id,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
-                        pause_after=bool(protocol['bPauseAfter']),
-                        drop_outliers=int(protocol['iDropOutliers']),
-                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
-                        freq=self.freq,
-                        timer=self.main_timer,
-                        ch_names=channels_labels,
-                        show_reward=bool(protocol['bShowReward']),
-                        reward_threshold=protocol['bRewardThreshold'],
-                        reward_signal_id=reward_signal_id,
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
-                        experiment=self,
-                        m_signal_index=m_signal_index,
+                        **kwargs
                     ))
             elif protocol['sFb_type'] == 'CircleFeedback':
                 self.protocols.append(
                     FeedbackProtocol(
                         self.signals,
-                        duration=protocol['fDuration'],
-                        name=protocol['sProtocolName'],
-                        source_signal_id=source_signal_id,
-                        mock_samples_path=mock_path,
                         circle_border=protocol['iRandomBound'],
-                        mock_previous=int(protocol['iMockPrevious']),
-                        reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
-                        pause_after=bool(protocol['bPauseAfter']),
-                        drop_outliers=int(protocol['iDropOutliers']),
-                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
-                        freq=self.freq,
-                        timer=self.main_timer,
-                        ch_names=channels_labels,
-                        show_reward=bool(protocol['bShowReward']),
-                        reward_threshold=protocol['bRewardThreshold'],
-                        reward_signal_id=reward_signal_id,
-                        experiment=self,
-                        m_signal_index=m_signal_index,
-                        m_threshold=protocol['fMSignalThreshold']))
+                        m_threshold=protocol['fMSignalThreshold'],
+                        **kwargs))
             elif protocol['sFb_type'] == 'ThresholdBlink':
                 self.protocols.append(
                     ThresholdBlinkFeedbackProtocol(
                         self.signals,
-                        duration=protocol['fDuration'],
-                        name=protocol['sProtocolName'],
                         threshold=protocol['fBlinkThreshold'],
                         time_ms=protocol['fBlinkDurationMs'],
-                        freq=self.freq,
-                        timer=self.main_timer,
-                        source_signal_id=source_signal_id,
-                        ch_names=channels_labels,
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
-                        pause_after=bool(protocol['bPauseAfter']),
-                        drop_outliers=int(protocol['iDropOutliers']),
-                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
-                        show_reward=bool(protocol['bShowReward']),
-                        reward_threshold=protocol['bRewardThreshold'],
-                        reward_signal_id=reward_signal_id,
-                        experiment=self,
-                        m_signal_index=m_signal_index))
+                        **kwargs))
             elif protocol['sFb_type'] == 'Video':
                 self.protocols.append(
                     VideoProtocol(
                         self.signals,
-                        duration=protocol['fDuration'],
-                        name=protocol['sProtocolName'],
-                        source_signal_id=source_signal_id,
-                        update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
-                        pause_after=bool(protocol['bPauseAfter']),
-                        drop_outliers=int(protocol['iDropOutliers']),
-                        ssd_in_the_end=bool(protocol['bSSDInTheEnd']),
-                        freq=self.freq,
-                        timer=self.main_timer,
-                        ch_names=channels_labels,
-                        show_reward=bool(protocol['bShowReward']),
-                        reward_threshold=protocol['bRewardThreshold'],
                         video_path=protocol['sVideoPath'],
-                        reward_signal_id=reward_signal_id,
-                        experiment=self,
-                        m_signal_index=m_signal_index))
+                        **kwargs))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 

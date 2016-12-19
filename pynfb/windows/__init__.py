@@ -149,7 +149,7 @@ class MainWindow(QtGui.QMainWindow):
         self.timer_label = QtGui.QLabel('tf')
 
         # signals viewer
-        self.signals_viewer = RawViewer(freq, channels_labels=[signal.name for signal in signals], show_levels=True)
+        self.signals_viewer = RawViewer(freq, channels_labels=[signal.name for signal in signals], overlap=True)
 
         # raw data viewer
         self.raw_viewer = RawViewer(freq, channels_labels)
@@ -186,7 +186,7 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(layout)
 
         # main window settings
-        self.resize(800, 400)
+        self.resize(800, 600)
         self.show()
 
         # subject window
