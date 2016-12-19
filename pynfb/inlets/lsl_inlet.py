@@ -1,11 +1,26 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from pylsl import StreamInlet, resolve_byprop
+from pylsl.pylsl import lib, StreamInfo, FOREVER, c_int, c_double, byref, handle_error
+import xml.etree.ElementTree as ET
 import time
 fmt2string = ['undefined', 'float32', 'float64', 'str', 'int32', 'int16',
               'int8', 'int64']
 LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
 LSL_RESOLVE_TIMEOUT = 10
+
+
+class FixedStreamInfo(StreamInfo):
+    def as_xml(self):
+        return lib.lsl_get_xml(self.obj).decode('utf-8', 'ignore') # add ignore
+
+class FixedStreamInlet(StreamInlet):
+    def info(self, timeout=FOREVER):
+        errcode = c_int()
+        result = lib.lsl_get_fullinfo(self.obj, c_double(timeout),
+                                      byref(errcode))
+        handle_error(errcode)
+        return FixedStreamInfo(handle=result) # StreamInfo(handle=result)
 
 
 class LSLInlet:
@@ -14,7 +29,7 @@ class LSLInlet:
         self.inlet = None
         self.dtype = 'float64'
         if len(streams) > 0:
-            self.inlet = StreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
+            self.inlet = FixedStreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
             # self.dtype = fmt2string[self.inlet.info().channel_format()]
             print(self.dtype)
 
@@ -31,10 +46,11 @@ class LSLInlet:
 
     def save_info(self, file):
         with open(file, 'w') as f:
-            f.write(self.inlet.info().as_xml())
+            f.write(self.info_as_xml())
 
     def info_as_xml(self):
-        return self.inlet.info().as_xml()
+        xml = self.inlet.info().as_xml()
+        return xml
 
     def get_frequency(self):
         return self.inlet.info().nominal_srate()
@@ -46,12 +62,12 @@ class LSLInlet:
         for t in range(3):
             time.sleep(0.5*(t+1))
             try:
-                labels = []
-                _info = self.inlet.info()
-                ch = _info.desc().child("channels").child("channel")
-                for k in range(self.get_n_channels()):
-                    labels.append(ch.child_value("label"))
-                    ch = ch.next_sibling()
+                # print('wow') TODO too many repetitions
+                rt = ET.fromstring(self.info_as_xml())
+                channels_tree = rt.find('desc').findall("channel") or rt.find('desc').find("channels").findall(
+                    "channel")
+                labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
+                          for ch in channels_tree]
                 return labels
             except OSError:
                 print('OSError during reading channels names', t+1)

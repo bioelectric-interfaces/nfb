@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+from pylsl import StreamInlet
 from pylsl import resolve_bypred
 from pynfb import STATIC_PATH
 
@@ -54,10 +55,24 @@ class LSLResolveWaitWidget(QtGui.QWidget):
     def fill_table(self, streams=None):
         if streams is None:
             streams = []
-        info = [(stream.name(), stream.type(), stream.channel_count(), stream.nominal_srate()) for stream in streams]
+
+        def get_label(stream, n_channels):
+            _info = stream
+            print(_info.as_xml())
+            import xml.etree.ElementTree as ET
+            rt = ET.fromstring(_info.as_xml())
+            channels_tree = rt.find('desc').findall("channel") or rt.find('desc').find("channels").findall("channel")
+            #print(channels_tree[0].find('name'))
+            labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
+                      for ch in channels_tree]
+            return labels
+
+
+        info = [(stream.name(), stream.type(), stream.channel_count(), stream.nominal_srate(),
+                 get_label(stream, stream.channel_count())) for stream in streams]
         self.streams_table.clear()
         for inf in info:
-            self.streams_table.addItem('{} ({}, {} channels, {} Hz)'.format(*inf))
+            self.streams_table.addItem('{} ({}, {} channels, {} Hz)\n{}'.format(*inf))
         pass
 
     def onFinished(self):
@@ -75,7 +90,8 @@ class ResolveThread(QtCore.QThread):
         self.widget = widget
 
     def run(self):
-        self.streams = resolve_bypred("*", timeout=5)
+        streams = resolve_bypred("*", timeout=5)
+        self.streams = [StreamInlet(stream).info() for stream in streams]
         self.taskFinished.emit()
 
 
