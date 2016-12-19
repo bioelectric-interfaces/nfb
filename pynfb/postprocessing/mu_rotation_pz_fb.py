@@ -43,7 +43,7 @@ for experiments in experiment_pairs:
     import h5py
     results = {}
 
-    channel = 'C4'
+    channel = 'C3'
     n_samples = 7500
 
     new_rejections_file = 'new_rejections.pkl'
@@ -135,24 +135,30 @@ for experiments in experiment_pairs:
     from scipy.stats import ttest_ind, levene
     results_df = pd.DataFrame()
     tests = pd.DataFrame()
-    protocols = ['{}_{}'.format(j, prot) for j, prot in enumerate(PROTOCOLS['NAMES'])]
     for i_exp, experiment in enumerate(experiments):
+        protocols = ['{}_{}({})'.format(i_exp + 1, prot, j) for j, prot in enumerate(PROTOCOLS['NAMES'])]
         for i_protocol, protocol in enumerate(protocols):
             if i_protocol in PROTOCOLS['FB'] + [PROTOCOLS['BASELINE']]:
                 pows = powers[experiments[i_exp]][i_protocol]
-                results_df = results_df.append(pd.DataFrame({'subj': '_'.join(experiment.split('_')[1:3]),
-                                'protocol': protocol,
-                                'power': pows}))
+                name = '{} (day {})'.format(experiment.split('_')[1], i_exp+1)
                 if i_protocol != PROTOCOLS['BASELINE']:
+                    results_df = results_df.append(pd.DataFrame({'subj': name,
+                                    'protocol': protocol,
+                                    'power': pows}))
+
                     # t, p = levene(powers[experiments[i_exp]][:, 0], pows)
                     t, p = ttest_ind(powers[experiments[i_exp]][PROTOCOLS['BASELINE']], pows, equal_var=False)
                     tests = tests.append(pd.DataFrame({'subj': '_'.join(experiment.split('_')[1:3]),
                                                        't-stat': [t], 'p-value': [p], 'protocol': protocol}))
 
     ax = sns.boxplot(x="protocol", y="power", hue="subj", data=results_df)
+    sns.plt.xticks(rotation=30)
     tests.to_csv('circle_border_tests' + '.csv')
     plt.ylim(0, 3)
+    plt.title('{} {}'.format(experiments[0].split('_')[1], channel))
+    plt.tight_layout()
     plt.savefig('_'.join(experiments[0].split('_')[:2]) +channel +'.png', dpi=200)
+
     print(tests)
 
 
