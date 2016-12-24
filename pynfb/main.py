@@ -1,5 +1,7 @@
 import sys
 import os
+import matplotlib
+matplotlib.use('TkAgg')
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
 #from pynfb import STATIC_PATH
 STATIC_PATH = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static') #TODO
