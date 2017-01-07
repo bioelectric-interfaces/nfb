@@ -20,6 +20,13 @@ def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005'):
     pos = montage.pos[indices, :2]
     return array(pos)
 
+def validate_ch_names(list_of_ch_names, kind='standard_1005'):
+    montage = read_montage(kind)
+    upper_list_of_ch_names = [ch.upper() for ch in list_of_ch_names]
+    upper_montage_ch_names = [ch.upper() for ch in montage.ch_names]
+    bool_indices = [ch in upper_montage_ch_names for ch in upper_list_of_ch_names ]
+    return bool_indices
+
 if __name__ == '__main__':
     #print(ch_names_to_2d_pos(['Cz', 'F8', 'F7', 'Cz']))
     print(ch_names_to_2d_pos(['Cz', 'Fp1']))

@@ -1,5 +1,5 @@
 import numpy as np
-
+from pynfb.widgets.helpers import validate_ch_names
 
 
 
@@ -8,6 +8,12 @@ class ChannelsSelector:
         self.last_y = 0
         self.inlet = inlet
         names = [n.upper() for n in self.inlet.get_channels_labels()]
+        names_isvalid = validate_ch_names(names)
+        if sum(names_isvalid) < len(names):
+            print('WARNING: inlet channels {} are not in standard 1005 scheme'.format(
+                [name for name, isvalid in zip(names, names_isvalid) if not isvalid]))
+
+
         # get channels indices to select
         if include:
             include = self.parse_channels_string(include)
@@ -50,12 +56,16 @@ class ChannelsSelector:
         else:
             exclude_indices = []
 
+        # exclude not valid channels
+        exclude_indices += [j for j, isvalid in enumerate(names_isvalid) if not isvalid]
+
         # exclude subtractive channel
         if self.sub_channel_index is not None:
             if self.sub_channel_index not in exclude_indices:
                 exclude_indices.append(self.sub_channel_index)
 
         # all indices
+        exclude_indices = set(exclude_indices)
         self.indices = [j for j in include_indices if j not in exclude_indices]
         self.other_indices = [j for j in range(self.inlet.get_n_channels()) if j in exclude_indices]
 
