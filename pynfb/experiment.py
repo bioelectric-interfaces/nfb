@@ -310,7 +310,7 @@ class Experiment():
                 show_reward=bool(protocol['bShowReward']),
                 reward_signal_id=reward_signal_id,
                 reward_threshold=protocol['bRewardThreshold'],
-                # ssd_in_the_end = False,
+                ssd_in_the_end = protocol['bSSDInTheEnd'],
                 timer=self.main_timer,
                 freq=self.freq,
                 ch_names=channels_labels,
