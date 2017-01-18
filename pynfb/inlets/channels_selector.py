@@ -4,7 +4,7 @@ from pynfb.widgets.helpers import validate_ch_names
 
 
 class ChannelsSelector:
-    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None):
+    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None, dc=False):
         self.last_y = 0
         self.inlet = inlet
         names = [n.upper() for n in self.inlet.get_channels_labels()]
@@ -68,12 +68,14 @@ class ChannelsSelector:
         exclude_indices = set(exclude_indices)
         self.indices = [j for j in include_indices if j not in exclude_indices]
         self.other_indices = [j for j in range(self.inlet.get_n_channels()) if j in exclude_indices]
+        self.dc = dc
 
 
     def get_next_chunk(self):
         chunk = self.inlet.get_next_chunk()
         if chunk is not None:
-            # chunk = self.dc_blocker(chunk)
+            if self.dc:
+                chunk = self.dc_blocker(chunk)
             if self.sub_channel_index is None:
                 return chunk[:, self.indices], chunk[:, self.other_indices]
             else:
