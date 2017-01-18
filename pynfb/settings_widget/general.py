@@ -59,6 +59,11 @@ class GeneralSettingsWidget(QtGui.QWidget):
         beep_button.clicked.connect(lambda : SingleBeep().try_to_play())
         self.form_layout.addRow('&Test beep sound:', beep_button)
 
+        # dc blocker
+        self.dc_check = QtGui.QCheckBox()
+        self.dc_check.clicked.connect(self.dc_check_event)
+        self.form_layout.addRow('&Enable DC Blocker:', self.dc_check)
+
         self.reset()
         # self.stream
 
@@ -77,6 +82,9 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def plot_signals_checkbox_event(self):
         self.params['bPlotSignals'] = int(self.plot_signals_check.isChecked())
 
+    def dc_check_event(self):
+        self.params['bDC'] = int(self.dc_check.isChecked())
+
     def reward_period_changed_event(self):
         self.params['fRewardPeriodS'] = self.reward_period.value()
 
@@ -88,4 +96,5 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
+        self.dc_check.setChecked(self.params['bDC'])
         self.inlet.reset()
