@@ -424,14 +424,15 @@ class Experiment():
             xml_str = load_xml_str_from_hdf5_dataset(self.params['sRawDataFilePath'], 'stream_info.xml')
             labels, fs = get_lsl_info_from_xml(xml_str)
             exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(self.params['sReference'])]
+            labels_inds = [j for j, label in enumerate(labels) if label.upper() not in exclude]
             labels = [label for label in labels if label.upper() not in exclude]
-            print('Using {} channels and fs={}.'.format(len(labels), fs))
+            print('Using {} channels and fs={}.\n[{}]'.format(len(labels), fs, labels))
         except (FileNotFoundError, DatasetNotFound):
             print('Channels labels and fs not found. Using default 32 channels and fs=500Hz.')
             labels = None
             fs = None
         self.thread = Process(target=run_eeg_sim, args=(),
-                              kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
+                              kwargs={'chunk_size': 0, 'source_buffer': source_buffer[labels_inds],
                                       'name': self.params['sStreamName'], 'labels': labels, 'freq': fs})
         self.thread.start()
         from time import sleep
