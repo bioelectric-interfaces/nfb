@@ -35,6 +35,7 @@ class Experiment():
         self.thread = None
         self.catch_channels_trouble = True
         self.mock_signals_buffer = None
+        self.activate_trouble_catching = False
         self.restart()
         pass
 
@@ -64,22 +65,24 @@ class Experiment():
                     self.samples_counter += chunk.shape[0]
 
                     # catch channels trouble
-                    if self.samples_counter > self.seconds:
-                        self.seconds += 2 * self.freq
-                        raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq):
-                        self.samples_counter], 0)
-                        if self.raw_std is None:
-                            self.raw_std = raw_std_new
-                        else:
-                            if self.catch_channels_trouble and any(raw_std_new > 7 * self.raw_std):
-                                w = ChannelTroubleWarning(parent=self.main)
-                                w.pause_clicked.connect(self.handle_channels_trouble_pause)
-                                w.closed.connect(
-                                    lambda: self.enable_trouble_catching(w)
-                                )
-                                w.show()
-                                self.catch_channels_trouble = False
-                            self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
+
+                    if self.activate_trouble_catching:
+                        if self.samples_counter > self.seconds:
+                            self.seconds += 2 * self.freq
+                            raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq):
+                            self.samples_counter], 0)
+                            if self.raw_std is None:
+                                self.raw_std = raw_std_new
+                            else:
+                                if self.catch_channels_trouble and any(raw_std_new > 7 * self.raw_std):
+                                    w = ChannelTroubleWarning(parent=self.main)
+                                    w.pause_clicked.connect(self.handle_channels_trouble_pause)
+                                    w.closed.connect(
+                                        lambda: self.enable_trouble_catching(w)
+                                    )
+                                    w.show()
+                                    self.catch_channels_trouble = False
+                                self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
 
             # redraw signals and raw data
             self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
