@@ -90,6 +90,15 @@ for experiments in experiment_pairs:
 
             results[experiment] = data
 
+    # collect scalers (beta)
+    powers_beta = {}
+    b, a = butter(4, [3 / fs * 2, 6 / fs * 2], 'band')
+    for experiment in experiments:
+        print('****', results[experiment][PROTOCOLS['BASELINE']].shape)
+        plt.plot(filtfilt(b, a, results[experiment][PROTOCOLS['BASELINE']], axis=0))
+        powers_beta[experiment] = filtfilt(b, a, results[experiment][PROTOCOLS['BASELINE']], axis=0).std()
+        print('****', powers_beta)
+    plt.show()
 
 
     # filter,  normalization and plot
@@ -102,7 +111,7 @@ for experiments in experiment_pairs:
         x = [filtfilt(b, a, x_, axis=0) if len(x_)>0 else x_ for x_ in results[experiment]]
 
         # NORMALIZATION
-        x = [(x_ - np.median(x[PROTOCOLS['BASELINE']], axis=0)) / x[PROTOCOLS['BASELINE']].std() for x_ in x]
+        x = [(x_ - np.mean(x[PROTOCOLS['BASELINE']], axis=0)) / (1 + 0 * x[PROTOCOLS['BASELINE']].std()) for x_ in x]
         results[experiment] = x
 
         # PLOT
@@ -110,7 +119,13 @@ for experiments in experiment_pairs:
             axs[k].plot(x[k])
             axs[k].set_xlim(0, 30000)
             axs[k].set_ylim(-4, 4)
+    plt.title('{} {} 3-6Hz'.format(experiments[0].split('_')[1], channel))
+    plt.legend(['1st day ', '2nd day'])
+    plt.savefig('_'.join(experiments[0].split('_')[:2]) + channel + '.png', dpi=200)
     plt.show()
+
+
+
 
 
     # COLLECT POWERS
@@ -120,7 +135,7 @@ for experiments in experiment_pairs:
 
     for experiment in experiments:
         for j, protocol_ind in enumerate(PROTOCOLS['ALL']):
-            x = results[experiment][j]
+            x = results[experiment][j] / powers_beta[experiment]
             pow_ = np.zeros((n_windows, ))
             inds, n_taps = np.linspace(0, len(x), n_windows+1, retstep=True, dtype=int)
             n_taps = int(n_taps)
@@ -144,17 +159,17 @@ for experiments in experiment_pairs:
                 if i_protocol != PROTOCOLS['BASELINE']:
                     results_df = results_df.append(pd.DataFrame({'subj': name,
                                     'protocol': protocol,
-                                    'power': pows}))
+                                    'power/power(3-6Hz)': pows}))
 
                     # t, p = levene(powers[experiments[i_exp]][:, 0], pows)
                     t, p = ttest_ind(powers[experiments[i_exp]][PROTOCOLS['BASELINE']], pows, equal_var=False)
                     tests = tests.append(pd.DataFrame({'subj': '_'.join(experiment.split('_')[1:3]),
                                                        't-stat': [t], 'p-value': [p], 'protocol': protocol}))
 
-    ax = sns.boxplot(x="protocol", y="power", hue="subj", data=results_df)
+    ax = sns.boxplot(x="protocol", y="power/power(3-6Hz)", hue="subj", data=results_df)
     sns.plt.xticks(rotation=30)
     tests.to_csv('circle_border_tests' + '.csv')
-    plt.ylim(0, 3)
+    plt.ylim(0, 4)
     plt.title('{} {}'.format(experiments[0].split('_')[1], channel))
     plt.tight_layout()
     plt.savefig('_'.join(experiments[0].split('_')[:2]) +channel +'.png', dpi=200)
