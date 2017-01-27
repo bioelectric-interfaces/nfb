@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    experiment_results_file
+   signals_manager
 
 
 Indices and tables

@@ -24,10 +24,10 @@ experiments2 = ['pilot_Nikolay_2_10-18_14-57-23',
                 'pilot_Polyakova_2_10-25_14-19-56',
                 'pilot_Emelyannikov29_2_11-10_19-47-25']
 
-experiments = experiments1 + experiments2
+# experiments = experiments1 + experiments2
 experiment_pairs = list(zip(experiments1, experiments2))
 
-experiments = experiment_pairs[0]
+# experiments = experiment_pairs[0]
 for experiments in experiment_pairs:
 
     PROTOCOLS = {'FB': [3, 5, 7, 9, 11],
