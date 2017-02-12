@@ -2,6 +2,8 @@ Data-driven filters (signals manager)
 =====================================
 .. toctree::
    ica
+   csp
+   ssd
 
 .. image:: signals_manager.png
 

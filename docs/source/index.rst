@@ -12,18 +12,10 @@ The program code is laid out in a github repository https://github.com/nikolaims
 Contents:
 
 .. toctree::
+   :maxdepth: 2
 
-   experiment_results_file
+   experimental_design
+   experiment
    signals_manager
+   experiment_results_file
    requirements
-
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
