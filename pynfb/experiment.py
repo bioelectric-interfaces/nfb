@@ -279,7 +279,8 @@ class Experiment():
                                                       else None),
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
-                                      smoothing_factor=signal['fSmoothingFactor'])
+                                      smoothing_factor=signal['fSmoothingFactor'],
+                                      source_freq=self.freq)
                         for ind, signal in enumerate(self.params['vSignals']['DerivedSignal'])]
 
         # composite signals
@@ -436,7 +437,7 @@ class Experiment():
             labels = None
             fs = None
         self.thread = Process(target=run_eeg_sim, args=(),
-                              kwargs={'chunk_size': 0, 'source_buffer': source_buffer[labels_inds],
+                              kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                       'name': self.params['sStreamName'], 'labels': labels, 'freq': fs})
         self.thread.start()
         from time import sleep
