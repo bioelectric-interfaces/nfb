@@ -53,7 +53,7 @@ def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', lab
     t = t0
     c = 1
     ampl = 10
-    freqs = np.arange(10, n_channels + 10)
+    freqs = np.arange(n_channels)*5 + 10
     sample = np.zeros((n_channels,))
     while True:
         # if source_buffer is not None get sample from source_buffer
