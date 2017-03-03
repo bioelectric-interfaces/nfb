@@ -10,7 +10,7 @@ import pickle
 
 
 pilot_dir = 'C:\\Users\\Nikolai\Downloads\pilot_5days'
-
+pilot_dir = 'D:\\Mu'
 
 experiments1 = ['pilot_Nikolay_1_10-17_13-57-56', #BAD NO FILTERS
                 'pilot_Plackhin_1_10-20_12-03-01',
@@ -29,6 +29,12 @@ experiments = ['pilot_Skotnikova_Day1_01-31_12-55-31',
                'pilot_Skotnikova_Day3_02-02_15-36-52',
                'pilot_Skotnikova_Day4_02-03_15-57-31',
                'pilot_Skotnikova_Day5_02-04_10-45-13'][:5]
+
+
+experiments = ['Dasha1_02-20_09-01-29',
+               'Dasha2_02-22_15-53-52',
+               'Dasha3_02-23_14-21-42',
+               'Dasha4_02-24_16-59-08']
 
 # experiments = experiments1 + experiments2
 experiment_pairs = list(zip(experiments1, experiments2))
@@ -52,9 +58,9 @@ for _ in range(1):
     channel = 'C3'
     n_samples = 7500
 
-    new_rejections_file = 'new_rejections.pkl'
-    with open(new_rejections_file, 'rb') as handle:
-        new_rejections = pickle.load(handle)
+    #new_rejections_file = 'new_rejections.pkl'
+    #with open(new_rejections_file, 'rb') as handle:
+    #    new_rejections = pickle.load(handle)
 
     use_pz = False
     reject_alpha = True
