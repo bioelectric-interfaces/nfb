@@ -19,7 +19,7 @@ def mutual_info(x, y, bins=100):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None):
+    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None, scores=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
@@ -50,7 +50,7 @@ class ICADialog(QtGui.QDialog):
         # unmixing matrix estimation
         self.unmixing_matrix = None
         self.topographies = None
-        self.scores = None
+        self.scores = scores
         self.components = None
         from time import time
         timer = time()

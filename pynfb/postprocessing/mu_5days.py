@@ -68,7 +68,7 @@ subjs = [
      'pilot5days_Rakhmankulov_Day2_02-28_14-45-36',
      'pilot5days_Rakhmankulov_Day3_03-01_12-51-41'],
 
-    ['pilot_Cherlenok_Day1_02-27_12-51-56',
+     ['pilot_Cherlenok_Day1_02-27_12-51-56',
      'pilot5days_Cherlenok_Day2_02-28_15-50-08',
      'pilot5days_Cherlenok_Day3_03-01_16-24-03'],
 
