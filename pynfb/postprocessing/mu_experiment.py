@@ -81,7 +81,7 @@ def get_colors():
 if __name__ == '__main__':
     import h5py
 
-    pilot_dir = ['C:\\Users\\Nikolai\\Downloads', 'D:\\Mu'][0]
+    pilot_dir = ['C:\\Users\\Nikolai\\Downloads', 'D:\\Mu'][1]
     subjs = [
         ['pilot_5Days_Rakhmankulov_Day1_02-27_17-27-34',
          'pilot5days_Rakhmankulov_Day2_02-28_14-45-36',
@@ -110,8 +110,9 @@ if __name__ == '__main__':
         ['Dasha1_02-20_09-01-29',
         'Dasha2_02-22_15-53-52',
         'Dasha3_02-23_14-21-42',
-        'Dasha4_02-24_16-59-08']][:-1]
-    drop_channels = [['AUX', 'A1', 'A2'], ['M_left', 'M_right']][0]
+        'Dasha4_02-24_16-59-08'],
+        ['Andrey1_03-07_19-05-02']][-1:]
+    drop_channels = [['AUX', 'A1', 'A2'], ['M_left', 'M_right']][1]
     channel = 'C4'
     alpha_band = (9, 14)
     theta_band = (3, 6)
@@ -161,7 +162,7 @@ if __name__ == '__main__':
 
                 # plot powers
                 norm = powers['{}. Baseline'.format(p_names.index('Baseline') + 1)].mean()
-                norm = np.mean(pow_theta)
+                #norm = np.mean(pow_theta)
                 print('norm', norm)
                 ax = fg.add_subplot(2, len(subj), j_s + 1)
                 for j_p, (name, pow) in enumerate(powers.items()):
