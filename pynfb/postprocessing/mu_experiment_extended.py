@@ -95,6 +95,7 @@ if __name__ == '__main__':
     import h5py
 
     pilot_dir = ['C:\\Users\\Nikolai\\Downloads', 'C:\\Users\\nsmetanin\\Downloads'][1]
+    pilot_dir = 'F:'
     subjs = [
         ['pilot_5Days_Rakhmankulov_Day1_02-27_17-27-34',
          'pilot5days_Rakhmankulov_Day2_02-28_14-45-36',
@@ -125,9 +126,10 @@ if __name__ == '__main__':
         'Dasha3_02-23_14-21-42',
         'Dasha4_02-24_16-59-08'],
         ['Andrey1_03-07_19-05-02']][-1:]
-    subjs = [['Andrey1_03-07_19-05-02', 'Andrey2_03-09_10-59-30']]
+    subjs = [['Andrey1_03-07_19-05-02', 'Andrey2_03-09_10-59-30', 'aANDREY3_03-10_12-46-43']]
+    subjs = [['test_mu_03-10_17-50-33']]
     drop_channels = [['AUX', 'A1', 'A2'], ['M_left', 'M_right']][1]
-    channel = 'C4'
+    channel = 'C3'
     alpha_band = (9, 14)
     theta_band = (3, 6)
     cm = get_colors()
@@ -146,9 +148,9 @@ if __name__ == '__main__':
                 alpha = OrderedDict()
                 pow_theta = []
                 for j, name in enumerate(p_names):
-                    pow, alpha_x, x = get_protocol_power(f, j, fs, rejections, ch, alpha_band, dc=True)
+                    pow, alpha_x, x = get_protocol_power(f, j, fs, rejections, ch, alpha_band, dc=False)
                     if name == 'FB':
-                        pow_theta.append(get_protocol_power(f, j, fs, rejections, ch, theta_band, dc=True)[0].mean())
+                        pow_theta.append(get_protocol_power(f, j, fs, rejections, ch, theta_band, dc=False)[0].mean())
                     powers = add_data(powers, name, pow)
                     raw = add_data(raw, name, x)
                     alpha = add_data(alpha, name, alpha_x)
@@ -176,13 +178,20 @@ if __name__ == '__main__':
                 #norm = np.mean(pow_theta)
                 print('norm', norm)
 
-                ax1 = fg.add_subplot(3, len(subj), j_s + 1)
-                ax = fg.add_subplot(3, len(subj), j_s + 3)
+                ax1 = fg.add_subplot(3, len(subj), j_s +1)
+                ax = fg.add_subplot(3, len(subj), j_s + len(subj) + 1)
                 t = 0
                 for j_p, ((name, pow), (name, x)) in enumerate(zip(powers.items(), raw.items())):
+                    if name == '8. FB':
+                        from scipy.signal import periodogram
+                        fff = plt.figure()
+                        fff.gca().plot(*periodogram(x, fs, nfft=fs*3), c=cm[name.split()[1]])
+                        plt.xlim(0, 80)
+                        plt.ylim(0, 3e-11)
+                        plt.show()
                     print(name)
                     time = np.arange(t, t+len(x))/fs
-                    ax1.plot(time, x, c=cm[name.split()[1]], alpha=0.3)
+                    ax1.plot(time, x, c=cm[name.split()[1]], alpha=0.4)
                     ax1.plot(time, alpha[name], c=cm[name.split()[1]])
                     t += len(x)
                     ax.plot([j_p], [pow.mean()/norm], 'o', c=cm[name.split()[1]], markersize=10)
@@ -197,7 +206,7 @@ if __name__ == '__main__':
                 plt.setp(ax.xaxis.get_majorticklabels(), rotation=70)
                 ax.set_xticks(range(len(powers)))
                 ax.set_xticklabels(powers.keys())
-                ax.set_ylim(0, 2)
+                ax.set_ylim(0, 3)
                 ax.set_xlim(-1, len(powers))
                 ax1.set_title('Day {}'.format(j_s+1))
 
