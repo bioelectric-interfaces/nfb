@@ -64,7 +64,8 @@ class Protocol:
     def update_statistics(self):
         pass
 
-    def prepare_raw_mock_if_necessary(self, mock_raw):
+    def prepare_raw_mock_if_necessary(self, mock_raw, current_protocol_index):
+        print('cpi', current_protocol_index)
         print('mock shape', mock_raw.shape)
         if self.mock_previous:
             if self.source_signal_id is None:

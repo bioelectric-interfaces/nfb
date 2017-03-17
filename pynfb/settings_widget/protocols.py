@@ -167,9 +167,13 @@ class ProtocolDialog(QtGui.QDialog):
         self.enable_mock_previous = QtGui.QCheckBox()
         self.enable_mock_previous.stateChanged.connect(self.handle_enable_mock_previous)
         self.reverse_mock_previous = QtGui.QCheckBox('Reverse')
+        self.random_mock_previous = QtGui.QCheckBox('Shuffle')
+        self.random_mock_previous.hide()
+        self.random_mock_previous.stateChanged.connect(self.handle_random_mock_previous)
         mock_previos_layput.addWidget(self.enable_mock_previous)
         mock_previos_layput.addWidget(QtGui.QLabel('Protocol #'))
         mock_previos_layput.addWidget(self.mock_previous)
+        mock_previos_layput.addWidget(self.random_mock_previous)
         mock_previos_layput.addWidget(self.reverse_mock_previous)
         self.form_layout.addRow('Mock from previous\nprotocol raw data', mock_previos_layput)
 
@@ -217,8 +221,14 @@ class ProtocolDialog(QtGui.QDialog):
 
     def handle_enable_mock_previous(self):
         self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.random_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.set_enabled_mock_settings()
+
+    def handle_random_mock_previous(self):
+        self.mock_previous.setEnabled(not self.random_mock_previous.isChecked())
+        #self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        #self.set_enabled_mock_settings()
 
     def update_source_signal_combo_box(self):
         text = self.source_signal.currentText()
@@ -283,8 +293,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.reward_threshold.setValue(current_protocol['bRewardThreshold'])
         self.enable_mock_previous.setChecked(current_protocol['iMockPrevious'] > 0)
         self.mock_previous.setValue(current_protocol['iMockPrevious'])
+        self.random_mock_previous.setChecked(current_protocol['bRandomMockPrevious'])
         self.reverse_mock_previous.setChecked(current_protocol['bReverseMockPrevious'])
         self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.random_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.video_path.path.setText(current_protocol['sVideoPath'])
         self.video_path.setEnabled(self.type.currentText() == 'Video')
@@ -324,6 +336,8 @@ class ProtocolDialog(QtGui.QDialog):
             self.mock_previous.value() if self.enable_mock_previous.isChecked() else 0)
         self.params[current_signal_index]['bReverseMockPrevious'] = (
             int(self.reverse_mock_previous.isChecked()) if self.enable_mock_previous.isChecked() else 0)
+        self.params[current_signal_index]['bRandomMockPrevious'] = (
+            int(self.random_mock_previous.isChecked()) if self.enable_mock_previous.isChecked() else 0)
         self.params[current_signal_index]['sVideoPath'] = self.video_path.path.text()
         self.params[current_signal_index]['sMSignal'] = self.m_signal.currentText()
         self.params[current_signal_index]['fMSignalThreshold'] = self.m_signal_threshold.value()
