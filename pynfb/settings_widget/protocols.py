@@ -259,10 +259,10 @@ class ProtocolDialog(QtGui.QDialog):
         flag = self.type.currentText() == 'CircleFeedback'
         self.mock_file.setEnabled(flag and not self.enable_mock_previous.isChecked())
         self.mock_dataset.setEnabled(flag and not self.enable_mock_previous.isChecked())
-        self.mock_previous.setEnabled(flag)
-        self.random_mock_previous.setEnabled(flag)
+        self.mock_previous.setEnabled(flag and self.enable_mock_previous.isChecked())
+        self.random_mock_previous.setEnabled(flag and self.enable_mock_previous.isChecked())
         self.enable_mock_previous.setEnabled(flag)
-        self.reverse_mock_previous.setEnabled(flag)
+        self.reverse_mock_previous.setEnabled(flag and self.enable_mock_previous.isChecked())
 
     def set_enabled_video_settings(self):
         flag = self.type.currentText() == 'Video'
