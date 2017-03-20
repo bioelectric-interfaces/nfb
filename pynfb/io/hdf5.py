@@ -34,11 +34,12 @@ def load_h5py_all_samples(file_path, raw=True):
 
 
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, signals_data=None, raw_other_data=None,
-                 reward_data=None, protocol_name='unknown'):
+                 reward_data=None, protocol_name='unknown', mock_previous=0):
     print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
         main_group.attrs['name'] = protocol_name
+        main_group.attrs['mock_previous'] = mock_previous
         signals_group = main_group.create_group('signals_stats')
         for signal in signals:
             signal_group = signals_group.create_group(signal.name)

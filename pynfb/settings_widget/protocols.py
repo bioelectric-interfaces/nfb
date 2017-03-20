@@ -168,7 +168,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.enable_mock_previous.stateChanged.connect(self.handle_enable_mock_previous)
         self.reverse_mock_previous = QtGui.QCheckBox('Reverse')
         self.random_mock_previous = QtGui.QCheckBox('Shuffle')
-        self.random_mock_previous.hide()
+        # self.random_mock_previous.hide()
         self.random_mock_previous.stateChanged.connect(self.handle_random_mock_previous)
         mock_previos_layput.addWidget(self.enable_mock_previous)
         mock_previos_layput.addWidget(QtGui.QLabel('Protocol #'))

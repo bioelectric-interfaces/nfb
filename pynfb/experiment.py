@@ -158,7 +158,8 @@ class Experiment():
                      raw_other_data=self.raw_recorder_other[:self.samples_counter],
                      signals_data=self.signals_recorder[:self.samples_counter],
                      reward_data=self.reward_recorder[:self.samples_counter],
-                     protocol_name=self.protocols_sequence[self.current_protocol_index].name)
+                     protocol_name=self.protocols_sequence[self.current_protocol_index].name,
+                     mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous)
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -167,6 +168,11 @@ class Experiment():
             self.main.time_counter1 = 0
             self.main.signals_viewer.raw_buffer *= 0
         self.seconds = self.freq
+
+        # list of real fb protocols (number in protocol sequence)
+        if isinstance(self.protocols_sequence[self.current_protocol_index], FeedbackProtocol):
+            if self.protocols_sequence[self.current_protocol_index].mock_previous == 0:
+                self.real_fb_number_list += [self.current_protocol_index + 1]
 
         if self.current_protocol_index < len(self.protocols_sequence) - 1:
 
@@ -182,7 +188,9 @@ class Experiment():
                 else:
                     mock_raw = load_h5py(self.dir_name + 'experiment_data.h5',
                                          'protocol{}/raw_data'.format(current_protocol.mock_previous))
-                current_protocol.prepare_raw_mock_if_necessary(mock_raw)
+                # print(self.real_fb_number_list)
+                random_previos_fb = self.real_fb_number_list[np.random.randint(0, len(self.real_fb_number_list))]
+                current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb)
 
             # change protocol widget
             self.subject.change_protocol(current_protocol)
@@ -324,7 +332,8 @@ class Experiment():
                 experiment=self,
                 pause_after=bool(protocol['bPauseAfter']),
                 reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
-                m_signal_index=m_signal_index
+                m_signal_index=m_signal_index,
+                shuffle_mock_previous=bool(protocol['bRandomMockPrevious'])
             )
 
             # type specific arguments
@@ -418,6 +427,9 @@ class Experiment():
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
+
+        # create real fb list
+        self.real_fb_number_list = []
 
         wait_bar.close()
 

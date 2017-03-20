@@ -16,7 +16,8 @@ class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
-                 experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None):
+                 experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
+                 shuffle_mock_previous=None):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -44,6 +45,7 @@ class Protocol:
         self.experiment = experiment
         self.pause_after = pause_after
         self.m_signal_id = m_signal_index
+        self.shuffle_mock_previous = shuffle_mock_previous
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
@@ -64,9 +66,9 @@ class Protocol:
     def update_statistics(self):
         pass
 
-    def prepare_raw_mock_if_necessary(self, mock_raw, current_protocol_index):
-        print('cpi', current_protocol_index)
-        print('mock shape', mock_raw.shape)
+    def prepare_raw_mock_if_necessary(self, mock_raw, random_previous_fb_protocol_number):
+        if self.shuffle_mock_previous:
+            self.mock_previous = random_previous_fb_protocol_number
         if self.mock_previous:
             if self.source_signal_id is None:
                 raise ValueError('If mock_previous is True, source signal should be single')
@@ -79,7 +81,6 @@ class Protocol:
             self.mock_recordings = vstack((mock_raw[rand_start_ind:], mock_raw[:rand_start_ind]))
             if self.reverse_mock_previous:
                 self.mock_recordings = self.mock_recordings[::-1]
-            print('**** Success prepare')
 
     def close_protocol(self, raw=None, signals=None, protocols=list()):
         # action if ssd in the end checkbox was checked

@@ -17,7 +17,7 @@ class DerivedSignal():
         # signal name
         self.name = name
         # signal buffer
-        self.buffer = np.zeros((n_samples,))
+        self.buffer = np.zeros((self.n_samples,))
         # signal statistics
         self.scaling_flag = scale
         self.mean = np.nan
