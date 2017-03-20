@@ -158,7 +158,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Mock signals file:', self.mock_file)
         self.mock_dataset = QtGui.QLineEdit('protocol1')
         self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
-        self.set_enabled_mock_settings()
+
 
         # mock previous
         mock_previos_layput = QtGui.QHBoxLayout()
@@ -176,6 +176,9 @@ class ProtocolDialog(QtGui.QDialog):
         mock_previos_layput.addWidget(self.random_mock_previous)
         mock_previos_layput.addWidget(self.reverse_mock_previous)
         self.form_layout.addRow('Mock from previous\nprotocol raw data', mock_previos_layput)
+
+        # enable mock
+        self.set_enabled_mock_settings()
 
         # muscular signal
         self.m_signal = QtGui.QComboBox()
@@ -253,9 +256,13 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_duration_ms.setEnabled(flag)
 
     def set_enabled_mock_settings(self):
-        flag = (self.type.currentText() == 'CircleFeedback' and not self.enable_mock_previous.isChecked())
-        self.mock_file.setEnabled(flag)
-        self.mock_dataset.setEnabled(flag)
+        flag = self.type.currentText() == 'CircleFeedback'
+        self.mock_file.setEnabled(flag and not self.enable_mock_previous.isChecked())
+        self.mock_dataset.setEnabled(flag and not self.enable_mock_previous.isChecked())
+        self.mock_previous.setEnabled(flag)
+        self.random_mock_previous.setEnabled(flag)
+        self.enable_mock_previous.setEnabled(flag)
+        self.reverse_mock_previous.setEnabled(flag)
 
     def set_enabled_video_settings(self):
         flag = self.type.currentText() == 'Video'
@@ -295,7 +302,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.mock_previous.setValue(current_protocol['iMockPrevious'])
         self.random_mock_previous.setChecked(current_protocol['bRandomMockPrevious'])
         self.reverse_mock_previous.setChecked(current_protocol['bReverseMockPrevious'])
-        self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
+        self.mock_previous.setEnabled(self.enable_mock_previous.isChecked()
+                                      and not self.random_mock_previous.isChecked())
         self.random_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.video_path.path.setText(current_protocol['sVideoPath'])
