@@ -16,7 +16,7 @@ def format_odict_by_defaults(odict, defaults):
     formatted_odict = OrderedDict()
     for key in defaults.keys():
         if key in odict.keys():
-            if key in ['DerivedSignal', 'FeedbackProtocol', 'CompositeSignal']:
+            if key in ['DerivedSignal', 'FeedbackProtocol', 'CompositeSignal', 'PGroup']:
                 formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
                                         for item in (odict[key] if isinstance(odict[key], list) else [odict[key]])]
             elif isinstance(defaults[key], OrderedDict):
@@ -140,7 +140,7 @@ if __name__ == '__main__':
                                              'stream_info.xml')
     print(get_lsl_info_from_xml(xml_str))
 
-    fname = '../results/experiment_03-07_13-23-46/settings.xml'
+    fname = '../test_groups'
     params = xml_file_to_params(fname)
     print(params)
 

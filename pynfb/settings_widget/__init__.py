@@ -11,6 +11,7 @@ from pynfb.settings_widget.protocol_sequence import ProtocolSequenceSettingsWidg
 from pynfb.settings_widget.protocols import ProtocolsSettingsWidget, FileSelectorLine
 from pynfb.settings_widget.signals import SignalsSettingsWidget
 from pynfb.settings_widget.composite_signals import CompositeSignalsSettingsWidget
+from pynfb.settings_widget.protocols_group import ProtocolGroupsSettingsWidget
 
 static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static')
 
@@ -28,11 +29,13 @@ class SettingsWidget(QtGui.QWidget):
         self.protocols_list = ProtocolsSettingsWidget(parent=self)
         self.signals_list = SignalsSettingsWidget(parent=self)
         self.composite_signals_list = CompositeSignalsSettingsWidget(parent=self)
+        self.protocol_groups_list = ProtocolGroupsSettingsWidget(parent=self)
         self.protocols_sequence_list = ProtocolSequenceSettingsWidget(parent=self)
         # layout.addWidget(self.general_settings)
         layout.addWidget(self.signals_list)
         layout.addWidget(self.composite_signals_list)
         layout.addWidget(self.protocols_list)
+        layout.addWidget(self.protocol_groups_list)
         layout.addWidget(self.protocols_sequence_list)
         start_button = QtGui.QPushButton('Start')
         start_button.setIcon(QtGui.QIcon(static_path + '/imag/power-button.png'))
@@ -48,6 +51,7 @@ class SettingsWidget(QtGui.QWidget):
         self.composite_signals_list.reset_items()
         self.protocols_list.reset_items()
         self.protocols_sequence_list.reset_items()
+        self.protocol_groups_list.reset_items()
         self.general_settings.reset()
         # self.params['sExperimentName'] = self.experiment_name.text()
 
