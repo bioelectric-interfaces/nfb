@@ -94,7 +94,7 @@ class ProtocolGroupDialog(QtGui.QDialog):
         self.numbers.setMaximumHeight(50)
         validator = QtGui.QRegExpValidator(QtCore.QRegExp("^[0-9 ]+$"))
         self.numbers.setValidator(validator)
-        self.form_layout.addRow('&Corresponding numbers\n(separated by space):', self.numbers)
+        self.form_layout.addRow('&Corresponding quantity\n(separated by space):', self.numbers)
 
         # ok button
         self.save_button = QtGui.QPushButton('Save')

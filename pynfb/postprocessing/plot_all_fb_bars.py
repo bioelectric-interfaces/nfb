@@ -11,7 +11,8 @@ def plot_fb_dynamic(experiment_file, dir_name):
         root = ET.fromstring(f['settings.xml'][:][0])
         sequence = [x.text for x in root.find('vPSequence')]
         types = dict([(x.find('sProtocolName').text, x.find('sFb_type').text) for x in root.find('vProtocols')])
-        fb_keys = ['protocol' + str(k+1) for k, protocol in enumerate(sequence) if types[protocol] == 'CircleFeedback']
+        fb_keys = ['protocol' + str(k+1) for k, protocol in enumerate(sequence)
+                   if protocol in types and types[protocol] == 'CircleFeedback']
         derived = [x.find('sSignalName').text for x in root.find('vSignals').findall('DerivedSignal')]
         composite = [x.find('sSignalName').text for x in root.find('vSignals').findall('CompositeSignal')]
 

@@ -212,7 +212,7 @@ class Experiment():
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
             self.subject.close()
-            plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
+            # plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
 
@@ -370,9 +370,20 @@ class Experiment():
 
         # protocols sequence
         names = [protocol.name for protocol in self.protocols]
+        group_names = [p['sName'] for p in self.params['vPGroups']['PGroup']]
+        print(group_names)
         self.protocols_sequence = []
         for name in self.params['vPSequence']:
-            self.protocols_sequence.append(self.protocols[names.index(name)])
+            if name in names:
+                self.protocols_sequence.append(self.protocols[names.index(name)])
+            if name in group_names:
+                group = self.params['vPGroups']['PGroup'][group_names.index(name)]
+                subgroup = []
+                for s_name, s_n in zip(group['sList'].split(' '), list(map(int, group['sNumberList'].split(' ')))):
+                    subgroup += [s_name]*s_n
+                subgroup = list(np.array(subgroup)[np.random.permutation(len(subgroup))])
+                for subname in subgroup:
+                    self.protocols_sequence.append(self.protocols[names.index(subname)])
 
         # reward
         from pynfb.reward import Reward
