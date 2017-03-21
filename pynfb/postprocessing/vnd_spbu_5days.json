@@ -1,0 +1,38 @@
+{
+    "dir": "D:\vnd_spbu\pilot\mu5days",
+    "subjects": [
+        [
+            "pilot_5Days_Rakhmankulov_Day1_02-27_17-27-34",
+            "pilot5days_Rakhmankulov_Day2_02-28_14-45-36",
+            "pilot5days_Rakhmankulov_Day3_03-01_12-51-41",
+            "pilot5days_Rakhmankulov_Day4_03-02_17-26-28",
+            "pilot5days_Rakhmankulov_Day5_03-04_09-24-16"
+        ],
+        [
+            "pilot_Cherlenok_Day1_02-27_12-51-56",
+            "pilot5days_Cherlenok_Day2_02-28_15-50-08",
+            "pilot5days_Cherlenok_Day3_03-01_16-24-03",
+            "pilot5days_Cherlenok_Day4_03-02_16-45-43",
+            "pilot5days_Cherlenok_Day5_03-03_12-35-46"
+        ],
+        [
+            "pilot5Days_Plackhin_Day1_02-27_16-04-08",
+            "pilot5days_Plackhin_Day2_02-28_11-43-07",
+            "pilot5days_Plackhin_Day3_03-01_11-45-35",
+            "pilot5days_Plackhin_Day4_03-02_11-20-43",
+            "pilot5days_Plackhin_Day5_03-03_14-29-52"
+        ],
+        [
+            "pilot5days_Skotnikova_Day1_02-27_15-15-18",
+            "pilot5days_Skotnikova_Day2_02-28_14-06-40",
+            "pilot5days_Skotnikova_Day3_03-01_10-44-28",
+            "pilot5days_Skotnikova_Day4_03-02_13-33-55",
+            "pilot5days_Skotnikova_Day5_03-03_13-42-04"
+        ]
+    ],
+    "drop_channels": [
+        "AUX",
+        "A1",
+        "A2"
+    ]
+}

@@ -78,7 +78,7 @@ def get_colors():
     return c
 
 
-def add_data(powers, name, pow):
+def add_data(powers, name, pow, j):
     if name == 'Filters':
         powers['{}. Closed'.format(j + 1)] = pow[:len(pow) // 2]
         powers['{}. Opened'.format(j + 1)] = pow[len(pow) // 2:]
@@ -90,127 +90,115 @@ def add_data(powers, name, pow):
     return powers
 
 
+def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6), drop_channels=None, dc=False,
+                 reject_alpha=True, normalize_by='opened'):
+    drop_channels = drop_channels or []
+    cm = get_colors()
+    fg = plt.figure(figsize=(30, 6))
+    for j_s, experiment in enumerate(subj):
+        with h5py.File('{}\\{}\\{}'.format(pilot_dir, experiment, 'experiment_data.h5')) as f:
+            rejections, top_alpha, top_ica = load_rejections(f, reject_alpha=reject_alpha)
+            fs, channels, p_names = get_info(f, drop_channels)
+            ch = channels.index(channel)
+
+            # collect powers
+            powers = OrderedDict()
+            raw = OrderedDict()
+            alpha = OrderedDict()
+            pow_theta = []
+            for j, name in enumerate(p_names):
+                pow, alpha_x, x = get_protocol_power(f, j, fs, rejections, ch, alpha_band, dc=dc)
+                if name == 'FB':
+                    pow_theta.append(get_protocol_power(f, j, fs, rejections, ch, theta_band, dc=dc)[0].mean())
+                powers = add_data(powers, name, pow, j)
+                raw = add_data(raw, name, x, j)
+                alpha = add_data(alpha, name, alpha_x, j)
+
+            # plot rejections
+            n_tops = top_ica.shape[1] + top_alpha.shape[1]
+            for j_t in range(top_ica.shape[1]):
+                ax = fg.add_subplot(4, n_tops * len(subj), n_tops * len(subj) * 3 + n_tops * j_s + j_t + 1)
+                ax.set_xlabel('ICA{}'.format(j_t + 1))
+                labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
+                channels = [label for label in labels if label not in drop_channels]
+                pos = ch_names_to_2d_pos(channels)
+                plot_topomap(data=top_ica[:, j_t], pos=pos, axes=ax, show=False)
+            for j_t in range(top_alpha.shape[1]):
+                ax = fg.add_subplot(4, n_tops * len(subj),
+                                    n_tops * len(subj) * 3 + n_tops * j_s + j_t + 1 + top_ica.shape[1])
+                ax.set_xlabel('CSP{}'.format(j_t + 1))
+                labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
+                channels = [label for label in labels if label not in drop_channels]
+                pos = ch_names_to_2d_pos(channels)
+                plot_topomap(data=top_alpha[:, j_t], pos=pos, axes=ax, show=False)
+
+            # plot powers
+            if normalize_by == 'opened':
+                norm = powers['1. Opened'].mean()
+            elif normalize_by == 'beta':
+                norm = np.mean(pow_theta)
+            else:
+                print('WARNING: norm = 1')
+            print('norm', norm)
+
+            ax1 = fg.add_subplot(3, len(subj), j_s + 1)
+            ax = fg.add_subplot(3, len(subj), j_s + len(subj) + 1)
+            t = 0
+            for j_p, ((name, pow), (name, x)) in enumerate(zip(powers.items(), raw.items())):
+                if name == '2228. FB':
+                    from scipy.signal import periodogram
+                    fff = plt.figure()
+                    fff.gca().plot(*periodogram(x, fs, nfft=fs * 3), c=cm[name.split()[1]])
+                    plt.xlim(0, 80)
+                    plt.ylim(0, 3e-11)
+                    plt.show()
+                print(name)
+                time = np.arange(t, t + len(x)) / fs
+                ax1.plot(time, x, c=cm[name.split()[1]], alpha=0.4)
+                ax1.plot(time, alpha[name], c=cm[name.split()[1]])
+                t += len(x)
+                ax.plot([j_p], [pow.mean() / norm], 'o', c=cm[name.split()[1]], markersize=10)
+                c = cm[name.split()[1]]
+                ax.errorbar([j_p], [pow.mean() / norm], yerr=pow.std() / norm, c=c, ecolor=c)
+            fb_x = np.hstack([[j] * len(pows) for j, (key, pows) in enumerate(powers.items()) if 'FB' in key])
+            fb_y = np.hstack([pows for key, pows in powers.items() if 'FB' in key]) / norm
+            sns.regplot(x=fb_x, y=fb_y, ax=ax, color=cm['FB'], scatter=False, truncate=True)
+
+            ax1.set_xlim(0, t / fs)
+            ax1.set_ylim(-40, 40)
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=70)
+            ax.set_xticks(range(len(powers)))
+            ax.set_xticklabels(powers.keys())
+            ax.set_ylim(0, 3)
+            ax.set_xlim(-1, len(powers))
+            ax1.set_title('Day {}'.format(j_s + 1))
+    return fg
+
 
 if __name__ == '__main__':
-    import h5py
 
-    pilot_dir = ['C:\\Users\\Nikolai\\Downloads', 'C:\\Users\\nsmetanin\\Downloads'][1]
-    pilot_dir = 'F:'
-    subjs = [
-        ['pilot_5Days_Rakhmankulov_Day1_02-27_17-27-34',
-         'pilot5days_Rakhmankulov_Day2_02-28_14-45-36',
-         'pilot5days_Rakhmankulov_Day3_03-01_12-51-41',
-         'pilot5days_Rakhmankulov_Day4_03-02_17-26-28',
-         'pilot5days_Rakhmankulov_Day5_03-04_09-24-16'],
+    from json import loads
+    settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
+    with open(settings_file, 'r') as f:
+        settings = loads(f.read())
 
-        ['pilot_Cherlenok_Day1_02-27_12-51-56',
-         'pilot5days_Cherlenok_Day2_02-28_15-50-08',
-         'pilot5days_Cherlenok_Day3_03-01_16-24-03',
-         'pilot5days_Cherlenok_Day4_03-02_16-45-43',
-         'pilot5days_Cherlenok_Day5_03-03_12-35-46'],
-
-        ['pilot5Days_Plackhin_Day1_02-27_16-04-08',
-         'pilot5days_Plackhin_Day2_02-28_11-43-07',
-         'pilot5days_Plackhin_Day3_03-01_11-45-35',
-         'pilot5days_Plackhin_Day4_03-02_11-20-43',
-         'pilot5days_Plackhin_Day5_03-03_14-29-52'],
-
-        ['pilot5days_Skotnikova_Day1_02-27_15-15-18',
-         'pilot5days_Skotnikova_Day2_02-28_14-06-40',
-         'pilot5days_Skotnikova_Day3_03-01_10-44-28',
-         'pilot5days_Skotnikova_Day4_03-02_13-33-55',
-         'pilot5days_Skotnikova_Day5_03-03_13-42-04'],
-
-        ['Dasha1_02-20_09-01-29',
-        'Dasha2_02-22_15-53-52',
-        'Dasha3_02-23_14-21-42',
-        'Dasha4_02-24_16-59-08'],
-        ['Andrey1_03-07_19-05-02']][-1:]
-    subjs = [['Andrey1_03-07_19-05-02', 'Andrey2_03-09_10-59-30', 'aANDREY3_03-10_12-46-43']]
-    subjs = [['test_mu_03-10_17-50-33']]
-    drop_channels = [['AUX', 'A1', 'A2'], ['M_left', 'M_right']][1]
     channel = 'C3'
-    alpha_band = (9, 14)
-    theta_band = (3, 6)
-    cm = get_colors()
+    reject_alpha = True
+    normalize_by = 'beta'
 
-    for subj in subjs[:]:
-        fg = plt.figure(figsize=(30, 6))
-        for j_s, experiment in enumerate(subj):
-            with h5py.File('{}\\{}\\{}'.format(pilot_dir, experiment, 'experiment_data.h5')) as f:
-                rejections, top_alpha, top_ica = load_rejections(f, reject_alpha=True)
-                fs, channels, p_names = get_info(f, drop_channels)
-                ch = channels.index(channel)
+    for j, subj in enumerate(settings['subjects']):
+        #pass
 
-                # collect powers
-                powers = OrderedDict()
-                raw = OrderedDict()
-                alpha = OrderedDict()
-                pow_theta = []
-                for j, name in enumerate(p_names):
-                    pow, alpha_x, x = get_protocol_power(f, j, fs, rejections, ch, alpha_band, dc=False)
-                    if name == 'FB':
-                        pow_theta.append(get_protocol_power(f, j, fs, rejections, ch, theta_band, dc=False)[0].mean())
-                    powers = add_data(powers, name, pow)
-                    raw = add_data(raw, name, x)
-                    alpha = add_data(alpha, name, alpha_x)
+        fg = plot_results(settings['dir'], subj,
+                     channel=channel,
+                     alpha_band=(9, 14),
+                     theta_band=(3, 6),
+                     drop_channels=settings['drop_channels'],
+                     dc=True,
+                     reject_alpha=reject_alpha,
+                     normalize_by=normalize_by)
 
-                # plot rejections
-                n_tops = top_ica.shape[1] + top_alpha.shape[1]
-                for j_t in range(top_ica.shape[1]):
-                    ax = fg.add_subplot(4, n_tops*len(subj), n_tops*len(subj)*3 + n_tops*j_s + j_t + 1)
-                    ax.set_xlabel('ICA{}'.format(j_t+1))
-                    labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
-                    channels = [label for label in labels if label not in drop_channels]
-                    pos = ch_names_to_2d_pos(channels)
-                    plot_topomap(data=top_ica[:, j_t], pos=pos, axes=ax, show=False)
-                for j_t in range(top_alpha.shape[1]):
-                    ax = fg.add_subplot(4, n_tops*len(subj), n_tops*len(subj)*3 + n_tops*j_s + j_t + 1+top_ica.shape[1])
-                    ax.set_xlabel('CSP{}'.format(j_t+1))
-                    labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
-                    channels = [label for label in labels if label not in drop_channels]
-                    pos = ch_names_to_2d_pos(channels)
-                    plot_topomap(data=top_alpha[:, j_t], pos=pos, axes=ax, show=False)
-
-
-                # plot powers
-                norm = powers['1. Opened'].mean()
-                #norm = np.mean(pow_theta)
-                print('norm', norm)
-
-                ax1 = fg.add_subplot(3, len(subj), j_s +1)
-                ax = fg.add_subplot(3, len(subj), j_s + len(subj) + 1)
-                t = 0
-                for j_p, ((name, pow), (name, x)) in enumerate(zip(powers.items(), raw.items())):
-                    if name == '8. FB':
-                        from scipy.signal import periodogram
-                        fff = plt.figure()
-                        fff.gca().plot(*periodogram(x, fs, nfft=fs*3), c=cm[name.split()[1]])
-                        plt.xlim(0, 80)
-                        plt.ylim(0, 3e-11)
-                        plt.show()
-                    print(name)
-                    time = np.arange(t, t+len(x))/fs
-                    ax1.plot(time, x, c=cm[name.split()[1]], alpha=0.4)
-                    ax1.plot(time, alpha[name], c=cm[name.split()[1]])
-                    t += len(x)
-                    ax.plot([j_p], [pow.mean()/norm], 'o', c=cm[name.split()[1]], markersize=10)
-                    c = cm[name.split()[1]]
-                    ax.errorbar([j_p], [pow.mean()/norm], yerr=pow.std()/norm,  c=c, ecolor=c)
-                fb_x = np.hstack([[j]*len(pows) for j, (key, pows) in enumerate(powers.items()) if 'FB' in key])
-                fb_y = np.hstack([pows for key, pows in powers.items() if 'FB' in key])/norm
-                sns.regplot(x=fb_x, y=fb_y, ax=ax, color=cm['FB'], scatter=False, truncate=True)
-
-                ax1.set_xlim(0, t/fs)
-                ax1.set_ylim(-0.00007, 0.00007)
-                plt.setp(ax.xaxis.get_majorticklabels(), rotation=70)
-                ax.set_xticks(range(len(powers)))
-                ax.set_xticklabels(powers.keys())
-                ax.set_ylim(0, 3)
-                ax.set_xlim(-1, len(powers))
-                ax1.set_title('Day {}'.format(j_s+1))
-
-
-
-        fg.savefig(' '.join(subj[-1].split('_')[:2])+channel+'.png', dpi=300)
+        fg.savefig('S{s}_ch{ch}_{csp}normby_{norm}.png'.format(
+            s=j, ch=channel, csp='csp_' if reject_alpha else '', norm=normalize_by),
+            dpi=300)
         plt.show()
