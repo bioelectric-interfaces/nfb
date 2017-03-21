@@ -77,6 +77,12 @@ vectors_defaults = OrderedDict([
             ('sMSignal', 'None'),
             ('fMSignalThreshold', 1)
         ])])])),
+    ('vPGroups', OrderedDict([
+        ('PGroup', [OrderedDict([  # DerivedSignal is list!
+            ('sName', 'Group1'),
+            ('sList', ['Protocol','Protocol2']),
+            ('sNumberList', [1, 2])
+    ])])])),
     ('vPSequence', OrderedDict([
         ('s', ['Protocol'])])),
 ])

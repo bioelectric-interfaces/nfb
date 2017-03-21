@@ -136,6 +136,12 @@ if __name__ == '__main__':
     #odict = xml_file_to_params('settings/pilot.xml')
     #params_to_xml_file(odict, 'settings/pilot_rewrite.xml')
     from pynfb.io.hdf5 import load_xml_str_from_hdf5_dataset
-    xml_str = load_xml_str_from_hdf5_dataset('../results/MU_test_AN_10-10_21-22-21/experiment_data.h5',
+    xml_str = load_xml_str_from_hdf5_dataset('../results/experiment_03-07_13-23-46/experiment_data.h5',
                                              'stream_info.xml')
     print(get_lsl_info_from_xml(xml_str))
+
+    fname = '../results/experiment_03-07_13-23-46/settings.xml'
+    params = xml_file_to_params(fname)
+    print(params)
+
+    params_to_xml_file(params, 'settings_test.xml')
