@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.fftpack import rfft, irfft, fftfreq
-from scipy.signal import savgol_coeffs, lfilter
+from scipy.signal import savgol_coeffs, lfiltic, lfilter, butter
 from .composite import CompositeSignal
 from .rejections import Rejections
 from pynfb.io import save_spatial_filter
@@ -25,7 +25,7 @@ class DerivedSignal():
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, envelope_detector_type=None, envelop_detector_kwargs=None):
-
+        #envelope_detector_type = 'savgol' if disable_spectrum_evaluation else 'fft'
         # setup envelope detector
         self.type = envelope_detector_type or ENVELOPE_DETECTOR_TYPE_DEFAULT
 
@@ -60,10 +60,22 @@ class DerivedSignal():
             # exponential smoothing factor
             self.smoothing_factor = smoothing_factor
         elif self.type == 'savgol':
-            sg_order = envelope_detector_kwargs['order']
+            self.n_samples = int(envelope_detector_kwargs['n_samples'])
+            # step 1: demodulation
             main_fq = (self.band[1] + self.band[0]) / 2
-
-            self.savgol_weights = savgol_coeffs(self.n_samples, sg_order, pos=self.n_samples - 1, use='dot')
+            print(source_freq, main_fq)
+            self.modulation = np.exp(-2j*np.pi*np.arange(1000*source_freq/main_fq)/source_freq*main_fq)
+            import pylab as plt
+            plt.plot(np.real(self.modulation))
+            plt.show()
+            self.n_modulation_samples = len(self.modulation)
+            self.modulation_timer = len(self.modulation)-1
+            # step 2: iir
+            self.iir_b, self.iir_a = butter(1, (self.band[1] - self.band[0])/source_freq)
+            self.zf = [0]
+            # step 3: sav gol
+            sg_order = envelope_detector_kwargs['order']
+            self.savgol_weights = savgol_coeffs(self.n_samples, sg_order, pos=self.n_samples-1, use='dot')
         elif self.type == 'identity':
             self.disable_spectrum_evaluation = True
         else:
@@ -125,6 +137,7 @@ class DerivedSignal():
 
         # update buffer
         chunk_size = filtered_chunk.shape[0]
+        self.chunk_size = chunk_size
         if chunk_size <= self.n_samples:
             self.buffer[:-chunk_size] = self.buffer[chunk_size:]
             self.buffer[-chunk_size:] = filtered_chunk
@@ -164,7 +177,19 @@ class DerivedSignal():
 
     def savgol_envelope_detector(self):
         # bandpass filter and amplitude
-        self.current_sample = np.dot(self.savgol_weights, self.buffer)
+        self.modulation_timer += self.chunk_size
+        starting_index = (self.modulation_timer-self.n_samples) % self.n_modulation_samples
+        ending_index = self.modulation_timer % self.n_modulation_samples
+        if starting_index > ending_index:
+            part1 = self.modulation[starting_index:]
+            part2 = self.modulation[:ending_index]
+            result = np.concatenate([part1, part2])
+        else:
+            result = self.modulation[starting_index:ending_index]
+        x = result * self.buffer
+        #print(np.concatenate([[self.iir_buffer], x]))
+        y, self.zf = lfilter(self.iir_b, self.iir_a, x, zi=self.zf)
+        self.current_sample = np.abs(2*np.dot(self.savgol_weights, y))
 
     def get_bandpass_amplitude(self):
         f_signal = rfft(np.hstack((self.buffer, self.buffer[-1::-1])) * self.samples_window)
