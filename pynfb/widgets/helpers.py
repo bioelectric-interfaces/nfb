@@ -1,5 +1,7 @@
 from PyQt4 import QtGui, QtCore
 
+from pynfb.helpers.az_proj import azimuthal_equidistant_projection
+
 try:
     from mne.channels import read_montage
     from mne import pick_channels
@@ -9,7 +11,7 @@ from numpy import array, random
 DEBUG = False
 
 
-def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005'):
+def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005', azimuthal=True):
     montage = read_montage(kind)
     if DEBUG:
         return random.normal(size=(len(list_of_ch_names), 2))
@@ -20,7 +22,7 @@ def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005'):
         raise IndexError('Channels {} not found'.format(
            set(upper_list_of_ch_names).difference(set(array(upper_montage_ch_names)[indices]))
         ))
-    pos = montage.pos[indices, :2]
+    pos = montage.pos[indices, :2] if not azimuthal else azimuthal_equidistant_projection(montage.pos[indices, :3])
     return array(pos)
 
 def validate_ch_names(list_of_ch_names, kind='standard_1005'):

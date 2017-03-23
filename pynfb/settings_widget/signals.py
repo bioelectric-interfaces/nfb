@@ -108,7 +108,13 @@ class SignalDialog(QtGui.QDialog):
         # fft window size
         self.window_size = QtGui.QSpinBox()
         self.window_size.setRange(1, 100000)
-        self.form_layout.addRow('&FFT window size:', self.window_size)
+        self.form_layout.addRow('&Window size:', self.window_size)
+
+        # type
+        self.type_list = QtGui.QComboBox()
+        for protocol_type in ['fft', 'savgol', 'identity']:
+            self.type_list.addItem(protocol_type)
+        #self.form_layout.addRow('&Envelope detector type:', self.type_list)
 
         # exponential smoothing factor
         self.smoothing_factor = QtGui.QDoubleSpinBox()
