@@ -1,7 +1,16 @@
 from scipy.signal import butter, lfilter, filtfilt
 from scipy.linalg import eigh, inv, eig
+from scipy.fftpack import rfft, irfft, fftfreq
 import numpy as np
 
+
+def fft_filter(x, fs, band=(9, 14)):
+    w = fftfreq(x.shape[0], d=1. / fs * 2)
+    f_signal = rfft(x, axis=0)
+    cut_f_signal = f_signal.copy()
+    cut_f_signal[(w < band[0]) | (w > band[1])] = 0
+    cut_signal = irfft(cut_f_signal, axis=0)
+    return cut_signal
 
 def butter_bandpass(lowcut, highcut, fs, order=3):
     nyq = 0.5 * fs
@@ -16,6 +25,35 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=3, axis=0):
     y = filtfilt(b, a, data, axis=axis)
     return y
 
+
+def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.1, lambda_=0.5):
+    """
+    """
+    if not isinstance(x_dict, dict):
+        n = x_dict.shape[0]
+        x_dict = {
+            'closed': x_dict[:n//3],
+            'opened': x_dict[n//3:2*n//3],
+            'rotate': x_dict[2*n//3:]
+        }
+    # apply filter
+    cov_dict = {}
+    for key, x in x_dict.items():
+        x_filtered = fft_filter(x, fs, band)
+        cov_dict[key] = np.dot(x_filtered.T, x_filtered) / x_filtered.shape[0]
+
+    # find filters
+    regularization = lambda z: z + regularization_coef * np.eye(z.shape[0])
+    R1 = cov_dict['opened']
+    R2 = (1-lambda_)*(cov_dict['closed'] - cov_dict['opened']) + lambda_*cov_dict['rotate']
+    #print(R2)
+    vals, vecs = eigh(regularization(R1), regularization(R2))
+    vecs /= np.abs(vecs).max(0)
+
+    # return vals, vecs and topographics (in descending order)
+    reversed_slice = slice(-1, None, -1)
+    topo = inv(vecs[:,reversed_slice]).T
+    return vals[reversed_slice], vecs[:, reversed_slice], topo
 
 def csp(x, fs, band, butter_order=3, regularization_coef=0.05):
     """

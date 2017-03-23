@@ -34,8 +34,8 @@ def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.1, lambda_=0.5)
     return vals[reversed_slice], vecs[:, reversed_slice], topo
 
 if __name__ == '__main__':
-    dir_ = 'C:\\Users\\Nikolai\\Downloads'
-    experiment = 'pilot_5Days_Rakhmankulov_Day1_02-27_17-27-34'
+    dir_ = 'D:\\vnd_spbu\\pilot\\mu5days'
+    experiment = 'pilot5days_Rakhmankulov_Day3_03-01_12-51-41'
     with h5py.File('{}\\{}\\{}'.format(dir_, experiment, 'experiment_data.h5')) as f:
         ica = f['protocol1/signals_stats/left/rejections/rejection1'][:]
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
 
 
-        scores, unmixing_matrix, topographies = csp3(x_dict, 250, (9, 14), lambda_=1, regularization_coef=0.01)
+        scores, unmixing_matrix, topographies = csp3(x_dict, 250, (9, 14), lambda_=0.5, regularization_coef=0.01)
         app = QtGui.QApplication([])
         selector = ICADialog(np.vstack((x_filters, x_rotation)), channels, fs, unmixing_matrix=unmixing_matrix, mode='csp', scores=scores)
         selector.exec_()

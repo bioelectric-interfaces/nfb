@@ -1,9 +1,12 @@
+import h5py
 from PyQt4 import QtGui, QtCore
 from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
 from sklearn.metrics import mutual_info_score
 
+from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.postprocessing.helpers import dc_blocker
 from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
 from pynfb.protocols.ssd.sliders_csp import Sliders
@@ -168,7 +171,7 @@ class ICADialog(QtGui.QDialog):
     def recompute(self):
         parameters = self.sliders.getValues()
         self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
-        from pynfb.protocols.ssd.csp import csp
+        from pynfb.protocols.ssd.csp import csp as csp
         self.scores, self.unmixing_matrix, self.topographies = csp(self.data,
                                                                    fs=self.sampling_freq,
                                                                    band=self.bandpass,
@@ -223,7 +226,27 @@ if __name__ == '__main__':
     A = np.array([[1, 1, 1], [0.5, 2, 1.0], [1.5, 1.0, 2.0]])  # Mixing matrix
     x = np.dot(S, A.T)  # Generate observations
 
+
+
+    dir_ = 'D:\\vnd_spbu\\pilot\\mu5days'
+    experiment = 'pilot5days_Skotnikova_Day4_03-02_13-33-55'
+    with h5py.File('{}\\{}\\{}'.format(dir_, experiment, 'experiment_data.h5')) as f:
+        ica = f['protocol1/signals_stats/left/rejections/rejection1'][:]
+
+        x_filters = dc_blocker(np.dot(f['protocol1/raw_data'][:], ica))
+        x_rotation = dc_blocker(np.dot(f['protocol2/raw_data'][:], ica))
+        x_dict = {
+            'closed': x_filters[:x_filters.shape[0] // 2],
+            'opened': x_filters[x_filters.shape[0] // 2:],
+            'rotate': x_rotation
+        }
+        x = np.concatenate([x_dict['closed'], x_dict['opened'], x_dict['rotate']])
+        drop_channels = ['AUX', 'A1', 'A2']
+        labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
+        print('fs: {}\nall labels {}: {}'.format(fs, len(labels), labels))
+        channels = [label for label in labels if label not in drop_channels]
+
     for j in range(4):
-        rejection, spatial, unmixing = ICADialog.get_rejection(x, channels, fs)
+        rejection, spatial, unmixing = ICADialog.get_rejection(x, channels, fs, mode='csp')
         if rejection is not None:
             x = np.dot(x, rejection)
