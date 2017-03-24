@@ -26,7 +26,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=3, axis=0):
     return y
 
 
-def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.1, lambda_=0.5):
+def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.01, lambda_=0.8):
     """
     """
     if not isinstance(x_dict, dict):
@@ -39,15 +39,17 @@ def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.1, lambda_=0.5)
     # apply filter
     cov_dict = {}
     for key, x in x_dict.items():
-        x_filtered = fft_filter(x, fs, band)
+        x_filtered = x#fft_filter(x, fs, band)
         cov_dict[key] = np.dot(x_filtered.T, x_filtered) / x_filtered.shape[0]
+        cov_dict[key] /= np.trace(cov_dict[key])
 
     # find filters
-    regularization = lambda z: z + regularization_coef * np.eye(z.shape[0])
+    regularization = lambda z: z + regularization_coef * np.eye(z.shape[0]) * np.trace(z)
     R1 = cov_dict['opened']
     R2 = (1-lambda_)*(cov_dict['closed'] - cov_dict['opened']) + lambda_*cov_dict['rotate']
     #print(R2)
     vals, vecs = eigh(regularization(R1), regularization(R2))
+    #print(vals)
     vecs /= np.abs(vecs).max(0)
 
     # return vals, vecs and topographics (in descending order)
