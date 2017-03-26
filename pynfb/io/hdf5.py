@@ -53,7 +53,7 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
                     dataset.attrs['type'] = rejection.type_str
                     dataset.attrs['rank'] = rejection.rank
                 signal_group.create_dataset('spatial_filter', data=np.array(signal.spatial_filter))
-                signal_group.create_dataset('bandpass', data=np.array(signal.band))
+                signal_group.create_dataset('bandpass', data=np.array(signal.bandpass))
             elif isinstance(signal, CompositeSignal):
                 signal_group.attrs['type'] = u'composite'
             else:

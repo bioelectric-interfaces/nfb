@@ -39,8 +39,8 @@ class DerivedSignal():
         self.n_samples = int(n_samples) #int(envelope_detector_kwargs['n_samples'])
 
         # bandpass
-        self.band = (bandpass_low if bandpass_low else 0,
-                     bandpass_high if bandpass_high else source_freq)
+        self.bandpass = (bandpass_low if bandpass_low else 0,
+                         bandpass_high if bandpass_high else source_freq)
 
         # setup specific parameters of envelope detector
         if self.type == 'fft':
@@ -62,7 +62,7 @@ class DerivedSignal():
         elif self.type == 'savgol':
             self.n_samples = int(envelope_detector_kwargs['n_samples'])
             # step 1: demodulation
-            main_fq = (self.band[1] + self.band[0]) / 2
+            main_fq = (self.bandpass[1] + self.bandpass[0]) / 2
             print(source_freq, main_fq)
             self.modulation = np.exp(-2j*np.pi*np.arange(1000*source_freq/main_fq)/source_freq*main_fq)
             import pylab as plt
@@ -71,7 +71,7 @@ class DerivedSignal():
             self.n_modulation_samples = len(self.modulation)
             self.modulation_timer = len(self.modulation)-1
             # step 2: iir
-            self.iir_b, self.iir_a = butter(1, (self.band[1] - self.band[0])/source_freq)
+            self.iir_b, self.iir_a = butter(1, (self.bandpass[1] - self.bandpass[0]) / source_freq)
             self.zf = [0]
             # step 3: sav gol
             sg_order = envelope_detector_kwargs['order']
@@ -194,7 +194,7 @@ class DerivedSignal():
     def get_bandpass_amplitude(self):
         f_signal = rfft(np.hstack((self.buffer, self.buffer[-1::-1])) * self.samples_window)
         cut_f_signal = f_signal.copy()
-        cut_f_signal[(self.w < self.band[0]) | (self.w > self.band[1])] = 0  # TODO: in one row
+        cut_f_signal[(self.w < self.bandpass[0]) | (self.w > self.bandpass[1])] = 0  # TODO: in one row
         amplitude = np.abs(cut_f_signal).mean()
         return amplitude
 
@@ -238,7 +238,7 @@ class DerivedSignal():
         self.update_spatial_filter()
 
     def update_bandpass(self, bandpass):
-        self.band = bandpass
+        self.bandpass = bandpass
 
     def drop_rejection(self, ind):
         self.rejections.drop(ind)
