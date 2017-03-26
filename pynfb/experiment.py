@@ -189,7 +189,10 @@ class Experiment():
                     mock_raw = load_h5py(self.dir_name + 'experiment_data.h5',
                                          'protocol{}/raw_data'.format(current_protocol.mock_previous))
                 # print(self.real_fb_number_list)
-                random_previos_fb = self.real_fb_number_list[np.random.randint(0, len(self.real_fb_number_list))]
+
+                random_previos_fb = None
+                if len(self.real_fb_number_list) > 0:
+                    random_previos_fb = self.real_fb_number_list[np.random.randint(0, len(self.real_fb_number_list))]
                 current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb)
 
             # change protocol widget
