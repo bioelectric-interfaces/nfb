@@ -100,6 +100,9 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
             rejections, top_alpha, top_ica = load_rejections(f, reject_alpha=reject_alpha)
             fs, channels, p_names = get_info(f, drop_channels)
             ch = channels.index(channel)
+            #plt.plot(fft_filter(f['protocol6/raw_data'][:, ch], fs, band=(3, 35)))
+            #plt.plot(fft_filter(np.dot(f['protocol6/raw_data'], rejections)[:, ch], fs, band=(3, 35)))
+            #plt.show()
 
             # collect powers
             powers = OrderedDict()
@@ -108,7 +111,7 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
             pow_theta = []
             for j, name in enumerate(p_names):
                 pow, alpha_x, x = get_protocol_power(f, j, fs, rejections, ch, alpha_band, dc=dc)
-                if name == 'FB':
+                if 'FB' in name:
                     pow_theta.append(get_protocol_power(f, j, fs, rejections, ch, theta_band, dc=dc)[0].mean())
                 powers = add_data(powers, name, pow, j)
                 raw = add_data(raw, name, x, j)
@@ -154,12 +157,12 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
                     plt.show()
                 print(name)
                 time = np.arange(t, t + len(x)) / fs
-                ax1.plot(time, x, c=cm[name.split()[1]], alpha=0.4)
-                ax1.plot(time, alpha[name], c=cm[name.split()[1]])
+                color = cm[''.join([i for i in name.split()[1] if not i.isdigit()])]
+                ax1.plot(time, fft_filter(x, fs, (2, 45)), c=color, alpha=0.4)
+                ax1.plot(time, alpha[name], c=color)
                 t += len(x)
-                ax.plot([j_p], [pow.mean() / norm], 'o', c=cm[name.split()[1]], markersize=10)
-                c = cm[name.split()[1]]
-                ax.errorbar([j_p], [pow.mean() / norm], yerr=pow.std() / norm, c=c, ecolor=c)
+                ax.plot([j_p], [pow.mean() / norm], 'o', c=color, markersize=10)
+                ax.errorbar([j_p], [pow.mean() / norm], yerr=pow.std() / norm, c=color, ecolor=color)
             fb_x = np.hstack([[j] * len(pows) for j, (key, pows) in enumerate(powers.items()) if 'FB' in key])
             fb_y = np.hstack([pows for key, pows in powers.items() if 'FB' in key]) / norm
             sns.regplot(x=fb_x, y=fb_y, ax=ax, color=cm['FB'], scatter=False, truncate=True)
@@ -179,6 +182,7 @@ if __name__ == '__main__':
 
     from json import loads
     settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
+    #     settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
     with open(settings_file, 'r') as f:
         settings = loads(f.read())
 
