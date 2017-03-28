@@ -26,7 +26,7 @@ def butter_bandpass_filter(data, lowcut, highcut, fs, order=3, axis=0):
     return y
 
 
-def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.01, lambda_=0.8):
+def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.01, lambda_=0.5):
     """
     """
     if not isinstance(x_dict, dict):
@@ -57,7 +57,7 @@ def csp3(x_dict, fs, band, butter_order=6, regularization_coef=0.01, lambda_=0.8
     topo = inv(vecs[:,reversed_slice]).T
     return vals[reversed_slice], vecs[:, reversed_slice], topo
 
-def csp(x, fs, band, butter_order=3, regularization_coef=0.05):
+def csp(x, fs, band, butter_order=3, regularization_coef=0.05, lambda_=None):
     """
     """
     # apply filter

@@ -86,3 +86,15 @@ def add_data(powers, name, pow, j):
     else:
         powers['{}. {}'.format(j + 1, name)] = pow
     return powers
+
+
+def add_data_simple(powers, name, pow):
+    if name == 'Filters':
+        powers['Closed'] = pow[:len(pow) // 2]
+        powers['Opened'] = pow[len(pow) // 2:]
+    elif name == 'Rotate':
+        powers['Right'] = pow[:len(pow) // 2]
+        powers['Left'] = pow[len(pow) // 2:]
+    else:
+        powers['{}'.format(name)] = pow
+    return powers

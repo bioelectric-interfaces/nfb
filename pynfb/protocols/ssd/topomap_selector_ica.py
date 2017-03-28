@@ -22,7 +22,7 @@ def mutual_info(x, y, bins=100):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None, scores=None):
+    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None, scores=None, states=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
@@ -49,6 +49,7 @@ class ICADialog(QtGui.QDialog):
             # Sliders
             self.sliders = Sliders()
             self.sliders.apply_button.clicked.connect(self.recompute)
+            self.lambda_csp3 = states
 
         # unmixing matrix estimation
         self.unmixing_matrix = None
@@ -171,19 +172,24 @@ class ICADialog(QtGui.QDialog):
     def recompute(self):
         parameters = self.sliders.getValues()
         self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
-        from pynfb.protocols.ssd.csp import csp as csp
+        if self.lambda_csp3 is not None:
+            print('CSP 3 using')
+            from pynfb.protocols.ssd.csp import csp3 as csp
+        else:
+            from pynfb.protocols.ssd.csp import csp as csp
         self.scores, self.unmixing_matrix, self.topographies = csp(self.data,
                                                                    fs=self.sampling_freq,
                                                                    band=self.bandpass,
-                                                                   regularization_coef=parameters['regularizator'])
+                                                                   regularization_coef=parameters['regularizator'],
+                                                                   lambda_=self.lambda_csp3)
         self.components = np.dot(self.data, self.unmixing_matrix)
         if self.table is not None:
             self.table.redraw(self.components, self.topographies, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica'):
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=2):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
-        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode)
+        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states)
         wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None

@@ -24,6 +24,14 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
             #plt.plot(fft_filter(f['protocol6/raw_data'][:, ch], fs, band=(3, 35)))
             #plt.plot(fft_filter(np.dot(f['protocol6/raw_data'], rejections)[:, ch], fs, band=(3, 35)))
             #plt.show()
+            from scipy.signal import welch
+            plt.plot(*welch(f['protocol1/raw_data'][:60*500//2, channels.index('C3')], fs, nperseg=1000))
+            plt.plot(*welch(f['protocol1/raw_data'][60*500//2:, channels.index('C3')], fs, nperseg=1000))
+
+            plt.plot(*welch(f['protocol2/raw_data'][:30*500//2, channels.index('C3')], fs, nperseg=1000))
+            plt.plot(*welch(f['protocol2/raw_data'][30*500//2:, channels.index('C3')], fs, nperseg=1000))
+            plt.legend(['Close', 'Open', 'Left', 'Right'])
+            plt.show()
 
             # collect powers
             powers = OrderedDict()
@@ -102,12 +110,12 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
 if __name__ == '__main__':
 
     from json import loads
-    settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
-    #     settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
+    # settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
+    settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
     with open(settings_file, 'r') as f:
         settings = loads(f.read())
 
-    channel = 'C3'
+    channel = 'P4'
     reject_alpha = True
     normalize_by = 'beta'
 
