@@ -88,13 +88,17 @@ def add_data(powers, name, pow, j):
     return powers
 
 
-def add_data_simple(powers, name, pow):
+def add_data_simple(odict, name, x):
+    import mne
+    to_raw = lambda y: y#mne.io.RawArray(y.T, info)
     if name == 'Filters':
-        powers['Closed'] = pow[:len(pow) // 2]
-        powers['Opened'] = pow[len(pow) // 2:]
+        odict['Closed'] = to_raw(x[:len(x) // 2])
+        odict['Opened'] = to_raw(x[len(x) // 2:])
     elif name == 'Rotate':
-        powers['Right'] = pow[:len(pow) // 2]
-        powers['Left'] = pow[len(pow) // 2:]
+        odict['Right'] = to_raw(x[:len(x) // 2])
+        odict['Left'] = to_raw(x[len(x) // 2:])
     else:
-        powers['{}'.format(name)] = pow
-    return powers
+        odict[name] = to_raw(x)
+    #elif 'FB' in name:
+    #    odict['FB'] = to_raw(x)
+    return odict
