@@ -18,7 +18,7 @@ with open(settings_file, 'r') as f:
 dir_ = settings['dir']
 subj = 3
 experiments = settings['subjects'][subj]
-experiment = experiments[2]
+experiment = experiments[4]
 
 def preproc(x, fs, rej=None):
     x = dc_blocker(x)
@@ -46,28 +46,34 @@ with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data
 
 
 # plot raw data
-ch_plot = ['C3', 'C4', 'Fp1']#, 'P3', 'P4', 'Pz', 'Fp1']
+ch_plot = ['C3', 'C4', 'Pz', 'Fp1']#, 'P3', 'P4', 'Pz', 'Fp1']
 fig1, axes = plt.subplots(len(ch_plot), ncols=1, sharex=True, sharey=True)
 print(axes)
+
+#find median
+x_all = []
+for name, x in list(raw_before.items()) + list(raw_after.items()):
+    x_all.append(np.abs(hilbert(fft_filter(x, fs, (4, 8)))))
+x_median = np.mean(np.concatenate(x_all), 0)
+print(x_median)
+
 
 # plot raw
 t = 0
 cm = get_colors()
 for name, x in list(raw_before.items()) + list(raw_after.items()):
-    if name in ['Opened', 'Baseline', 'Left', 'Right']:
+    if name in ['Closed', 'Opened', 'Baseline', 'Left', 'Right']:
         for j, ch in enumerate(ch_plot):
             time = np.arange(t, t + len(x)) / fs
             x_plot = fft_filter(x[:, channels.index(ch)], fs, band=(3, 45)) if ch != 'Fp1' else x[:, channels.index(ch)]
             axes[j].plot(time, x_plot, c=cm[name], alpha=1)
             x_plot = fft_filter(x[:, channels.index(ch)], fs, band=(9, 14)) if ch != 'Fp1' else x[:, channels.index(ch)]
             x_plot = np.abs(hilbert(x_plot))
-            #axes[j].plot(time, (x_plot>5)*30, c=cm[name], alpha=0.8)
-            #axes[j].plot(time, -(x_plot > 5) * 30-30, c=cm[name], alpha=0.8)
-            axes[j].fill_between(time, -(x_plot > 5) * 30 - 30, (x_plot>5)*30, facecolor=cm[name], alpha=0.6, linewidth=0)
+            threshold = 1.5*x_median[channels.index(ch)]
+            axes[j].fill_between(time, (-(x_plot > threshold) - 1) * 30, (x_plot>threshold)*30, facecolor=cm[name], alpha=0.6, linewidth=0)
             axes[j].set_ylabel(ch)
         t += len(x)
-plt.legend(['Opened', 'Right', 'Left', 'Baseline'])#[name for name in raw_before])
-print(raw_before)
+plt.legend(['Closed','Opened', 'Right', 'Left', 'Baseline'])
 
 # plot spectrum
 ch_plot = ['C3', 'C4']
