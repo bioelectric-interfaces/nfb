@@ -11,14 +11,14 @@ from IPython.display import clear_output
 # load raw
 from json import loads
 
-settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
+settings_file = 'C:\_data\mu5days\\vnd_spbu_5days.json'
 with open(settings_file, 'r') as f:
     settings = loads(f.read())
 
 dir_ = settings['dir']
 subj = 3
 experiments = settings['subjects'][subj]
-experiment = experiments[4]
+experiment = experiments[2]
 
 def preproc(x, fs, rej=None):
     x = dc_blocker(x)
@@ -35,7 +35,7 @@ with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data
     raw_before = OrderedDict()
     raw_after = OrderedDict()
     for j, name in enumerate(p_names):
-        if j < 3:
+        if j < 5:
             x = preproc(f['protocol{}/raw_data'.format(j + 1)][:], fs, rejection if reject else None)
             raw_before = add_data_simple(raw_before, name, x)
         elif j > len(p_names) - 3:
@@ -46,7 +46,7 @@ with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data
 
 
 # plot raw data
-ch_plot = ['C3', 'C4', 'Pz', 'Fp1']#, 'P3', 'P4', 'Pz', 'Fp1']
+ch_plot = ['C3', 'C4', 'P3', 'P4']#, 'Pz', 'Fp1']
 fig1, axes = plt.subplots(len(ch_plot), ncols=1, sharex=True, sharey=True)
 print(axes)
 
@@ -62,7 +62,7 @@ print(x_median)
 t = 0
 cm = get_colors()
 for name, x in list(raw_before.items()) + list(raw_after.items()):
-    if name in ['Closed', 'Opened', 'Baseline', 'Left', 'Right']:
+    if name in ['Closed', 'Opened', 'Baseline', 'Left', 'Right', 'FB']:
         for j, ch in enumerate(ch_plot):
             time = np.arange(t, t + len(x)) / fs
             x_plot = fft_filter(x[:, channels.index(ch)], fs, band=(3, 45)) if ch != 'Fp1' else x[:, channels.index(ch)]

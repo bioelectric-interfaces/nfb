@@ -1,5 +1,4 @@
 import numpy as np
-import seaborn as sns
 from numpy.fft import fftfreq
 from scipy.fftpack import rfft, irfft
 
@@ -70,7 +69,19 @@ def get_protocol_power(f, i_protocol, fs, rejection, ch, band=(9, 14), dc=False)
 
 
 def get_colors():
+    import seaborn as sns
     p_names = [ 'Right', 'Left',  'Rest', 'FB', 'Closed', 'Opened', 'Baseline']
+    cm = sns.color_palette('Paired', n_colors=len(p_names))
+    c = dict(zip(p_names, [cm[j] for j in range(len(p_names))]))
+    return c
+
+def get_colors_f(key):
+    cm = get_colors()
+    ind = [name for name in cm if name in key]
+    return cm[ind[0]]
+
+def get_colors2():
+    p_names = [ 'Right', 'Left',  'Rest', 'FB', 'Close', 'Open', 'Baseline']
     cm = sns.color_palette('Paired', n_colors=len(p_names))
     c = dict(zip(p_names, [cm[j] for j in range(len(p_names))]))
     return c
