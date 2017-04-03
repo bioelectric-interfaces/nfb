@@ -24,14 +24,14 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
             #plt.plot(fft_filter(f['protocol6/raw_data'][:, ch], fs, band=(3, 35)))
             #plt.plot(fft_filter(np.dot(f['protocol6/raw_data'], rejections)[:, ch], fs, band=(3, 35)))
             #plt.show()
-            from scipy.signal import welch
-            plt.plot(*welch(f['protocol1/raw_data'][:60*500//2, channels.index('C3')], fs, nperseg=1000))
-            plt.plot(*welch(f['protocol1/raw_data'][60*500//2:, channels.index('C3')], fs, nperseg=1000))
+            #from scipy.signal import welch
+            #plt.plot(*welch(f['protocol1/raw_data'][:60*500//2, channels.index('C3')], fs, nperseg=1000))
+            #plt.plot(*welch(f['protocol1/raw_data'][60*500//2:, channels.index('C3')], fs, nperseg=1000))
 
-            plt.plot(*welch(f['protocol2/raw_data'][:30*500//2, channels.index('C3')], fs, nperseg=1000))
-            plt.plot(*welch(f['protocol2/raw_data'][30*500//2:, channels.index('C3')], fs, nperseg=1000))
-            plt.legend(['Close', 'Open', 'Left', 'Right'])
-            plt.show()
+            #plt.plot(*welch(f['protocol2/raw_data'][:30*500//2, channels.index('C3')], fs, nperseg=1000))
+            #plt.plot(*welch(f['protocol2/raw_data'][30*500//2:, channels.index('C3')], fs, nperseg=1000))
+            #plt.legend(['Close', 'Open', 'Left', 'Right'])
+            #plt.show()
 
             # collect powers
             powers = OrderedDict()
@@ -110,16 +110,16 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
 if __name__ == '__main__':
 
     from json import loads
-    # settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
-    settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
+    settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
+    #settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
     with open(settings_file, 'r') as f:
         settings = loads(f.read())
 
-    channel = 'P4'
-    reject_alpha = True
+    channel = 'C3'
+    reject_alpha = False
     normalize_by = 'beta'
 
-    for j, subj in enumerate(settings['subjects']):
+    for j, subj in enumerate(settings['subjects'][4:]):
         #pass
 
         fg = plot_results(settings['dir'], subj,
