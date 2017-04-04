@@ -1,20 +1,18 @@
 from PyQt4 import QtGui, QtCore
 
 class CheckTable(QtGui.QTableWidget):
-    one_selected = QtCore.pyqtSignal()
-    more_one_selected = QtCore.pyqtSignal()
-    no_one_selected = QtCore.pyqtSignal()
-
-    def __init__(self, names, *args):
+    def __init__(self, names, state_names, name_col, *args):
         super(CheckTable, self).__init__(*args)
 
         # attributes
         self.row_items_max_height = 125
         self.names = names
         self.order = list(range(len(self.names)))
+        self.n_check_rows = len(state_names)
 
         # set size and names
-        self.columns = ['Selection', 'Name']
+        self.columns = state_names + [name_col]
+        self.col = 0
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(self.names))
         self.setHorizontalHeaderLabels(self.columns)
@@ -23,23 +21,22 @@ class CheckTable(QtGui.QTableWidget):
         self.checkboxes = []
         for ind in range(self.rowCount()):
             # checkboxes
-            checkbox = QtGui.QCheckBox()
-            checkbox.setChecked(True)
-            self.checkboxes.append(checkbox)
-            self.setCellWidget(ind, self.columns.index('Selection'), checkbox)
+            checkboxes = []
+            for j in range(self.n_check_rows):
+                checkbox = QtGui.QCheckBox()
+                checkbox.setChecked(j == 0)
+                checkboxes.append(checkbox)
+                self.setCellWidget(ind, j, checkbox)
+            self.checkboxes.append(checkboxes)
 
             # name
-            self.setCellWidget(ind, self.columns.index('Name'), QtGui.QLabel(self.names[ind]))
+            self.setCellWidget(ind, self.columns.index(name_col), QtGui.QLabel(self.names[ind]))
 
         # formatting
         self.current_row = None
         self.horizontalHeader().setStretchLastSection(True)
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
-
-        # checkbox signals
-        for checkbox in self.checkboxes:
-            checkbox.stateChanged.connect(self.checkboxes_state_changed)
 
         # selection context menu
         header = self.horizontalHeader()
@@ -54,8 +51,8 @@ class CheckTable(QtGui.QTableWidget):
         self.cellClicked.connect(self.cell_was_clicked)
 
     def cell_was_clicked(self, row, column):
-        if column == 0:
-            self.checkboxes[self.order[row]].click()
+        if column < self.n_check_rows:
+            self.checkboxes[self.order[row]][column].click()
 
     def ctrl_plus_a_event(self):
         if len(self.get_unchecked_rows()) == 0:
@@ -64,15 +61,15 @@ class CheckTable(QtGui.QTableWidget):
             self.select_all()
 
     def contextMenuEvent(self, pos):
-        if self.columnAt(pos.x()) == 0:
-            self.checkboxes[self.order[self.rowAt(pos.y())]].click() # state will be unchanged
-            self.open_selection_menu()
+        self.checkboxes[self.order[self.rowAt(pos.y())]][self.columnAt(pos.x())].click() # state will be unchanged
+        self.open_selection_menu(self.columnAt(pos.x()))
 
     def handle_header_menu(self, pos):
-        if self.horizontalHeader().logicalIndexAt(pos) == 0:
-            self.open_selection_menu()
+        if self.horizontalHeader().logicalIndexAt(pos) in range(self.n_check_rows):
+            self.open_selection_menu(self.columnAt(pos.x()))
 
-    def open_selection_menu(self):
+    def open_selection_menu(self, col):
+        self.col = col
         menu = QtGui.QMenu()
         for name, method in zip(['Revert selection', 'Select all', 'Clear selection'],
                                 [self.revert_selection, self.select_all, self.clear_selection]):
@@ -82,36 +79,32 @@ class CheckTable(QtGui.QTableWidget):
         menu.exec_(QtGui.QCursor.pos())
 
     def revert_selection(self):
+        col = self.col
         for checkbox in self.checkboxes:
-            checkbox.setChecked(not checkbox.isChecked())
+            checkbox[col].setChecked(not checkbox[col].isChecked())
 
     def select_all(self):
+        col = self.col
         for checkbox in self.checkboxes:
-            checkbox.setChecked(True)
+            checkbox[col].setChecked(True)
 
     def clear_selection(self):
+        col = self.col
         for checkbox in self.checkboxes:
-            checkbox.setChecked(False)
-
-    def checkboxes_state_changed(self):
-        checked = self.get_checked_rows()
-        if len(checked) == 0:
-            self.no_one_selected.emit()
-        elif len(checked) == 1:
-            self.one_selected.emit()
-        else:
-            self.more_one_selected.emit()
+            checkbox[col].setChecked(False)
 
     def get_checked_rows(self):
-        return [j for j, checkbox in enumerate(self.checkboxes) if checkbox.isChecked()]
+        return [[jj for jj, checkbox in enumerate(self.checkboxes) if checkbox[j].isChecked()]
+                for j in range(self.n_check_rows)]
 
     def get_unchecked_rows(self):
-        return [j for j, checkbox in enumerate(self.checkboxes) if not checkbox.isChecked()]
+        return [[jj for jj, checkbox in enumerate(self.checkboxes) if not checkbox[j].isChecked()]
+                for j in range(self.n_check_rows)]
 
 
 if __name__ == '__main__':
     a = QtGui.QApplication([])
-    w = CheckTable(['One', 'Two'])
+    w = CheckTable(['One', 'Two'], ['State1', 'saef', 'saeg'], 'weg')
     w.show()
     a.exec_()
     print(w.get_checked_rows())

@@ -187,7 +187,7 @@ class ICADialog(QtGui.QDialog):
             self.table.redraw(self.components, self.topographies, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=2):
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
         selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states)
         wait_bar.close()

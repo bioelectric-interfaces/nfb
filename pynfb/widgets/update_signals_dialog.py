@@ -10,7 +10,7 @@ from pynfb.widgets.rejections_editor import RejectionsWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.widgets.check_table import CheckTable
 from pynfb.signals import DerivedSignal
-from numpy import dot, concatenate
+from numpy import dot, concatenate, array
 
 class SignalsTable(QtGui.QTableWidget):
     show_topography_name = {True: 'Topography', False: 'Filter'}
@@ -202,7 +202,7 @@ class SignalsSSDManager(QtGui.QDialog):
         layout.addWidget(self.table)
 
         # protocols seq check table
-        protocol_seq_table = CheckTable(protocol_seq)
+        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP)'], 'Protocol')
         protocol_seq_table.setMaximumWidth(200)
         self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
@@ -320,8 +320,12 @@ class SignalsSSDManager(QtGui.QDialog):
         elif row is None and csp:
             row = self.table.csp_buttons.index(self.sender())
 
-        x = dot(concatenate([self.x[j] for j in self.get_checked_protocols()]),
-                self.signals[row].rejections.get_prod())
+        ind = self.get_checked_protocols()
+        print(ind)
+        x = concatenate([self.x[j] for j in ind[0]])
+        if csp:
+            x = concatenate([x] + [self.x[j] for j in ind[1]])
+        x = dot(x, self.signals[row].rejections.get_prod())
 
         to_all = False
         ica_rejection = None
