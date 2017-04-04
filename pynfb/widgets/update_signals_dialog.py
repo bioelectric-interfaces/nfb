@@ -6,7 +6,6 @@ import sys
 from pynfb.protocols import SelectSSDFilterWidget
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from pynfb.protocols.user_inputs import SelectCSPFilterWidget
 from pynfb.widgets.rejections_editor import RejectionsWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.signals import DerivedSignal
@@ -336,8 +335,7 @@ class SignalsSSDManager(QtGui.QDialog):
                                                                      mode='csp')
             rejections = [rejection] if rejection is not None else []
         else:
-            SelectFilterWidget = SelectCSPFilterWidget if csp else SelectSSDFilterWidget
-            filter, topography, bandpass, rejections = SelectFilterWidget.select_filter_and_bandpass(x, self.pos,
+            filter, topography, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, self.pos,
                                                                                          self.channels_names,
                                                                                          sampling_freq=
                                                                                          self.sampling_freq)
@@ -369,7 +367,7 @@ class SignalsSSDManager(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
     from pynfb.signals import CompositeSignal
-    signals = [DerivedSignal(ind = k, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=4) for k in range(3)]
+    signals = [DerivedSignal(ind = k, source_freq=500, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=4) for k in range(3)]
     signals +=[CompositeSignal(signals, '', 'Composite', 3)]
     app = QtGui.QApplication([])
 
