@@ -86,7 +86,7 @@ class RawViewer(pg.PlotWidget):
         self.update()
 
     def update(self):
-        std = 1 if self.std is None else self.std
+        std = 1 if self.std is None or self.std == 0 else self.std
         for i in range(0, self.n_channels, 1):
             self.curves[i].setData(self.x_mesh[:self.n_samples_to_display],
                                    self.raw_buffer[-self.n_samples_to_display:, i] * self.scaler / std)

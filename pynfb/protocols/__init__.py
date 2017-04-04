@@ -9,7 +9,7 @@ from numpy.random import randint
 from numpy import vstack
 from PyQt4.QtCore import QCoreApplication
 from pynfb.signals import CompositeSignal, DerivedSignal
-from pynfb.io.hdf5 import load_h5py
+from pynfb.io.hdf5 import load_h5py_protocols_raw
 
 
 class Protocol:
@@ -82,7 +82,7 @@ class Protocol:
             if self.reverse_mock_previous:
                 self.mock_recordings = self.mock_recordings[::-1]
 
-    def close_protocol(self, raw=None, signals=None, protocols=list()):
+    def close_protocol(self, raw=None, signals=None, protocols=list(), protocols_seq=None, raw_file=None):
         # action if ssd in the end checkbox was checked
         if self.ssd_in_the_end:
 
@@ -92,11 +92,15 @@ class Protocol:
 
             # get spatial filter
             channels_names = self.ch_names
-            x = raw
+            if raw_file is not None and protocols_seq is not None:
+                x = load_h5py_protocols_raw(raw_file, [j for j in range(len(protocols_seq)-1)])
+                x.append(raw)
+            else:
+                raise AttributeError('Attributes protocol_seq and raw_file should be not a None')
             pos = ch_names_to_2d_pos(channels_names)
 
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
-                                               sampling_freq=self.freq)
+                                               sampling_freq=self.freq, protocol_seq=protocols_seq)
             signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(
                 protocols[signal_manager.combo_protocols.currentIndex()]
             ))

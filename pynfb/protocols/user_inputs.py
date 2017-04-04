@@ -106,13 +106,6 @@ class SelectSSDFilterWidget(QtGui.QDialog):
                 selector.rejections)
 
 
-from pynfb.protocols.ssd.topomap_selector_csp import TopomapSelector as CSPSelector
-class SelectCSPFilterWidget(SelectSSDFilterWidget):
-    def __init__(self, *args, **kwargs):
-        kwargs['selector_class'] = CSPSelector
-        super(SelectCSPFilterWidget, self).__init__(*args, **kwargs)
-
-
 if __name__ == '__main__':
     import numpy as np
     from pynfb.widgets.helpers import ch_names_to_2d_pos

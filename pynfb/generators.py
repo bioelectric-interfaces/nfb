@@ -55,6 +55,9 @@ def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', lab
     ampl = 10
     freqs = np.arange(n_channels)*5 + 10
     sample = np.zeros((n_channels,))
+    if source_buffer is not None:
+        source_buffer = np.concatenate([source_buffer.T, source_buffer.T[::-1]]).T
+
     while True:
         # if source_buffer is not None get sample from source_buffer
         # else simulate sin(a*t)*sin(b*t)

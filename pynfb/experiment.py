@@ -151,7 +151,9 @@ class Experiment():
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
             signals=self.signals_recorder[:self.samples_counter],
-            protocols=self.protocols)
+            protocols=self.protocols,
+            protocols_seq=[protocol.name for protocol in self.protocols_sequence[:self.current_protocol_index+1]],
+            raw_file=self.dir_name + 'experiment_data.h5')
 
         save_signals(self.dir_name + 'experiment_data.h5', self.signals, protocol_number_str,
                      raw_data=self.raw_recorder[:self.samples_counter],

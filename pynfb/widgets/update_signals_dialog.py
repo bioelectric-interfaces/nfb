@@ -8,8 +8,9 @@ from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 from pynfb.widgets.rejections_editor import RejectionsWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
+from pynfb.widgets.check_table import CheckTable
 from pynfb.signals import DerivedSignal
-from numpy import dot
+from numpy import dot, concatenate
 
 class SignalsTable(QtGui.QTableWidget):
     show_topography_name = {True: 'Topography', False: 'Filter'}
@@ -170,7 +171,7 @@ class SignalsSSDManager(QtGui.QDialog):
     test_signal = QtCore.pyqtSignal()
     test_closed_signal = QtCore.pyqtSignal()
     def __init__(self, signals, x, pos, channels_names, protocol, signals_rec, protocols, sampling_freq=1000,
-                 message=None, **kwargs):
+                 message=None, protocol_seq=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # name
@@ -190,14 +191,20 @@ class SignalsSSDManager(QtGui.QDialog):
         self.ica_unmixing_matrix = None
 
         #layout
-        layout = QtGui.QVBoxLayout(self)
+        main_layout = QtGui.QVBoxLayout(self)
+        layout = QtGui.QHBoxLayout()
+        main_layout.addLayout(layout)
 
         # table
         self.table = SignalsTable(self.signals, self.channels_names)
-
-        self.setMinimumWidth(sum(self.table.columns_width) + 25)
+        self.setMinimumWidth(sum(self.table.columns_width) + 250)
         self.setMinimumHeight(400)
         layout.addWidget(self.table)
+
+        # protocols seq check table
+        protocol_seq_table = CheckTable(protocol_seq)
+        protocol_seq_table.setMaximumWidth(200)
+        self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
         # message
         if message is not None:
@@ -205,7 +212,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         # bottom layout
         bottom_layout = QtGui.QHBoxLayout()
-        layout.addLayout(bottom_layout)
+        main_layout.addLayout(bottom_layout)
 
         # ok button
         self.ok_button = QtGui.QPushButton('Continue')
@@ -230,6 +237,7 @@ class SignalsSSDManager(QtGui.QDialog):
         self.combo_protocols.addItems(protocols_names)
 
         # add to bottom layout
+        layout.addWidget(protocol_seq_table)
         bottom_layout.addWidget(self.test_button)
         bottom_layout.addWidget(self.combo_protocols)
         bottom_layout.addWidget(self.revert_button)
@@ -312,7 +320,8 @@ class SignalsSSDManager(QtGui.QDialog):
         elif row is None and csp:
             row = self.table.csp_buttons.index(self.sender())
 
-        x = dot(self.x, self.signals[row].rejections.get_prod())
+        x = dot(concatenate([self.x[j] for j in self.get_checked_protocols()]),
+                self.signals[row].rejections.get_prod())
 
         to_all = False
         ica_rejection = None
@@ -375,6 +384,6 @@ if __name__ == '__main__':
     from pynfb.widgets.helpers import ch_names_to_2d_pos
     channels = ['Cz', 'Fp1', 'Fp2', 'Pz']
 
-    w = SignalsSSDManager(signals, x, ch_names_to_2d_pos(channels), channels, None, None, [])
+    w = SignalsSSDManager(signals, [x, -x*0.1], ch_names_to_2d_pos(channels), channels, None, None, [], protocol_seq=['One', 'Two'])
     w.show()
     app.exec_()

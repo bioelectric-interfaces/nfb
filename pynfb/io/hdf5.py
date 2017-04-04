@@ -14,6 +14,15 @@ def load_h5py(file_path, dataset_name='dataset'):
         data = f[dataset_name][:]
     return data
 
+def load_h5py_protocols_raw(file_path, protocol_indxs=None):
+    if protocol_indxs is None:
+        return None
+    data = []
+    with h5py.File(file_path, 'r') as f:
+        for j in protocol_indxs:
+            data.append(f['protocol{}/raw_data'.format(j + 1)][:])
+    return data
+
 def load_h5py_protocol_signals(file_path, protocol_name='protocol1'):
     with h5py.File(file_path, 'r') as f:
         if isinstance(f[protocol_name], h5py.Dataset):

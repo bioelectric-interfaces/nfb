@@ -11,9 +11,9 @@ class Sliders(QtGui.QWidget):
         h_layout.addLayout(v_layout)
         self.parameters = {}
 
-        self.defaults = {'bandpass_low': 8,
+        self.defaults = {'bandpass_low': 3,
                         'regularizator': 0.05,
-                        'bandpass_high': 12}
+                        'bandpass_high': 45}
 
 
         # regularizator slider
