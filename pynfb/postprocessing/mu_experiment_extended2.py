@@ -33,7 +33,7 @@ def fft_filter(x, fs, band=(9, 14)):
 def get_power2(x, fs, band, n_sec=5):
     n_steps = int(n_sec * fs)
     w = fftfreq(n_steps, d=1. / fs * 2)
-    print(len(range(0, x.shape[0] - n_steps, n_steps)))
+    #print(len(range(0, x.shape[0] - n_steps, n_steps)))
     pows = [2*np.sum(rfft(x[k:k+n_steps])[(w > band[0]) & (w < band[1])]**2)/n_steps
             for k in range(0, x.shape[0] - n_steps, n_steps)]
     return np.array(pows)
@@ -61,10 +61,10 @@ def get_info(f, drop_channels):
     labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
     print('fs: {}\nall labels {}: {}'.format(fs, len(labels), labels))
     channels = [label for label in labels if label not in drop_channels]
-    print('selected channels {}: {}'.format(len(channels), channels))
+    #print('selected channels {}: {}'.format(len(channels), channels))
     n_protocols = len([k for k in f.keys() if ('protocol' in k and k != 'protocol0')])
     protocol_names = [f['protocol{}'.format(j+1)].attrs['name'] for j in range(n_protocols)]
-    print('protocol_names:', protocol_names)
+    #print('protocol_names:', protocol_names)
     return fs, channels, protocol_names
 
 def get_protocol_power(f, i_protocol, fs, rejection, ch, band=(9, 14), dc=False):
@@ -144,11 +144,14 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
                 norm = np.mean(pow_theta)
             else:
                 print('WARNING: norm = 1')
-            print('norm', norm)
+            #print('norm', norm)
 
             ax1 = fg.add_subplot(3, len(subj), j_s + 1)
             ax = fg.add_subplot(3, len(subj), j_s + len(subj) + 1)
             t = 0
+            #print(powers.keys())
+            if j_s == 0:
+                print(powers['4. FB'].mean() / powers['3. Baseline'].mean())
             for j_p, ((name, pow), (name, x)) in enumerate(zip(powers.items(), raw.items())):
                 if name == '2228. FB':
                     from scipy.signal import periodogram
@@ -157,7 +160,7 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
                     plt.xlim(0, 80)
                     plt.ylim(0, 3e-11)
                     plt.show()
-                print(name)
+                #print(name)
                 time = np.arange(t, t + len(x)) / fs
                 ax1.plot(time, x, c=cm[name.split()[1]], alpha=0.4)
                 ax1.plot(time, alpha[name], c=cm[name.split()[1]])
@@ -183,7 +186,7 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
 if __name__ == '__main__':
 
     from json import loads
-    settings_file = 'C:\\Users\\nsmetanin\Desktop\\results\\test_csp3_03-24_14-28-38\\vnd_spbu_5days.json'
+    settings_file = 'D:\\vnd_spbu\\pilot\mu5days\\vnd_spbu_5days.json'
     with open(settings_file, 'r') as f:
         settings = loads(f.read())
 

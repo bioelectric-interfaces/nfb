@@ -70,7 +70,7 @@ def get_protocol_power(f, i_protocol, fs, rejection, ch, band=(9, 14), dc=False)
 
 def get_colors():
     import seaborn as sns
-    p_names = [ 'Right', 'Left',  'Rest', 'FB', 'Closed', 'Opened', 'Baseline']
+    p_names = [ 'Right', 'Left',  'Rest', 'FB', 'Close', 'Open', 'Baseline']
     cm = sns.color_palette('Paired', n_colors=len(p_names))
     c = dict(zip(p_names, [cm[j] for j in range(len(p_names))]))
     return c
