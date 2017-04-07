@@ -106,7 +106,7 @@ class ICADialog(QtGui.QDialog):
 
         scores_name = 'Mutual info' if mode == 'ica' else 'Eigenvalues'
         # table
-        self.table = ScoredComponentsTable(self.components, self.topographies, channel_names, fs, self.scores,
+        self.table = ScoredComponentsTable(self.components, self.topographies, self.unmixing_matrix, channel_names, fs, self.scores,
                                            scores_name=scores_name)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
 
@@ -184,7 +184,7 @@ class ICADialog(QtGui.QDialog):
                                                                    lambda_=self.lambda_csp3)
         self.components = np.dot(self.data, self.unmixing_matrix)
         if self.table is not None:
-            self.table.redraw(self.components, self.topographies, self.scores)
+            self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
     def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None):

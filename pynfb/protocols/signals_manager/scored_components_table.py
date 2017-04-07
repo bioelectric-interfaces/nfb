@@ -35,18 +35,56 @@ class BarLabelWidget(QtGui.QWidget):
         qp.drawText(1, size.height()//2 + 1, str(round(self.value, 5)))
 
 
+class TopoFilterCavas(QtGui.QWidget):
+    def __init__(self, parent, names, topo, filter, size):
+        super(TopoFilterCavas, self).__init__(parent)
+
+        # topography layout
+        topo_canvas = TopographicMapCanvas()
+        topo_canvas.setMaximumWidth(size)
+        topo_canvas.setMaximumHeight(size)
+        topo_canvas.update_figure(topo, names=names, show_names=[], show_colorbar=False)
+
+        # filter layout
+        filter_canvas = TopographicMapCanvas()
+        filter_canvas.setMaximumWidth(size)
+        filter_canvas.setMaximumHeight(size)
+        filter_canvas.update_figure(filter, names=names, show_names=[], show_colorbar=False)
+        filter_canvas.setHidden(True)
+
+        # layout
+        layout = QtGui.QHBoxLayout(self)
+        layout.addWidget(topo_canvas)
+        layout.addWidget(filter_canvas)
+
+        # attr
+        self.show_filter = False
+        self.topo = topo_canvas
+        self.filter = filter_canvas
+        self.names = names
+
+
+    def switch(self):
+        self.show_filter = not self.show_filter
+        self.filter.setHidden(not self.show_filter)
+        self.topo.setHidden(self.show_filter)
+
+    def update_data(self, topo, filter):
+        self.filter.update_figure(filter, names=self.names, show_names=[], show_colorbar=False)
+        self.topo.update_figure(topo, names=self.names, show_names=[], show_colorbar=False)
+
+
 class ScoredComponentsTable(QtGui.QTableWidget):
     one_selected = QtCore.pyqtSignal()
     more_one_selected = QtCore.pyqtSignal()
     no_one_selected = QtCore.pyqtSignal()
 
-    def __init__(self, time_series, topographies, channel_names, fs, scores, scores_name='Mutual info', *args):
+    def __init__(self, time_series, topographies, filters, channel_names, fs, scores, scores_name='Mutual info', *args):
         super(ScoredComponentsTable, self).__init__(*args)
 
         # attributes
         self.row_items_max_height = 125
         self.time_series = time_series
-        self.topographies = topographies
         self.channel_names = channel_names
         self.fs = fs
 
@@ -69,14 +107,11 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             self.checkboxes.append(checkbox)
             self.setCellWidget(ind, self.columns.index('Selection'), checkbox)
 
-            # topographies
-            topo_canvas = TopographicMapCanvas()
-            topo_canvas.setMaximumWidth(self.row_items_max_height)
-            topo_canvas.setMaximumHeight(self.row_items_max_height)
-            topo_canvas.update_figure(self.topographies[:, ind], names=self.channel_names, show_names=[],
-                                      show_colorbar=False)
-            self.topographies_items.append(topo_canvas)
-            self.setCellWidget(ind, self.columns.index('Topography'), topo_canvas)
+            # topographies and filters
+            topo_filter = TopoFilterCavas(self, self.channel_names, topographies[:, ind], filters[:, ind],
+                                          self.row_items_max_height)
+            self.topographies_items.append(topo_filter)
+            self.setCellWidget(ind, self.columns.index('Topography'), topo_filter)
 
             # plots
             plot_widget = PlotWidget(enableMenu=False)
@@ -180,6 +215,8 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             self.set_spectrum_mode(flag=not self.is_spectrum_mode)
         if index == 1:
             self.reorder()
+        if index == 2:
+            self.switch_topo_filter()
 
     def set_spectrum_mode(self, flag=False):
         self.is_spectrum_mode = flag
@@ -209,6 +246,12 @@ class ScoredComponentsTable(QtGui.QTableWidget):
     def get_unchecked_rows(self):
         return [j for j, checkbox in enumerate(self.checkboxes) if not checkbox.isChecked()]
 
+    def switch_topo_filter(self):
+        self.columns[2] = 'Filters' if self.columns[2] == 'Topography' else 'Topography'
+        self.setHorizontalHeaderLabels(self.columns)
+        for topo_filt in self.topographies_items:
+            topo_filt.switch()
+
     def reorder(self, order=None):
         self.order = self.order[-1::-1] if order is None else order
         for ind, new_ind in enumerate(self.order):
@@ -229,18 +272,15 @@ class ScoredComponentsTable(QtGui.QTableWidget):
         self.order = np.argsort(scores)
         self.reorder()
 
-    def redraw(self, time_series, topographies, scores):
+    def redraw(self, time_series, topographies, filters, scores):
         print(scores)
         # components
         self.time_series = time_series
         self.set_spectrum_mode()
 
-        # topographies
-        self.topographies = topographies
         for ind in range(self.rowCount()):
-            widget = self.cellWidget(self.order[ind], self.columns.index('Topography'))
-            widget.update_figure(self.topographies[:, ind], names=self.channel_names, show_names=[],
-                                      show_colorbar=False)
+            widget = self.cellWidget(self.order[ind], 2)
+            widget.update_data(topographies[:, ind], filters[:, ind])
             self.topographies_items[self.order[ind]] = widget
 
         # scores
