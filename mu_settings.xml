@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NeurofeedbackSignalSpecs>
-	<bDC>0</bDC>
-	<sExperimentName>mu_ica_test_full</sExperimentName>
+	<bDC>0.0</bDC>
+	<sExperimentName>mu_ica_</sExperimentName>
 	<sInletType>lsl</sInletType>
 	<sStreamName>NVX136_Data</sStreamName>
 	<sRawDataFilePath></sRawDataFilePath>
@@ -23,134 +23,30 @@
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
 		</DerivedSignal>
+		<CompositeSignal>
+			<sSignalName>Composite</sSignalName>
+			<sExpression></sExpression>
+		</CompositeSignal>
 	</vSignals>
 	<vProtocols>
 		<FeedbackProtocol>
 			<sProtocolName>Close</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>20</fDuration>
-			<fbSource>All</fbSource>
-			<sFb_type>Baseline</sFb_type>
-			<cString>Расслабьтесь. Закройте глаза.</cString>
-			<bUseExtraMessage>0</bUseExtraMessage>
-			<cString2>+</cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
-			<sRewardSignal>left</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<iRandomBound>0</iRandomBound>
-			<sVideoPath></sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>Right</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>20</fDuration>
-			<fbSource>All</fbSource>
-			<sFb_type>Baseline</sFb_type>
-			<cString>Вращайте только ПРАВОЙ кистью</cString>
-			<bUseExtraMessage>0</bUseExtraMessage>
-			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
-			<sRewardSignal>left</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<iRandomBound>0</iRandomBound>
-			<sVideoPath></sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>Baseline</sProtocolName>
-			<bUpdateStatistics>1</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>60</fDuration>
-			<fbSource>All</fbSource>
-			<sFb_type>Baseline</sFb_type>
-			<cString>+</cString>
-			<bUseExtraMessage>0</bUseExtraMessage>
-			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
-			<sRewardSignal>left</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<iRandomBound>0</iRandomBound>
-			<sVideoPath></sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>FB</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>120</fDuration>
-			<fbSource>left</fbSource>
-			<sFb_type>CircleFeedback</sFb_type>
-			<cString></cString>
-			<bUseExtraMessage>0</bUseExtraMessage>
-			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
-			<sRewardSignal>left</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<iRandomBound>1</iRandomBound>
-			<sVideoPath></sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>Rest</sProtocolName>
 			<bUpdateStatistics>0.0</bUpdateStatistics>
 			<iDropOutliers>0.0</iDropOutliers>
 			<bSSDInTheEnd>0.0</bSSDInTheEnd>
 			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString></cString>
+			<cString>Расслабьтесь. Закройте глаза.</cString>
 			<bUseExtraMessage>0.0</bUseExtraMessage>
-			<cString2></cString2>
+			<cString2>+</cString2>
 			<fBlinkDurationMs>50.0</fBlinkDurationMs>
 			<fBlinkThreshold>0.0</fBlinkThreshold>
 			<sMockSignalFilePath></sMockSignalFilePath>
 			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
 			<iMockPrevious>0.0</iMockPrevious>
 			<bReverseMockPrevious>0.0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
 			<sRewardSignal>left</sRewardSignal>
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bShowReward>0.0</bShowReward>
@@ -161,13 +57,67 @@
 			<fMSignalThreshold>1.0</fMSignalThreshold>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
-			<sProtocolName>RT</sProtocolName>
+			<sProtocolName>Right</sProtocolName>
 			<bUpdateStatistics>0.0</bUpdateStatistics>
 			<iDropOutliers>0.0</iDropOutliers>
 			<bSSDInTheEnd>0.0</bSSDInTheEnd>
-			<fDuration>180.0</fDuration>
+			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
+			<cString>Вращайте только ПРАВОЙ кистью</cString>
+			<bUseExtraMessage>0.0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0.0</iMockPrevious>
+			<bReverseMockPrevious>0.0</bReverseMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
+			<sRewardSignal>left</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0.0</bShowReward>
+			<bPauseAfter>0.0</bPauseAfter>
+			<iRandomBound>0.0</iRandomBound>
+			<sVideoPath></sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Baseline</sProtocolName>
+			<bUpdateStatistics>1.0</bUpdateStatistics>
+			<iDropOutliers>0.0</iDropOutliers>
+			<bSSDInTheEnd>0.0</bSSDInTheEnd>
+			<fDuration>60.0</fDuration>
+			<fbSource>All</fbSource>
+			<sFb_type>Baseline</sFb_type>
+			<cString>+</cString>
+			<bUseExtraMessage>0.0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0.0</iMockPrevious>
+			<bReverseMockPrevious>0.0</bReverseMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
+			<sRewardSignal>left</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0.0</bShowReward>
+			<bPauseAfter>0.0</bPauseAfter>
+			<iRandomBound>0.0</iRandomBound>
+			<sVideoPath></sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>FB</sProtocolName>
+			<bUpdateStatistics>0.0</bUpdateStatistics>
+			<iDropOutliers>0.0</iDropOutliers>
+			<bSSDInTheEnd>0.0</bSSDInTheEnd>
+			<fDuration>120.0</fDuration>
+			<fbSource>left</fbSource>
+			<sFb_type>CircleFeedback</sFb_type>
 			<cString></cString>
 			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
@@ -177,79 +127,133 @@
 			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
 			<iMockPrevious>0.0</iMockPrevious>
 			<bReverseMockPrevious>0.0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
 			<sRewardSignal>left</sRewardSignal>
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bShowReward>0.0</bShowReward>
-			<bPauseAfter>1.0</bPauseAfter>
-			<iRandomBound>0.0</iRandomBound>
+			<bPauseAfter>0.0</bPauseAfter>
+			<iRandomBound>1.0</iRandomBound>
+			<sVideoPath></sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Rest</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>20</fDuration>
+			<fbSource>All</fbSource>
+			<sFb_type>Baseline</sFb_type>
+			<cString>Можно отдохнуть</cString>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>left</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bPauseAfter>0</bPauseAfter>
+			<iRandomBound>0</iRandomBound>
 			<sVideoPath></sVideoPath>
 			<sMSignal>None</sMSignal>
 			<fMSignalThreshold>1.0</fMSignalThreshold>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>Left</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>20</fDuration>
+			<bUpdateStatistics>0.0</bUpdateStatistics>
+			<iDropOutliers>0.0</iDropOutliers>
+			<bSSDInTheEnd>0.0</bSSDInTheEnd>
+			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
 			<cString>Вращайте только ЛЕВОЙ кистью</cString>
-			<bUseExtraMessage>0</bUseExtraMessage>
+			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
 			<fBlinkThreshold>0.0</fBlinkThreshold>
 			<sMockSignalFilePath></sMockSignalFilePath>
 			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<iMockPrevious>0.0</iMockPrevious>
+			<bReverseMockPrevious>0.0</bReverseMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
 			<sRewardSignal>left</sRewardSignal>
 			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<iRandomBound>0</iRandomBound>
+			<bShowReward>0.0</bShowReward>
+			<bPauseAfter>0.0</bPauseAfter>
+			<iRandomBound>0.0</iRandomBound>
 			<sVideoPath></sVideoPath>
 			<sMSignal>None</sMSignal>
 			<fMSignalThreshold>1.0</fMSignalThreshold>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>Open</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>20</fDuration>
+			<bUpdateStatistics>0.0</bUpdateStatistics>
+			<iDropOutliers>0.0</iDropOutliers>
+			<bSSDInTheEnd>0.0</bSSDInTheEnd>
+			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
 			<cString>Откройте глаза, сидите спокойно</cString>
-			<bUseExtraMessage>0</bUseExtraMessage>
+			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
 			<fBlinkThreshold>0.0</fBlinkThreshold>
 			<sMockSignalFilePath></sMockSignalFilePath>
 			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<iMockPrevious>0.0</iMockPrevious>
+			<bReverseMockPrevious>0.0</bReverseMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
 			<sRewardSignal>left</sRewardSignal>
 			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<iRandomBound>0</iRandomBound>
+			<bShowReward>0.0</bShowReward>
+			<bPauseAfter>0.0</bPauseAfter>
+			<iRandomBound>0.0</iRandomBound>
 			<sVideoPath></sVideoPath>
 			<sMSignal>None</sMSignal>
 			<fMSignalThreshold>1.0</fMSignalThreshold>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>Filters</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>1</bSSDInTheEnd>
-			<fDuration>3</fDuration>
+			<bUpdateStatistics>0.0</bUpdateStatistics>
+			<iDropOutliers>0.0</iDropOutliers>
+			<bSSDInTheEnd>1.0</bSSDInTheEnd>
+			<fDuration>3.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
 			<cString>Relax</cString>
+			<bUseExtraMessage>0.0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50.0</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0.0</iMockPrevious>
+			<bReverseMockPrevious>0.0</bReverseMockPrevious>
+			<bRandomMockPrevious>0.0</bRandomMockPrevious>
+			<sRewardSignal>left</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0.0</bShowReward>
+			<bPauseAfter>0.0</bPauseAfter>
+			<iRandomBound>0.0</iRandomBound>
+			<sVideoPath></sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>Motor</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>60</fDuration>
+			<fbSource>All</fbSource>
+			<sFb_type>Baseline</sFb_type>
+			<cString>Вращайте рукой</cString>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -291,7 +295,7 @@
 		<s>Right</s>
 		<s>Filters</s>
 		<s>Baseline</s>
-		<s>FB</s>
+		<s>Motor</s>
 		<s>Rest</s>
 		<s>FB</s>
 		<s>Rest</s>
@@ -300,10 +304,25 @@
 		<s>FB</s>
 		<s>Rest</s>
 		<s>FB</s>
+		<s>Rest</s>
+		<s>FB</s>
+		<s>Rest</s>
+		<s>Baseline</s>
+		<s>Motor</s>
 		<s>Rest</s>
 		<s>Close</s>
 		<s>Open</s>
 		<s>Left</s>
 		<s>Right</s>
+		<s>Close</s>
+		<s>Open</s>
+		<s>Left</s>
+		<s>Right</s>
+		<s>Close</s>
+		<s>Open</s>
+		<s>Left</s>
+		<s>Right</s>
+		<s>Filters</s>
+		<s>Rest</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>
