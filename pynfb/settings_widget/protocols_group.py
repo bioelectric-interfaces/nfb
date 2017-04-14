@@ -96,6 +96,10 @@ class ProtocolGroupDialog(QtGui.QDialog):
         self.numbers.setValidator(validator)
         self.form_layout.addRow('&Corresponding quantity\n(separated by space):', self.numbers)
 
+        # shuffle
+        self.shuffle = QtGui.QCheckBox('Shuffle')
+        self.form_layout.addRow('&Order:', self.shuffle)
+
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -109,12 +113,14 @@ class ProtocolGroupDialog(QtGui.QDialog):
         current_signal_index = self.parent().list.currentRow()
         self.expression.setText(str(self.params[current_signal_index]['sList']))
         self.numbers.setText(str(self.params[current_signal_index]['sNumberList']))
+        self.shuffle.setChecked(bool(self.params[current_signal_index]['bShuffle']))
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sName'] = str(self.name.text())
         self.params[current_signal_index]['sList'] = str(self.expression.text())
         self.params[current_signal_index]['sNumberList'] = str(self.numbers.text())
+        self.params[current_signal_index]['bShuffle'] = int(self.shuffle.isChecked())
         self.parent().reset_items()
         self.close()
 

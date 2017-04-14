@@ -3,7 +3,7 @@ from datetime import datetime
 from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
-
+from itertools import zip_longest, chain
 from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
@@ -386,8 +386,13 @@ class Experiment():
                 group = self.params['vPGroups']['PGroup'][group_names.index(name)]
                 subgroup = []
                 for s_name, s_n in zip(group['sList'].split(' '), list(map(int, group['sNumberList'].split(' ')))):
-                    subgroup += [s_name]*s_n
-                subgroup = list(np.array(subgroup)[np.random.permutation(len(subgroup))])
+                    subgroup.append([s_name]*s_n)
+                if group['bShuffle']:
+                    subgroup = np.concatenate(subgroup)
+                    subgroup = list(subgroup[np.random.permutation(len(subgroup))])
+                else:
+                    subgroup = [k for k in chain(*zip_longest(*subgroup)) if k is not None]
+                print(subgroup)
                 for subname in subgroup:
                     self.protocols_sequence.append(self.protocols[names.index(subname)])
 
