@@ -17,7 +17,7 @@ class Protocol:
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
-                 shuffle_mock_previous=None):
+                 shuffle_mock_previous=None, beep_after=False):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -46,6 +46,7 @@ class Protocol:
         self.pause_after = pause_after
         self.m_signal_id = m_signal_index
         self.shuffle_mock_previous = shuffle_mock_previous
+        self.beep_after = beep_after
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):
@@ -84,6 +85,9 @@ class Protocol:
 
     def close_protocol(self, raw=None, signals=None, protocols=list(), protocols_seq=None, raw_file=None):
         # action if ssd in the end checkbox was checked
+        if self.beep_after:
+            SingleBeep().try_to_play()
+
         if self.ssd_in_the_end:
 
             # stop main timer

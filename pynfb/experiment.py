@@ -336,6 +336,7 @@ class Experiment():
                 drop_outliers=int(protocol['iDropOutliers']),
                 experiment=self,
                 pause_after=bool(protocol['bPauseAfter']),
+                beep_after=bool(protocol['bBeepAfter']),
                 reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
                 m_signal_index=m_signal_index,
                 shuffle_mock_previous=bool(protocol['bRandomMockPrevious'])

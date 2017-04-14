@@ -72,6 +72,7 @@ vectors_defaults = OrderedDict([
             ('bRewardThreshold', 0),
             ('bShowReward', 0),
             ('bPauseAfter', 0),
+            ('bBeepAfter', 0),
             ('iRandomBound', 0),
             ('sVideoPath', ''),
             ('sMSignal', 'None'),
