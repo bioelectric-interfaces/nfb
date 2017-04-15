@@ -30,8 +30,8 @@ experiments = settings['subjects'][subj]
 experiment = experiments[day]
 
 def preproc(x, fs, rej=None):
-    #x = dc_blocker(x)
-    x = fft_filter(x, fs, band=(0, 45))
+    x = dc_blocker(x)
+    x = fft_filter(x, fs, band=(5, 45))
     if rej is not None:
         x = np.dot(x, rej)
     return x
@@ -59,13 +59,17 @@ def compute_lengths(x, gap, minimum):
         return compute_lengths(x_copy.copy(), minimum, None)
 
 
-reject = True
+reject = False
 with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data.h5')) as f:
     fs, channels, p_names = get_info(f, settings['drop_channels'])
-    spatial = -f['protocol20/signals_stats/left/spatial_filter'][:]
+    if reject:
+        rejections = load_rejections(f, reject_alpha=True)[0]
+    else:
+        rejections = None
+    spatial = -f['protocol15/signals_stats/left/spatial_filter'][:]
     raw_before = OrderedDict()
     for j, name in enumerate(p_names):
-        x = preproc(f['protocol{}/raw_data'.format(j + 1)][:], fs, None)
+        x = preproc(f['protocol{}/raw_data'.format(j + 1)][:], fs, rejections)
         raw_before = add_data(raw_before, name, x, j)
 
 # make csp:
@@ -87,16 +91,14 @@ print(axes)
 
 #find median
 x_all = []
+x_all_ica = []
 for name, x in raw_before.items():
-    if name in ['14. Baseline']:
+    if 'Baseline' in name:
         x_all.append(np.abs(hilbert(fft_filter(x, fs, band=mu_band))))
+        x_all_ica.append(np.abs(hilbert(np.dot(fft_filter(x, fs, band=mu_band), spatial))))
+        break
 x_median = np.median(np.concatenate(x_all), 0)
-
-x_all = []
-for name, x in raw_before.items():
-    if name in ['14. Baseline']:
-        x_all.append(np.abs(hilbert(np.dot(fft_filter(x, fs, band=mu_band), spatial))))
-x_f_median = np.median(np.concatenate(x_all))
+x_f_median = np.median(np.concatenate(x_all_ica))
 
 
 coef = 1
@@ -120,31 +122,27 @@ for name, x in list(raw_before.items()):
         axes[j].fill_between(time, -x_copy * sc*0, (envelope > threshold)*sc, facecolor=cm(name), alpha=0.6, linewidth=0)
         axes[j].fill_between(time, -x_copy * sc*0, -(x_copy)*sc, facecolor=cm(name), alpha=0.8, linewidth=0)
         axes[j].set_ylabel(ch)
-        axes[j].set_ylim(-1e-4, 1e-4)
+        #axes[j].set_ylim(-1e-4, 1e-4)
         #axes[j].set_xlim(432, 444)
     t += len(x)
 axes[0].set_title('Day {}'.format(day+1))
 
-
+keys = [key for key in raw_before.keys() if 'FB' in key or 'Baseline' in key]
 # plot spectrum
 ch_plot = ['P3', 'C3', 'ICA']
-print(raw_before.keys())
 fig2, axes = plt.subplots(len(ch_plot), ncols=1, sharex=True, sharey=False, figsize=(15,9))
 y_max = [0.4e-10, 2.5, 10, 20, 20][subj]
 for j, ch in enumerate(ch_plot):
-    if subj == 1:
-        keys = enumerate(['14. Baseline', '15. Left', '17. FB', '19. FB', '21. FB', '23. FB', '25. FB', '27. Baseline',
-                          '28. Left'])
-    elif subj == 0:
-        keys = enumerate(['14. Baseline', '15. FB', '19. FB', '21. FB', '23. FB', '17. FB'] + ([] if day == 0 else ['35. Baseline']))
     leg = []
-    for jj, key in keys:
+    fb_counter = 0
+    for jj, key in enumerate(keys):
         x = raw_before[key]
-        style = '--' if key in ['28. Left', '27. Baseline'] else ''
+        style = '--' if fb_counter > 0 else ''
         w = 2
         if 'FB' in key:
+            fb_counter +=1
             style = ''
-            w = jj-1
+            w = fb_counter
         y = x[:, channels.index(ch)] if ch != 'ICA' else np.dot(x, spatial)
         f, Pxx = welch(y, fs, nperseg=2048,)
         axes[j].plot(f, Pxx, style,  c=cm(key), linewidth=w, alpha=0.8 if 'FB' in key else 1)
@@ -154,7 +152,7 @@ for j, ch in enumerate(ch_plot):
 
 
     axes[j].set_xlim(7, 14)
-    axes[j].set_ylim(0, 1e-10)
+    #axes[j].set_ylim(0, 1e-10)
     axes[j].set_ylabel(ch)
     axes[j].legend(leg, loc='upper left')
 axes[0].set_title('Day {}'.format(day+1))
@@ -166,23 +164,38 @@ fig3, axes = plt.subplots(nrows=4, sharex=True)
 keys = ['14. Baseline', '17. FB', '19. FB', '21. FB', '23. FB', '25. FB', '27. Baseline']
 keys = [key for key in raw_before.keys() if 'FB' in key or 'Baseline' in key]
 import pandas as pd
+dots = np.zeros((4, len(keys)))
 for jj, key in enumerate(keys):
     y = np.dot(raw_before[key], spatial)
     f, Pxx = welch(y, fs, nperseg=2048, )
     envelope = np.abs(hilbert(fft_filter(y, fs, mu_band)))
     threshold = coef * x_f_median
     lengths, x_copy = compute_lengths(envelope > threshold, fs*max_gap, fs*min_sate_duration)
-    axes[0].plot([jj+1], envelope.mean(), 'o', c=cm(key))
-    axes[1].plot([jj + 1], sum(x_copy)/(len(envelope))*100, 'o', c=cm(key))
-    axes[2].plot([jj + 1], len(lengths), 'o', c=cm(key))
-    axes[3].plot([jj + 1], lengths.mean()/fs, 'o', c=cm(key))
+    dots[0, jj] = envelope.mean()
+    dots[1, jj] = sum(x_copy) / (len(envelope)) * 100
+    dots[2, jj] = len(lengths)/(len(envelope)/fs/60)
+    dots[3, jj] = lengths.mean()/fs
+    for k in range(4):
+        axes[k].plot([jj + 1], dots[k, jj], 'o', c=cm(key))
 
-titles = ['Mean envelope', 'Time in % for all mu-states', 'Number of mu-states', 'Mean mu-state length [s]']
+import seaborn as sns
+for k in range(4):
+    sns.regplot(np.arange(1, len(keys)+1), dots[k], ax=axes[k], color=cm('Baseline'),
+                line_kws={'alpha':0.4}, ci=None)
+    sns.regplot(np.arange(1, len(keys)+1), dots[k], ax=axes[k], color=cm('FB'),
+                line_kws={'alpha':0.4}, ci=None)
+    sns.regplot(np.arange(2, 7), dots[k,1:6], ax=axes[k], color=cm('FB'),
+                line_kws={'alpha': 0.7}, ci=None, truncate=True)
+    if len(keys) == 7:
+        axes[k].plot([1, 7], dots[k,[0,6]], c=cm('Baseline'), alpha=0.7, linewidth=3)
+
+titles = ['Mean envelope', 'Time in % for all mu-states', 'Number of mu-states per minute', 'Mean mu-state length [s]']
 for ax, title in zip(axes, titles):
     ax.set_title(title)
     ax.set_xlim(0, len(keys)+1)
     plt.setp(ax.xaxis.get_majorticklabels(), rotation=70)
     ax.set_xticks(range(1, len(keys)+1))
     ax.set_xticklabels(keys)
-plt.suptitle('S{} Day {}'.format(subj, day+1))
+plt.suptitle('S{} Day{} Band: {}-{} Hz'.format(subj, day+1, *mu_band))
+plt.savefig('S{}_Day{}'.format(subj, day+1))
 plt.show()
