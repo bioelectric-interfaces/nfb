@@ -89,13 +89,15 @@ def get_colors2():
 
 def add_data(powers, name, pow, j):
     if name == 'Filters':
-        powers['{}. Closed'.format(j + 1)] = pow[:len(pow) // 2]
-        powers['{}. Opened'.format(j + 1)] = pow[len(pow) // 2:]
+        powers['{}. Close'.format(j + 1)] = pow[:len(pow) // 2]
+        powers['{}. Open'.format(j + 1)] = pow[len(pow) // 2:]
     elif name == 'Rotate':
         powers['{}. Right'.format(j + 1)] = pow[:len(pow) // 2]
         powers['{}. Left'.format(j + 1)] = pow[len(pow) // 2:]
+    elif name == 'Motor':
+        powers['{}. Left'.format(j + 1)] = pow
     elif 'FB' in name:
-        powers['{}. FB'.format(j + 1, name)] = pow
+        powers['{}. FB'.format(j + 1, name)] = pow[:]
     else:
         powers['{}. {}'.format(j + 1, name)] = pow
     return powers

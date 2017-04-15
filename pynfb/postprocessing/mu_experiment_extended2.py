@@ -46,16 +46,16 @@ def get_power(x, fs, band):
     return x**2
 
 def load_rejections(f, reject_alpha=True):
-    rejections = [f['protocol1/signals_stats/left/rejections/rejection{}'.format(j + 1)][:] for j in range(1)]
-    alpha = None#f['protocol1/signals_stats/left/rejections/rejection2_topographies'][:]
+    rejections = [f['protocol1/signals_stats/left/rejections/rejection{}'.format(j + 1)][:] for j in range(2)]
+    alpha = f['protocol1/signals_stats/left/rejections/rejection2_topographies'][:]
     ica = f['protocol1/signals_stats/left/rejections/rejection1_topographies'][:]
     rejection = rejections[0]
     if reject_alpha:
         rejection = np.dot(rejection, rejections[1])
     filter_ = f['protocol1/signals_stats/left/spatial_filter'][:]
     rejection = np.dot(rejection, filter_)
-    alpha = filter_.reshape(-1, 1)
-    return rejection, alpha, ica
+    #alpha = filter_.reshape(-1, 1)
+    return rejection, len(ica.T), np.hstack([ica, alpha])
 
 def get_info(f, drop_channels):
     labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
@@ -88,6 +88,8 @@ def add_data(powers, name, pow, j):
     elif name == 'Rotate':
         powers['{}. Right'.format(j + 1)] = pow[:len(pow) // 2]
         powers['{}. Left'.format(j + 1)] = pow[len(pow) // 2:]
+    elif 'FB' in name and len(name)>2:
+        powers['{}. FB'.format(j + 1)] = pow
     else:
         powers['{}. {}'.format(j + 1, name)] = pow
     return powers
@@ -111,7 +113,7 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
             pow_theta = []
             for j, name in enumerate(p_names):
                 pow, alpha_x, x = get_protocol_power(f, j, fs, rejections, ch, alpha_band, dc=dc)
-                if name == 'FB':
+                if 'FB' in name:
                     pow_theta.append(get_protocol_power(f, j, fs, rejections, ch, theta_band, dc=dc)[0].mean())
                 powers = add_data(powers, name, pow, j)
                 raw = add_data(raw, name, x, j)
@@ -121,20 +123,11 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
             n_tops = top_ica.shape[1] #+ top_alpha.shape[1]
             for j_t in range(top_ica.shape[1]):
                 ax = fg.add_subplot(4, n_tops * len(subj), n_tops * len(subj) * 3 + n_tops * j_s + j_t + 1)
-                ax.set_xlabel('ICA{}'.format(j_t + 1))
+                ax.set_xlabel('ICA{}'.format(j_t + 1) if j_t < top_alpha else 'CSP{}'.format(-top_alpha + j_t + 1))
                 labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
                 channels = [label for label in labels if label not in drop_channels]
                 pos = ch_names_to_2d_pos(channels)
                 plot_topomap(data=top_ica[:, j_t], pos=pos, axes=ax, show=False)
-
-            for j_t in range(top_alpha.shape[1]):
-                ax = fg.add_subplot(4, n_tops * len(subj),
-                                    n_tops * len(subj) * 3 + n_tops * j_s + j_t + top_ica.shape[1])
-                ax.set_xlabel('CSP{}'.format(j_t + 1))
-                labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
-                channels = [label for label in labels if label not in drop_channels]
-                pos = ch_names_to_2d_pos(channels)
-                plot_topomap(data=top_alpha[:, j_t], pos=pos, axes=ax, show=False)
 
 
             # plot powers
@@ -144,7 +137,7 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
                 norm = np.mean(pow_theta)
             else:
                 print('WARNING: norm = 1')
-            #print('norm', norm)
+            print('norm', norm)
 
             ax1 = fg.add_subplot(3, len(subj), j_s + 1)
             ax = fg.add_subplot(3, len(subj), j_s + len(subj) + 1)
@@ -186,12 +179,12 @@ def plot_results(pilot_dir, subj, channel, alpha_band=(9, 14), theta_band=(3, 6)
 if __name__ == '__main__':
 
     from json import loads
-    settings_file = 'D:\\vnd_spbu\\pilot\mu5days\\vnd_spbu_5days.json'
+    settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
     with open(settings_file, 'r') as f:
         settings = loads(f.read())
 
     channel = 'C3'
-    reject_alpha = False
+    reject_alpha = True
     normalize_by = 'beta'
 
     for j, subj in enumerate(settings['subjects']):
