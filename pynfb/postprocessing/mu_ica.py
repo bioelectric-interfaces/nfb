@@ -17,13 +17,13 @@ with open(settings_file, 'r') as f:
 
 dir_ = settings['dir']
 subj = 1
-day = 2
+day = 1
 mu_band = (11.8, 13.8)
 max_gap = 1 / min(mu_band) * 2
 min_sate_duration = max_gap * 2
 
 run_ica=False
-
+reject = False
 #for subj in range(4):
     #for day in range(5):
 experiments = settings['subjects'][subj]
@@ -31,7 +31,7 @@ experiment = experiments[day]
 
 def preproc(x, fs, rej=None):
     x = dc_blocker(x)
-    x = fft_filter(x, fs, band=(5, 45))
+    x = fft_filter(x, fs, band=(0, 45))
     if rej is not None:
         x = np.dot(x, rej)
     return x
@@ -59,7 +59,6 @@ def compute_lengths(x, gap, minimum):
         return compute_lengths(x_copy.copy(), minimum, None)
 
 
-reject = False
 with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data.h5')) as f:
     fs, channels, p_names = get_info(f, settings['drop_channels'])
     if reject:
@@ -76,13 +75,10 @@ with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data
 if run_ica:
     from PyQt4.QtGui import QApplication
     ap = QApplication([])
-    all_keys = ['30. Close', '31. Open', '32. Left', '33. Right', '34. Close', '35. Open', '36. Left', '37. Right',
-                '38. Close', '39. Open', '40. Left', '41. Right']
+    all_keys = [key for key in raw_before.keys() if 'Left' in key or 'Right' in key or 'Close' in key or 'Open' in key]
+    print(all_keys)
     raw_data = np.concatenate([raw_before[key] for key in all_keys])
-    rej, spat = ICADialog.get_rejection(raw_data, channels, fs, mode='ica', states=None)[:2]
-    from pynfb.widgets.helpers import ch_names_to_2d_pos
-    f, axes = plt.subplots(nrows=1)
-    plot_topomap(np.abs(spat), ch_names_to_2d_pos(channels), axes=axes, show=True, vmin=-1, vmax=1)
+    rej, spatial = ICADialog.get_rejection(raw_data, channels, fs, mode='ica', states=None)[:2]
 
 # plot raw data
 ch_plot = ['C3', 'P3', 'ICA']#, 'Pz', 'Fp1']
@@ -129,7 +125,7 @@ axes[0].set_title('Day {}'.format(day+1))
 
 keys = [key for key in raw_before.keys() if 'FB' in key or 'Baseline' in key]
 # plot spectrum
-ch_plot = ['P3', 'C3', 'ICA']
+ch_plot = ['P3', 'C4', 'ICA']
 fig2, axes = plt.subplots(len(ch_plot), ncols=1, sharex=True, sharey=False, figsize=(15,9))
 y_max = [0.4e-10, 2.5, 10, 20, 20][subj]
 for j, ch in enumerate(ch_plot):
