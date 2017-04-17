@@ -175,6 +175,9 @@ class Experiment():
         if isinstance(self.protocols_sequence[self.current_protocol_index], FeedbackProtocol):
             if self.protocols_sequence[self.current_protocol_index].mock_previous == 0:
                 self.real_fb_number_list += [self.current_protocol_index + 1]
+        elif self.protocols_sequence[self.current_protocol_index].as_mock:
+            self.real_fb_number_list += [self.current_protocol_index + 1]
+
 
         if self.current_protocol_index < len(self.protocols_sequence) - 1:
 
@@ -339,7 +342,8 @@ class Experiment():
                 beep_after=bool(protocol['bBeepAfter']),
                 reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
                 m_signal_index=m_signal_index,
-                shuffle_mock_previous=bool(protocol['bRandomMockPrevious'])
+                shuffle_mock_previous=bool(protocol['bRandomMockPrevious']),
+                as_mock=bool(protocol['bMockSource'])
             )
 
             # type specific arguments

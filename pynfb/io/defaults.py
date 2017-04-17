@@ -76,7 +76,8 @@ vectors_defaults = OrderedDict([
             ('iRandomBound', 0),
             ('sVideoPath', ''),
             ('sMSignal', 'None'),
-            ('fMSignalThreshold', 1)
+            ('fMSignalThreshold', 1),
+            ('bMockSource', 0)
         ])])])),
     ('vPGroups', OrderedDict([
         ('PGroup', [OrderedDict([  # DerivedSignal is list!

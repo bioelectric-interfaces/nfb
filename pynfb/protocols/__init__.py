@@ -17,7 +17,7 @@ class Protocol:
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
-                 shuffle_mock_previous=None, beep_after=False):
+                 shuffle_mock_previous=None, beep_after=False, as_mock=False):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -47,6 +47,7 @@ class Protocol:
         self.m_signal_id = m_signal_index
         self.shuffle_mock_previous = shuffle_mock_previous
         self.beep_after = beep_after
+        self.as_mock = as_mock
         pass
 
     def update_state(self, samples, chunk_size=1, is_half_time=False):

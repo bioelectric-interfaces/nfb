@@ -106,6 +106,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.beep_after = QtGui.QCheckBox()
         self.form_layout.addRow('&Beep after protocol:', self.beep_after)
 
+        # make signal after protocol
+        self.mock_source = QtGui.QCheckBox()
+        self.form_layout.addRow('&Mock source:', self.mock_source)
+
         # make a pause after protocol
         self.pause_after = QtGui.QCheckBox()
         self.form_layout.addRow('&Make a pause after protocol:', self.pause_after)
@@ -282,6 +286,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.beep_after.setChecked(current_protocol['bBeepAfter'])
+        self.mock_source.setChecked(current_protocol['bMockSource'])
         self.pause_after.setChecked(current_protocol['bPauseAfter'])
         self.drop_outliers.setValue(current_protocol['iDropOutliers'])
         self.drop_outliers.setEnabled(self.update_statistics.isChecked())
@@ -329,6 +334,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['fDuration'] = self.duration.value()
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
         self.params[current_signal_index]['bBeepAfter'] = int(self.beep_after.isChecked())
+        self.params[current_signal_index]['bMockSource'] = int(self.mock_source.isChecked())
         self.params[current_signal_index]['bPauseAfter'] = int(self.pause_after.isChecked())
         self.params[current_signal_index]['iDropOutliers'] = (
             self.drop_outliers.value() if self.update_statistics.isChecked() else 0)
