@@ -11,18 +11,21 @@ from scipy.signal import welch, hilbert
 
 
 # load raw
-settings_file = 'D:\\vnd_spbu\\ica\\ica\\vnd_spbu_5days.json'
+mock = False
+
+
+settings_file = 'D:\\vnd_spbu\\ica\\ica\\vnd_spbu_5days.json' if not mock else 'D:\\vnd_spbu\\mock\\Pilot_mok\\vnd_spbu_5days.json'
 with open(settings_file, 'r') as f:
     settings = loads(f.read())
 
 dir_ = settings['dir']
 subj = 1
-day = 1
-mu_band = (11.8, 13.8)
+day = 2
+mu_band = (11.8, 14.8)
 max_gap = 1 / min(mu_band) * 2
 min_sate_duration = max_gap * 2
 
-run_ica=False
+run_ica = mock
 reject = False
 #for subj in range(4):
     #for day in range(5):
@@ -53,11 +56,23 @@ def compute_lengths(x, gap, minimum):
     if len(lengths) == 0:
         lengths = [0]
     if minimum is None:
-        print(np.array(lengths)/500)
+        #print(np.array(lengths)/500)
         return np.array(lengths), x_copy
     else:
         return compute_lengths(x_copy.copy(), minimum, None)
 
+def compute_heights(x, mask):
+    lengths = []
+    mask_copy = mask.astype(int).copy()
+    lengths_buffer = []
+    for j, y in enumerate(mask_copy):
+        if y:
+            lengths_buffer.append(x[j])
+        elif len(lengths_buffer) > 0:
+            lengths.append(np.mean(lengths_buffer))
+            lengths_buffer = []
+    print(lengths)
+    return np.array(lengths)
 
 with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data.h5')) as f:
     fs, channels, p_names = get_info(f, settings['drop_channels'])
@@ -109,6 +124,8 @@ for name, x in list(raw_before.items()):
         x_plot = fft_filter(y, fs, band=(3, 45))
         axes[j].plot(time, x_plot, c=cm(name), alpha=1)
         envelope = np.abs(hilbert(fft_filter(y, fs, band=mu_band)))
+
+        axes[j].plot(time, envelope, c=cm(name), alpha=1, linewidth=1)
         threshold = coef*x_median[channels.index(ch)] if ch != 'ICA' else coef*x_f_median
         sc = 15*envelope.mean()
 
@@ -156,26 +173,28 @@ fig2.savefig('FBSpec_S{}_D{}'.format(subj, day + 1))
 
 
 # plot durations
-fig3, axes = plt.subplots(nrows=4, sharex=True)
+fig3, axes = plt.subplots(nrows=5, sharex=True)
 keys = ['14. Baseline', '17. FB', '19. FB', '21. FB', '23. FB', '25. FB', '27. Baseline']
 keys = [key for key in raw_before.keys() if 'FB' in key or 'Baseline' in key]
 import pandas as pd
-dots = np.zeros((4, len(keys)))
+dots = np.zeros((5, len(keys)))
 for jj, key in enumerate(keys):
     y = np.dot(raw_before[key], spatial)
     f, Pxx = welch(y, fs, nperseg=2048, )
     envelope = np.abs(hilbert(fft_filter(y, fs, mu_band)))
     threshold = coef * x_f_median
     lengths, x_copy = compute_lengths(envelope > threshold, fs*max_gap, fs*min_sate_duration)
+    heights = compute_heights(envelope, x_copy)
     dots[0, jj] = envelope.mean()
     dots[1, jj] = sum(x_copy) / (len(envelope)) * 100
     dots[2, jj] = len(lengths)/(len(envelope)/fs/60)
     dots[3, jj] = lengths.mean()/fs
-    for k in range(4):
+    dots[4, jj] = heights.mean()
+    for k in range(5):
         axes[k].plot([jj + 1], dots[k, jj], 'o', c=cm(key))
 
 import seaborn as sns
-for k in range(4):
+for k in range(5):
     sns.regplot(np.arange(1, len(keys)+1), dots[k], ax=axes[k], color=cm('Baseline'),
                 line_kws={'alpha':0.4}, ci=None)
     sns.regplot(np.arange(1, len(keys)+1), dots[k], ax=axes[k], color=cm('FB'),
@@ -185,7 +204,8 @@ for k in range(4):
     if len(keys) == 7:
         axes[k].plot([1, 7], dots[k,[0,6]], c=cm('Baseline'), alpha=0.7, linewidth=3)
 
-titles = ['Mean envelope', 'Time in % for all mu-states', 'Number of mu-states per minute', 'Mean mu-state length [s]']
+titles = ['Mean envelope', 'Time in % for all mu-states', 'Number of mu-states per minute', 'Mean mu-state length [s]',
+          'Mean mu-state envelope']
 for ax, title in zip(axes, titles):
     ax.set_title(title)
     ax.set_xlim(0, len(keys)+1)
