@@ -12,7 +12,7 @@ class BandSelectorWidget(QtGui.QDialog):
         super(BandSelectorWidget, self).__init__()
 
         # parameters
-        self.width = 2
+        self.width = 3
         self.x = 20
         self.x_max = 30.
         self.gran = x[1] - x[0]
@@ -33,7 +33,7 @@ class BandSelectorWidget(QtGui.QDialog):
 
         axis = pg.AxisItem('bottom', linkView=view_box, parent=graphics_widget)
         plot = pg.PlotDataItem()
-        plot.setData(x, y/max(y[x<self.x_max]))
+        plot.setData(x, y/(max(y[x<self.x_max]) or 1))
         view_box.setXRange(0, self.x_max)
 
         view_box.addItem(plot)
@@ -49,7 +49,7 @@ class BandSelectorWidget(QtGui.QDialog):
         # view
         view = pg.GraphicsView()
         view.setCentralItem(graphics_widget)
-        self.width_slider = ParameterSlider('Band width:', 1, 10, interval=0.1, value=2, units='Hz')
+        self.width_slider = ParameterSlider('Band width:', 1, 10, interval=0.1, value=self.width, units='Hz')
         self.width_slider.valueChanged.connect(self.changeWidth)
         main_layout = QtGui.QVBoxLayout(self)
         main_layout.addWidget(view)
@@ -94,13 +94,13 @@ class BandSelectorWidget(QtGui.QDialog):
     def select(x, y):
         w = BandSelectorWidget(x, y)
         w.exec_()
-        return w.region.getRegion()
+        return w.band
 
 
 
 
-
-a = QtGui.QApplication([])
-x = np.random.randint(0, 10, size=1000) + np.arange(1000)
-print(BandSelectorWidget.select(np.linspace(0, 250, 1000), x))
-a.exec_()
+if __name__ == '__main__':
+    a = QtGui.QApplication([])
+    x = np.random.randint(0, 10, size=1000) + np.arange(1000)
+    print(BandSelectorWidget.select(np.linspace(0, 250, 1000), x))
+    a.exec_()

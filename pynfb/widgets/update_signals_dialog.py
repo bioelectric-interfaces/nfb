@@ -4,6 +4,7 @@ from PyQt4 import QtGui, QtCore
 import sys
 
 from pynfb.protocols import SelectSSDFilterWidget
+from pynfb.protocols.signals_manager.band_selector import BandSelectorWidget
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 from pynfb.widgets.rejections_editor import RejectionsWidget
@@ -24,7 +25,7 @@ class SignalsTable(QtGui.QTableWidget):
 
         # set size and names
         self.columns = ['Signal', 'Band', 'Rejections', 'Spatial filter', 'SSD', 'CSP', 'ICA']
-        self.columns_width = [80, 150, 150, 80, 50, 50, 50]
+        self.columns_width = [80, 180, 150, 80, 50, 50, 50]
         self.setColumnCount(len(self.columns))
         self.setRowCount(len(signals))
         self.setHorizontalHeaderLabels(self.columns)
@@ -75,7 +76,7 @@ class SignalsTable(QtGui.QTableWidget):
         show_topography = self.show_topography[ind]
 
         # band
-        band_widget = BandWidget()
+        band_widget = BandWidget(ind)
         band_widget.set_band(signal.bandpass)
         self.setCellWidget(ind, self.columns.index('Band'), band_widget)
 
@@ -143,20 +144,28 @@ class SignalsTable(QtGui.QTableWidget):
         self.update_row(row, modified=True)
 
 class BandWidget(QtGui.QWidget):
-    def __init__(self, max_freq=10000, **kwargs):
+    def __init__(self, row, max_freq=10000,**kwargs):
         super(BandWidget, self).__init__(**kwargs)
+        self.row = row
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         self.left = QtGui.QDoubleSpinBox()
         self.left.setMinimumHeight(25)
+        self.left.setMinimumWidth(50)
         self.left.setRange(0, max_freq)
         self.right = QtGui.QDoubleSpinBox()
         self.right.setRange(0, max_freq)
         self.right.setMinimumHeight(25)
+        self.right.setMinimumWidth(50)
         layout.addWidget(self.left)
-        layout.addWidget(QtGui.QLabel('-'))
         layout.addWidget(self.right)
         layout.addWidget(QtGui.QLabel('Hz '))
+
+        # edit
+        self.edit_btn = QtGui.QPushButton('Edit')
+        self.edit_btn.clicked.connect(self.edit)
+        layout.addWidget(self.edit_btn)
+
 
     def set_band(self, band=(0, 0)):
         self.left.setValue(band[0])
@@ -164,6 +173,10 @@ class BandWidget(QtGui.QWidget):
 
     def get_band(self):
         return self.left.value(), self.right.value()
+
+    def edit(self):
+        print('edit')
+        print(self.parent().parent().parent().run_band_selection(self.row))
 
 
 
@@ -311,6 +324,19 @@ class SignalsSSDManager(QtGui.QDialog):
                 self.signals[row].update_rejections(rejections=[], append=False)
                 self.signals[row].update_ica_rejection(rejection=None)
                 self.table.update_row(row, modified=True)
+
+    def run_band_selection(self, row):
+        ind = self.get_checked_protocols()
+        x = concatenate([self.x[j] for j in ind[0]])
+
+        x = dot(x, self.signals[row].rejections.get_prod())
+
+        x = dot(x, self.signals[row].spatial_filter)
+        from scipy.signal import welch
+        f, Pxx = welch(x, self.sampling_freq, nperseg=2048,)
+        band = BandSelectorWidget.select(f, Pxx)
+        if band is not None:
+            self.table.cellWidget(row, self.table.columns.index('Band')).set_band(band)
 
     def run_ssd(self, row=None, csp=False, ica=False):
         if row is None and ica:
