@@ -70,13 +70,13 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
             signal_group.create_dataset('mean', data=np.array(signal.mean))
             signal_group.create_dataset('std', data=np.array(signal.std))
         if raw_data is not None:
-            main_group.create_dataset('raw_data', data=raw_data)
+            main_group.create_dataset('raw_data', data=raw_data, compression="gzip")
         if signals_data is not None:
-            main_group.create_dataset('signals_data', data=signals_data)
+            main_group.create_dataset('signals_data', data=signals_data, compression="gzip")
         if raw_other_data is not None:
-            main_group.create_dataset('raw_other_data', data=raw_other_data)
+            main_group.create_dataset('raw_other_data', data=raw_other_data, compression="gzip")
         if reward_data is not None:
-            main_group.create_dataset('reward_data', data=reward_data)
+            main_group.create_dataset('reward_data', data=reward_data, compression="gzip")
     pass
 
 

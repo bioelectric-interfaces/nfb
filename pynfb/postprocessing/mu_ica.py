@@ -14,16 +14,14 @@ from scipy.signal import welch, hilbert
 mock = False
 
 
-settings_file = 'D:\\vnd_spbu\\ica\\ica\\vnd_spbu_5days.json' if not mock else 'D:\\vnd_spbu\\mock\\Pilot_mok\\vnd_spbu_5days.json'
+settings_file = 'C:\\Users\\Nikolai\\PycharmProjects\\nfb\\pynfb\\results\\vnd_spbu_5days.json' if not mock else 'D:\\vnd_spbu\\mock\\Pilot_mok\\vnd_spbu_5days.json'
 with open(settings_file, 'r') as f:
     settings = loads(f.read())
 
 dir_ = settings['dir']
 subj = 1
-day = 2
-mu_band = (11.8, 14.8)
-max_gap = 1 / min(mu_band) * 2
-min_sate_duration = max_gap * 2
+day = 3
+
 
 run_ica = mock
 reject = False
@@ -34,7 +32,7 @@ experiment = experiments[day]
 
 def preproc(x, fs, rej=None):
     x = dc_blocker(x)
-    x = fft_filter(x, fs, band=(0, 45))
+    x = fft_filter(x, fs, band=(0, 100))
     if rej is not None:
         x = np.dot(x, rej)
     return x
@@ -81,11 +79,16 @@ with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data
     else:
         rejections = None
     spatial = -f['protocol15/signals_stats/left/spatial_filter'][:]
+    mu_band = f['protocol15/signals_stats/left/bandpass'][:]
+    #mu_band = (12, 13)
+    max_gap = 1 / min(mu_band) * 2
+    min_sate_duration = max_gap * 2
     raw_before = OrderedDict()
     for j, name in enumerate(p_names):
         x = preproc(f['protocol{}/raw_data'.format(j + 1)][:], fs, rejections)
         raw_before = add_data(raw_before, name, x, j)
 
+del raw_before[list(raw_before.keys())[-1]]
 # make csp:
 if run_ica:
     from PyQt4.QtGui import QApplication
@@ -121,7 +124,7 @@ for name, x in list(raw_before.items()):
     for j, ch in enumerate(ch_plot):
         time = np.arange(t, t + len(x)) / fs
         y = x[:, channels.index(ch)] if ch != 'ICA' else np.dot(x, spatial)
-        x_plot = fft_filter(y, fs, band=(3, 45))
+        x_plot = fft_filter(y, fs, band=(0, 125))
         axes[j].plot(time, x_plot, c=cm(name), alpha=1)
         envelope = np.abs(hilbert(fft_filter(y, fs, band=mu_band)))
 
@@ -130,8 +133,6 @@ for name, x in list(raw_before.items()):
         sc = 15*envelope.mean()
 
         lengths, x_copy = compute_lengths(envelope > threshold, fs*max_gap, fs*min_sate_duration)
-        print(all((envelope > threshold).astype(int) == x_copy))
-
         axes[j].fill_between(time, -x_copy * sc*0, (envelope > threshold)*sc, facecolor=cm(name), alpha=0.6, linewidth=0)
         axes[j].fill_between(time, -x_copy * sc*0, -(x_copy)*sc, facecolor=cm(name), alpha=0.8, linewidth=0)
         axes[j].set_ylabel(ch)
@@ -142,7 +143,7 @@ axes[0].set_title('Day {}'.format(day+1))
 
 keys = [key for key in raw_before.keys() if 'FB' in key or 'Baseline' in key]
 # plot spectrum
-ch_plot = ['P3', 'C4', 'ICA']
+ch_plot = ['P3', 'C3', 'ICA']
 fig2, axes = plt.subplots(len(ch_plot), ncols=1, sharex=True, sharey=False, figsize=(15,9))
 y_max = [0.4e-10, 2.5, 10, 20, 20][subj]
 for j, ch in enumerate(ch_plot):
@@ -165,6 +166,8 @@ for j, ch in enumerate(ch_plot):
 
 
     axes[j].set_xlim(7, 14)
+    axes[j].axvline(x=mu_band[0])
+    axes[j].axvline(x=mu_band[1])
     #axes[j].set_ylim(0, 1e-10)
     axes[j].set_ylabel(ch)
     axes[j].legend(leg, loc='upper left')

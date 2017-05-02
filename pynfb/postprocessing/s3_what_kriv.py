@@ -2,7 +2,8 @@ import numpy as np
 import pylab as plt
 import h5py
 import mne
-
+from mne.viz import plot_topomap
+from pynfb.widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import welch, hilbert
 from pynfb.postprocessing.utils import get_info, add_data_simple, fft_filter, dc_blocker, load_rejections
 from collections import OrderedDict
@@ -30,69 +31,47 @@ def preproc(x, fs, rej=None):
 
 #cm = get_colors2()
 # plot spectrum
-ch_plot = ['Fp1', 'C3', 'P3']
-fig2, axes = plt.subplots(len(ch_plot), ncols=1, sharex=True, sharey=True)
+state_plot = ['Close', 'Open', 'Left', 'Right']
+fig2, axes = plt.subplots(len(state_plot), ncols=4, sharex=True, sharey=True)
 import seaborn as sns
 cm = sns.color_palette('Paired')
 
 
-peaks = [50, 150]
-ins = np.zeros(shape=(len(ch_plot), len(peaks)))
-out = np.zeros(shape=(len(ch_plot), len(peaks)))
+peak = 50
+raw = {}
+names = ['Outside (corner)', 'Outside (center)', 'Inside (opened door)', 'Inside (closed door)']
 
-for j_experiment, experiment in enumerate(experiments):
+for j_experiment, experiment in enumerate(experiments[:]):
     #experiment = experiments[0]
-
-
-
-
     reject = False
     with h5py.File('{}\\{}\\{}'.format(settings['dir'], experiment, 'experiment_data.h5')) as f:
         fs, channels, p_names = get_info(f, settings['drop_channels'])
         rejection, alpha, ica = None, None, None#load_rejections(f, reject_alpha=True)
-        raw_before = OrderedDict()
-        raw_after = OrderedDict()
+        odict = OrderedDict()
         for j, name in enumerate(p_names):
-            if j < 4:
-                x = preproc(f['protocol{}/raw_data'.format(j + 1)][:], fs, rejection if reject else None)
-                raw_before = add_data_simple(raw_before, name, x)
+            x = preproc(f['protocol{}/raw_data'.format(j + 1)][:], fs, rejection if reject else None)
+            odict = add_data_simple(odict, name, x)
+        raw[names[j_experiment]] = odict
 
 
+    for j, key in enumerate(state_plot):
 
+        f, Pxx = welch(raw[names[j_experiment]][key], fs, nperseg=2048, axis=0)
+        #axes[j].semilogy(f, Pxx, alpha=1, c=cm[j_experiment*2+3])
+        ax = axes[j, j_experiment]
+        a, b = plot_topomap(np.log10(Pxx[np.argmin(np.abs(f-peak)), :]), ch_names_to_2d_pos(channels), cmap='Reds',
+                            axes=ax, show=False, vmax=-10.5, vmin=-13)
+        if j_experiment == 0:
+            ax.set_ylabel(key)
+        if j == len(state_plot)-1:
+            ax.set_xlabel(names[j_experiment])
 
-
-    for j, ch in enumerate(ch_plot):
-        leg = []
-        for key in ['Open']:#, 'Close', 'Left', 'Right']:
-            #for x, style in zip([raw_before[key], raw_after[key]], ['', '--']):
-                #f, Pxx = welch(x[:, channels.index(ch)], fs, nperseg=2048,)
-                #axes[j].plot(f, Pxx, style,  c=cm[key])
-                #x_plot = np.abs(hilbert(fft_filter(x[:, channels.index(ch)], fs)))
-                #leg.append('P={:.3f}, D={:.2f}s'.format(Pxx[(f>9) & (f<14)].mean(), sum((x_plot > 5))/fs))
-
-            f, Pxx = welch(raw_before[key][:, channels.index(ch)], fs, nperseg=2048, )
-            for j_peak, peak in enumerate(peaks):
-                val = max(Pxx[(f > peak-2.5) & (f < peak+2.5)])
-                if j_experiment<2:
-                    out[j, j_peak] += val
-                else:
-                    ins[j, j_peak] += val
-
-            axes[j].semilogy(f, Pxx, alpha=1, c=cm[j_experiment+2])
-            axes[j].set_xlim(0, 250)
-            axes[j].set_ylim(1e-19, 5e-10)
+        #axes[j].set_xlim(0, 250)
+        #axes[j].set_ylim(1e-19, 5e-10)
             #x_plot = np.abs(hilbert(fft_filter(raw_before[key][:, channels.index(ch)], fs)))
             #leg.append('P={:.3f}, D={:.3f}s'.format(Pxx[(f > 9) & (f < 14)].mean(), sum((x_plot > 5)) / fs/2))
         #axes[j].legend(leg)
-        axes[j].set_ylabel(ch)
-        axes[j].grid(True)
 
 
-ratio = out / ins
-for j, ch in enumerate(ch_plot):
-    for j_peak, peak in enumerate(peaks):
-        axes[j].text(peak+2, out[j, j_peak]/2, '{}Hz: {:.0f}'.format(peak, ratio[j, j_peak]))
-
-axes[-1].set_xlabel('Frequency, Hz')
-axes[0].legend(['Outside (corner)', 'Outside (center)', 'Inside (opened door)', 'Inside (closed door)'])
+fig2.colorbar(a)
 plt.show()
