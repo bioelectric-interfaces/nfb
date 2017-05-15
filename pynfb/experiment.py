@@ -7,6 +7,7 @@ from itertools import zip_longest, chain
 from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
+from pynfb.outlets.signals_outlet import SignalsOutlet
 from .generators import run_eeg_sim
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
@@ -53,6 +54,10 @@ class Experiment():
                 signal.update(chunk)
                 self.current_samples[i] = signal.current_sample
 
+            # push current samples
+            sample = [signal.current_sample for signal in self.signals]
+            self.signals_outlet.push_repeated_chunk(sample, len(chunk))
+
             # record data
             if self.main.player_panel.start.isChecked():
                 self.subject.figure.update_reward(self.reward.get_score())
@@ -60,8 +65,8 @@ class Experiment():
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
                     self.raw_recorder_other[chunk_slice] = other_chunk
-                    for s, sample in enumerate(self.current_samples):
-                        self.signals_recorder[chunk_slice, s] = sample
+                    #for s, sample in enumerate(self.current_samples):
+                    self.signals_recorder[chunk_slice] = sample
                     self.samples_counter += chunk.shape[0]
 
                     # catch channels trouble
@@ -307,6 +312,9 @@ class Experiment():
                                   for ind, signal in enumerate(self.params['vSignals']['CompositeSignal'])]
         self.signals += self.composite_signals
         self.current_samples = np.zeros_like(self.signals)
+
+        # signals outlet
+        self.signals_outlet = SignalsOutlet([signal.name for signal in self.signals], fs=self.freq)
 
         # protocols
         self.protocols = []
