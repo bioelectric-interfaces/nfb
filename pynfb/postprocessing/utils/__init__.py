@@ -73,6 +73,18 @@ def get_colors():
     p_names = [ 'Right', 'Left',  'Rest', 'FB', 'Close', 'Open', 'Baseline']
     cm = sns.color_palette('Paired', n_colors=len(p_names))
     c = dict(zip(p_names, [cm[j] for j in range(len(p_names))]))
+
+    if 0:
+        import pylab as plt
+        import seaborn as sns
+        sns.set_style('white')
+        plt.figure()
+        for name in p_names:
+            plt.plot([0], [0], c=c[name])
+        plt.legend(p_names)
+        plt.savefig('legend.png', dpi=300)
+        plt.show()
+
     return c
 
 def get_colors_f(key):
@@ -82,15 +94,16 @@ def get_colors_f(key):
 
 def get_colors2():
     p_names = [ 'Right', 'Left',  'Rest', 'FB', 'Close', 'Open', 'Baseline']
+
     cm = sns.color_palette('Paired', n_colors=len(p_names))
+
     c = dict(zip(p_names, [cm[j] for j in range(len(p_names))]))
     return c
 
 
 def add_data(powers, name, pow, j):
     if name == 'Filters':
-        powers['{}. Close'.format(j + 1)] = pow[:len(pow) // 2]
-        powers['{}. Open'.format(j + 1)] = pow[len(pow) // 2:]
+        powers['{}. Rest'.format(j + 1)] = pow
     elif name == 'Rotate':
         powers['{}. Right'.format(j + 1)] = pow[:len(pow) // 2]
         powers['{}. Left'.format(j + 1)] = pow[len(pow) // 2:]
@@ -117,3 +130,31 @@ def add_data_simple(odict, name, x):
     #elif 'FB' in name:
     #    odict['FB'] = to_raw(x)
     return odict
+
+def find_lag(x, target, fs=None, show=False):
+    n = 1000
+    nor = lambda x:  (x - np.mean(x)) / np.std(x)
+    lags = np.arange(n)
+    mses = np.zeros_like(lags).astype(float)
+    n_points = len(target) - n
+    for lag in lags:
+        mses[lag] = np.mean((nor(target[:n_points]) - nor(x[lag:n_points+lag]))**2)
+    lag = np.argmin(mses)
+
+    if show:
+        import pylab as plt
+        f, (ax1, ax2) = plt.subplots(2)
+        ax1.plot(mses)
+        ax1.plot(lag, np.min(mses), 'or')
+        lag_str = '{}'.format(lag) if fs is None else '{} ({:.3f} s)'.format(lag, lag/fs)
+        ax1.text(lag+n//100*2, np.min(mses), lag_str)
+        ax2.plot(nor(target))
+        ax2.plot(nor(x[lag:]), alpha=1)
+        ax2.plot(nor(x), alpha=0.5)
+        ax2.legend(['target',  'x[{}:]'.format(lag), 'x'])
+        plt.show()
+    return lag
+
+
+if __name__ == '__main__':
+    get_colors()
