@@ -1,7 +1,7 @@
 import h5py
 import numpy as np
 import pylab as plt
-
+import pandas as pd
 from collections import OrderedDict
 from json import loads
 from mne.viz import plot_topomap
@@ -33,7 +33,7 @@ experiments = settings['subjects'][subj]
 experiment = experiments[day]
 for subj, experiments in enumerate(settings['subjects']):
     for day, experiment in enumerate(experiments):
-
+        print(subj, day, experiment)
         def preproc(x, fs, rej=None):
             x = dc_blocker(x)
             x = fft_filter(x, fs, band=(0, 70))
@@ -214,19 +214,29 @@ for subj, experiments in enumerate(settings['subjects']):
         def get_mean_envelope(x):
             y = np.dot(x, spatial)
             envelope = np.abs(hilbert(fft_filter(y, fs, mu_band)))
-            return envelope.mean()
+            n_samples = len(envelope) / 10
+            return [envelope[k * n_samples: (k+1) * n_samples].mean() for k in range(10)]
 
-        desync_before = get_mean_envelope(raw[motor_keys[0]]) / get_mean_envelope(raw[baseline_keys[0]])
-        desync_after  = get_mean_envelope(raw[motor_keys[1]]) / get_mean_envelope(raw[baseline_keys[1]])
-        print('Desync:', desync_before, desync_after)
+        #desync_before = get_mean_envelope(raw[motor_keys[0]]) / get_mean_envelope(raw[baseline_keys[0]])
+        #desync_after  = get_mean_envelope(raw[motor_keys[1]]) / get_mean_envelope(raw[baseline_keys[1]])
+        #import pandas as pd
+        df = {'baseline_before': get_mean_envelope(raw[baseline_keys[0]]),
+              'baseline_after' : get_mean_envelope(raw[baseline_keys[1]]),
+              'motor_before': get_mean_envelope(raw[motor_keys[0]]),
+              'motor_after': get_mean_envelope(raw[motor_keys[1]])
+              }
+        pd.DataFrame(df).to_csv('{}.csv'.format(experiment))
+
+        # print('Desync:', get_mean_envelope(raw[motor_keys[0]]), desync_after)
 
 
 
         # plot durations
         fig3, axes = plt.subplots(nrows=6, sharex=True, figsize=(4, 8))
+        print(raw.keys())
         keys = ['14. Baseline', '17. FB', '19. FB', '21. FB', '23. FB', '25. FB', '27. Baseline']
         keys = [key for key in raw.keys() if 'FB' in key or 'Baseline' in key]
-        import pandas as pd
+
         dots = np.zeros((6, len(keys)))
         for jj, key in enumerate(keys):
             y = np.dot(raw[key], spatial)
