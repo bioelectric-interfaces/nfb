@@ -41,14 +41,14 @@ def run_exp():
         cross.present()
         t = gabor1.present(clear=False, update=False)
         t += cross.present(clear=False, update=True)
-        exp.clock.wait(5000)
+        #exp.clock.wait(5000)
         t += cross.present()
         mean += t
         print(t, mean / k)
         exp.clock.wait(500)
         gabor1.unload()
-        gabor1 = expyriment.stimuli.extras.GaborPatch(size=500, lambda_=10, theta=45, sigma=50, phase=0.25,
-                                                      position=(-500 * (np.random.randint(0, 2)*2-1), 0), contrast=np.random.uniform(0, 1, 1)*0+1)
+        gabor1 = expyriment.stimuli.extras.GaborPatch(size=500, lambda_=5, theta=45, sigma=5, phase=0.25,
+                                                      position=(-500, 0), contrast=0.5)
         gabor1.preload()
 
     control.end()
