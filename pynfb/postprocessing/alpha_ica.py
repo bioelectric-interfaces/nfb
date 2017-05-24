@@ -17,7 +17,7 @@ from pynfb.widgets.helpers import ch_names_to_2d_pos
 mock = False
 
 
-dir_ = 'D:\mu_ica\mu_ica'
+dir_ = 'D:\\alpha'
 with open(dir_ + '\\info.json', 'r') as f:
     settings = loads(f.read())
 
@@ -85,6 +85,8 @@ for subj, experiments in enumerate(settings['subjects']):
             else:
                 rejections = None
             spatial = f['protocol15/signals_stats/left/spatial_filter'][:]
+            plot_topomap(spatial, ch_names_to_2d_pos(channels), axes=plt.gca(), show=False)
+            plt.savefig('alphaS{}_Day{}_spatial_filter'.format(subj, day+1))
             mu_band = f['protocol15/signals_stats/left/bandpass'][:]
             #mu_band = (12, 13)
             max_gap = 1 / min(mu_band) * 2
@@ -158,8 +160,10 @@ for subj, experiments in enumerate(settings['subjects']):
                 sc = 10*envelope.mean()
 
                 lengths, x_copy = compute_lengths(envelope > threshold, fs*max_gap, fs*min_sate_duration)
-                #axes[j].fill_between(time, -x_copy * sc*0, (envelope > threshold)*sc, facecolor=cm(name), alpha=0.6, linewidth=0)
-                axes[j].fill_between(time, -x_copy * sc * 0 - 1, +(x_copy)*sc * 0 + 1, facecolor=cm(name), alpha=1, linewidth=0)
+                axes[j].fill_between(time, -x_copy * sc*0, (envelope > threshold)*sc, facecolor=cm(name), alpha=0.6, linewidth=0)
+                axes[j].fill_between(time, -x_copy * sc * 0, -((envelope > threshold) * sc), facecolor=cm(name), alpha=0.6,
+                                     linewidth=0)
+                #axes[j].fill_between(time, -x_copy * sc * 0 - 1, +(x_copy)*sc * 0 + 1, facecolor=cm(name), alpha=1, linewidth=0)
                 axes[j].set_ylabel(ch)
                 axes[j].set_xlabel('time, [s]')
                 #axes[j].set_ylim(-1e-4, 1e-4)
@@ -201,8 +205,8 @@ for subj, experiments in enumerate(settings['subjects']):
             axes[j].set_ylabel('Hz')
             axes[j].legend(leg, loc='upper left')
         axes[0].set_title('S{} Day{} Band: {}-{} Hz'.format(subj, day+1, *mu_band))
-        fig2.savefig('FBSpec_S{}_D{}'.format(subj, day + 1))
-        plt.savefig('S{}_Day{}_spec'.format(subj, day+1))
+        fig2.savefig('alphaFBSpec_S{}_D{}'.format(subj, day + 1))
+        plt.savefig('alphaS{}_Day{}_spec'.format(subj, day+1))
 
 
         # desync
@@ -271,6 +275,8 @@ for subj, experiments in enumerate(settings['subjects']):
             ax.set_xticks(range(1, len(keys)+1))
             ax.set_xticklabels(keys)
         plt.suptitle('S{} Day{} Band: {}-{} Hz'.format(subj, day+1, *mu_band))
-        plt.savefig('S{}_Day{}_stats'.format(subj, day+1))
+
+        plt.show()
+        plt.savefig('alphaS{}_Day{}_stats'.format(subj, day+1))
         #plt.show()
         plt.close()
