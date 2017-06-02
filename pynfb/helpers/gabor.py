@@ -109,7 +109,7 @@ The Python package 'Matplotlib' is not installed."""
         grating = (np.sin(((Xt + Yt) * freq * 2 * np.pi) + phaseRad) + 1) / 2
         # 2D Gaussian distribution
         gauss = np.exp(-((Xm ** 2) + (Ym ** 2)) / (2 * (sigma / float(size)) ** 2))
-        print(np.max(gauss), np.max(grating),np.min(grating))
+        #print(np.max(gauss), np.max(grating),np.min(grating))
         # Trim
         #gauss[gauss < trim] = 0
 

@@ -10,23 +10,25 @@ from pynfb.helpers.gabor import GaborPatch
 from pynfb.helpers.cross import ABCCross
 
 
+DEBUG = True
+BLACK = (0, 0, 0)
+
 def run_exp():
-    #control.run_test_suite()
-    #control.set_develop_mode(True)
+    # expyriment package settings
+    control.defaults.initialize_delay = 0
 
     # init
-    control.defaults.initialize_delay = 0
     gabor1 = GaborPatch(size=500, lambda_=10, theta=45, sigma=50, phase=0.25, position=(500, 0), contrast=0.1)
     cross = ABCCross()
     cross2 = ABCCross(width=1.5)
     cross3 = ABCCross(hide_dot=True)
 
-    exp = design.Experiment(background_colour=gabor1._background_colour)
+    exp = design.Experiment(background_colour=BLACK)
     control.initialize(exp)
 
     # stimuli
     stimulus = expyriment.stimuli.Rectangle((1000, 1000))
-    blank = expyriment.stimuli.BlankScreen(colour=gabor1._background_colour)
+    blank = expyriment.stimuli.BlankScreen(colour=BLACK)
 
     # stimuli preload
     stimulus.preload()
@@ -43,19 +45,45 @@ def run_exp():
     blank.present()
     while True:
         k += 1
-        cross2.present()
-        exp.clock.wait(200)
-        t = gabor1.present(clear=False, update=False)
-        t += cross3.present(clear=False, update=True)
-        #exp.clock.wait(5000)
-        t += cross.present()
-        mean += t
-        print(t, mean / k)
-        exp.clock.wait(500)
-        gabor1.unload()
-        gabor1 = expyriment.stimuli.extras.GaborPatch(size=500, lambda_=5, theta=45, sigma=5, phase=0.25,
-                                                      position=(-500, 0), contrast=0.5 * np.random.uniform(0, 1, 1))
+
+        # preload gabor
+        present = bool(np.random.randint(0, 2))
+        print(present)
+
+        gabor1 = GaborPatch(size=500, lambda_=5, theta=45, sigma=5*10, phase=0.25, position=(-500, 0), contrast=1) #* np.random.uniform(0, 1, 1))
         gabor1.preload()
+
+        # show-hide stimulus
+        t = 0
+        if present:
+            t = gabor1.present(clear=False, update=False)
+        t += cross2.present(clear=False, update=True)
+        t += cross.present()
+
+        # print time
+        if DEBUG:
+            mean += t
+            print(t, mean / k)
+
+        # wait
+        exp.clock.wait(400)
+
+        # detection task
+        expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
+        button, rt = exp.keyboard.wait([misc.constants.K_LEFT, misc.constants.K_RIGHT])
+
+        if DEBUG:
+            message = '+' if ((button == misc.constants.K_RIGHT) == present) else '-'
+            response = expyriment.stimuli.TextLine(message, text_size=70, text_colour=(255, 255, 255))
+            response.present()
+            exp.clock.wait(1000)
+            response.unload()
+
+        cross.present(clear=True, update=True)
+
+        exp.clock.wait(1000 * np.random.uniform(1.8, 2.4, 1))
+        gabor1.unload()
+
 
     control.end()
 
