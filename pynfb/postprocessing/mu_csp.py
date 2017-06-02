@@ -17,7 +17,7 @@ from pynfb.widgets.helpers import ch_names_to_2d_pos
 mock = False
 
 
-dir_ = 'D:\\alpha'
+dir_ = 'D:\mu_ica\mu_ica'
 with open(dir_ + '\\info.json', 'r') as f:
     settings = loads(f.read())
 
@@ -25,14 +25,14 @@ subj = 0
 day = 0
 
 
-run_ica = False
+run_ica = True
 reject = False
 #for subj in range(4):
     #for day in range(5):
 experiments = settings['subjects'][subj]
 experiment = experiments[day]
 for subj, experiments in enumerate(settings['subjects']):
-    for day, experiment in list(enumerate(experiments))[:]:
+    for day, experiment in enumerate(experiments):
         print(subj, day, experiment)
         def preproc(x, fs, rej=None):
             x = dc_blocker(x)
@@ -85,8 +85,6 @@ for subj, experiments in enumerate(settings['subjects']):
             else:
                 rejections = None
             spatial = f['protocol15/signals_stats/left/spatial_filter'][:]
-            plot_topomap(spatial, ch_names_to_2d_pos(channels), axes=plt.gca(), show=False)
-            plt.savefig('alphaS{}_Day{}_spatial_filter'.format(subj, day+1))
             mu_band = f['protocol15/signals_stats/left/bandpass'][:]
             #mu_band = (12, 13)
             max_gap = 1 / min(mu_band) * 2
@@ -111,8 +109,11 @@ for subj, experiments in enumerate(settings['subjects']):
 
             fig1, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=False)
             for j, data in enumerate([first, last]):
-                raw_data = np.concatenate([raw[key] for key in data])
-                rej, spatial, top = ICADialog.get_rejection(raw_data, channels, fs, mode='ica', states=None)[:3]
+                raw_data = np.concatenate([
+                    np.concatenate([raw[key] for key in data if 'Close' in key]),
+                    np.concatenate([raw[key] for key in data if 'Open' in key])
+                    ])
+                rej, spatial, top = ICADialog.get_rejection(raw_data, channels, fs, mode='csp', states=None)[:3]
                 tops.append(top)
                 spats.append(spatial)
                 plot_topomap(top, ch_names_to_2d_pos(channels), axes=axes[j, 0], show=False)
@@ -160,10 +161,8 @@ for subj, experiments in enumerate(settings['subjects']):
                 sc = 10*envelope.mean()
 
                 lengths, x_copy = compute_lengths(envelope > threshold, fs*max_gap, fs*min_sate_duration)
-                axes[j].fill_between(time, -x_copy * sc*0, (envelope > threshold)*sc, facecolor=cm(name), alpha=0.6, linewidth=0)
-                axes[j].fill_between(time, -x_copy * sc * 0, -((envelope > threshold) * sc), facecolor=cm(name), alpha=0.6,
-                                     linewidth=0)
-                #axes[j].fill_between(time, -x_copy * sc * 0 - 1, +(x_copy)*sc * 0 + 1, facecolor=cm(name), alpha=1, linewidth=0)
+                #axes[j].fill_between(time, -x_copy * sc*0, (envelope > threshold)*sc, facecolor=cm(name), alpha=0.6, linewidth=0)
+                axes[j].fill_between(time, -x_copy * sc * 0 - 1, +(x_copy)*sc * 0 + 1, facecolor=cm(name), alpha=1, linewidth=0)
                 axes[j].set_ylabel(ch)
                 axes[j].set_xlabel('time, [s]')
                 #axes[j].set_ylim(-1e-4, 1e-4)
@@ -181,8 +180,6 @@ for subj, experiments in enumerate(settings['subjects']):
         for j, ch in enumerate(ch_plot):
             leg = []
             fb_counter = 0
-            max_y = 0
-            min_y = 100000000
             for jj, key in enumerate(keys):
                 x = raw[key]
                 style = '--' if fb_counter > 0 else ''
@@ -197,11 +194,8 @@ for subj, experiments in enumerate(settings['subjects']):
                 x_plot = np.abs(hilbert(fft_filter(y, fs, band=mu_band)))
                 threshold = coef * x_median[channels.index(ch)] if ch != 'ICA' else coef * x_f_median
                 leg.append('{}'.format(key))
-                max_y = max(np.max(Pxx[(f > 7) & (f < 15)]), max_y)
-                min_y = min(np.min(Pxx[(f > 7) & (f < 15)]), min_y)
 
-            axes[j].set_ylim(min_y, max_y)
-            axes[j].set_xlim(7, 15)
+
             axes[j].set_xlim(7, 15)
             axes[j].axvline(x=mu_band[0], color='k', alpha=0.5)
             axes[j].axvline(x=mu_band[1], color='k', alpha=0.5)
@@ -210,8 +204,8 @@ for subj, experiments in enumerate(settings['subjects']):
             axes[j].set_ylabel('Hz')
             axes[j].legend(leg, loc='upper left')
         axes[0].set_title('S{} Day{} Band: {}-{} Hz'.format(subj, day+1, *mu_band))
-        fig2.savefig('alphaFBSpec_S{}_D{}'.format(subj, day + 1))
-        plt.savefig('alphaS{}_Day{}_spec'.format(subj, day+1))
+        fig2.savefig('FBSpec_S{}_D{}'.format(subj, day + 1))
+        plt.savefig('S{}_Day{}_spec'.format(subj, day+1))
 
 
         # desync
@@ -280,8 +274,6 @@ for subj, experiments in enumerate(settings['subjects']):
             ax.set_xticks(range(1, len(keys)+1))
             ax.set_xticklabels(keys)
         plt.suptitle('S{} Day{} Band: {}-{} Hz'.format(subj, day+1, *mu_band))
-
-        #plt.show()
-        plt.savefig('alphaS{}_Day{}_stats'.format(subj, day+1))
+        plt.savefig('S{}_Day{}_stats'.format(subj, day+1))
         #plt.show()
         plt.close()
