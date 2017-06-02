@@ -77,3 +77,18 @@ def csp(x, fs, band, butter_order=3, regularization_coef=0.05, lambda_=None):
     reversed_slice = slice(-1, None, -1)
     topo = inv(vecs[:,reversed_slice]).T
     return vals[reversed_slice], vecs[:, reversed_slice], topo
+
+
+def csp_new(state1, state2=None, reg_coef=0.05):
+    states = [state1, state2] if state2 is None else np.split(state1, [state1.shape[0] // 2])
+    covs = [np.dot(state.T, state) / state.shape[0] for state in states]
+
+    # find filters
+    regularization = lambda z: z + reg_coef * np.trace(z) * np.eye(z.shape[0]) / z.shape[0]
+    vals, vecs = eigh(regularization(covs[0]), regularization(covs[1]))
+    vecs /= np.abs(vecs).max(0)
+
+    # return vals, vecs and topographics (in descending order)
+    reversed_slice = slice(-1, None, -1)
+    topo = inv(vecs[:, reversed_slice]).T
+    return vals[reversed_slice], vecs[:, reversed_slice], topo
