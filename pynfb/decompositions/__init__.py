@@ -7,11 +7,17 @@ from scipy.signal import butter, filtfilt
 from scipy.linalg import eigh, inv
 from sklearn.metrics import mutual_info_score
 BAND_DEFAULT = (0.5, 35)
+DEFAULTS = {'bandpass_low': 3,
+            'regularizator': 0.05,
+            'bandpass_high': 45}
+BAND_DEFAULT = (DEFAULTS['bandpass_low'], DEFAULTS['bandpass_high'])
+
 
 def mutual_info(x, y, bins=100):
     c_xy = np.histogram2d(x, y, bins)[0]
     mi = mutual_info_score(None, None, contingency=c_xy)
     return mi
+
 
 class SpatialDecomposition:
     def __init__(self, channel_names, fs, band=None):
@@ -31,6 +37,10 @@ class SpatialDecomposition:
 
     def decompose(self, X, y=None):
         raise NotImplementedError
+
+    def set_parameters(self, **parameters):
+        self.band = (parameters['bandpass_low'], parameters['bandpass_high'])
+
 
 
 class CSPDecomposition(SpatialDecomposition):
@@ -53,10 +63,15 @@ class CSPDecomposition(SpatialDecomposition):
         topo = inv(vecs[:, reversed_slice]).T
         return vals[reversed_slice], vecs[:, reversed_slice], topo
 
+    def set_parameters(self, **parameters):
+        super(CSPDecomposition, self).set_parameters(**parameters)
+        self.reg_coef = parameters['regularizator']
+
 
 class ICADecomposition(SpatialDecomposition):
     def __init__(self, channel_names, fs, band=None):
         super(ICADecomposition, self).__init__(channel_names, fs, band)
+        self.sorted_channel_index = 0
 
     def decompose(self, X, y=None):
         raw_inst = RawArray(X.T, create_info(self.channel_names, self.fs, 'eeg', None))
@@ -64,12 +79,14 @@ class ICADecomposition(SpatialDecomposition):
         ica.fit(raw_inst)
         filters = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
         topographies = np.linalg.inv(filters).T
-        scores = self.get_scores(X)
+        scores = self.get_scores(X, filters)
         return scores, filters, topographies
 
-    def get_scores(self, X, ch_name=None):
-        index = np.argmax(self.pos[:, 1]) if ch_name is None else self.channel_names.index(ch_name)
-        components = np.dot(X, self.filters)
+    def get_scores(self, X, filters, ch_name=None, index=None):
+        if index is None:
+            index = np.argmax(self.pos[:, 1]) if ch_name is None else self.channel_names.index(ch_name)
+        self.sorted_channel_index = index
+        components = np.dot(X, filters)
         scores = [mutual_info(components[:, j], X[:, index]) for j in range(components.shape[1])]
         return scores
 

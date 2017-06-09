@@ -3,7 +3,7 @@ from pynfb.widgets.parameter_slider import ParameterSlider
 
 
 class Sliders(QtGui.QWidget):
-    def __init__(self, sample_freq=1000):
+    def __init__(self, sample_freq, reg_coef=True):
         super(Sliders, self).__init__()
         h_layout = QtGui.QHBoxLayout()
         v_layout = QtGui.QVBoxLayout()
@@ -21,6 +21,9 @@ class Sliders(QtGui.QWidget):
                                                            value=self.defaults['regularizator'])
         self.parameters['regularizator'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['regularizator'])
+
+        if not reg_coef:
+            self.parameters['regularizator'].hide()
 
         # central bandpass_low slider
         self.parameters['bandpass_low'] = ParameterSlider('Bandpass low:', 0, sample_freq/2, sample_freq/10,

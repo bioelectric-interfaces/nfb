@@ -13,7 +13,8 @@ from pynfb.protocols.ssd.sliders_csp import Sliders
 from pynfb.signals.rejections import Rejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
 from pynfb._titles import WAIT_BAR_MESSAGES
-
+from pynfb.decompositions import CSPDecomposition, ICADecomposition
+from time import time
 
 def mutual_info(x, y, bins=100):
     c_xy = np.histogram2d(x, y, bins)[0]
@@ -22,16 +23,22 @@ def mutual_info(x, y, bins=100):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None, scores=None, states=None):
+    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None,
+                 scores=None, states=None, labels=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
+        if mode == 'csp':
+            self.decomposition = CSPDecomposition(channel_names, fs)
+            if labels is None:
+                labels = np.zeros(raw_data.shape[0])
+                labels[len(labels)//2:] = 1
+        elif mode == 'ica':
+            self.decomposition = ICADecomposition(channel_names, fs)
+
         # attributes
-        self.channel_names = channel_names
-        self.pos = ch_names_to_2d_pos(channel_names)
-        self.n_channels = len(channel_names)
         self.sampling_freq = fs
         self.rejection = None
         self.spatial = None
@@ -39,70 +46,22 @@ class ICADialog(QtGui.QDialog):
         self.bandpass = None
         self.table = None
         self.mode = mode
-
-        # data preprocessing:
-        from scipy.signal import butter, filtfilt
-        b, a = butter(4, [0.5 / (0.5 * fs), 35 / (0.5 * fs)], btype='bandpass')
-        self.data = filtfilt(b, a, raw_data, axis=0)
-
-        if mode == 'csp':
-            # Sliders
-            self.sliders = Sliders()
-            self.sliders.apply_button.clicked.connect(self.recompute)
-            self.lambda_csp3 = states
+        self.raw_data = raw_data
+        self.labels = labels
+        self.data = self.raw_data
 
         # unmixing matrix estimation
-        self.unmixing_matrix = None
-        self.topographies = None
-        self.scores = scores
-        self.components = None
-        from time import time
         timer = time()
-        if unmixing_matrix is None:
-            if mode == 'ica':
-                raw_inst = RawArray(self.data.T, create_info(channel_names, fs, 'eeg', None))
-                ica = ICA(method='extended-infomax')
-                ica.fit(raw_inst)
-                self.unmixing_matrix = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
-            # self.topographies = np.dot(ica.mixing_matrix_.T, ica.pca_components_[:ica.n_components_]).T
-            elif mode == 'csp':
-                self.recompute()
-            else:
-                raise TypeError('Wrong mode name')
+        self.decomposition.fit(self.raw_data, self.labels)
+        self.scores = self.decomposition.scores
+        self.unmixing_matrix = self.decomposition.filters
+        self.topographies = self.decomposition.topographies
+        self.components = np.dot(self.raw_data, self.unmixing_matrix)
 
-        else:
-            self.unmixing_matrix = unmixing_matrix
-        self.topographies = np.linalg.inv(self.unmixing_matrix).T
-        self.components = np.dot(self.data, self.unmixing_matrix)
+
         print('ICA/CSP time elapsed = {}s'.format(time() - timer))
         timer = time()
 
-        if mode == 'ica':
-            # sort by fp1 or fp2
-            sort_layout = QtGui.QHBoxLayout()
-            self.sort_combo = QtGui.QComboBox()
-            self.sort_combo.setMaximumWidth(100)
-            self.sort_combo.addItems(channel_names)
-            fp1_or_fp2_index = -1
-            upper_channels_names = [ch.upper() for ch in channel_names]
-            if 'FP1' in upper_channels_names:
-                fp1_or_fp2_index = upper_channels_names.index('FP1')
-            if fp1_or_fp2_index < 0 and 'FP2' in upper_channels_names:
-                fp1_or_fp2_index = upper_channels_names.index('FP2')
-            if fp1_or_fp2_index < 0:
-                fp1_or_fp2_index = 0
-            print('Sorting channel is', fp1_or_fp2_index)
-            self.sort_combo.setCurrentIndex(fp1_or_fp2_index)
-            self.sort_combo.currentIndexChanged.connect(self.sort_by_mutual)
-            sort_layout.addWidget(QtGui.QLabel('Sort by: '))
-            sort_layout.addWidget(self.sort_combo)
-            sort_layout.setAlignment(QtCore.Qt.AlignLeft)
-
-            # mutual sorting
-            self.scores = [mutual_info(self.components[:, j], self.data[:, fp1_or_fp2_index])
-                      for j in range(self.components.shape[1])]
-            print('Mutual info scores time elapsed = {}s'.format(time() - timer))
-            timer = time()
 
         scores_name = 'Mutual info' if mode == 'ica' else 'Eigenvalues'
         # table
@@ -123,11 +82,28 @@ class ICADialog(QtGui.QDialog):
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.table)
         self.update_band_checkbox = QtGui.QCheckBox('Update band')
-        if mode == 'csp':
-            layout.addWidget(self.sliders)
-            layout.addWidget(self.update_band_checkbox)
+
+        # setup sliders
+        self.sliders = Sliders(fs, mode == 'csp')
+        self.sliders.apply_button.clicked.connect(self.recompute)
+        self.lambda_csp3 = states
+        layout.addWidget(self.sliders)
+        layout.addWidget(self.update_band_checkbox)
+
+        # ica mutual sorting
         if mode == 'ica':
+            sort_layout = QtGui.QHBoxLayout()
+            self.sort_combo = QtGui.QComboBox()
+            self.sort_combo.setMaximumWidth(100)
+            self.sort_combo.addItems(channel_names)
+            self.sort_combo.setCurrentIndex(self.decomposition.sorted_channel_index)
+            self.sort_combo.currentIndexChanged.connect(self.sort_by_mutual)
+            sort_layout.addWidget(QtGui.QLabel('Sort by: '))
+            sort_layout.addWidget(self.sort_combo)
+            sort_layout.setAlignment(QtCore.Qt.AlignLeft)
             layout.addLayout(sort_layout)
+
+        # buttons
         buttons_layout = QtGui.QHBoxLayout()
         buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
         buttons_layout.addWidget(self.reject_button)
@@ -145,7 +121,6 @@ class ICADialog(QtGui.QDialog):
         self.table.one_selected.connect(lambda: self.spatial_button.setDisabled(False))
         self.table.more_one_selected.connect(lambda: self.reject_button.setDisabled(False))
         self.table.more_one_selected.connect(lambda: self.spatial_button.setDisabled(True))
-
         self.table.checkboxes_state_changed()
 
     def sort_by_mutual(self):
@@ -172,24 +147,18 @@ class ICADialog(QtGui.QDialog):
     def recompute(self):
         parameters = self.sliders.getValues()
         self.bandpass = (parameters['bandpass_low'], parameters['bandpass_high'])
-        if self.lambda_csp3 is not None:
-            print('CSP 3 using')
-            from pynfb.protocols.ssd.csp import csp3 as csp
-        else:
-            from pynfb.protocols.ssd.csp import csp as csp
-        self.scores, self.unmixing_matrix, self.topographies = csp(self.data,
-                                                                   fs=self.sampling_freq,
-                                                                   band=self.bandpass,
-                                                                   regularization_coef=parameters['regularizator'],
-                                                                   lambda_=self.lambda_csp3)
-        self.components = np.dot(self.data, self.unmixing_matrix)
-        if self.table is not None:
-            self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
+        self.decomposition.set_parameters(**parameters)
+        self.decomposition.fit(self.raw_data, self.labels)
+        self.scores = self.decomposition.scores
+        self.unmixing_matrix = self.decomposition.filters
+        self.topographies = self.decomposition.topographies
+        self.components = np.dot(self.raw_data, self.unmixing_matrix)
+        self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None):
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None, labels=None):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
-        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states)
+        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states, labels=labels)
         wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None
@@ -216,13 +185,13 @@ if __name__ == '__main__':
     # Generate sample data
     np.random.seed(0)
     n_samples = 2000
-    time = np.linspace(0, 8, n_samples)
+    t = np.linspace(0, 8, n_samples)
 
-    s1 = np.sin(2 * time)  # Signal 1 : sinusoidal signal
-    s2 = np.sign(np.sin(3 * time))  # Signal 2 : square signal
+    s1 = np.sin(2 * t)  # Signal 1 : sinusoidal signal
+    s2 = np.sign(np.sin(3 * t))  # Signal 2 : square signal
     from scipy import signal
 
-    s3 = signal.sawtooth(2 * np.pi * time)  # Signal 3: saw tooth signal
+    s3 = signal.sawtooth(2 * np.pi * t)  # Signal 3: saw tooth signal
 
     S = np.c_[s1, s2, s3]
     S += 0.1 * np.random.normal(size=S.shape)  # Add noise
@@ -231,28 +200,30 @@ if __name__ == '__main__':
     # Mix data
     A = np.array([[1, 1, 1], [0.5, 2, 1.0], [1.5, 1.0, 2.0]])  # Mixing matrix
     x = np.dot(S, A.T)  # Generate observations
+    y = np.ones(len(x))
+    y[:len(y)//2] = 0
 
 
+    if False:
+        dir_ = 'D:\\vnd_spbu\\pilot\\mu5days'
+        experiment = 'pilot5days_Skotnikova_Day4_03-02_13-33-55'
+        with h5py.File('{}\\{}\\{}'.format(dir_, experiment, 'experiment_data.h5')) as f:
+            ica = f['protocol1/signals_stats/left/rejections/rejection1'][:]
 
-    dir_ = 'D:\\vnd_spbu\\pilot\\mu5days'
-    experiment = 'pilot5days_Skotnikova_Day4_03-02_13-33-55'
-    with h5py.File('{}\\{}\\{}'.format(dir_, experiment, 'experiment_data.h5')) as f:
-        ica = f['protocol1/signals_stats/left/rejections/rejection1'][:]
-
-        x_filters = dc_blocker(np.dot(f['protocol1/raw_data'][:], ica))
-        x_rotation = dc_blocker(np.dot(f['protocol2/raw_data'][:], ica))
-        x_dict = {
-            'closed': x_filters[:x_filters.shape[0] // 2],
-            'opened': x_filters[x_filters.shape[0] // 2:],
-            'rotate': x_rotation
-        }
-        x = np.concatenate([x_dict['closed'], x_dict['opened'], x_dict['rotate']])
-        drop_channels = ['AUX', 'A1', 'A2']
-        labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
-        print('fs: {}\nall labels {}: {}'.format(fs, len(labels), labels))
-        channels = [label for label in labels if label not in drop_channels]
+            x_filters = dc_blocker(np.dot(f['protocol1/raw_data'][:], ica))
+            x_rotation = dc_blocker(np.dot(f['protocol2/raw_data'][:], ica))
+            x_dict = {
+                'closed': x_filters[:x_filters.shape[0] // 2],
+                'opened': x_filters[x_filters.shape[0] // 2:],
+                'rotate': x_rotation
+            }
+            x = np.concatenate([x_dict['closed'], x_dict['opened'], x_dict['rotate']])
+            drop_channels = ['AUX', 'A1', 'A2']
+            labels, fs = get_lsl_info_from_xml(f['stream_info.xml'][0])
+            print('fs: {}\nall labels {}: {}'.format(fs, len(labels), labels))
+            channels = [label for label in labels if label not in drop_channels]
 
     for j in range(4):
-        rejection, spatial, unmixing = ICADialog.get_rejection(x, channels, fs, mode='csp')
+        rejection, spatial, unmixing = ICADialog.get_rejection(x, channels, fs, mode='ica', labels=y)
         if rejection is not None:
             x = np.dot(x, rejection)
