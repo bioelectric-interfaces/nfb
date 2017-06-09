@@ -1,0 +1,29 @@
+import numpy as np
+from scipy.signal import butter, lfilter
+
+class ButterFilter:
+    def __init__(self, band, fs, n_channels, order=4):
+        low, high = band
+        if low is None and high is None:
+            raise ValueError('band should involve one or two not None values')
+        elif low is None:
+            self.b, self.a = butter(order, high/fs*2, btype='low')
+        elif high is None:
+            self.b, self.a = butter(order, low/fs*2, btype='high')
+        else:
+            self.b, self.a = butter(order, [low/fs*2, high/fs*2], btype='band')
+        self.zi = np.zeros(((max(len(self.a), len(self.a)) - 1, n_channels)))
+
+    def apply(self, chunk):
+        y, self.zi = lfilter(self.b, self.a, chunk, axis=0, zi=self.zi)
+        return y
+
+if __name__ == '__main__':
+    import pylab as plt
+    time = np.arange(10000)/250
+    data = np.sin(10 * 2 * np.pi * time.repeat(2).reshape(10000, 2)) + np.random.normal(size=(10000, 2))*0.1
+    butter_filter = ButterFilter((9, None), fs=250, n_channels=2)
+    plt.plot(time, data)
+    plt.plot(time, butter_filter.apply(data))
+    plt.plot(time, np.vstack([butter_filter.apply(data[k*20:(k+1)*20]) for k in range(10000//20)]), '--')
+    plt.show()
