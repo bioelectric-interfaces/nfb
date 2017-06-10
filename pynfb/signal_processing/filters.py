@@ -52,6 +52,7 @@ class SpatialRejection(BaseFilter):
     def apply(self, chunk):
         return np.dot(chunk, self.val)
 
+
 class ButterFilter(BaseFilter):
     def __init__(self, band, fs, n_channels, order=4):
         low, high = band

@@ -3,12 +3,12 @@ from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
 
+from pynfb.signal_processing.filters import SpatialFilter
 from pynfb.signals.rejections import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
 from scipy.linalg import eigh, inv
 from sklearn.metrics import mutual_info_score
-from pynfb.signal_processing.filters import SpatialFilter, SpatialRejection
 
 DEFAULTS = {'bandpass_low': 3,
             'regularizator': 0.05,
@@ -111,6 +111,25 @@ class ICADecomposition(SpatialDecomposition):
         scores = [mutual_info(components[:, j], X[:, index]) for j in range(components.shape[1])]
         return scores
 
+
+class SpatialDecompositionPool:
+    def __init__(self, channel_names, fs, bands=None, dec_class='csp', indexes=None):
+        Decomposition = {'ica': ICADecomposition, 'csp': CSPDecomposition}[dec_class]
+        # [(k*2, k*2+4) for k in range(3, 11)]
+        self.bands = bands or [(6, 10), (8, 12), (10, 14), (12, 16), (14, 18), (16, 20), (18, 22), (20, 24)]
+        self.indexes = np.array(indexes or [1, -1])
+        if self.indexes.ndim == 1:
+            self.indexes = self.indexes[None, :].repeat(len(bands), 0)
+        self.pool = [Decomposition(channel_names, fs, band) for band in bands]
+
+    def fit(self, X, y=None):
+        for decomposer in self.pool:
+            decomposer.fit(X, y)
+
+    def get_filter(self):
+        filters = [dec.filters[:, index] for dec, index in zip(self.pool, self.indexes)]
+        topographies = [dec.topographies[:, index] for dec, index in zip(self.pool, self.indexes)]
+        return SpatialFilter(np.hstack(filters), np.hstack(topographies))
 
 if __name__ == '__main__':
     dec = CSPDecomposition(['Fp1', 'Fp2'], 500)
