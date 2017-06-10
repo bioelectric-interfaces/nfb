@@ -10,10 +10,10 @@ from pynfb.postprocessing.helpers import dc_blocker
 from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
 from pynfb.protocols.ssd.sliders_csp import Sliders
-from pynfb.signals.rejections import Rejection
+from pynfb.signal_processing.filters import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
 from pynfb._titles import WAIT_BAR_MESSAGES
-from pynfb.decompositions import CSPDecomposition, ICADecomposition
+from pynfb.signal_processing.decompositions import CSPDecomposition, ICADecomposition
 from time import time
 
 def mutual_info(x, y, bins=100):
@@ -133,8 +133,8 @@ class ICADialog(QtGui.QDialog):
         unmixing_matrix = self.unmixing_matrix.copy()
         inv = np.linalg.pinv(self.unmixing_matrix)
         unmixing_matrix[:, indexes] = 0
-        self.rejection = Rejection(np.dot(unmixing_matrix, inv), rank=len(indexes), type_str=self.mode,
-                                   topographies=self.topographies[:, indexes])
+        self.rejection = SpatialRejection(np.dot(unmixing_matrix, inv), rank=len(indexes), type_str=self.mode,
+                                          topographies=self.topographies[:, indexes])
         self.close()
 
     def spatial_and_close(self):

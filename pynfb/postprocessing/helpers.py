@@ -5,7 +5,9 @@ from scipy.signal import hilbert, firwin2, filtfilt
 from scipy.fftpack import rfft, irfft, fftfreq
 
 from pynfb.io.xml_ import get_lsl_info_from_xml
-from pynfb.signals.rejections import Rejections, Rejection
+from pynfb.signals.rejections import Rejections
+from pynfb.signal_processing.filters import SpatialRejection
+
 
 def dc_blocker(x, r=0.99):
     # DC Blocker https://ccrma.stanford.edu/~jos/fp/DC_Blocker.html

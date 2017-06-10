@@ -8,7 +8,8 @@ from scipy.signal import hilbert, firwin2, filtfilt
 from scipy.fftpack import rfft, irfft, fftfreq
 
 from pynfb.io.xml_ import get_lsl_info_from_xml
-from pynfb.signals.rejections import Rejections, Rejection
+from pynfb.signals.rejections import Rejections
+from pynfb.signal_processing.filters import SpatialRejection
 import seaborn as sns
 
 from pynfb.widgets.helpers import ch_names_to_2d_pos

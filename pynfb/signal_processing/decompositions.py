@@ -2,11 +2,14 @@ import numpy as np
 from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
+
+from pynfb.signals.rejections import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
 from scipy.linalg import eigh, inv
 from sklearn.metrics import mutual_info_score
-BAND_DEFAULT = (0.5, 35)
+from pynfb.signal_processing.filters import SpatialFilter, SpatialRejection
+
 DEFAULTS = {'bandpass_low': 3,
             'regularizator': 0.05,
             'bandpass_high': 45}
@@ -28,6 +31,7 @@ class SpatialDecomposition:
         self.filters = None  # un-mixing matrix
         self.topographies = None  # transposed mixing matrix
         self.scores = None  # eigenvalues (squared de-synchronization)
+        self.name = None
 
     def fit(self, X, y=None):
         Wn = [self.band[0] / (0.5 * self.fs), self.band[1] / (0.5 * self.fs)]
@@ -41,15 +45,31 @@ class SpatialDecomposition:
     def set_parameters(self, **parameters):
         self.band = (parameters['bandpass_low'], parameters['bandpass_high'])
 
+    def get_filter(self, index=None):
+        """
+        Return spatial filter
+        :param index:
+        :return:
+        """
+        index = index or slice(None)
+        filter_ = SpatialFilter(self.filters[:, index], self.topographies[:, index])
+        return filter_
+
+    def get_rejections(self, indexes):
+        unmixing_matrix = self.filters.copy()
+        inv = np.linalg.pinv(unmixing_matrix)
+        unmixing_matrix[:, indexes] = 0
+        self.rejection = SpatialRejection(np.dot(unmixing_matrix, inv), rank=len(indexes), type_str=self.name,
+                                          topographies=self.topographies[:, indexes])
 
 
 class CSPDecomposition(SpatialDecomposition):
     def __init__(self, channel_names, fs, band=None, reg_coef=0.001):
         super(CSPDecomposition, self).__init__(channel_names, fs, band)
         self.reg_coef = reg_coef
+        self.name = 'csp'
 
     def decompose(self, X, y=None):
-
         states = [X[~y.astype(bool)], X[y.astype(bool)]]
         covs = [np.dot(state.T, state) / state.shape[0] for state in states]
 
@@ -72,6 +92,7 @@ class ICADecomposition(SpatialDecomposition):
     def __init__(self, channel_names, fs, band=None):
         super(ICADecomposition, self).__init__(channel_names, fs, band)
         self.sorted_channel_index = 0
+        self.name = 'ica'
 
     def decompose(self, X, y=None):
         raw_inst = RawArray(X.T, create_info(self.channel_names, self.fs, 'eeg', None))

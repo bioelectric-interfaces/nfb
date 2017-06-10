@@ -4,7 +4,7 @@ from PyQt4 import QtGui, QtCore
 from pynfb._titles import WAIT_BAR_MESSAGES
 from pynfb.generators import ch_names
 from pynfb.protocols.ssd import TopomapSelector
-from pynfb.signals.rejections import Rejection
+from pynfb.signal_processing.filters import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 
@@ -68,8 +68,8 @@ class SelectSSDFilterWidget(QtGui.QDialog):
 
     def reject_data(self):
         rejection = self.selector.get_current_filter(reject=True)
-        self.rejections.append(Rejection(rejection, rank=1, type_str='ssd',
-                                         topographies=self.selector.get_current_topo()))
+        self.rejections.append(SpatialRejection(rejection, rank=1, type_str='ssd',
+                                                topographies=self.selector.get_current_topo()))
         self.data = np.dot(self.data, self.selector.get_current_filter(reject=True))
         self.selector.update_data(self.data)
         self.selector.recompute()
