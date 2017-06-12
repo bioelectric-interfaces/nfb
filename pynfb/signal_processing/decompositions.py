@@ -38,6 +38,7 @@ class SpatialDecomposition:
         b, a = butter(4, Wn, btype='bandpass')
         X = filtfilt(b, a, X, axis=0)
         self.scores, self.filters, self.topographies = self.decompose(X, y)
+        return self
 
     def decompose(self, X, y=None):
         raise NotImplementedError
@@ -70,6 +71,7 @@ class CSPDecomposition(SpatialDecomposition):
         self.name = 'csp'
 
     def decompose(self, X, y=None):
+        y = y or np.append(np.zeros((X.shape[0]//2)), np.ones((X.shape[0]//2 + X.shape[0]%2)))
         states = [X[~y.astype(bool)], X[y.astype(bool)]]
         covs = [np.dot(state.T, state) / state.shape[0] for state in states]
 
@@ -132,5 +134,35 @@ class SpatialDecompositionPool:
         return SpatialFilter(np.hstack(filters), np.hstack(topographies))
 
 if __name__ == '__main__':
-    dec = CSPDecomposition(['Fp1', 'Fp2'], 500)
-    dec.decompose(None, None)
+    fs = 250
+    n_channels = 3
+    n_samples = 50001
+    t = np.arange(2000)/fs
+    from pynfb.signal_processing.filters import ButterFilter
+    import pylab as plt
+    alpha = ButterFilter((8, 11), fs, 1).apply(np.random.normal(size=(n_samples, 1)))
+    theta = ButterFilter((4, 7), fs, 1).apply(np.random.normal(size=(n_samples, 1)))
+    beta = ButterFilter((17, 22), fs, 1).apply(np.random.normal(size=(n_samples, 1)))
+    noise = np.random.normal(size=(n_samples, n_channels))*0.05
+    alpha_mask = np.ones_like(alpha)
+    alpha_mask[n_samples // 2:] *= 0.1
+    beta_mask = np.ones_like(beta)
+    beta_mask[:n_samples // 2] *= 0.1
+    sources = noise
+    sources[:, [0]] += alpha * alpha_mask
+    sources[:, [1]] += theta
+    sources[:, [2]] += beta * beta_mask
+
+    mixing = np.random.randint(-10, 10, size=(3, 3))/10
+    unmixing = np.linalg.inv(mixing)
+    sensors = np.dot(sources, mixing)
+    csp_filter = CSPDecomposition(['Pz', 'Fp1', 'C3'], fs).fit(sensors).get_filter()
+    csp_unmixing = csp_filter.filters
+    print(np.abs(unmixing/np.abs(unmixing).max(0)) - np.abs(csp_unmixing))
+
+
+    f, ax = plt.subplots(3, 1)
+    ax[0].plot(sources + np.array([1, 0, -1]))
+    ax[1].plot(sensors + np.array([1, 0, -1]))
+    ax[2].plot(csp_filter.apply(sensors) + np.array([1, 0, -1]))
+    plt.show()

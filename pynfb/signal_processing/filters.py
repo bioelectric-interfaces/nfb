@@ -64,7 +64,7 @@ class ButterFilter(BaseFilter):
             self.b, self.a = butter(order, low/fs*2, btype='high')
         else:
             self.b, self.a = butter(order, [low/fs*2, high/fs*2], btype='band')
-        self.zi = np.zeros(((max(len(self.a), len(self.a)) - 1, n_channels)))
+        self.zi = np.zeros((max(len(self.a), len(self.a)) - 1, n_channels))
 
     def apply(self, chunk):
         y, self.zi = lfilter(self.b, self.a, chunk, axis=0, zi=self.zi)
