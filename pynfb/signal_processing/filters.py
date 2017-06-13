@@ -3,7 +3,7 @@ from scipy.signal import butter, lfilter
 
 
 class BaseFilter:
-    def apply(self, chunk):
+    def apply(self, chunk: np.ndarray):
         '''
         :param chunk:
         :return:
@@ -21,7 +21,7 @@ class SpatialFilter(BaseFilter):
         self.filters = filters
         self.topographies = topographies
 
-    def apply(self, chunk):
+    def apply(self, chunk: np.ndarray):
         return np.dot(chunk, self.filters)
 
 
@@ -49,7 +49,7 @@ class SpatialRejection(BaseFilter):
         else:
             self.topographies = np.nan * np.zeros((self.val.shape[0], self.rank))
 
-    def apply(self, chunk):
+    def apply(self, chunk: np.ndarray):
         return np.dot(chunk, self.val)
 
 
@@ -64,12 +64,41 @@ class ButterFilter(BaseFilter):
             self.b, self.a = butter(order, low/fs*2, btype='high')
         else:
             self.b, self.a = butter(order, [low/fs*2, high/fs*2], btype='band')
-        self.zi = np.zeros((max(len(self.a), len(self.a)) - 1, n_channels))
+        self.zi = np.zeros((max(len(self.b), len(self.a)) - 1, n_channels))
 
-    def apply(self, chunk):
+    def apply(self, chunk: np.ndarray):
         y, self.zi = lfilter(self.b, self.a, chunk, axis=0, zi=self.zi)
         return y
 
+
+class FilterSequence(BaseFilter):
+    def __init__(self, filter_sequence):
+        self.sequence = filter_sequence
+
+    def apply(self, chunk: np.ndarray):
+        for filter_ in self.sequence:
+            chunk = filter_.apply(chunk)
+        return chunk
+
+
+class FilterStack(BaseFilter):
+    def __init__(self, filter_stack):
+        self.stack = filter_stack
+
+    def apply(self, chunk: np.ndarray):
+        result = [filter_.apply(chunk) for filter_ in self.stack]
+        return np.hstack(result)
+
+
+class InstantaneousVarianceFilter(BaseFilter):
+    def __init__(self, n_channels, n_taps):
+        self.a = [1]
+        self.b = np.ones(n_taps)/n_taps
+        self.zi = np.zeros((max(len(self.a), len(self.b)) - 1, n_channels))
+
+    def apply(self, chunk: np.ndarray):
+        y, self.zi = lfilter(self.b, self.a, chunk**2, axis=0, zi=self.zi)
+        return y
 
 if __name__ == '__main__':
     import pylab as plt

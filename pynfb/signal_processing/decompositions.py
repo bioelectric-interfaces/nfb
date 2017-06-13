@@ -3,7 +3,7 @@ from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
 
-from pynfb.signal_processing.filters import SpatialFilter
+from pynfb.signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack
 from pynfb.signal_processing.helpers import get_outliers_mask
 from pynfb.signals.rejections import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos
@@ -29,6 +29,7 @@ class SpatialDecomposition:
         self.pos = ch_names_to_2d_pos(channel_names)
         self.fs = fs
         self.band = band if band else BAND_DEFAULT
+        self.temporal_filter = ButterFilter(self.band, fs, len(channel_names))
         self.filters = None  # un-mixing matrix
         self.topographies = None  # transposed mixing matrix
         self.scores = None  # eigenvalues (squared de-synchronization)
@@ -36,9 +37,7 @@ class SpatialDecomposition:
         self.outliers_mask = None
 
     def fit(self, X, y=None):
-        Wn = [self.band[0] / (0.5 * self.fs), self.band[1] / (0.5 * self.fs)]
-        b, a = butter(4, Wn, btype='bandpass')
-        X = filtfilt(b, a, X, axis=0)
+        X = self.temporal_filter.apply(X)
         self.outliers_mask = get_outliers_mask(X)
         good_mask = ~self.outliers_mask
         self.scores, self.filters, self.topographies = self.decompose(X[good_mask], y[good_mask] if y is not None else None)
@@ -56,9 +55,12 @@ class SpatialDecomposition:
         :param index:
         :return:
         """
-        index = index or slice(None)
+        index = slice(None) if index is None else index
         filter_ = SpatialFilter(self.filters[:, index], self.topographies[:, index])
         return filter_
+
+    def get_filter_sequence(self, index=None):
+        return FilterSequence([self.temporal_filter, self.get_filter(index)])
 
     def get_rejections(self, indexes):
         unmixing_matrix = self.filters.copy()
@@ -127,8 +129,8 @@ class SpatialDecompositionPool:
         self.bands = bands or [(6, 10), (8, 12), (10, 14), (12, 16), (14, 18), (16, 20), (18, 22), (20, 24)]
         self.indexes = np.array(indexes or [1, -1])
         if self.indexes.ndim == 1:
-            self.indexes = self.indexes[None, :].repeat(len(bands), 0)
-        self.pool = [Decomposition(channel_names, fs, band) for band in bands]
+            self.indexes = self.indexes[None, :].repeat(len(self.bands), 0)
+        self.pool = [Decomposition(channel_names, fs, band) for band in self.bands]
 
     def fit(self, X, y=None):
         for decomposer in self.pool:
@@ -139,13 +141,20 @@ class SpatialDecompositionPool:
         topographies = [dec.topographies[:, index] for dec, index in zip(self.pool, self.indexes)]
         return SpatialFilter(np.hstack(filters), np.hstack(topographies))
 
+    def get_filter_stack(self):
+        filters = [dec.get_filter_sequence(index) for dec, index in zip(self.pool, self.indexes)]
+        return FilterStack(filters)
+
+
+
+
 if __name__ == '__main__':
     np.random.seed(42)
     fs = 250
     n_channels = 3
     n_samples = 50001
     t = np.arange(2000)/fs
-    from pynfb.signal_processing.filters import ButterFilter
+    #from pynfb.signal_processing.filters import ButterFilter
     import pylab as plt
     alpha = ButterFilter((8, 11), fs, 1).apply(np.random.normal(size=(n_samples, 1)))
     theta = ButterFilter((4, 7), fs, 1).apply(np.random.normal(size=(n_samples, 1)))

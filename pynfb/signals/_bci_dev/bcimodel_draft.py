@@ -88,7 +88,7 @@ class BCIModel():
             data = data[:, mask]
             states_labels = states_labels[:, mask]
             data_pwr = data_pwr[mask]
-            print( 'Samples left after outliers removal:', data_pwr.shape[0])
+            print('Samples left after outliers removal:', data_pwr.shape[0])
             
         return data, states_labels
     
