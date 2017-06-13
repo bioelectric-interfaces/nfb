@@ -4,6 +4,7 @@ from mne.io import RawArray
 from mne.preprocessing import ICA
 
 from pynfb.signal_processing.filters import SpatialFilter
+from pynfb.signal_processing.helpers import get_outliers_mask
 from pynfb.signals.rejections import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
@@ -32,12 +33,15 @@ class SpatialDecomposition:
         self.topographies = None  # transposed mixing matrix
         self.scores = None  # eigenvalues (squared de-synchronization)
         self.name = None
+        self.outliers_mask = None
 
     def fit(self, X, y=None):
         Wn = [self.band[0] / (0.5 * self.fs), self.band[1] / (0.5 * self.fs)]
         b, a = butter(4, Wn, btype='bandpass')
         X = filtfilt(b, a, X, axis=0)
-        self.scores, self.filters, self.topographies = self.decompose(X, y)
+        self.outliers_mask = get_outliers_mask(X)
+        good_mask = ~self.outliers_mask
+        self.scores, self.filters, self.topographies = self.decompose(X[good_mask], y[good_mask] if y is not None else None)
         return self
 
     def decompose(self, X, y=None):
@@ -71,7 +75,9 @@ class CSPDecomposition(SpatialDecomposition):
         self.name = 'csp'
 
     def decompose(self, X, y=None):
-        y = y or np.append(np.zeros((X.shape[0]//2)), np.ones((X.shape[0]//2 + X.shape[0]%2)))
+        #y = y or np.append(np.zeros((X.shape[0]//2)), np.ones((X.shape[0]//2 + X.shape[0]%2)))
+        if y is None:
+            raise ValueError('Y is None, but it must includes labels for CSP')
         states = [X[~y.astype(bool)], X[y.astype(bool)]]
         covs = [np.dot(state.T, state) / state.shape[0] for state in states]
 
@@ -134,6 +140,7 @@ class SpatialDecompositionPool:
         return SpatialFilter(np.hstack(filters), np.hstack(topographies))
 
 if __name__ == '__main__':
+    np.random.seed(42)
     fs = 250
     n_channels = 3
     n_samples = 50001
@@ -153,10 +160,19 @@ if __name__ == '__main__':
     sources[:, [1]] += theta
     sources[:, [2]] += beta * beta_mask
 
+
+
+
     mixing = np.random.randint(-10, 10, size=(3, 3))/10
     unmixing = np.linalg.inv(mixing)
     sensors = np.dot(sources, mixing)
-    csp_filter = CSPDecomposition(['Pz', 'Fp1', 'C3'], fs).fit(sensors).get_filter()
+
+    outliers_indexes = np.random.randint(0, n_samples, 10)
+    print(sorted(outliers_indexes))
+    sensors[outliers_indexes] *= 10
+
+    labels = np.append(np.zeros((sensors.shape[0]//2)), np.ones((sensors.shape[0]//2 + sensors.shape[0]%2)))
+    csp_filter = CSPDecomposition(['Pz', 'Fp1', 'C3'], fs).fit(sensors, labels).get_filter()
     csp_unmixing = csp_filter.filters
     print(np.abs(unmixing/np.abs(unmixing).max(0)) - np.abs(csp_unmixing))
 
