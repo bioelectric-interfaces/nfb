@@ -20,11 +20,13 @@ class Montage:
         # put your code here ***********
         # you can use "ch_names_to_2d_pos()"
         # use file_path if not None
-        layout_neuromag = read_layout(kind='Vectorview-all')
-        layout_eeg1020 = read_layout(kind='EEG1005')
+        layout_1005 = mne.channels.read_layout('EEG1005')
+        layout_mag = mne.channels.read_layout('Vectorview-mag')
+        layout_grad = mne.channels.read_layout('Vectorview-grad')
         if file_path is not None:
-            layout_user = cls.read_layout_from_file(file_path)
-        ch_list = []
+            user_ch_list = cls.read_layout_from_file(file_path)
+        for name in names:
+
         return cls(ch_list)
 
     def pick_types(self, type):
@@ -50,17 +52,8 @@ ch_list = [ch1, ch2, ch3]
 
 import pickle
 import mne
-from pynfb.helpers.az_proj import azimuthal_equidistant_projection as azim
-# pickled mne.Info instance from a random neuromag file
-fpath = os.path.join(os.getcwd(), "pynfb/helpers/neuromag_info.p")
-info = pickle.load(open(fpath, 'rb'))
 
-neuromag_ch_list = [Channel(ch['ch_name'], ch['loc'][:3], mne.io.pick.channel_type(info, idx))
-                         for (idx, ch) in enumerate(info['chs'])]
-neuromag_ch_list = [Channel(ch.name, azim(ch.pos[None, :]), ch.type) for ch in neuromag_ch_list if ch.type in ['grad', 'mag']]
 
-montage_1005 = mne.channels.read_montage('standard_1005')
-montage_1020 = mne.channels.read_montage('standard_1020')
 
-ch_list_1005 = [Channel(name, azim(pos[None, :]), 'EEG') for (name, pos) in zip(montage_1005.ch_names, montage_1005.pos)]
-ch_list_1020 = [Channel(name, azim(pos[None, :]), 'EEG') for (name, pos) in zip(montage_1020.ch_names, montage_1020.pos)]
+
+ch_list_1005 = [Channel(name, pos[:2], 'EEG') for name, pos in zip(layout_1005.names, layout_1005.pos)]
