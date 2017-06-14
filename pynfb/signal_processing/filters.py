@@ -55,6 +55,7 @@ class SpatialRejection(BaseFilter):
 
 class ButterFilter(BaseFilter):
     def __init__(self, band, fs, n_channels, order=4):
+        self.n_channels = n_channels
         low, high = band
         if low is None and high is None:
             raise ValueError('band should involve one or two not None values')
@@ -70,6 +71,8 @@ class ButterFilter(BaseFilter):
         y, self.zi = lfilter(self.b, self.a, chunk, axis=0, zi=self.zi)
         return y
 
+    def reset(self):
+        self.zi = np.zeros((max(len(self.b), len(self.a)) - 1, self.n_channels))
 
 class FilterSequence(BaseFilter):
     def __init__(self, filter_sequence):
@@ -104,10 +107,13 @@ if __name__ == '__main__':
     import pylab as plt
 
     print('TEST: Butter Filter')
-    time = np.arange(10000)/250
-    data = np.sin(10 * 2 * np.pi * time.repeat(2).reshape(10000, 2)) + np.random.normal(size=(10000, 2))*0.1
-    butter_filter = ButterFilter((9, None), fs=250, n_channels=2)
-    plt.plot(time, data)
-    plt.plot(time, butter_filter.apply(data))
-    plt.plot(time, np.vstack([butter_filter.apply(data[k*20:(k+1)*20]) for k in range(10000//20)]), '--')
+    n_samples = 10000
+    time = np.arange(n_samples)/250
+    data = np.sin(10 * 2 * np.pi * time.repeat(2).reshape(n_samples, 2)) + np.random.normal(size=(n_samples, 1))*0.1
+    butter_filter = ButterFilter((9, None), fs=250, n_channels=1)
+    #plt.plot(time, data)
+    #plt.plot(time, butter_filter.apply(data))
+    plt.plot(np.vstack([butter_filter.apply(data[k*200:(k+1)*200]) for k in range(n_samples//200)]), '--')
+    butter_filter.reset()
+    plt.plot(np.vstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), '--')
     plt.show()

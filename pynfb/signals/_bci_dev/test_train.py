@@ -1,9 +1,11 @@
 from pynfb.signals._bci_dev.bcimodel_draft import BCIModel
-from pynfb.signal_processing.filters import ButterFilter, FilterStack, InstantaneousVarianceFilter
+from pynfb.signal_processing.filters import ButterFilter, FilterStack, InstantaneousVarianceFilter, FilterSequence
 from pynfb.signal_processing.decompositions import SpatialDecompositionPool
 import numpy as np
 import pylab as plt
 from pynfb.helpers.dc_blocker import DCBlocker
+
+from sklearn.neural_network import MLPClassifier
 
 filename = 'C:\\Users\\nsmetanin\\PycharmProjects\\nfb\\pynfb\\signals\\_bci_dev\\sm_ksenia_1.mat'
 [eeg_data1, states_labels1, fs, chan_names, chan_numb, samp_numb, states_codes] = BCIModel.open_eeg_mat(filename, centered=False)
@@ -28,8 +30,8 @@ print('eeg_data shape:', eeg_data.shape, 'labels shape:', labels.shape)
 
 # prefilter
 # TODO: filtfilt?
-eeg_data = DCBlocker().filter(eeg_data)
-eeg_data = ButterFilter((0.5, 45), fs, n_channels).apply(eeg_data)
+#eeg_data = DCBlocker().filter(eeg_data)
+#eeg_data = ButterFilter((0.5, 45), fs, n_channels).apply(eeg_data)
 #eeg_data, labels = BCIModel.remove_outliers(eeg_data.T, labels[None,:], 7)
 #eeg_data = eeg_data.T
 #n_samples = eeg_data.shape[0]
@@ -37,7 +39,11 @@ eeg_data = ButterFilter((0.5, 45), fs, n_channels).apply(eeg_data)
 #eeg_data[get_outliers_mask(eeg_data), :] = 0
 
 
+
+
+
 bands = [(6, 10), (8, 12), (10, 14), (12, 16), (14, 18), (16, 20), (18, 22), (20, 24)]
+state_labels = [1, 2, 6]
 csp_multi_class = FilterStack([])
 for label in [1, 2, 6]:
     csp_pool = SpatialDecompositionPool(ch_names, fs, bands)
@@ -54,7 +60,7 @@ labels = labels[1000:]
 n_samples = len(eeg_data)
 
 eeg_data = InstantaneousVarianceFilter(eeg_data.shape[1], n_taps=fs//2).apply(eeg_data)
-eeg_data = eeg_data/eeg_data.std(0)
+#eeg_data = eeg_data/eeg_data.std(0)
 
 plt.plot(eeg_data/eeg_data.std(0)/5 + np.arange(len(eeg_data[0])))
 
@@ -69,11 +75,14 @@ from sklearn import datasets
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
-iris = datasets.load_iris()
-X, y = iris.data, iris.target
-clf = OneVsRestClassifier(LogisticRegression(random_state=0))
-acc_train = sum(clf.fit(eeg_data[:n_samples//2], labels[:n_samples//2]).predict(eeg_data[:n_samples//2]) == labels[:n_samples//2])/n_samples*2
-acc_test = sum(clf.predict(eeg_data[n_samples//2:]) == labels[n_samples//2:])/n_samples*2
+#clf = OneVsRestClassifier(LogisticRegression(random_state=0, penalty='l1'))
+clf = MLPClassifier(hidden_layer_sizes=(), early_stopping=True, verbose=True)
+
+k = 2*n_samples//3
+train_slice = slice(None, k)
+test_slice = slice(k, None)
+acc_train = sum(clf.fit(eeg_data[train_slice], labels[train_slice]).predict(eeg_data[train_slice]) == labels[train_slice])/len(labels[train_slice])
+acc_test = sum(clf.predict(eeg_data[test_slice]) == labels[test_slice])/len(labels[test_slice])
 print('train', acc_train)
 print('test', acc_test)
 
