@@ -1,4 +1,5 @@
 from pynfb.helpers.dc_blocker import DCBlocker
+from pynfb.postprocessing.utils import get_info
 from pynfb.signal_processing.filters import ButterFilter, FilterSequence, FilterStack, InstantaneousVarianceFilter
 from pynfb.signal_processing.decompositions import SpatialDecompositionPool
 from sklearn.neural_network import MLPClassifier
@@ -27,16 +28,6 @@ class BCISignal():
         self.csp_transformer = FilterStack([pool.get_filter_stack() for pool in self.csp_pools])
         X = self.csp_transformer.apply(X)
         X = self.var_detector.apply(X)
-
-        ##outliers_mask = get_outliers_mask(X)
-        #good_mask = ~get_outliers_mask(X, iter_numb=5, std=4)
-        #X=X[good_mask]
-        #y=y[good_mask]
-        #X = X[1000:]
-        #y = y[1000:]
-        import pylab as plt
-        plt.plot(X + np.arange(len(X[0])))
-        plt.show()
         self.classifier.fit(X, y)
         print('Fit accuracy {}'.format(sum(self.classifier.predict(X) == y)/len(y)))
 
@@ -51,20 +42,53 @@ if __name__ == '__main__':
     np.random.seed(42)
 
     # loading anp pre processing
-    filenames = ['C:\\Users\\nsmetanin\\PycharmProjects\\nfb\\pynfb\\signals\\_bci_dev\\sm_ksenia_1.mat',
-                'C:\\Users\\nsmetanin\\PycharmProjects\\nfb\\pynfb\\signals\\_bci_dev\\sm_ksenia_2.mat']
-    datasets = []
-    for filename in filenames:
-        [eeg_data, states_labels1, fs, chan_names, chan_numb, samp_numb, states_codes] = BCIModel.open_eeg_mat(filename,
-                                                                                                        centered=False)
+    if False:
+        filenames = [r'C:\_NFB\projects\3BCI\sm_ksenia_1.mat',
+                    r'C:\_NFB\projects\3BCI\sm_ksenia_2.mat']
+        datasets = []
+        for filename in filenames:
+            [eeg_data, states_labels1, fs, chan_names, chan_numb, samp_numb, states_codes] = BCIModel.open_eeg_mat(filename,
+                                                                                                            centered=False)
 
-        fs = fs[0, 0]
-        nozeros_mask = np.sum(eeg_data[:, :fs * 2], 1) != 0  # Detect constant (zero) channels
-        without_emp_mask = nozeros_mask & (chan_names[0, :] != 'A1') & (chan_names[0, :] != 'A2') & (chan_names[0, :] != 'AUX')
-        eeg_data = eeg_data[without_emp_mask, :].T  # Remove constant (zero) channels and prespecified channels
-        ch_names = [name[0][0] for name in chan_names[:, without_emp_mask].T]
-        labels = states_labels1[0]
-        datasets.append((eeg_data, labels))
+            fs = fs[0, 0]
+            nozeros_mask = np.sum(eeg_data[:, :fs * 2], 1) != 0  # Detect constant (zero) channels
+            without_emp_mask = nozeros_mask & (chan_names[0, :] != 'A1') & (chan_names[0, :] != 'A2') & (chan_names[0, :] != 'AUX')
+            eeg_data = eeg_data[without_emp_mask, :].T  # Remove constant (zero) channels and prespecified channels
+            ch_names = [name[0][0] for name in chan_names[:, without_emp_mask].T]
+            labels = states_labels1[0]
+            datasets.append((eeg_data, labels))
+    else:
+        import h5py
+        import pylab as plt
+
+        file = r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\mu_ica_000000_04-17_19-11-50\experiment_data.h5'
+
+        labels_map = {'Open': 6, 'Right': 2, 'Left': 1}
+        with h5py.File(file) as f:
+            fs, ch_names, p_names = get_info(f, [])
+            before = []
+            after = []
+            before_labels = []
+            after_labels = []
+            k = 0
+            for protocol in ['protocol{}'.format(j + 1) for j in range(len(f.keys()) - 3)]:
+                name = f[protocol].attrs['name']
+                if name in ['Right', 'Open', 'Left']:
+                    data = f[protocol + '/raw_data'][:]
+                    labels = np.ones(len(data), dtype=int) * labels_map[name]
+                    if k < 3:
+                        before.append(data)
+                        before_labels.append(labels)
+                    else:
+                        after.append(data)
+                        after_labels.append(labels)
+
+                    k += int(name == 'Right')
+        stds = np.vstack(before).std(0)
+        datasets = [(np.vstack(before)/stds, np.concatenate(before_labels, 0)),
+                    (np.vstack(after)/stds, np.concatenate(after_labels, 0))]#[::-1]
+        for label in datasets[0][1]:
+            print(label)
 
     # fit model
     bands = [(6, 10), (8, 12), (10, 14), (12, 16), (14, 18), (16, 20), (18, 22), (20, 24)]
