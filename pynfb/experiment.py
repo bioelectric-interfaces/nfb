@@ -17,7 +17,7 @@ from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, 
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol
-from .signals import DerivedSignal, CompositeSignal
+from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
 
@@ -289,7 +289,7 @@ class Experiment():
         self.raw_std = None
 
         # signals
-        self.signals = [DerivedSignal(ind=ind,
+        self.signals = [(DerivedSignal(ind=ind,
                                       bandpass_high=signal['fBandpassHighHz'],
                                       bandpass_low=signal['fBandpassLowHz'],
                                       name=signal['sSignalName'],
@@ -301,7 +301,8 @@ class Experiment():
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'],
-                                      source_freq=self.freq)
+                                      source_freq=self.freq) if not signal['bBCIMode']
+                        else BCISignal(self.freq, channels_labels, signal['sSignalName'], ind))
                         for ind, signal in enumerate(self.params['vSignals']['DerivedSignal'])]
 
         # composite signals

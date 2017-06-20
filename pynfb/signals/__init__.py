@@ -2,6 +2,7 @@ import numpy as np
 from scipy.fftpack import rfft, irfft, fftfreq
 from scipy.signal import savgol_coeffs, lfiltic, lfilter, butter
 from .composite import CompositeSignal
+from .bci import BCISignal
 from .rejections import Rejections
 from pynfb.io import save_spatial_filter
 

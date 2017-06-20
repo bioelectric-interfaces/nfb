@@ -10,8 +10,11 @@ from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 from pynfb.widgets.rejections_editor import RejectionsWidget
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
 from pynfb.widgets.check_table import CheckTable
-from pynfb.signals import DerivedSignal
+from pynfb.signals import DerivedSignal, BCISignal
 from numpy import dot, concatenate, array
+import numpy as np
+from pynfb.widgets.bci_fit import BCIFitWidget
+
 
 class SignalsTable(QtGui.QTableWidget):
     show_topography_name = {True: 'Topography', False: 'Filter'}
@@ -143,6 +146,7 @@ class SignalsTable(QtGui.QTableWidget):
         signal.update_spatial_filter(filter_)
         self.update_row(row, modified=True)
 
+
 class BandWidget(QtGui.QWidget):
     def __init__(self, row, max_freq=10000,**kwargs):
         super(BandWidget, self).__init__(**kwargs)
@@ -192,6 +196,7 @@ class SignalsSSDManager(QtGui.QDialog):
 
         # attributes
         self.signals = [signal for signal in signals if isinstance(signal, DerivedSignal)]
+        self.bci_signals = [signal for signal in signals if isinstance(signal, BCISignal)]
         self.init_signals = deepcopy(self.signals)
         self.all_signals = signals
         self.x = x
@@ -215,7 +220,7 @@ class SignalsSSDManager(QtGui.QDialog):
         layout.addWidget(self.table)
 
         # protocols seq check table
-        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP)'], 'Protocol')
+        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP, BCI)', 'State 3\n(BCI)'], 'Protocol')
         protocol_seq_table.setMaximumWidth(200)
         self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
@@ -223,9 +228,7 @@ class SignalsSSDManager(QtGui.QDialog):
         if message is not None:
             layout.addWidget(QtGui.QLabel(message))
 
-        # bottom layout
-        bottom_layout = QtGui.QHBoxLayout()
-        main_layout.addLayout(bottom_layout)
+
 
         # ok button
         self.ok_button = QtGui.QPushButton('Continue')
@@ -248,6 +251,18 @@ class SignalsSSDManager(QtGui.QDialog):
         self.combo_protocols = QtGui.QComboBox()
         protocols_names = [prot.name for prot in protocols]
         self.combo_protocols.addItems(protocols_names)
+
+        #  bci fit widget
+        class BCISignalMock:
+            def __init__(self):
+                self.name = 'bci'
+        bci_fit_widget = BCIFitWidget(BCISignalMock())
+        bci_fit_widget.fit_clicked.connect(self.bci_fit_action)
+
+        # bottom layout
+        main_layout.addWidget(bci_fit_widget)
+        bottom_layout = QtGui.QHBoxLayout()
+        main_layout.addLayout(bottom_layout)
 
         # add to bottom layout
         layout.addWidget(protocol_seq_table)
@@ -393,27 +408,41 @@ class SignalsSSDManager(QtGui.QDialog):
             modified_flag = len(rejections)>0 or bandpass is not None or filter is not None
             self.table.update_row(row_, modified=modified_flag)
 
-
     def ok_button_action(self):
         for row in range(self.table.rowCount()):
             band = self.table.cellWidget(row, self.table.columns.index('Band')).get_band()
             self.signals[row].update_bandpass(band)
         self.close()
 
-
+    def bci_fit_action(self):
+        indexes = self.get_checked_protocols()
+        print(indexes)
+        protocols = np.unique(concatenate(indexes)).astype(int)
+        X = [x for j, x in enumerate(self.x) if j in protocols]
+        y = [np.ones(len(x), dtype=int) * [j in state for state in indexes].index(True) for j, x in enumerate(self.x)
+             if j in protocols]
+        X = np.vstack(X)
+        y = concatenate(y, 0)
+        print('x', X.shape)
+        print('y', y.shape)
+        self.bci_signals[0].fit_model(X, y)
+        print('bxi print action')
 
 
 if __name__ == '__main__':
     import numpy as np
+
+    channels = ['Cz', 'Fp1', 'Fp2', 'Pz']
     from pynfb.signals import CompositeSignal
     signals = [DerivedSignal(ind = k, source_freq=500, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=4) for k in range(3)]
     signals +=[CompositeSignal(signals, '', 'Composite', 3)]
+    signals += [BCISignal(500, channels, 'bci', 4)]
     app = QtGui.QApplication([])
 
-    x = np.random.randn(1000, 4)
+    x = np.random.randn(10000, 4)
     from pynfb.widgets.helpers import ch_names_to_2d_pos
-    channels = ['Cz', 'Fp1', 'Fp2', 'Pz']
 
-    w = SignalsSSDManager(signals, [x, -x*0.1], ch_names_to_2d_pos(channels), channels, None, None, [], protocol_seq=['One', 'Two'])
+
+    w = SignalsSSDManager(signals, [x, x**3, x**5, x, x**3, x**5, x, x**3, x**5], ch_names_to_2d_pos(channels), channels, None, None, [], protocol_seq=['One', 'Two', 'Three']*3)
     w.show()
     app.exec_()

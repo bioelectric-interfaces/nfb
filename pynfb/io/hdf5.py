@@ -1,6 +1,6 @@
 import numpy as np
 import h5py
-from pynfb.signals import DerivedSignal, CompositeSignal
+from pynfb.signals import DerivedSignal, CompositeSignal, BCISignal
 
 
 def save_h5py(file_path, data, dataset_name='dataset'):
@@ -65,6 +65,8 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
                 signal_group.create_dataset('bandpass', data=np.array(signal.bandpass))
             elif isinstance(signal, CompositeSignal):
                 signal_group.attrs['type'] = u'composite'
+            elif isinstance(signal, BCISignal):
+                signal_group.attrs['type'] = u'bci'
             else:
                 raise TypeError ('Bad signal type')
             signal_group.create_dataset('mean', data=np.array(signal.mean))
