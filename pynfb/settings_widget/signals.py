@@ -122,6 +122,11 @@ class SignalDialog(QtGui.QDialog):
         self.smoothing_factor.setSingleStep(0.1)
         self.form_layout.addRow('&Smoothing factor:', self.smoothing_factor)
 
+        # bci signal
+        self.bci_checkbox = QtGui.QCheckBox('BCI mode')
+        self.form_layout.addRow('&BCI mode:', self.bci_checkbox)
+
+
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -134,6 +139,7 @@ class SignalDialog(QtGui.QDialog):
     def reset_items(self):
         current_signal_index = self.parent().list.currentRow()
         self.disable_spectrum.setChecked(self.params[current_signal_index]['bDisableSpectrumEvaluation'])
+        self.bci_checkbox.setChecked(self.params[current_signal_index]['bBCIMode'])
         self.bandpass_low.setValue(self.params[current_signal_index]['fBandpassLowHz'])
         self.bandpass_high.setValue(self.params[current_signal_index]['fBandpassHighHz'])
         self.window_size.setValue(self.params[current_signal_index]['fFFTWindowSize'])
@@ -147,6 +153,7 @@ class SignalDialog(QtGui.QDialog):
         self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
         self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.path.text()
         self.params[current_signal_index]['bDisableSpectrumEvaluation'] = int(self.disable_spectrum.isChecked())
+        self.params[current_signal_index]['bBCIMode'] = int(self.bci_checkbox.isChecked())
         self.params[current_signal_index]['fFFTWindowSize'] = self.window_size.value()
         self.params[current_signal_index]['fSmoothingFactor'] = self.smoothing_factor.value()
         self.parent().reset_items()

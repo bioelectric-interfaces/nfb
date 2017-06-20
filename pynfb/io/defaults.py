@@ -35,6 +35,7 @@ vectors_defaults = OrderedDict([
             ('fBandpassHighHz', 250),
             ('fAverage', ''),
             ('fStdDev', ''),
+            ('bBCIMode', 0)
             # ('sType', 'plain')
         ])]),
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
