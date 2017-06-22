@@ -60,6 +60,9 @@ class BCISignal():
             self.current_sample = Counter(labels).most_common(1)[0][0]
         #print(self.current_sample, type(self.current_sample))
 
+    def apply(self, chunk):
+        return self.model.apply(chunk)
+
     def fit_model(self, X, y):
         self.model.fit(X, y)
         self.model_fitted = True
