@@ -4,6 +4,7 @@ import pygame
 import numpy as np
 import random
 import time
+from pynfb.inlets.lsl_inlet import LSLInlet
 
 STATIC_PATH = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static')
 
@@ -178,7 +179,7 @@ def game_loop():
     coin_size = 65
     coin_startX = random.randrange(500, display_width-500)
     coin_startY = -200
-    coin_speed = 5
+    coin_speed = 2
 
     planet = planets[0]
     planet_size = 500
@@ -202,12 +203,22 @@ def game_loop():
 
     pygame.mixer.Sound.play(soundtrack, loops=-1)
 
+    lsl = LSLInlet(name='NFBLab_data')
+    state = 0
 
 
     while not gameExit:
+        chunk = lsl.get_next_chunk()
+        if chunk is not None:
+            state = chunk[-1, 0]
+
+        if state == 1:
+            x_change = -4
+        elif state == 2:
+            x_change = 4
 
         clock.tick(60)  # frames per second
-        parallax += 3
+        parallax += 1
         parallax += boost
         if parallax >= backgroundImgHight:
             parallax = 0
@@ -226,6 +237,7 @@ def game_loop():
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                     x_change = 0
+
 
         x += x_change
 
@@ -249,10 +261,14 @@ def game_loop():
         else:
             spacecraft(spacecraft2Img, x, y)
 
-        if x > display_width - spacecraft_width or x < 0:
-            pygame.mixer.Sound.stop(soundtrack)
-            pygame.mixer.Sound.play(returns)
-            crash(explosion_1, explosion_2, backgroundImg, parallax, x, y)
+        if x > display_width - spacecraft_width:
+            #pygame.mixer.Sound.stop(soundtrack)
+            #pygame.mixer.Sound.play(returns)
+            #crash(explosion_1, explosion_2, backgroundImg, parallax, x, y)
+            x = display_width - spacecraft_width
+
+        if x < 0:
+            x = 0
 
         if coin_startY > display_hight:
             coin_startY = -coin_size
