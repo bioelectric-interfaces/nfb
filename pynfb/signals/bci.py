@@ -9,6 +9,7 @@ BANDS_DEFAULT = [(6, 10), (8, 12), (10, 14), (12, 16), (14, 18), (16, 20), (18, 
 STATES_LABELS_DEFAULT = [0, 1, 2]
 INDEXES_DEFAULT = [1, -1]
 from collections import Counter
+from sklearn.preprocessing import StandardScaler
 
 
 class BCIModel():
@@ -18,10 +19,10 @@ class BCIModel():
         self.prefilter = FilterSequence([ButterFilter((0.5, 45), fs, len(ch_names))])
         self.csp_pools = [SpatialDecompositionPool(ch_names, fs, bands, 'csp', indexes) for _label in states_labels]
         self.csp_transformer = None
-        print(fs//2, type(fs//2))
         self.var_detector = InstantaneousVarianceFilter(len(bands)*len(indexes)*len(states_labels), n_taps=int(fs//2))
         #self.classifier = MLPClassifier(hidden_layer_sizes=(), early_stopping=True, verbose=True)
         self.classifier = RandomForestClassifier(max_depth=3, min_samples_leaf=100)
+        self.scaler = StandardScaler()
 
     def fit(self, X, y=None):
         X = self.prefilter.apply(X)
@@ -30,6 +31,7 @@ class BCIModel():
         self.csp_transformer = FilterStack([pool.get_filter_stack() for pool in self.csp_pools])
         X = self.csp_transformer.apply(X)
         X = self.var_detector.apply(X)
+        X = self.scaler.fit_transform(X)
         self.classifier.fit(X, y)
         print('Fit accuracy {}'.format(sum(self.classifier.predict(X) == y)/len(y)))
 
@@ -37,6 +39,7 @@ class BCIModel():
         chunk = self.prefilter.apply(chunk)
         chunk = self.csp_transformer.apply(chunk)
         chunk = self.var_detector.apply(chunk)
+        chunk = self.scaler.transform(chunk)
         predicted_labels = self.classifier.predict(chunk)
         return predicted_labels
 

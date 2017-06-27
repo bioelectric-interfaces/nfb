@@ -47,12 +47,12 @@ if __name__ == '__main__':
     import h5py
     import pylab as plt
 
-    file = r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\BCI_Test_1_06-20_20-22-37\experiment_data.h5'
+    file = r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\BCI_Test_4_06-23_16-20-48\experiment_data.h5'
     #file = r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\BCI_Test_2_1_06-22_17-01-07\experiment_data.h5'
 
     labels_map = {'Open': 0, 'Right': 2, 'Left': 1}
     with h5py.File(file) as f:
-        fs, ch_names, p_names = get_info(f, ['AUX', 'A1', 'A2', 'F4', 'Pz'])
+        fs, ch_names, p_names = get_info(f, []) #['AUX', 'A1', 'A2', 'F4', 'Pz']
         before = []
         after = []
         before_labels = []

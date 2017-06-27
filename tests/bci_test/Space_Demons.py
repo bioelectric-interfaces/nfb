@@ -48,15 +48,15 @@ def text_object(text, font):
 
 def message_display(text):
     """ Makes a text message in the center of a screen """
-    largeText = pygame.font.Font(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\bci_test\static\ARCADECLASSIC.TTF', 90)
+    largeText = pygame.font.Font(r'C:\Users\Nikolai\PycharmProjects\nfb\tests\bci_test\static\9921.otf', 90)
     TextSurf, TextRect = text_object(text, largeText)
     TextRect.center = ((display_width / 2), (display_hight / 2))
     gameDisplay.blit(TextSurf, TextRect)
 
 
 def demons_dodged(count, distance):
-    font = pygame.font.Font(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\bci_test\static\ARCADECLASSIC.TTF', 25)
-    text = font.render('Scores: {}, Distance: {} km'.format(str(count), str(distance)), True, white)
+    font = pygame.font.Font(r'C:\Users\Nikolai\PycharmProjects\nfb\tests\bci_test\static\9921.otf', 30)
+    text = font.render('Scores: {}'.format(str(count)), True, white)
     gameDisplay.blit(text, (5, 0))
 
 
