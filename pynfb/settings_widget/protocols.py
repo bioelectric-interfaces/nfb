@@ -114,6 +114,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.pause_after = QtGui.QCheckBox()
         self.form_layout.addRow('&Make a pause after protocol:', self.pause_after)
 
+        # enable detection task
+        self.detection_task = QtGui.QCheckBox()
+        self.form_layout.addRow('&Enable detection task:', self.detection_task)
+
         # outliers
         self.drop_outliers = QtGui.QSpinBox()
         self.form_layout.addRow('&Drop outliers [std]:', self.drop_outliers)
@@ -288,6 +292,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.beep_after.setChecked(current_protocol['bBeepAfter'])
         self.mock_source.setChecked(current_protocol['bMockSource'])
         self.pause_after.setChecked(current_protocol['bPauseAfter'])
+        self.detection_task.setChecked(current_protocol['bEnableDetectionTask'])
         self.drop_outliers.setValue(current_protocol['iDropOutliers'])
         self.drop_outliers.setEnabled(self.update_statistics.isChecked())
         self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
@@ -336,6 +341,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['bBeepAfter'] = int(self.beep_after.isChecked())
         self.params[current_signal_index]['bMockSource'] = int(self.mock_source.isChecked())
         self.params[current_signal_index]['bPauseAfter'] = int(self.pause_after.isChecked())
+        self.params[current_signal_index]['bEnableDetectionTask'] = int(self.detection_task.isChecked())
         self.params[current_signal_index]['iDropOutliers'] = (
             self.drop_outliers.value() if self.update_statistics.isChecked() else 0)
         self.params[current_signal_index]['bSSDInTheEnd'] = int(self.ssd_in_the_end.isChecked())
