@@ -24,6 +24,7 @@ vectors_defaults = OrderedDict([
     ('fRewardPeriodS', 0.25),
     ('sReference', ''),
     ('sReferenceSub', ''),
+    ('bUseExpyriment', 0),
     ('vSignals', OrderedDict([
         ('DerivedSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Signal'),

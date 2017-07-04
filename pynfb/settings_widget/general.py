@@ -64,6 +64,11 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.dc_check.clicked.connect(self.dc_check_event)
         self.form_layout.addRow('&Enable DC Blocker:', self.dc_check)
 
+        # dc blocker
+        self.use_expyriment = QtGui.QCheckBox()
+        self.use_expyriment.clicked.connect(self.use_expyriment_event)
+        self.form_layout.addRow('&Use expyriment toolbox:', self.use_expyriment)
+
         self.reset()
         # self.stream
 
@@ -85,6 +90,9 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def dc_check_event(self):
         self.params['bDC'] = int(self.dc_check.isChecked())
 
+    def use_expyriment_event(self):
+        self.params['bUseExpyriment'] = int(self.use_expyriment.isChecked())
+
     def reward_period_changed_event(self):
         self.params['fRewardPeriodS'] = self.reward_period.value()
 
@@ -97,4 +105,5 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
         self.dc_check.setChecked(self.params['bDC'])
+        self.use_expyriment.setChecked(self.params['bUseExpyriment'])
         self.inlet.reset()
