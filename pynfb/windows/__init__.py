@@ -127,7 +127,8 @@ class PlayerLineInfo(QtGui.QWidget):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
-                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, channels_labels=None):
+                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, channels_labels=None,
+                 subject_backend_expyriment=False):
         super(MainWindow, self).__init__(parent)
 
         # status info
@@ -190,9 +191,11 @@ class MainWindow(QtGui.QMainWindow):
         self.show()
 
         # subject window
-        self.subject_window = SubjectWindow(self, current_protocol)
-        self.subject_window.show()
-        #self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
+        if not subject_backend_expyriment:
+            self.subject_window = SubjectWindow(self, current_protocol)
+            self.subject_window.show()
+        else:
+            self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
         self._subject_window_want_to_close = False
 
         # time counter

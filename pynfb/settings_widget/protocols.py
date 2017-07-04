@@ -3,7 +3,7 @@ from PyQt4 import QtGui, QtCore
 from pynfb.io.defaults import vectors_defaults as defaults
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'CircleFeedback', 'ThresholdBlink', 'Video']
+protocols_types = ['Baseline', 'CircleFeedback', 'ThresholdBlink', 'Video', 'Psy']
 
 
 class ProtocolsSettingsWidget(QtGui.QWidget):

@@ -460,7 +460,8 @@ class Experiment():
                                n_channels=self.n_channels,
                                plot_raw_flag=self.params['bPlotRaw'],
                                plot_signals_flag=self.params['bPlotSignals'],
-                               channels_labels=channels_labels)
+                               channels_labels=channels_labels,
+                               subject_backend_expyriment=self.params['bUseExpyriment'])
         self.subject = self.main.subject_window
 
         if self.params['sInletType'] == 'lsl_from_file':
