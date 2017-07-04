@@ -197,6 +197,7 @@ class ThresholdBlinkFeedbackProtocol(Protocol):
         self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter(threshold=threshold, time_ms=time_ms,
                                                                           show_reward=self.show_reward)
 
+
 class VideoProtocol(Protocol):
     def __init__(self, signals, name='Video', video_path='', **kwargs):
         kwargs['name'] = name
@@ -204,11 +205,24 @@ class VideoProtocol(Protocol):
         self.widget_painter = VideoProtocolWidgetPainter(video_file_path=video_path)
         pass
 
+
 class SSDProtocol(Protocol):
     def __init__(self, signals, text='Relax', **kwargs):
         kwargs['ssd_in_the_end'] = True
         super().__init__(signals, **kwargs)
         self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
+
+
+class PsyProtocol(Protocol):
+    def __init__(self, signals, name='Psy', **kwargs):
+        kwargs['name'] = name
+        super().__init__(signals, **kwargs)
+        self.widget_painter = PsyProtocolWidgetPainter()
+        pass
+
+    def close_protocol(self, **kwargs):
+        self.widget_painter.close()
+        super(PsyProtocol, self).close_protocol(**kwargs)
 
 
 def main():

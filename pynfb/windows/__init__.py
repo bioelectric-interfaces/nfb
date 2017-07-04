@@ -4,7 +4,7 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
 from pynfb.protocols.widgets import *
 from numpy import isnan
-
+from expyriment import control, design, misc
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
@@ -192,6 +192,7 @@ class MainWindow(QtGui.QMainWindow):
         # subject window
         self.subject_window = SubjectWindow(self, current_protocol)
         self.subject_window.show()
+        #self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
         self._subject_window_want_to_close = False
 
         # time counter
@@ -288,6 +289,39 @@ class SubjectWindow(QtGui.QMainWindow):
         else:
             event.ignore()
 
+
+class CustomExperiment(design.Experiment):
+    def clear_all(self):
+        pass
+
+    def update_reward(self, reward):
+        pass
+
+    def show_reward(self, flag):
+        pass
+
+class ExpyrimentSubjectWindow:
+    def __init__(self, parent, current_protocol, **kwargs):
+        control.defaults.initialize_delay = 0
+        control.defaults.window_mode = True
+        self.exp = CustomExperiment(background_colour=(0, 0, 0))
+
+        control.initialize(self.exp)
+        self.figure = ProtocolWidget()
+        self.current_protocol = current_protocol
+
+        # prepare widget
+        self.current_protocol.widget_painter.prepare_widget(self.exp)
+
+    def update_protocol_state(self, samples, chunk_size=1, is_half_time=False):
+        self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
+
+    def change_protocol(self, new_protocol):
+        self.current_protocol = new_protocol
+        self.current_protocol.widget_painter.prepare_widget(self.exp)
+
+    def close(self):
+        control.end()
 
 def main():
     print(static_path)

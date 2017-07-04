@@ -16,7 +16,7 @@ from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, 
     save_xml_str_to_hdf5_dataset, load_xml_str_from_hdf5_dataset, DatasetNotFound
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
-from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol
+from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, PsyProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -37,6 +37,7 @@ class Experiment():
         self.catch_channels_trouble = True
         self.mock_signals_buffer = None
         self.activate_trouble_catching = False
+        self.main = None
         self.restart()
         pass
 
@@ -47,7 +48,7 @@ class Experiment():
         """
         # get next chunk
         chunk, other_chunk = self.stream.get_next_chunk() if self.stream is not None else (None, None)
-        if chunk is not None:
+        if chunk is not None and self.main is not None:
 
             # update and collect current samples
             for i, signal in enumerate(self.signals):
@@ -384,6 +385,8 @@ class Experiment():
                         self.signals,
                         video_path=protocol['sVideoPath'],
                         **kwargs))
+            elif protocol['sFb_type'] == 'Psy':
+                self.protocols.append(PsyProtocol(self.signals,**kwargs))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 

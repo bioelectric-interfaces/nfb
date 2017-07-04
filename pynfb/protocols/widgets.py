@@ -1,4 +1,5 @@
 import pyqtgraph as pg
+from pynfb.protocols.psycho.cross_present import PsyExperiment
 import numpy as np
 import time
 
@@ -88,6 +89,25 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
         pass
 
 
+class PsyProtocolWidgetPainter(Painter):
+    def __init__(self, noise_scaler=2, show_reward=False, radius=3, circle_border=0, m_threshold=1):
+        super(PsyProtocolWidgetPainter, self).__init__(show_reward=show_reward)
+        print('inited')
+
+    def prepare_widget(self, widget):
+        self.exp = PsyExperiment(widget)
+        self.exp.run()
+        print('prepared')
+
+    def redraw_state(self, sample, m_sample):
+        pass
+        #self.exp.trial()
+        pass
+
+    def close(self):
+        pass
+
+
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
         super(BaselineProtocolWidgetPainter, self).__init__(show_reward=show_reward)
@@ -128,7 +148,7 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
     def redraw_state(self, samples, m_sample):
         samples = np.abs(samples)
         if np.ndim(samples)==0:
-            samples = samples.reshape((1,))
+            samples = samples.reshape((1, ))
 
         previous_sample = self.previous_sample
         do_blink = False
