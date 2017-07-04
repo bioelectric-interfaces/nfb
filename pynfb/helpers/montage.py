@@ -41,7 +41,7 @@ class Montage:
                 ch_ind = layout_grad.names.index(name)
                 ch_dict[name] = Channel(layout_grad.pos[ch_ind][:2], 'GRAD')
             else:
-                ch_dict[name] = Channel((0, 0, 0), 'Other')
+                ch_dict[name] = Channel(None, 'Other')
 
         return cls(ch_dict)
 
@@ -60,7 +60,7 @@ class Montage:
             ch_inds = self.pick_channels_by_type(ch_type)
             type_data = np.asarray(data)[ch_inds]
             pos = np.asarray([list(self.ch_dict.values())[ch_ind].pos for ch_ind in ch_inds])
-            mne.viz.plot_topomap(type_data, pos=pos, axes=axes)
+            mne.viz.plot_topomap(type_data, pos=pos, axes=axes, show=False)
         return axes
 
 
@@ -85,10 +85,11 @@ if __name__ == '__main__':
         print()
 
     types_set = set([chan.type for chan in montage.ch_dict.values()])
-    plottable_types = list(types_set.intersection(set(('EEG', 'MAG', 'GRAD'))))
+    plottable_types = list(types_set.intersection(set(('EEG', 'GRAD'))))
     print('We can plot the topographies for the following types:')
     print(plottable_types)
     print()
 
     data = np.random.random(len(ch_list_from_lsl))
     montage.plot_topography(data, plottable_types)
+    plt.show()
