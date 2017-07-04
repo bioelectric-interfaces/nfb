@@ -214,10 +214,10 @@ class SSDProtocol(Protocol):
 
 
 class PsyProtocol(Protocol):
-    def __init__(self, signals, name='Psy', **kwargs):
+    def __init__(self, signals, detection, name='Psy', **kwargs):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
-        self.widget_painter = PsyProtocolWidgetPainter()
+        self.widget_painter = PsyProtocolWidgetPainter(detection)
         pass
 
     def close_protocol(self, **kwargs):

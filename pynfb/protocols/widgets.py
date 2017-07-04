@@ -90,12 +90,14 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
 
 
 class PsyProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius=3, circle_border=0, m_threshold=1):
-        super(PsyProtocolWidgetPainter, self).__init__(show_reward=show_reward)
+    def __init__(self, detection=False):
+        print('DETECTION', detection)
+        self.detection = False
+        super(PsyProtocolWidgetPainter, self).__init__()
         print('inited')
 
     def prepare_widget(self, widget):
-        self.exp = PsyExperiment(widget)
+        self.exp = PsyExperiment(widget, detection_task=self.detection)
         self.exp.run()
         print('prepared')
 

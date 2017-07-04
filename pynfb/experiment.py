@@ -386,7 +386,7 @@ class Experiment():
                         video_path=protocol['sVideoPath'],
                         **kwargs))
             elif protocol['sFb_type'] == 'Psy':
-                self.protocols.append(PsyProtocol(self.signals,**kwargs))
+                self.protocols.append(PsyProtocol(self.signals, protocol['bEnableDetectionTask'], **kwargs))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 
