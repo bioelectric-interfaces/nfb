@@ -1,11 +1,10 @@
 import expyriment
-from time import sleep
+from time import sleep, time
 from expyriment import control, design, misc
 import expyriment.stimuli
 import expyriment.stimuli.extras
 from PyQt4 import QtGui, QtCore
 import numpy as np
-
 from pynfb.helpers.gabor import GaborPatch
 from pynfb.helpers.cross import ABCCross
 
@@ -13,82 +12,6 @@ from pynfb.helpers.cross import ABCCross
 DEBUG = True
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-
-
-class PsyExperiment2:
-    def __init__(self, detection_task=False, feedback=True):
-        # setup experiment
-        control.defaults.initialize_delay = 0
-        control.defaults.window_mode = True
-        self.exp = design.Experiment(background_colour=BLACK)
-
-        # init stimulus
-        self.gabor = self.set_gabor(-1, 0.5)
-        self.cross = ABCCross()
-        self.cross2 = ABCCross(width=1.5)
-
-        # trial counter
-        self.trial_counter = 0
-
-        # flags
-        self.detection = detection_task
-        self.feedback = feedback
-        pass
-
-    def set_gabor(self, position, contrast, size=500, lambda_=10, theta=45, sigma=50, phase=0.25):
-        position = (-500, 0) if position < 0 else (500, 0)
-        self.gabor = GaborPatch(size=500, lambda_=10, theta=45, sigma=50, phase=0.25,
-                                position=position, contrast=contrast)
-        return self.gabor
-
-    def run(self):
-        control.initialize(self.exp)
-        self.gabor.preload()
-        self.cross.preload()
-        self.cross2.preload()
-
-        # prepare stimulus
-        prepare = expyriment.stimuli.TextLine('Prepare', text_size=50, text_colour=WHITE)
-        prepare.present()
-        prepare.present()
-        pass
-
-    def trial(self):
-        if self.trial_counter == 0:
-            self.cross.present()
-
-        self.trial_counter += 1
-
-        # cross waiting
-        self.cross.present(clear=True, update=True)
-        self.exp.clock.wait(1000 * np.random.uniform(1.8, 2.4, 1))
-
-        # present + hide gabor and change cross
-        present = bool(np.random.randint(0, 2))
-        t = 0
-        if present:
-            t = self.gabor.present(clear=False, update=False)
-        t += self.cross2.present(clear=False, update=True)
-        t += self.cross.present()
-
-        # print time
-        if DEBUG:
-            print(t)
-        self.exp.clock.wait(400)
-
-        # detection task
-        if self.detection:
-            expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
-            button, rt = self.exp.keyboard.wait([misc.constants.K_LEFT, misc.constants.K_RIGHT])
-            if self.feedback:
-                message = '+' if ((button == misc.constants.K_RIGHT) == present) else '-'
-                response = expyriment.stimuli.TextLine(message, text_size=70, text_colour=(255, 255, 255))
-                response.present()
-                self.exp.clock.wait(1000)
-                response.unload()
-
-    def close(self):
-        control.end()
 
 
 
@@ -100,6 +23,7 @@ class PsyExperiment:
         self.gabor = self.set_gabor(-1, 0.5)
         self.cross = ABCCross()
         self.cross2 = ABCCross(width=1.5)
+        self.present = False
 
         # trial counter
         self.trial_counter = 0
@@ -107,9 +31,43 @@ class PsyExperiment:
         # flags
         self.detection = detection_task
         self.feedback = feedback
+
+        # timing
+        self.timing = {'prestim_min': 1800, 'prestim_max': 2400, 'poststim': 400, 'response': 400}
+        self.t_full = sum(self.timing.values()) - self.timing['prestim_min'] + 32
+        self.t_wait_start = None
+        self.t_wait = None
+        self.is_waiting = False
+        self.sequence = [self.present_pre_stimulus, self.wait_prestim, self.present_stimulus, self.wait_random, self.run_detection_task]
+        self.current_action = 0
         pass
 
-    def set_gabor(self, position, contrast, size=500, lambda_=10, theta=45, sigma=50, phase=0.25):
+    def wait_prestim(self):
+        t_wait = self.timing['poststim']
+        if not self.is_waiting:
+            self.is_waiting = True
+            self.t_wait_start = time()*1000
+        else:
+            if time()*1000 - self.t_wait_start > t_wait:
+                self.is_waiting = False
+
+    def wait_random(self):
+        if not self.is_waiting:
+            self.t_wait = np.random.randint(self.timing['prestim_min'], self.timing['prestim_max'])
+            self.is_waiting = True
+            self.t_wait_start = time() * 1000
+        else:
+            if time() * 1000 - self.t_wait_start > self.t_wait:
+                self.is_waiting = False
+
+    def run_trial(self):
+        self.sequence[self.current_action]()
+        if not self.is_waiting:
+            self.current_action = (self.current_action + 1) % len(self.sequence)
+
+
+
+    def set_gabor(self, position, contrast):
         position = (-500, 0) if position < 0 else (500, 0)
         self.gabor = GaborPatch(size=500, lambda_=10, theta=45, sigma=50, phase=0.25,
                                 position=position, contrast=contrast)
@@ -127,20 +85,19 @@ class PsyExperiment:
         prepare.present()
         pass
 
-    def trial(self):
-        if self.trial_counter == 0:
-            self.cross.present()
+    def preload_stimuli(self):
+        self.gabor.preload()
+        self.cross.preload()
+        self.cross2.preload()
 
-        self.trial_counter += 1
-
-        # cross waiting
+    def present_pre_stimulus(self):
         self.cross.present(clear=True, update=True)
-        self.exp.clock.wait(1000 * np.random.uniform(1.8, 2.4, 1))
 
+    def present_stimulus(self):
         # present + hide gabor and change cross
-        present = bool(np.random.randint(0, 2))
+        self.present = bool(np.random.randint(0, 2))
         t = 0
-        if present:
+        if self.present:
             t = self.gabor.present(clear=False, update=False)
         t += self.cross2.present(clear=False, update=True)
         t += self.cross.present()
@@ -148,18 +105,38 @@ class PsyExperiment:
         # print time
         if DEBUG:
             print(t)
-        self.exp.clock.wait(400)
 
+    def run_detection_task(self):
         # detection task
         if self.detection:
             expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
             button, rt = self.exp.keyboard.wait([misc.constants.K_LEFT, misc.constants.K_RIGHT])
             if self.feedback:
-                message = '+' if ((button == misc.constants.K_RIGHT) == present) else '-'
+                message = '+' if ((button == misc.constants.K_RIGHT) == self.present) else '-'
                 response = expyriment.stimuli.TextLine(message, text_size=70, text_colour=(255, 255, 255))
                 response.present()
-                self.exp.clock.wait(1000)
+                self.exp.clock.wait(self.timing['response'])
                 response.unload()
+
+    def trial(self):
+        if self.exp.is_initialized:
+            t_trial_start = time()
+            if self.trial_counter == 0:
+                self.run()
+                self.cross.present()
+
+            self.trial_counter += 1
+
+            # cross waiting
+            self.present_pre_stimulus()
+            self.exp.clock.wait(np.random.randint(self.timing['prestim_min'], self.timing['prestim_max']))
+
+            self.present_stimulus()
+            self.exp.clock.wait(self.timing['poststim'])
+
+            # detection task
+            self.run_detection_task()
+            return time() - t_trial_start
 
     def close(self):
         control.end()
@@ -168,11 +145,17 @@ class PsyExperiment:
 
 if __name__ == '__main__':
     def run_exp():
-        exper = PsyExperiment2()
-        exper.run()
+        control.defaults.initialize_delay = 0
+        #control.defaults.window_mode = True
+        exp_env = design.Experiment(background_colour=BLACK)
+        control.initialize(exp_env)
+        exp = PsyExperiment(exp_env, detection_task=True)
+        exp.preload_stimuli()
         sleep(5)
+
         while True:
-           exper.trial()
+            exp.run_trial()
+
         control.end()
 
 

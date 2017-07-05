@@ -95,15 +95,17 @@ class PsyProtocolWidgetPainter(Painter):
         self.detection = False
         super(PsyProtocolWidgetPainter, self).__init__()
         print('inited')
+        self.t_start_trial = 0
 
     def prepare_widget(self, widget):
         self.exp = PsyExperiment(widget, detection_task=self.detection)
-        self.exp.run()
+        #self.exp.run()
         print('prepared')
 
     def redraw_state(self, sample, m_sample):
-        pass
-        #self.exp.trial()
+        if time.time()*1000 - self.t_start_trial > self.exp.t_full + 2000:
+            self.t_start_trial = time.time()
+            self.exp.trial()
         pass
 
     def close(self):

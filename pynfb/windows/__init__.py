@@ -306,10 +306,9 @@ class CustomExperiment(design.Experiment):
 class ExpyrimentSubjectWindow:
     def __init__(self, parent, current_protocol, **kwargs):
         control.defaults.initialize_delay = 0
-        control.defaults.window_mode = True
+        #control.defaults.window_mode = True
         self.exp = CustomExperiment(background_colour=(0, 0, 0))
 
-        control.initialize(self.exp)
         self.figure = ProtocolWidget()
         self.current_protocol = current_protocol
 
@@ -317,7 +316,10 @@ class ExpyrimentSubjectWindow:
         self.current_protocol.widget_painter.prepare_widget(self.exp)
 
     def update_protocol_state(self, samples, chunk_size=1, is_half_time=False):
-        self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
+        if not self.exp.is_initialized:
+            control.initialize(self.exp)
+        else:
+            self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
 
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol

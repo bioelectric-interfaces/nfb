@@ -108,8 +108,9 @@ class Experiment():
                 self.reward_recorder[
                 self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
 
-            # subject update
-            self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+            if self.main.player_panel.start.isChecked():
+                # subject update
+                self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
