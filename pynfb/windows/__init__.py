@@ -319,7 +319,7 @@ class ExpyrimentSubjectWindow:
         if not self.exp.is_initialized:
             control.initialize(self.exp)
         else:
-            self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
+            return self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
 
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol

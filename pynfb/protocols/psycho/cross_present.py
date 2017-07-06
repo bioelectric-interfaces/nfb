@@ -40,6 +40,7 @@ class PsyExperiment:
         self.t_wait = None
         self.is_waiting = False
         self.sequence = [self.present_pre_stimulus, self.wait_prestim, self.present_stimulus, self.wait_random, self.run_detection_task]
+        self.present_stimulus_index = self.sequence.index(self.present_stimulus)
         self.current_action = 0
         pass
 
@@ -63,8 +64,10 @@ class PsyExperiment:
 
     def run_trial(self):
         self.sequence[self.current_action]()
+        stimulus_presented = self.current_action == self.present_stimulus_index
         if not self.is_waiting:
             self.current_action = (self.current_action + 1) % len(self.sequence)
+        return stimulus_presented
 
 
 

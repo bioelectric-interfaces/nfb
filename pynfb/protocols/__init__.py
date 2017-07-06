@@ -54,16 +54,17 @@ class Protocol:
         m_sample = None if self.m_signal_id is None else samples[self.m_signal_id]
         if self.source_signal_id is not None:
             if self.mock_previous == 0:
-                self.widget_painter.redraw_state(samples[self.source_signal_id], m_sample)
+                mark = self.widget_painter.redraw_state(samples[self.source_signal_id], m_sample)
             else:
                 mock_chunk = self.mock_recordings[self.mock_samples_counter:self.mock_samples_counter + chunk_size]
                 for signal in self.mock:
                     signal.update(mock_chunk)
                 self.mock_samples_counter += chunk_size
                 self.mock_samples_counter %= self.mock_recordings.shape[0]
-                self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample, m_sample)
+                mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample, m_sample)
         else:
-            self.widget_painter.redraw_state(samples[0], m_sample)  # if source signal is 'ALL'
+            mark = self.widget_painter.redraw_state(samples[0], m_sample)  # if source signal is 'ALL'
+        return mark
 
     def update_statistics(self):
         pass

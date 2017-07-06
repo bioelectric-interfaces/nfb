@@ -110,7 +110,10 @@ class Experiment():
 
             if self.main.player_panel.start.isChecked():
                 # subject update
-                self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+                mark = self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+                self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                self.mark_recorder[self.samples_counter-1] = int(mark or 0)
+
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -168,7 +171,8 @@ class Experiment():
                      signals_data=self.signals_recorder[:self.samples_counter],
                      reward_data=self.reward_recorder[:self.samples_counter],
                      protocol_name=self.protocols_sequence[self.current_protocol_index].name,
-                     mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous)
+                     mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous,
+                     mark_data=self.mark_recorder[:self.samples_counter])
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -440,6 +444,7 @@ class Experiment():
         self.raw_recorder_other = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels_other)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
         self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,
