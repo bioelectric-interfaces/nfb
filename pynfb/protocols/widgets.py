@@ -92,7 +92,7 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
 class PsyProtocolWidgetPainter(Painter):
     def __init__(self, detection=False):
         print('DETECTION', detection)
-        self.detection = False
+        self.detection = detection
         super(PsyProtocolWidgetPainter, self).__init__()
         print('inited')
         self.t_start_trial = 0
@@ -105,7 +105,7 @@ class PsyProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         if time.time()*1000 - self.t_start_trial > self.exp.t_full + 2000:
             self.t_start_trial = time.time()
-            self.exp.trial()
+            self.exp.run_trial()
         pass
 
     def close(self):

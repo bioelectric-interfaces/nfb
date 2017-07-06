@@ -7,6 +7,7 @@ from PyQt4 import QtGui, QtCore
 import numpy as np
 from pynfb.helpers.gabor import GaborPatch
 from pynfb.helpers.cross import ABCCross
+import pygame
 
 
 DEBUG = True
@@ -106,8 +107,9 @@ class PsyExperiment:
         if DEBUG:
             print(t)
 
-    def run_detection_task(self):
+    def run_detection_task1(self):
         # detection task
+        print(self.detection)
         if self.detection:
             expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
             button, rt = self.exp.keyboard.wait([misc.constants.K_LEFT, misc.constants.K_RIGHT])
@@ -133,10 +135,33 @@ class PsyExperiment:
 
             self.present_stimulus()
             self.exp.clock.wait(self.timing['poststim'])
-
             # detection task
             self.run_detection_task()
             return time() - t_trial_start
+
+    def run_detection_task(self):
+
+        if not self.is_waiting:
+            expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
+            self.is_waiting = True
+            self.t_wait_start = time()*1000
+            pygame.event.get()
+        else:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN and  event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
+                    if event.key == pygame.K_LEFT:
+                        print("Hey, you pressed the key, 'left'!")
+                    if event.key == pygame.K_RIGHT:
+                        print("Hey, you pressed the key, 'right'!")
+                    if self.feedback:
+                        message = '+' if ((event.key == pygame.K_RIGHT) == self.present) else '-'
+                        response = expyriment.stimuli.TextLine(message, text_size=70, text_colour=(255, 255, 255))
+                        response.present()
+                        self.exp.clock.wait(self.timing['response'])
+                        response.unload()
+                        self.is_waiting = False
+            if time()*1000 - self.t_wait_start > 5000:
+                self.is_waiting = False
 
     def close(self):
         control.end()
@@ -151,7 +176,7 @@ if __name__ == '__main__':
         control.initialize(exp_env)
         exp = PsyExperiment(exp_env, detection_task=True)
         exp.preload_stimuli()
-        sleep(5)
+        #sleep(5)
 
         while True:
             exp.run_trial()
