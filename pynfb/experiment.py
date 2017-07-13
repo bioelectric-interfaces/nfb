@@ -102,7 +102,7 @@ class Experiment():
             else:
                 samples = self.current_samples
 
-            self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
+            # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
             if (self.main.player_panel.start.isChecked() and
                             self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
                 self.reward_recorder[
@@ -110,7 +110,7 @@ class Experiment():
 
             if self.main.player_panel.start.isChecked():
                 # subject update
-                mark = self.subject.update_protocol_state(samples, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+                mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0], is_half_time=is_half_time)
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.mark_recorder[self.samples_counter-1] = int(mark or 0)
 
@@ -199,17 +199,24 @@ class Experiment():
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
-                if current_protocol.mock_previous == self.current_protocol_index:
-                    mock_raw = self.raw_recorder[:previous_counter]
-                else:
-                    mock_raw = load_h5py(self.dir_name + 'experiment_data.h5',
-                                         'protocol{}/raw_data'.format(current_protocol.mock_previous))
-                # print(self.real_fb_number_list)
-
                 random_previos_fb = None
                 if len(self.real_fb_number_list) > 0:
                     random_previos_fb = self.real_fb_number_list[np.random.randint(0, len(self.real_fb_number_list))]
-                current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb)
+                if current_protocol.shuffle_mock_previous:
+                    current_protocol.mock_previous = random_previos_fb
+                print('MOCK from protocol # current_protocol.mock_previous')
+                if current_protocol.mock_previous == self.current_protocol_index:
+                    mock_raw = self.raw_recorder[:previous_counter]
+                    mock_signals = self.signals_recorder[:previous_counter]
+                else:
+                    mock_raw = load_h5py(self.dir_name + 'experiment_data.h5',
+                                         'protocol{}/raw_data'.format(current_protocol.mock_previous))
+                    mock_signals = load_h5py(self.dir_name + 'experiment_data.h5',
+                                     'protocol{}/signals_data'.format(current_protocol.mock_previous))
+                # print(self.real_fb_number_list)
+
+
+                current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb, mock_signals)
 
             # change protocol widget
             self.subject.change_protocol(current_protocol)

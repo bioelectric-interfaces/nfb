@@ -277,8 +277,8 @@ class SubjectWindow(QtGui.QMainWindow):
         # prepare widget
         self.current_protocol.widget_painter.prepare_widget(self.figure)
 
-    def update_protocol_state(self, samples, chunk_size=1, is_half_time=False):
-        self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
+    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
+        self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time)
         pass
 
     def change_protocol(self, new_protocol):
@@ -315,11 +315,11 @@ class ExpyrimentSubjectWindow:
         # prepare widget
         self.current_protocol.widget_painter.prepare_widget(self.exp)
 
-    def update_protocol_state(self, samples, chunk_size=1, is_half_time=False):
+    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
         if not self.exp.is_initialized:
             control.initialize(self.exp)
         else:
-            return self.current_protocol.update_state(samples, chunk_size=chunk_size, is_half_time=is_half_time)
+            return self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time)
 
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol

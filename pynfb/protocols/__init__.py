@@ -50,18 +50,24 @@ class Protocol:
         self.as_mock = as_mock
         pass
 
-    def update_state(self, samples, chunk_size=1, is_half_time=False):
+    def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
+
         m_sample = None if self.m_signal_id is None else samples[self.m_signal_id]
         if self.source_signal_id is not None:
             if self.mock_previous == 0:
                 mark = self.widget_painter.redraw_state(samples[self.source_signal_id], m_sample)
+                reward.update(samples[reward.signal_ind], chunk_size)
             else:
                 mock_chunk = self.mock_recordings[self.mock_samples_counter:self.mock_samples_counter + chunk_size]
                 for signal in self.mock:
                     signal.update(mock_chunk)
                 self.mock_samples_counter += chunk_size
                 self.mock_samples_counter %= self.mock_recordings.shape[0]
+                #mock_signals = self.mock_recordings_signals[self.mock_samples_counter - 1]
+                #mark = self.widget_painter.redraw_state(mock_signals[self.source_signal_id], m_sample)
+                #reward.update(mock_signals[reward.signal_ind], chunk_size)
                 mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample, m_sample)
+                reward.update(self.mock[reward.signal_ind].current_sample, chunk_size)
         else:
             mark = self.widget_painter.redraw_state(samples[0], m_sample)  # if source signal is 'ALL'
         return mark
@@ -69,7 +75,7 @@ class Protocol:
     def update_statistics(self):
         pass
 
-    def prepare_raw_mock_if_necessary(self, mock_raw, random_previous_fb_protocol_number):
+    def prepare_raw_mock_if_necessary(self, mock_raw, random_previous_fb_protocol_number, mock_signals):
         if self.shuffle_mock_previous:
             self.mock_previous = random_previous_fb_protocol_number
         if self.mock_previous:
@@ -82,8 +88,10 @@ class Protocol:
                     signal.signals = [self.mock[j] for j in range(len(signal.signals))]
             rand_start_ind = randint(0, mock_raw.shape[0])
             self.mock_recordings = vstack((mock_raw[rand_start_ind:], mock_raw[:rand_start_ind]))
+            self.mock_recordings_signals = vstack((mock_signals[rand_start_ind:], mock_signals[:rand_start_ind]))
             if self.reverse_mock_previous:
                 self.mock_recordings = self.mock_recordings[::-1]
+                self.mock_recordings_signals = self.mock_recordings_signals[::-1]
 
     def close_protocol(self, raw=None, signals=None, protocols=list(), protocols_seq=None, raw_file=None):
         # action if ssd in the end checkbox was checked
@@ -166,7 +174,7 @@ class BaselineProtocol(Protocol):
         self.beep = SingleBeep()
         pass
 
-    def update_state(self, samples, chunk_size=1, is_half_time=False):
+    def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
         if self.half_time_text_change:
             if is_half_time and not self.is_half_time:
                 self.beep.try_to_play()
