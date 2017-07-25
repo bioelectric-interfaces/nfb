@@ -4,7 +4,7 @@ import sys
 class ParameterSlider(QtGui.QWidget):
     valueChanged = QtCore.pyqtSignal()
 
-    def __init__(self, label, minimum=0, maximum=1, interval=0.05, value=0.05, units=''):
+    def __init__(self, label, minimum=0, maximum=1, interval=0.05, value=0.05, units='', integer=False):
         super(ParameterSlider, self).__init__()
         layout = QtGui.QHBoxLayout()
         layout.setMargin(0)
@@ -25,7 +25,7 @@ class ParameterSlider(QtGui.QWidget):
         self.slider = slider
 
         # line edit
-        value_edit = QtGui.QDoubleSpinBox()
+        value_edit = QtGui.QDoubleSpinBox() if not integer else QtGui.QSpinBox()
         value_edit.setRange(minimum, maximum)
         value_edit.setValue(value)
         value_edit.setSingleStep(interval)

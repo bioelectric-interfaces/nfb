@@ -3,7 +3,7 @@ from pynfb.widgets.parameter_slider import ParameterSlider
 
 
 class Sliders(QtGui.QWidget):
-    def __init__(self, sample_freq, reg_coef=True):
+    def __init__(self, sample_freq, reg_coef=True, stimulus_split=True):
         super(Sliders, self).__init__()
         h_layout = QtGui.QHBoxLayout()
         v_layout = QtGui.QVBoxLayout()
@@ -13,7 +13,9 @@ class Sliders(QtGui.QWidget):
 
         self.defaults = {'bandpass_low': 3,
                         'regularizator': 0.05,
-                        'bandpass_high': 45}
+                        'bandpass_high': 45,
+                        'prestim_interval': 500,
+                        'poststim_interval': 500}
 
 
         # regularizator slider
@@ -21,9 +23,24 @@ class Sliders(QtGui.QWidget):
                                                            value=self.defaults['regularizator'])
         self.parameters['regularizator'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['regularizator'])
-
         if not reg_coef:
             self.parameters['regularizator'].hide()
+
+
+        # prestim/poststim intervals:
+        self.parameters['prestim_interval'] = ParameterSlider('PRE-stimulus interval:', 0, 2000, 100,
+                                                           value=self.defaults['prestim_interval'], integer=True)
+        self.parameters['prestim_interval'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
+        v_layout.addWidget(self.parameters['prestim_interval'])
+        self.parameters['poststim_interval'] = ParameterSlider('POST-stimulus interval:', 0, 2000, 100,
+                                                           value=self.defaults['poststim_interval'], integer=True)
+        self.parameters['poststim_interval'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
+        v_layout.addWidget(self.parameters['poststim_interval'])
+
+
+        if not stimulus_split:
+            self.parameters['prestim_interval'].hide()
+            self.parameters['poststim_interval'].hide()
 
         # central bandpass_low slider
         self.parameters['bandpass_low'] = ParameterSlider('Bandpass low:', 0, sample_freq/2, sample_freq/10,

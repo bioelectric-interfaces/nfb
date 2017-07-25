@@ -24,7 +24,7 @@ def mutual_info(x, y, bins=100):
 
 class ICADialog(QtGui.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None,
-                 scores=None, states=None, labels=None):
+                 scores=None, states=None, labels=None, stimulus_split=False):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
@@ -84,7 +84,7 @@ class ICADialog(QtGui.QDialog):
         self.update_band_checkbox = QtGui.QCheckBox('Update band')
 
         # setup sliders
-        self.sliders = Sliders(fs, mode == 'csp')
+        self.sliders = Sliders(fs, reg_coef=(mode == 'csp'), stimulus_split=stimulus_split)
         self.sliders.apply_button.clicked.connect(self.recompute)
         self.lambda_csp3 = states
         layout.addWidget(self.sliders)
@@ -156,9 +156,9 @@ class ICADialog(QtGui.QDialog):
         self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None, labels=None):
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None, labels=None, stimulus_split=False):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
-        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states, labels=labels)
+        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states, labels=labels, stimulus_split=stimulus_split)
         wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None
