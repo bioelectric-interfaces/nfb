@@ -224,6 +224,10 @@ class SignalsSSDManager(QtGui.QDialog):
         protocol_seq_table.setMaximumWidth(200)
         self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
+        # prestim-poststim split
+        self.stimulus_split = QtGui.QCheckBox('Pre/post-stimulus split')
+        self.stimulus_split.stateChanged.connect(lambda: protocol_seq_table.setDisabled(self.stimulus_split.isChecked()))
+
         # message
         if message is not None:
             layout.addWidget(QtGui.QLabel(message))
@@ -265,7 +269,10 @@ class SignalsSSDManager(QtGui.QDialog):
         main_layout.addLayout(bottom_layout)
 
         # add to bottom layout
-        layout.addWidget(protocol_seq_table)
+        states_layout = QtGui.QVBoxLayout()
+        layout.addLayout(states_layout)
+        states_layout.addWidget(self.stimulus_split)
+        states_layout.addWidget(protocol_seq_table)
         bottom_layout.addWidget(self.test_button)
         bottom_layout.addWidget(self.combo_protocols)
         bottom_layout.addWidget(self.revert_button)
