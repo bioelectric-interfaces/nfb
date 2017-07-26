@@ -93,7 +93,7 @@ class Protocol:
                 self.mock_recordings = self.mock_recordings[::-1]
                 self.mock_recordings_signals = self.mock_recordings_signals[::-1]
 
-    def close_protocol(self, raw=None, signals=None, protocols=list(), protocols_seq=None, raw_file=None):
+    def close_protocol(self, raw=None, signals=None, protocols=list(), protocols_seq=None, raw_file=None, marks=None):
         # action if ssd in the end checkbox was checked
         if self.beep_after:
             SingleBeep().try_to_play()
@@ -114,7 +114,7 @@ class Protocol:
             pos = ch_names_to_2d_pos(channels_names)
 
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
-                                               sampling_freq=self.freq, protocol_seq=protocols_seq)
+                                               sampling_freq=self.freq, protocol_seq=protocols_seq, marks=marks)
             signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(
                 protocols[signal_manager.combo_protocols.currentIndex()]
             ))

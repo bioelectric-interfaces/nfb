@@ -13,7 +13,8 @@ from pynfb.protocols.ssd.sliders_csp import Sliders
 from pynfb.signal_processing.filters import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
 from pynfb._titles import WAIT_BAR_MESSAGES
-from pynfb.signal_processing.decompositions import CSPDecomposition, ICADecomposition
+from pynfb.signal_processing.decompositions import CSPDecomposition, ICADecomposition, CSPDecompositionStimulus
+from pynfb.signal_processing.helpers import stimulus_split
 from time import time
 
 def mutual_info(x, y, bins=100):
@@ -24,17 +25,21 @@ def mutual_info(x, y, bins=100):
 
 class ICADialog(QtGui.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None,
-                 scores=None, states=None, labels=None, stimulus_split=False):
+                 scores=None, states=None, labels=None, _stimulus_split=False, marks=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
         if mode == 'csp':
-            self.decomposition = CSPDecomposition(channel_names, fs)
-            if labels is None:
-                labels = np.zeros(raw_data.shape[0])
-                labels[len(labels)//2:] = 1
+            if not _stimulus_split:
+                self.decomposition = CSPDecomposition(channel_names, fs)
+                if labels is None:
+                    labels = np.zeros(raw_data.shape[0])
+                    labels[len(labels)//2:] = 1
+            else:
+                self.decomposition = CSPDecompositionStimulus(channel_names, fs)
+                labels = marks
         elif mode == 'ica':
             self.decomposition = ICADecomposition(channel_names, fs)
 
@@ -65,8 +70,8 @@ class ICADialog(QtGui.QDialog):
 
         scores_name = 'Mutual info' if mode == 'ica' else 'Eigenvalues'
         # table
-        self.table = ScoredComponentsTable(self.components, self.topographies, self.unmixing_matrix, channel_names, fs, self.scores,
-                                           scores_name=scores_name)
+        self.table = ScoredComponentsTable(self.components, self.topographies, self.unmixing_matrix, channel_names, fs,
+                                           self.scores, scores_name=scores_name, marks=marks if _stimulus_split else None)
         print('Table drawing time elapsed = {}s'.format(time() - timer))
 
         # reject selected button
@@ -84,7 +89,7 @@ class ICADialog(QtGui.QDialog):
         self.update_band_checkbox = QtGui.QCheckBox('Update band')
 
         # setup sliders
-        self.sliders = Sliders(fs, reg_coef=(mode == 'csp'), stimulus_split=stimulus_split)
+        self.sliders = Sliders(fs, reg_coef=(mode == 'csp'), stimulus_split=_stimulus_split)
         self.sliders.apply_button.clicked.connect(self.recompute)
         self.lambda_csp3 = states
         layout.addWidget(self.sliders)
@@ -156,9 +161,9 @@ class ICADialog(QtGui.QDialog):
         self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None, labels=None, stimulus_split=False):
+    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None, labels=None, _stimulus_split=False, marks=None):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
-        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states, labels=labels, stimulus_split=stimulus_split)
+        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states, labels=labels, _stimulus_split=_stimulus_split, marks=marks)
         wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None

@@ -4,7 +4,7 @@ from mne.io import RawArray
 from mne.preprocessing import ICA
 
 from pynfb.signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack
-from pynfb.signal_processing.helpers import get_outliers_mask
+from pynfb.signal_processing.helpers import get_outliers_mask, stimulus_split
 from pynfb.signals.rejections import SpatialRejection
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
@@ -96,6 +96,25 @@ class CSPDecomposition(SpatialDecomposition):
     def set_parameters(self, **parameters):
         super(CSPDecomposition, self).set_parameters(**parameters)
         self.reg_coef = parameters['regularizator']
+        
+
+class CSPDecompositionStimulus(CSPDecomposition):
+    def __init__(self, channel_names, fs, band=None, reg_coef=0.001, pre_interval=500, post_interval=500):
+        super(CSPDecompositionStimulus, self).__init__(channel_names, fs, band, reg_coef)
+        self.reg_coef = reg_coef
+        self.name = 'csp-s'
+        self.pre_interval = pre_interval
+        self.post_interval = post_interval
+        
+    def set_parameters(self, **parameters):
+        super(CSPDecomposition, self).set_parameters(**parameters)
+        self.reg_coef = parameters['regularizator']
+        self.pre_interval = parameters['prestim_interval']
+        self.post_interval = parameters['poststim_interval']
+        
+    def decompose(self, X, y=None):
+        y = stimulus_split(y, self.pre_interval, self.post_interval)
+        return super(CSPDecompositionStimulus, self).decompose(X[y>=0], y[y>=0])
 
 
 class ICADecomposition(SpatialDecomposition):

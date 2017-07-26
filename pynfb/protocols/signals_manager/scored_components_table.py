@@ -79,12 +79,13 @@ class ScoredComponentsTable(QtGui.QTableWidget):
     more_one_selected = QtCore.pyqtSignal()
     no_one_selected = QtCore.pyqtSignal()
 
-    def __init__(self, time_series, topographies, filters, channel_names, fs, scores, scores_name='Mutual info', *args):
+    def __init__(self, time_series, topographies, filters, channel_names, fs, scores, scores_name='Mutual info', marks=None, *args):
         super(ScoredComponentsTable, self).__init__(*args)
 
         # attributes
         self.row_items_max_height = 125
         self.time_series = time_series
+        self.marks = marks
         self.channel_names = channel_names
         self.fs = fs
 
@@ -119,8 +120,12 @@ class ScoredComponentsTable(QtGui.QTableWidget):
                 plot_widget.setXLink(_previous_plot_link)
                 # plot_widget.setYLink(_previous_plot_link)
             _previous_plot_link = plot_widget
-            plot_widget.plot(x=np.arange(self.time_series.shape[0]) / fs)
             plot_widget.plot(y=self.time_series[:, ind])
+            if self.marks is not None:
+                plot_widget.plot(y=self.marks*np.max(self.time_series[:, ind]), pen=(1,3))
+                plot_widget.plot(y=-self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
+            plot_widget.plot(x=np.arange(self.time_series.shape[0]) / fs)
+
             plot_widget.setMaximumHeight(self.row_items_max_height)
             plot_widget.plotItem.getViewBox().state['wheelScaleFactor'] = 0
             self.plot_items.append(plot_widget)
@@ -233,7 +238,11 @@ class ScoredComponentsTable(QtGui.QTableWidget):
                 plot_item.plot(x=x[:y.shape[0] // 2], y=y[:y.shape[0] // 2], clear=True)
                 self.columns[-1] = 'Spectrum'
             else:
-                plot_item.plot(x=np.arange(self.time_series.shape[0]) / self.fs, y=y, clear=True)
+                x = np.arange(self.time_series.shape[0]) / self.fs
+                plot_item.plot(x=x, y=y, clear=True)
+                if self.marks is not None:
+                    plot_item.plot(x=x, y=self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
+                    plot_item.plot(x=x, y=-self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
                 self.columns[-1] = 'Time series'
         self.setHorizontalHeaderLabels(self.columns)
         self.plot_items[-1].autoRange()

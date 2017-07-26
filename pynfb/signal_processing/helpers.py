@@ -24,3 +24,19 @@ if __name__ == '__main__':
     plt.plot(np.sqrt(np.sum(data ** 2, 1)))
     plt.hlines(4*np.sqrt(np.sum(data ** 2, 1)).std()+np.sqrt(np.sum(data ** 2, 1)).mean(), 0, 10000, )
     plt.show()
+
+def stimulus_split(marks, pre_interval, post_interval):
+    marks_indexes = [k for k in np.where(marks)[0] if pre_interval <= k <= len(marks)-post_interval]
+    prestim_slice = np.concatenate([np.arange(k - pre_interval, k) for k in marks_indexes])
+    poststim_slice = np.concatenate([np.arange(k, k + pre_interval) for k in marks_indexes])
+    full_indexes = -np.ones_like(marks)
+    full_indexes[prestim_slice] = 0
+    full_indexes[poststim_slice] = 1
+    return full_indexes
+
+if __name__ == '__main__':
+    marks = np.zeros(100)
+    marks[20] = 1
+    #marks[25] = 1
+    marks[80] = 1
+    print(stimulus_split(marks, 20, 20))

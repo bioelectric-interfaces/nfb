@@ -188,7 +188,7 @@ class SignalsSSDManager(QtGui.QDialog):
     test_signal = QtCore.pyqtSignal()
     test_closed_signal = QtCore.pyqtSignal()
     def __init__(self, signals, x, pos, channels_names, protocol, signals_rec, protocols, sampling_freq=1000,
-                 message=None, protocol_seq=None, **kwargs):
+                 message=None, protocol_seq=None, marks=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # name
@@ -201,6 +201,7 @@ class SignalsSSDManager(QtGui.QDialog):
         self.all_signals = signals
         self.x = x
         self.pos = pos
+        self.marks = marks
         self.channels_names = channels_names
         self.sampling_freq = sampling_freq
         self.protocol = protocol
@@ -208,7 +209,7 @@ class SignalsSSDManager(QtGui.QDialog):
         self.stats = [(signal.mean, signal.std, signal.scaling_flag) for signal in signals]
         self.ica_unmixing_matrix = None
 
-        #layout
+        # layout
         main_layout = QtGui.QVBoxLayout(self)
         layout = QtGui.QHBoxLayout()
         main_layout.addLayout(layout)
@@ -393,7 +394,8 @@ class SignalsSSDManager(QtGui.QDialog):
             rejections = []
         elif csp:
             rejection, filter, topography, _, bandpass, to_all = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                                     mode='csp', stimulus_split=self.stimulus_split.isChecked())
+                                                                     mode='csp', _stimulus_split=self.stimulus_split.isChecked(),
+                                                                                         marks=self.marks)
             rejections = [rejection] if rejection is not None else []
         else:
             filter, topography, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, self.pos,
@@ -450,6 +452,10 @@ if __name__ == '__main__':
     from pynfb.widgets.helpers import ch_names_to_2d_pos
 
 
-    w = SignalsSSDManager(signals, [x, x**3, x**5, x, x**3, x**5, x, x**3, x**5], ch_names_to_2d_pos(channels), channels, None, None, [], protocol_seq=['One', 'Two', 'Three']*3)
+    marks = np.zeros(len(x)*9)
+    marks[1000]=1
+    marks[10000] = 1
+    w = SignalsSSDManager(signals, [x, x**3, x**5, x, x**3, x**5, x, x**3, x**5], ch_names_to_2d_pos(channels),
+                          channels, None, None, [], protocol_seq=['One', 'Two', 'Three']*3, marks=marks)
     w.show()
     app.exec_()
