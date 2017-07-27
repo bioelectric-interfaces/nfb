@@ -103,7 +103,7 @@ class PsyProtocolWidgetPainter(Painter):
         print('prepared')
 
     def redraw_state(self, sample, m_sample):
-        stimulus_presented = self.exp.run_trial()
+        stimulus_presented = self.exp.run_trial(sample)
         if stimulus_presented:
             print('STIMULUS PRESENTED')
         return stimulus_presented

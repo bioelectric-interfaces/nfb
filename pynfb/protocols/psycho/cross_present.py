@@ -39,9 +39,14 @@ class PsyExperiment:
         self.t_wait_start = None
         self.t_wait = None
         self.is_waiting = False
-        self.sequence = [self.present_pre_stimulus, self.wait_prestim, self.present_stimulus, self.wait_random, self.run_detection_task]
+        self.presentation_sequence = [self.present_pre_stimulus, self.wait_prestim, self.present_stimulus,
+                                      self.wait_random]
+        self.detection_task_sequence = [self.present_stimulus, self.wait_random, self.run_detection_task,
+                                        self.present_pre_stimulus, self.wait_inf]
+        self.sequence = self.detection_task_sequence if detection_task else self.presentation_sequence
         self.present_stimulus_index = self.sequence.index(self.present_stimulus)
         self.current_action = 0
+        self.current_sample = 0
         pass
 
     def wait_prestim(self):
@@ -53,6 +58,13 @@ class PsyExperiment:
             if time()*1000 - self.t_wait_start > t_wait:
                 self.is_waiting = False
 
+    def wait_inf(self):
+        if not self.is_waiting:
+            self.is_waiting = True
+        else:
+            if self.current_sample > 40000:
+                self.is_waiting = False
+
     def wait_random(self):
         if not self.is_waiting:
             self.t_wait = np.random.randint(self.timing['prestim_min'], self.timing['prestim_max'])
@@ -62,7 +74,9 @@ class PsyExperiment:
             if time() * 1000 - self.t_wait_start > self.t_wait:
                 self.is_waiting = False
 
-    def run_trial(self):
+    def run_trial(self, sample):
+        self.current_sample = sample
+        print(self.current_sample)
         self.sequence[self.current_action]()
         stimulus_presented = self.current_action == self.present_stimulus_index
         if not self.is_waiting:
