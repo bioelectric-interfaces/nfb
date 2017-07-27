@@ -143,28 +143,28 @@ class PsyExperiment:
             return time() - t_trial_start
 
     def run_detection_task(self):
-
-        if not self.is_waiting:
-            expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
-            self.is_waiting = True
-            self.t_wait_start = time()*1000
-            pygame.event.get()
-        else:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN and  event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
-                    if event.key == pygame.K_LEFT:
-                        print("Hey, you pressed the key, 'left'!")
-                    if event.key == pygame.K_RIGHT:
-                        print("Hey, you pressed the key, 'right'!")
-                    if self.feedback:
-                        message = '+' if ((event.key == pygame.K_RIGHT) == self.present) else '-'
-                        response = expyriment.stimuli.TextLine(message, text_size=70, text_colour=(255, 255, 255))
-                        response.present()
-                        self.exp.clock.wait(self.timing['response'])
-                        response.unload()
-                        self.is_waiting = False
-            if time()*1000 - self.t_wait_start > 5000:
-                self.is_waiting = False
+        if self.detection:
+            if not self.is_waiting:
+                expyriment.stimuli.TextLine('?', text_size=70, text_colour=(255, 255, 255)).present()
+                self.is_waiting = True
+                self.t_wait_start = time()*1000
+                pygame.event.get()
+            else:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN and  event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
+                        if event.key == pygame.K_LEFT:
+                            print("Hey, you pressed the key, 'left'!")
+                        if event.key == pygame.K_RIGHT:
+                            print("Hey, you pressed the key, 'right'!")
+                        if self.feedback:
+                            message = '+' if ((event.key == pygame.K_RIGHT) == self.present) else '-'
+                            response = expyriment.stimuli.TextLine(message, text_size=70, text_colour=(255, 255, 255))
+                            response.present()
+                            self.exp.clock.wait(self.timing['response'])
+                            response.unload()
+                            self.is_waiting = False
+                if time()*1000 - self.t_wait_start > 5000:
+                    self.is_waiting = False
 
     def close(self):
         control.end()

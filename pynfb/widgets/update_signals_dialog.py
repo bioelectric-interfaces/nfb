@@ -441,7 +441,7 @@ class SignalsSSDManager(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
     from scipy.io import loadmat
-    mat_file = loadmat(r'C:\_data\luca\Subj1_data.mat')
+    mat_file = loadmat(r'C:\Users\nsmetanin\Downloads\nfb_bci\wetransfer-07cfaf\Subj1_data.mat')
     x = np.concatenate(  [mat_file['EEGdata'][:, :, j] for j in range(mat_file['EEGdata'].shape[2])], axis=1).T
     trial_marks = (mat_file['EEGtimes'] == 0.).astype(int)
     marks = np.concatenate([trial_marks[0] for k in range(mat_file['EEGdata'].shape[2]) ])
