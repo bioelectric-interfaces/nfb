@@ -440,9 +440,21 @@ class SignalsSSDManager(QtGui.QDialog):
 
 if __name__ == '__main__':
     import numpy as np
+    from scipy.io import loadmat
+    mat_file = loadmat(r'C:\_data\luca\Subj1_data.mat')
+    x = np.concatenate(  [mat_file['EEGdata'][:, :, j] for j in range(mat_file['EEGdata'].shape[2])], axis=1).T
+    trial_marks = (mat_file['EEGtimes'] == 0.).astype(int)
+    marks = np.concatenate([trial_marks[0] for k in range(mat_file['EEGdata'].shape[2]) ])
+    import pylab as plt
+    #plt.plot(data)
+    #plt.show()
+    channels = [b[0] for b in mat_file['EEGchanslabels'][0]]
 
-    channels = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
-                'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
+    print(np.shape(channels))
+    print(np.shape(x))
+    print(np.shape(marks))
+    #channels = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
+    #            'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
     n_ch = len(channels)
     from pynfb.signals import CompositeSignal
     signals = [DerivedSignal(ind = k, source_freq=500, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=n_ch) for k in range(3)]
@@ -450,15 +462,23 @@ if __name__ == '__main__':
     signals += [BCISignal(500, channels, 'bci', n_ch)]
     app = QtGui.QApplication([])
 
-    x = np.random.randn(5000, n_ch)
+    #x = np.random.randn(5000, n_ch)
     from pynfb.widgets.helpers import ch_names_to_2d_pos
 
-    x[2500:2500, channels.index('C3')] *= 1000
+    #x[2500:3000, channels.index('Cz')] /= 50
+
+
+    x = x[:50000]
+    marks = marks[:50000]
+
     #x[2500:2600, [0, 3]] *= 100
-    marks = np.zeros(len(x)*9)
-    marks[2500::5000]=1
+    #marks = np.zeros(len(x)*9)
+    #marks[2500::5000] = 1
     #marks[10000] = 1
-    w = SignalsSSDManager(signals, [x*1]*9, ch_names_to_2d_pos(channels),
-                          channels, None, None, [], protocol_seq=['One', 'Two', 'Three']*3, marks=marks)
-    w.show()
+    w = SignalsSSDManager(signals, [x], ch_names_to_2d_pos(channels),
+                          channels, None, None, [], protocol_seq=['One'], marks=marks, sampling_freq=258)
+    w.exec()
+    plt.plot(np.arange(50000)/258, np.dot(x, signals[0].spatial_filter))
+    plt.plot(np.arange(50000) / 258, marks * np.max(np.dot(x, signals[0].spatial_filter)))
+    plt.show()
     app.exec_()
