@@ -52,6 +52,7 @@ info = mne.create_info(ch_names=channels, sfreq=fs, montage=mne.channels.read_mo
 
 # raw instance
 raw = mne.io.RawArray(data, info)
+raw.set_eeg_reference()
 #noise_cov = mne.compute_raw_covariance(raw)
 noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
 # forward solution
@@ -67,15 +68,9 @@ inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, de
 
 # setup roi
 area = True
-if area:
-    labels = mne.read_labels_from_annot('fsaverage', parc='aparc')
-    roi_label = labels[[label.name for label in labels].index('posteriorcingulate-rh')]
-    arg = None
-else:
-    xyz = np.array([0.9875, -0.0314, 0.1542])
-    locations = src[1]['rr']
-    arg = np.argmin(np.array(list(map(lambda x: np.dot(x, x), locations - xyz))))
-    roi_label = None
+labels = mne.read_labels_from_annot('fsaverage', parc='aparc')
+roi_label = labels[[label.name for label in labels].index('posteriorcingulate-rh')]
+arg = None
 
 
 
@@ -89,16 +84,44 @@ print(sol.shape)
 if noise_norm is not None:
     sol *= noise_norm
 
-if not area:
-    sol = sol[arg//3]
 
 plt.plot(sol.T, 'r', alpha=0.2)
-
 plt.plot(np.mean(sol.T, axis=1))
-plt.show()
+#plt.show()
 #raw.set_eeg_reference()
 #stc = mne.minimum_norm.apply_inverse_raw(raw, inv, 0.1, method=method, prepared=True)
 #plt.plot(1e3 * stc.times, stc.data[::150, :].T)
 #plt.show()
 
-mne.extract_label_time_course()
+# get flip
+nvert = [len(vn) for vn in vertno]
+if label.hemi == 'both':
+    # handle BiHemiLabel
+    sub_labels = [label.lh, label.rh]
+else:
+    sub_labels = [label]
+this_vertidx = list()
+for slabel in sub_labels:
+    if roi_label.hemi == 'lh':
+        this_vertno = np.intersect1d(vertno[0], roi_label.vertices)
+        vertidx = np.searchsorted(vertno[0], this_vertno)
+    elif roi_label.hemi == 'rh':
+        this_vertno = np.intersect1d(vertno[1], roi_label.vertices)
+        vertidx = nvert[0] + np.searchsorted(vertno[1], this_vertno)
+    else:
+        raise ValueError('label %s has invalid hemi' % label.name)
+    this_vertidx.append(vertidx)
+vertidx = np.concatenate(this_vertidx)
+from mne.source_estimate import _get_label_flip
+label_flip = _get_label_flip([roi_label], [vertidx], inv['src'][:2])
+label_flip = np.array(label_flip).flatten()
+
+# get mean
+mean_flip = np.mean(label_flip * sol.T, axis=1)
+plt.plot(mean_flip, 'g')
+
+# back engineering flip
+#from pynfb.helpers.mne_source_estimate import extract_label_time_course
+#stc = mne.minimum_norm.apply_inverse_raw(raw, inv, 0.1, method=method, prepared=True)
+#plt.plot(mne.extract_label_time_course(stc, roi_label, inv['src'], mode='mean_flip')[0], 'k--')
+plt.show()
