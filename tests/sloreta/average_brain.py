@@ -48,7 +48,7 @@ else:
     data = rej.apply(data.T).T
 
 # create info
-info = mne.create_info(ch_names=channels, sfreq=fs, montage=mne.channels.read_montage(kind='standard_primed'), ch_types=['eeg' for ch in channels])
+info = mne.create_info(ch_names=channels, sfreq=fs, montage=mne.channels.read_montage(kind='standard_1005'), ch_types=['eeg' for ch in channels])
 
 # raw instance
 raw = mne.io.RawArray(data, info)
@@ -69,7 +69,8 @@ inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, de
 # setup roi
 area = True
 labels = mne.read_labels_from_annot('fsaverage', parc='aparc')
-roi_label = labels[[label.name for label in labels].index('posteriorcingulate-rh')]
+print([label.name for label in labels])
+roi_label = labels[[label.name for label in labels].index('lateraloccipital-rh')]
 arg = None
 
 
@@ -80,7 +81,7 @@ inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=0.1, method
 label = None if not area else roi_label
 K, noise_norm, vertno = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None)
 sol = np.dot(K, data)
-print(sol.shape)
+print(sol.shape, noise_norm.shape)
 if noise_norm is not None:
     sol *= noise_norm
 
@@ -117,8 +118,17 @@ label_flip = _get_label_flip([roi_label], [vertidx], inv['src'][:2])
 label_flip = np.array(label_flip).flatten()
 
 # get mean
-mean_flip = np.mean(label_flip * sol.T, axis=1)
+mean_flip = np.dot(label_flip/len(label_flip),  sol)
 plt.plot(mean_flip, 'g')
+
+w = np.dot(noise_norm.flatten()*label_flip/len(label_flip), K)
+
+plt.plot(np.dot(w, data), 'k--')
+plt.figure()
+from pynfb.widgets.helpers import ch_names_to_2d_pos
+mne.viz.plot_topomap(w, info)
+
+
 
 # back engineering flip
 #from pynfb.helpers.mne_source_estimate import extract_label_time_course
