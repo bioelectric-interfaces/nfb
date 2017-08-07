@@ -57,7 +57,7 @@ raw = mne.io.RawArray(data, info)
 noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
 # forward solution
 #fwd = mne.make_forward_solution(info, trans=trans, src=src, bem=bem, fname='fsaverage-fwd.fif', meg=False, eeg=True, mindist=5.)
-fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\av_brain\fsaverage\bem\fsaverage-fwd.fif', surf_ori=True)
+fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\fsaverage-fwd-1005-1.fif', surf_ori=True)
 
 
 
@@ -68,10 +68,10 @@ inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, de
 
 
 
-lambdas = [10, 1, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
+lambdas = [1000, 100, 10, 1, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
 f, axes = plt.subplots(2, len(lambdas))
 f.set_size_inches(10, 3.5)
-label_name = 'lateraloccipital'
+label_name = ['caudalanteriorcingulate', 'lateraloccipital', 'posteriorcingulate'][2]
 for j, lambda2 in enumerate(lambdas):
     for k, add_label in enumerate(['lh', 'rh']):
         # setup roi

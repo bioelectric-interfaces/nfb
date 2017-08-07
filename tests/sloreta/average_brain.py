@@ -57,7 +57,7 @@ raw = mne.io.RawArray(data, info)
 noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
 # forward solution
 #fwd = mne.make_forward_solution(info, trans=trans, src=src, bem=bem, fname='fsaverage-fwd.fif', meg=False, eeg=True, mindist=5.)
-fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\av_brain\fsaverage\bem\fsaverage-fwd.fif', surf_ori=True)
+fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\fsaverage-fwd-1005-1.fif', surf_ori=True)
 
 
 
@@ -77,7 +77,7 @@ arg = None
 
 # prepare inv
 method = 'sLORETA'
-inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=0.01, method=method)
+inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=1, method=method)
 label = None if not area else roi_label
 K, noise_norm, vertno = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None)
 sol = np.dot(K, data)

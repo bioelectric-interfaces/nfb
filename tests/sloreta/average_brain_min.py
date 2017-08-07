@@ -59,11 +59,11 @@ def get_roi_by_name(name):
     roi_label = labels[[label.name for label in labels].index(name)]
     return roi_label
 
-def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambda2=0.01):
+def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambda2=1):
     info = mne.create_info(ch_names=channels, sfreq=fs, montage=mne.channels.read_montage(kind='standard_1005'), ch_types=['eeg' for ch in channels])
     mne.utils.set_config("SUBJECTS_DIR", 'av_brain', set_env=True)
     noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
-    fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\av_brain\fsaverage\bem\fsaverage-fwd.fif', surf_ori=True)
+    fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\fsaverage-fwd-1005-1.fif', surf_ori=True)
     inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, depth=0.8, fixed=True)
     inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2, method=method)
     roi_label = get_roi_by_name(label_name)
