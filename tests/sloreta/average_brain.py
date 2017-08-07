@@ -52,7 +52,7 @@ info = mne.create_info(ch_names=channels, sfreq=fs, montage=mne.channels.read_mo
 
 # raw instance
 raw = mne.io.RawArray(data, info)
-raw.set_eeg_reference()
+#raw.set_eeg_reference()
 #noise_cov = mne.compute_raw_covariance(raw)
 noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
 # forward solution
@@ -70,14 +70,14 @@ inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, de
 area = True
 labels = mne.read_labels_from_annot('fsaverage', parc='aparc')
 print([label.name for label in labels])
-roi_label = labels[[label.name for label in labels].index('lateraloccipital-rh')]
+roi_label = labels[[label.name for label in labels].index('posteriorcingulate-rh')]
 arg = None
 
 
 
 # prepare inv
 method = 'sLORETA'
-inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=0.1, method=method)
+inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=0.01, method=method)
 label = None if not area else roi_label
 K, noise_norm, vertno = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None)
 sol = np.dot(K, data)
