@@ -4,7 +4,42 @@ from pynfb.io.defaults import vectors_defaults as defaults
 from pynfb.settings_widget import FileSelectorLine
 
 default_signal = defaults['vSignals']['DerivedSignal'][0]
+roi_labels = ['CUSTOM', 'bankssts-lh', 'bankssts-rh', 'caudalanteriorcingulate-lh', 'caudalanteriorcingulate-rh',
+              'caudalmiddlefrontal-lh', 'caudalmiddlefrontal-rh', 'cuneus-lh', 'cuneus-rh', 'entorhinal-lh',
+              'entorhinal-rh', 'frontalpole-lh', 'frontalpole-rh', 'fusiform-lh', 'fusiform-rh', 'inferiorparietal-lh',
+              'inferiorparietal-rh', 'inferiortemporal-lh', 'inferiortemporal-rh', 'insula-lh', 'insula-rh',
+              'isthmuscingulate-lh', 'isthmuscingulate-rh', 'lateraloccipital-lh', 'lateraloccipital-rh',
+              'lateralorbitofrontal-lh', 'lateralorbitofrontal-rh', 'lingual-lh', 'lingual-rh',
+              'medialorbitofrontal-lh', 'medialorbitofrontal-rh', 'middletemporal-lh', 'middletemporal-rh',
+              'paracentral-lh', 'paracentral-rh', 'parahippocampal-lh', 'parahippocampal-rh', 'parsopercularis-lh',
+              'parsopercularis-rh', 'parsorbitalis-lh', 'parsorbitalis-rh', 'parstriangularis-lh',
+              'parstriangularis-rh', 'pericalcarine-lh', 'pericalcarine-rh', 'postcentral-lh', 'postcentral-rh',
+              'posteriorcingulate-lh', 'posteriorcingulate-rh', 'precentral-lh', 'precentral-rh', 'precuneus-lh',
+              'precuneus-rh', 'rostralanteriorcingulate-lh', 'rostralanteriorcingulate-rh', 'rostralmiddlefrontal-lh',
+              'rostralmiddlefrontal-rh', 'superiorfrontal-lh', 'superiorfrontal-rh', 'superiorparietal-lh',
+              'superiorparietal-rh', 'superiortemporal-lh', 'superiortemporal-rh', 'supramarginal-lh',
+              'supramarginal-rh', 'temporalpole-lh', 'temporalpole-rh', 'transversetemporal-lh',
+              'transversetemporal-rh', 'unknown-lh']
 
+
+class SpatialFilterROIWidget(QtGui.QWidget):
+    def __init__(self):
+        super(SpatialFilterROIWidget, self).__init__()
+        layout = QtGui.QVBoxLayout(self)
+
+        # labels
+        self.labels = QtGui.QComboBox()
+        for label in roi_labels:
+            self.labels.addItem(label)
+        layout.addWidget(self.labels)
+
+        # spatial filter file
+        self.file = FileSelectorLine(parent=self)
+        layout.addWidget(self.file)
+
+        # disable file selection if not CUSTOM
+        self.labels.currentIndexChanged.connect(
+            lambda: self.file.setEnabled(self.labels.currentIndex() == 0))
 
 class SignalsSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -77,7 +112,7 @@ class SignalDialog(QtGui.QDialog):
         self.name.setValidator(validator)
 
         # spatial filter
-        self.spatial_filter = FileSelectorLine(parent=self)
+        self.spatial_filter = SpatialFilterROIWidget()
         self.form_layout.addRow('Spatial filter:', self.spatial_filter)
 
         # disable spectrum evaluation
@@ -144,14 +179,20 @@ class SignalDialog(QtGui.QDialog):
         self.bandpass_high.setValue(self.params[current_signal_index]['fBandpassHighHz'])
         self.window_size.setValue(self.params[current_signal_index]['fFFTWindowSize'])
         self.smoothing_factor.setValue(self.params[current_signal_index]['fSmoothingFactor'])
-        self.spatial_filter.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
+        self.spatial_filter.file.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
+        roi_label = self.params[current_signal_index]['sROILabel']
+        roi_label = 'CUSTOM' if roi_label == '' else roi_label
+        self.spatial_filter.labels.setCurrentIndex(
+            self.spatial_filter.labels.findText(roi_label, QtCore.Qt.MatchFixedString))
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sSignalName'] = self.name.text()
         self.params[current_signal_index]['fBandpassLowHz'] = self.bandpass_low.value()
         self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
-        self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.path.text()
+        self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.file.path.text()
+        roi_labels = self.spatial_filter.labels.currentText()
+        self.params[current_signal_index]['sROILabel'] = roi_labels if roi_labels != 'CUSTOM' else ''
         self.params[current_signal_index]['bDisableSpectrumEvaluation'] = int(self.disable_spectrum.isChecked())
         self.params[current_signal_index]['bBCIMode'] = int(self.bci_checkbox.isChecked())
         self.params[current_signal_index]['fFFTWindowSize'] = self.window_size.value()
