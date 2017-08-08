@@ -47,6 +47,10 @@ else:
     rej, spatial, top = ICADialog.get_rejection(data.T, channels, fs, mode='ica', states=None)[:3]
     data = rej.apply(data.T).T
 
+standard_montage = mne.channels.read_montage(kind='standard_1005')
+standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+for j, channel in enumerate(channels):
+    channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
 # create info
 info = mne.create_info(ch_names=channels, sfreq=fs, montage=mne.channels.read_montage(kind='standard_1005'), ch_types=['eeg' for ch in channels])
 
@@ -57,7 +61,7 @@ raw = mne.io.RawArray(data, info)
 noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
 # forward solution
 #fwd = mne.make_forward_solution(info, trans=trans, src=src, bem=bem, fname='fsaverage-fwd.fif', meg=False, eeg=True, mindist=5.)
-fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\fsaverage-fwd-1005-1.fif', surf_ori=True)
+fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\fsaverage-fwd-1005-2.fif', surf_ori=True)
 
 
 
@@ -71,7 +75,7 @@ inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, de
 lambdas = [1000, 100, 10, 1, 0.1, 0.05, 0.01, 0.005, 0.001, 0.0001]
 f, axes = plt.subplots(2, len(lambdas))
 f.set_size_inches(10, 3.5)
-label_name = ['caudalanteriorcingulate', 'lateraloccipital', 'posteriorcingulate'][2]
+label_name = ['caudalanteriorcingulate', 'lateraloccipital', 'posteriorcingulate'][0]
 for j, lambda2 in enumerate(lambdas):
     for k, add_label in enumerate(['lh', 'rh']):
         # setup roi

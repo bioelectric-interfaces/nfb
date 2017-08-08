@@ -308,10 +308,8 @@ class Experiment():
                                       bandpass_low=signal['fBandpassLowHz'],
                                       name=signal['sSignalName'],
                                       n_channels=self.n_channels,
-                                      spatial_filter=(read_spatial_filter(signal['SpatialFilterMatrix'],
-                                                                          channels_labels)
-                                                      if signal['SpatialFilterMatrix'] != ''
-                                                      else None),
+                                      spatial_filter=read_spatial_filter(signal['SpatialFilterMatrix'], self.freq,
+                                                                         channels_labels, signal['sROILabel']),
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'],

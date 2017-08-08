@@ -1,24 +1,31 @@
 from numpy import array
+from pynfb.helpers.roi_spatial_filter import get_roi_filter
 
 
-def read_spatial_filter(filepath, channel_labels=None):
+def read_spatial_filter(filepath, fs, channel_labels=None, roi_label=''):
     """
-    Read spatial filter from path to file
+    Read spatial filter from file or from roi_label
     :param channel_labels: channel labels list
     :param filepath: path to file
     :return: spatial filter
     """
-    with open(filepath, 'r') as f:
-        lines = array([l.split() for l in f.read().splitlines()])
-    if len(lines[0]) == 1:
-        _filter = lines.astype(float).flatten()
-    elif len(lines[0]) == 2:
-        if channel_labels is None:
-            raise ValueError ('Channels labels is None but spatial filter file contains labels')
-        _filter_dict = dict(zip([l.upper() for l in lines[:, 0]], lines[:, 1].astype(float)))
-        _filter = array([_filter_dict.get(label.upper(), 0) for label in channel_labels])
+    if roi_label == '':
+        if filepath == '':
+            _filter = None
+        else:
+            with open(filepath, 'r') as f:
+                lines = array([l.split() for l in f.read().splitlines()])
+            if len(lines[0]) == 1:
+                _filter = lines.astype(float).flatten()
+            elif len(lines[0]) == 2:
+                if channel_labels is None:
+                    raise ValueError ('Channels labels is None but spatial filter file contains labels')
+                _filter_dict = dict(zip([l.upper() for l in lines[:, 0]], lines[:, 1].astype(float)))
+                _filter = array([_filter_dict.get(label.upper(), 0) for label in channel_labels])
+            else:
+                raise ValueError ('Empty file or wrong format')
     else:
-        raise ValueError ('Empty file or wrong format')
+        _filter = get_roi_filter(roi_label, fs, channel_labels, show=False)
     return _filter
 
 
