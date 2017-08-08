@@ -53,7 +53,7 @@ class Experiment():
             # update and collect current samples
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
-                self.current_samples[i] = signal.current_sample
+                #self.current_samples[i] = signal.current_sample
 
             # push current samples
             sample = np.vstack([np.array(signal.current_chunk) for signal in self.signals]).T.tolist()
@@ -314,9 +314,8 @@ class Experiment():
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'],
-                                      source_freq=self.freq) if not signal['bBCIMode']
-                        else BCISignal(self.freq, channels_labels, signal['sSignalName'], ind))
-                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal'])]
+                                      source_freq=self.freq))
+                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if not signal['bBCIMode']]
 
         # composite signals
         self.composite_signals = [CompositeSignal([s for s in self.signals],
@@ -324,8 +323,14 @@ class Experiment():
                                                   signal['sSignalName'],
                                                   ind=ind + len(self.signals))
                                   for ind, signal in enumerate(self.params['vSignals']['CompositeSignal'])]
+
+        # bci signals
+        self.bci_signals = [BCISignal(self.freq, channels_labels, signal['sSignalName'], ind)
+                            for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if signal['bBCIMode']]
+
         self.signals += self.composite_signals
-        self.current_samples = np.zeros_like(self.signals)
+        self.signals += self.bci_signals
+        #self.current_samples = np.zeros_like(self.signals)
 
         # signals outlet
         self.signals_outlet = SignalsOutlet([signal.name for signal in self.signals], fs=self.freq)
