@@ -56,11 +56,13 @@ class BCISignal():
         self.std = 0
         self.scaling_flag = False
         self.model_fitted = False
+        self.current_chunk = None
 
     def update(self, chunk):
         if self.model_fitted:
             labels = self.model.apply(chunk)
             self.current_sample = Counter(labels).most_common(1)[0][0]
+        self.current_chunk = self.current_sample * np.ones(len(chunk))
         #print(self.current_sample, type(self.current_sample))
 
     def apply(self, chunk):

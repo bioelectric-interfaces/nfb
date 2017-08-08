@@ -56,8 +56,8 @@ class Experiment():
                 self.current_samples[i] = signal.current_sample
 
             # push current samples
-            sample = [signal.current_sample for signal in self.signals]
-            self.signals_outlet.push_repeated_chunk(sample, len(chunk))
+            sample = np.vstack([np.array(signal.current_chunk) for signal in self.signals]).T.tolist()
+            self.signals_outlet.push_chunk(sample)
 
             # record data
             if self.main.player_panel.start.isChecked():
@@ -91,7 +91,8 @@ class Experiment():
                                 self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
 
             # redraw signals and raw data
-            self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
+            self.main.redraw_signals(sample, chunk, self.samples_counter)
+
             # redraw protocols
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
             current_protocol = self.protocols_sequence[self.current_protocol_index]
@@ -100,7 +101,7 @@ class Experiment():
             elif current_protocol.mock_samples_file_path is not None:
                 samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
             else:
-                samples = self.current_samples
+                samples = sample[-1]
 
             # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
             if (self.main.player_panel.start.isChecked() and

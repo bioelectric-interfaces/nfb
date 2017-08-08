@@ -29,6 +29,8 @@ class DerivedSignal():
         #envelope_detector_type = 'savgol' if disable_spectrum_evaluation else 'fft'
         # setup envelope detector
         self.type = envelope_detector_type or ENVELOPE_DETECTOR_TYPE_DEFAULT
+        if disable_spectrum_evaluation:
+            self.type = 'identity'
 
         # validate type
         valid_types = list(ENVELOPE_DETECTOR_KWARGS_DEFAULT.keys())
@@ -117,6 +119,8 @@ class DerivedSignal():
         # current sample
         self.current_sample = 0
         self.previous_sample = 0
+        self.current_chunk = None
+
         # bandpass and exponential smoothing flsg
         self.disable_spectrum_evaluation = not self.type in ['fft', 'savgol']
 
@@ -124,7 +128,7 @@ class DerivedSignal():
         self.envelope_detector = {
             'fft': self.fft_envelope_detector,
             'savgol': self.savgol_envelope_detector,
-            'isentity': lambda: None,
+            'identity': lambda: None,
         }[self.type]
         pass
 
@@ -163,6 +167,8 @@ class DerivedSignal():
 
         if self.scaling_flag and self.std > 0:
             self.current_sample = (self.current_sample - self.mean) / self.std
+
+        self.current_chunk = self.current_sample * np.ones(len(chunk))
         pass
 
     def fft_envelope_detector(self):

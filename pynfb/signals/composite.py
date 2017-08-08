@@ -18,6 +18,7 @@ class CompositeSignal:
         self.expression = sympy.sympify(expression if expression != '' else '0')
         self.expression_lambda = sympy.lambdify(self._signals_names, self.expression, modules="numpy")
         self.current_sample = 0
+        self.current_chunk = None
         # signal statistics
         self.scaling_flag = False
         self.mean = np.nan
@@ -38,6 +39,7 @@ class CompositeSignal:
         self.n_acc += chunk_size
         if self.scaling_flag and self.std>0:
             self.current_sample = (self.current_sample - self.mean) / self.std
+        self.current_chunk = self.current_sample*np.ones(len(chunk))
         pass
 
     def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
