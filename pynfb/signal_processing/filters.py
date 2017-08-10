@@ -116,18 +116,21 @@ class Coherence(BaseFilter):
         else:
             h[0] = 1
             h[1:(n_taps + 1) // 2] = 2
-        self.h = h
+        self.h = np.repeat(h, 2).reshape(self.n_taps, 2)
 
     def apply(self, chunk: np.ndarray):
-        self.buffer[:-len(chunk)] = self.buffer[len(chunk):]
-        self.buffer[-len(chunk):] = chunk
+        if len(chunk) <= self.n_taps:
+            self.buffer[:-len(chunk)] = self.buffer[len(chunk):]
+            self.buffer[-len(chunk):] = chunk
+        else:
+            self.buffer = chunk[-self.n_taps:]
         Xf = fftpack.fft(self.buffer, self.n_taps, axis=0)
-        Xf[np.abs(self.w) < self.band] = 0
-        Xf[np.abs(self.w) > self.band] = 0
+        Xf[np.abs(self.w) < self.band[0]] = 0
+        Xf[np.abs(self.w) > self.band[1]] = 0
         H = Xf * self.h / np.sqrt(len(Xf))
         coh = np.dot(H[:, 0], H[:, 1].conj()) / np.sqrt(np.abs(
             np.dot(H[:, 0], H[:, 0].conj()) * np.dot(H[:, 1], H[:, 1].conj())))
-        return np.ones(len(chunk)) * coh
+        return np.ones(len(chunk)) * np.abs(np.imag(coh))
 
 if __name__ == '__main__':
     import pylab as plt

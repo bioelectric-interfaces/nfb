@@ -36,29 +36,37 @@ signal2 = np.sin(2.0*np.pi*(10.+ph)*t+1)+ np.random.normal(size = samples)*0.0
 x_list = []
 y_list = []
 s_smth = []
-n_window = 500
+n_window = 8
 k_smth = 0.99
-for time in range(n_window, samples-n_window):
+
+from pynfb.signal_processing.filters import Coherence
+coherence = Coherence(500, fs, (8, 12))
+for tt in range(n_window, samples//n_window):
+    time = tt * n_window
     analytic_signal, xf = band_hilbert(signal[time-n_window: time])
     analytic_signal2, xf2 = band_hilbert(signal2[time-n_window: time])
-    coh = np.dot(xf, xf2.conj())/np.sqrt(np.abs(np.dot(xf, xf.conj())*np.dot(xf2, xf2.conj())))
+    #coh = np.dot(xf, xf2.conj())/np.sqrt(np.abs(np.dot(xf, xf.conj())*np.dot(xf2, xf2.conj())))
     #x_list.append(np.imag(np.dot(analytic_signal2, analytic_signal.conj()))/np.sqrt(np.abs(np.dot(analytic_signal, analytic_signal.conj())*np.dot(analytic_signal2, analytic_signal2.conj()))))
-    y_list.append(np.imag(coh))
-    s_smth.append(np.abs(coh))
+    coh = coherence.apply(np.vstack([signal[time-n_window: time], signal2[time-n_window: time]]).T)
+    y_list.append((coh * np.ones(n_window)))
+    s_smth.append((coh  * np.ones(n_window)))
+
+y_list = np.concatenate(y_list)
+s_smth = np.concatenate(s_smth)
 
 #print(np.array(x_list)/np.array(y_list))
 
 f, ax = plt.subplots(3, sharex=True)
 #ax[0].plot(t[n_window:-n_window], x_list)
-ax[0].plot(t[n_window:-n_window], y_list)
-ax[0].plot(t[n_window:-n_window], s_smth)
+ax[0].plot( y_list)
+ax[0].plot(s_smth)
 ax[0].legend(['Im', 'Abs'])
 ax[0].set_ylabel('Coh')
-ax[1].set_ylabel('$\Delta \phi$')
-ax[1].plot(t[n_window:-n_window], ph[n_window:-n_window])
+ax[1].set_ylabel('$\Delta w$')
+ax[1].plot( ph[n_window:-n_window])
 ax[2].set_ylabel('Signals')
-ax[2].plot(t, signal)
-ax[2].plot(t, signal2)
+ax[2].plot(signal)
+ax[2].plot(signal2)
 ax[2].legend(['Signal1', 'Signal2'])
 plt.show()
 #analytic_signal = hilbert(signal)
