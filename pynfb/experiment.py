@@ -321,7 +321,7 @@ class Experiment():
         self.composite_signals = [CompositeSignal([s for s in self.signals],
                                                   signal['sExpression'],
                                                   signal['sSignalName'],
-                                                  ind=ind + len(self.signals))
+                                                  ind + len(self.signals), self.freq)
                                   for ind, signal in enumerate(self.params['vSignals']['CompositeSignal'])]
 
         # bci signals

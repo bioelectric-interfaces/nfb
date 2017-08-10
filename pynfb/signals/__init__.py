@@ -214,12 +214,12 @@ class DerivedSignal():
             for k in range(0, raw.shape[0] - mean_chunk_size, mean_chunk_size):
                 chunk = raw[k:k + mean_chunk_size]
                 self.update(chunk)
-                signal_recordings[k:k + mean_chunk_size] = self.current_sample
+                signal_recordings[k:k + mean_chunk_size] = self.current_chunk
         else:
             signal_recordings = signals_recorder[:, self.ind]
-        mean_prev, std_prev = stats_previous[self.ind]
-        if np.isfinite(mean_prev) and np.isfinite(std_prev):
-            signal_recordings = signals_recorder * std_prev + mean_prev
+            mean_prev, std_prev = stats_previous[self.ind]
+            if np.isfinite(mean_prev) and np.isfinite(std_prev):
+                signal_recordings = signal_recordings * std_prev + mean_prev
         # drop outliers:
         if drop_outliers and signal_recordings.std() > 0:
                 signal_recordings_clear = signal_recordings[
