@@ -23,9 +23,11 @@ class CompositeSignal:
             self.signals = [self.signals[j] for j in self.signals_idx]
             self.expression_lambda = self.coherence
             self.coh_filter = Coherence(500, fs, (8, 12))
+        elif expression == '':
+            self.expression_lambda = self.push_zeros
         else:
             self._signals_names = [signal.name for signal in self.signals]
-            self.expression = sympy.sympify(expression if expression != '' else '0')
+            self.expression = sympy.sympify(expression)
             self.expression_lambda = sympy.lambdify(self._signals_names, self.expression, modules="numpy")
             self.signals_idx = list(range(len(signals)))
             self.coh_filter = None
@@ -58,10 +60,18 @@ class CompositeSignal:
         X = np.vstack([x1, x2]).T
         return self.coh_filter.apply(X)[-1]
 
+    def push_zeros(self, *args):
+        return np.zeros(len(args[0]))
 
-    def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
+    def update_statistics(self, raw=None, emulate=False, from_acc=False,
                           signals_recorder=None, stats_previous=None, updated_derived_signals_recorder=None,
                           drop_outliers=0):
+        if from_acc:
+            self.mean = self.mean_acc
+            self.std = self.std_acc
+            self.reset_statistic_acc()
+            return None
+
         from time import time
         timer = time()
         if updated_derived_signals_recorder is None:
@@ -85,11 +95,11 @@ class CompositeSignal:
                     np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
             else:
                 signal_recordings_clear = signal_recordings
-            self.mean = mean if (mean is not None) else np.mean(signal_recordings_clear)
-            self.std = std if (std is not None) else np.std(signal_recordings_clear)
+            self.mean = np.mean(signal_recordings_clear)
+            self.std = np.std(signal_recordings_clear)
         else:
-            self.mean = mean if (mean is not None) else self.mean_acc
-            self.std = std if (std is not None) else self.std_acc
+            self.mean = self.mean_acc
+            self.std = self.std_acc
         self.reset_statistic_acc()
         print('*** COMPOSITE TIME ELAPSED', time() - timer)
 
