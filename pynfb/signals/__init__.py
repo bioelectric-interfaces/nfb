@@ -29,6 +29,8 @@ class DerivedSignal():
         #envelope_detector_type = 'savgol' if disable_spectrum_evaluation else 'fft'
         # setup envelope detector
         self.type = envelope_detector_type or ENVELOPE_DETECTOR_TYPE_DEFAULT
+        if disable_spectrum_evaluation:
+            self.type = 'identity'
 
         # validate type
         valid_types = list(ENVELOPE_DETECTOR_KWARGS_DEFAULT.keys())
@@ -117,6 +119,8 @@ class DerivedSignal():
         # current sample
         self.current_sample = 0
         self.previous_sample = 0
+        self.current_chunk = None
+
         # bandpass and exponential smoothing flsg
         self.disable_spectrum_evaluation = not self.type in ['fft', 'savgol']
 
@@ -124,7 +128,7 @@ class DerivedSignal():
         self.envelope_detector = {
             'fft': self.fft_envelope_detector,
             'savgol': self.savgol_envelope_detector,
-            'isentity': lambda: None,
+            'identity': lambda: None,
         }[self.type]
         pass
 
@@ -163,6 +167,8 @@ class DerivedSignal():
 
         if self.scaling_flag and self.std > 0:
             self.current_sample = (self.current_sample - self.mean) / self.std
+
+        self.current_chunk = self.current_sample * np.ones(len(chunk))
         pass
 
     def fft_envelope_detector(self):
@@ -199,8 +205,14 @@ class DerivedSignal():
         amplitude = np.abs(cut_f_signal).mean()
         return amplitude
 
-    def update_statistics(self, mean=None, std=None, raw=None, emulate=False,
+    def update_statistics(self, raw=None, emulate=False, from_acc=False,
                           signals_recorder=None, stats_previous=None, drop_outliers=0):
+        if from_acc:
+            self.mean = self.mean_acc
+            self.std = self.std_acc
+            self.reset_statistic_acc()
+            return None
+
         if raw is not None and emulate:
             signal_recordings = np.zeros_like(signals_recorder[:, self.ind])
             self.reset_statistic_acc()
@@ -208,20 +220,20 @@ class DerivedSignal():
             for k in range(0, raw.shape[0] - mean_chunk_size, mean_chunk_size):
                 chunk = raw[k:k + mean_chunk_size]
                 self.update(chunk)
-                signal_recordings[k:k + mean_chunk_size] = self.current_sample
+                signal_recordings[k:k + mean_chunk_size] = self.current_chunk
         else:
             signal_recordings = signals_recorder[:, self.ind]
-        mean_prev, std_prev = stats_previous[self.ind]
-        if np.isfinite(mean_prev) and np.isfinite(std_prev):
-            signal_recordings = signals_recorder * std_prev + mean_prev
+            mean_prev, std_prev = stats_previous[self.ind]
+            if np.isfinite(mean_prev) and np.isfinite(std_prev):
+                signal_recordings = signal_recordings * std_prev + mean_prev
         # drop outliers:
         if drop_outliers and signal_recordings.std() > 0:
                 signal_recordings_clear = signal_recordings[
                     np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
         else:
             signal_recordings_clear = signal_recordings
-        self.mean = mean if (mean is not None) else signal_recordings_clear.mean()
-        self.std = std if (std is not None) else signal_recordings_clear.std()
+        self.mean = signal_recordings_clear.mean()
+        self.std = signal_recordings_clear.std()
         return (signal_recordings - self.mean) / (self.std if self.std > 0 else 1)
 
     def update_spatial_filter(self, spatial_filter=None, topography=None):

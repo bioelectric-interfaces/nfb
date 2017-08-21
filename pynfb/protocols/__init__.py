@@ -135,10 +135,7 @@ class Protocol:
         if self.update_statistics_in_the_end or must:
             stats_previous = [(signal.mean, signal.std) for signal in self.signals]
             if self.source_signal_id is not None:
-                self.signals[self.source_signal_id].update_statistics(raw=raw, emulate=self.ssd_in_the_end,
-                                                                      stats_previous=stats_previous,
-                                                                      signals_recorder=signals,
-                                                                      drop_outliers=self.drop_outliers)
+                self.signals[self.source_signal_id].update_statistics(from_acc=True)
                 self.signals[self.source_signal_id].enable_scaling()
             else:
                 updated_derived_signals_recorder = []

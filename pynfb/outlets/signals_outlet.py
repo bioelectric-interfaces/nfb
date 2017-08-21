@@ -1,5 +1,5 @@
 from pylsl import StreamInfo, StreamOutlet
-from numpy import repeat, reshape
+import numpy as np
 
 class SignalsOutlet:
     def __init__(self, signals, fs):
@@ -20,6 +20,8 @@ class SignalsOutlet:
         for k in range(n):
             self.outlet.push_sample(data)
 
+    def push_chunk(self, data, n=1):
+        self.outlet.push_chunk(data)
 
 
 

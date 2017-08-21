@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import butter, lfilter
-
+from  scipy import fftpack
 
 class BaseFilter:
     def apply(self, chunk: np.ndarray):
@@ -102,6 +102,35 @@ class InstantaneousVarianceFilter(BaseFilter):
     def apply(self, chunk: np.ndarray):
         y, self.zi = lfilter(self.b, self.a, chunk**2, axis=0, zi=self.zi)
         return y
+
+class Coherence(BaseFilter):
+    def __init__(self, n_taps, fs, band):
+        self.buffer = np.zeros((n_taps, 2))
+        self.n_taps = n_taps
+        self.w = fftpack.fftfreq(n_taps, 1 / fs)
+        self.band = band
+        h = np.zeros(n_taps)
+        if n_taps % 2 == 0:
+            h[0] = h[n_taps // 2] = 1
+            h[1:n_taps // 2] = 2
+        else:
+            h[0] = 1
+            h[1:(n_taps + 1) // 2] = 2
+        self.h = np.repeat(h, 2).reshape(self.n_taps, 2)
+
+    def apply(self, chunk: np.ndarray):
+        if len(chunk) <= self.n_taps:
+            self.buffer[:-len(chunk)] = self.buffer[len(chunk):]
+            self.buffer[-len(chunk):] = chunk
+        else:
+            self.buffer = chunk[-self.n_taps:]
+        Xf = fftpack.fft(self.buffer, self.n_taps, axis=0)
+        Xf[np.abs(self.w) < self.band[0]] = 0
+        Xf[np.abs(self.w) > self.band[1]] = 0
+        H = Xf * self.h / np.sqrt(len(Xf))
+        coh = np.dot(H[:, 0], H[:, 1].conj()) / np.sqrt(np.abs(
+            np.dot(H[:, 0], H[:, 0].conj()) * np.dot(H[:, 1], H[:, 1].conj())))
+        return np.ones(len(chunk)) * np.abs(np.imag(coh))
 
 if __name__ == '__main__':
     import pylab as plt

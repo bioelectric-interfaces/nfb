@@ -53,11 +53,11 @@ class Experiment():
             # update and collect current samples
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
-                self.current_samples[i] = signal.current_sample
+                #self.current_samples[i] = signal.current_sample
 
             # push current samples
-            sample = [signal.current_sample for signal in self.signals]
-            self.signals_outlet.push_repeated_chunk(sample, len(chunk))
+            sample = np.vstack([np.array(signal.current_chunk) for signal in self.signals]).T.tolist()
+            self.signals_outlet.push_chunk(sample)
 
             # record data
             if self.main.player_panel.start.isChecked():
@@ -91,7 +91,8 @@ class Experiment():
                                 self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
 
             # redraw signals and raw data
-            self.main.redraw_signals(self.current_samples, chunk, self.samples_counter)
+            self.main.redraw_signals(sample, chunk, self.samples_counter)
+
             # redraw protocols
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
             current_protocol = self.protocols_sequence[self.current_protocol_index]
@@ -100,7 +101,7 @@ class Experiment():
             elif current_protocol.mock_samples_file_path is not None:
                 samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
             else:
-                samples = self.current_samples
+                samples = sample[-1]
 
             # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
             if (self.main.player_panel.start.isChecked() and
@@ -313,18 +314,23 @@ class Experiment():
                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
                                       n_samples=signal['fFFTWindowSize'],
                                       smoothing_factor=signal['fSmoothingFactor'],
-                                      source_freq=self.freq) if not signal['bBCIMode']
-                        else BCISignal(self.freq, channels_labels, signal['sSignalName'], ind))
-                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal'])]
+                                      source_freq=self.freq))
+                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if not signal['bBCIMode']]
 
         # composite signals
         self.composite_signals = [CompositeSignal([s for s in self.signals],
                                                   signal['sExpression'],
                                                   signal['sSignalName'],
-                                                  ind=ind + len(self.signals))
+                                                  ind + len(self.signals), self.freq)
                                   for ind, signal in enumerate(self.params['vSignals']['CompositeSignal'])]
+
+        # bci signals
+        self.bci_signals = [BCISignal(self.freq, channels_labels, signal['sSignalName'], ind)
+                            for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if signal['bBCIMode']]
+
         self.signals += self.composite_signals
-        self.current_samples = np.zeros_like(self.signals)
+        self.signals += self.bci_signals
+        #self.current_samples = np.zeros_like(self.signals)
 
         # signals outlet
         self.signals_outlet = SignalsOutlet([signal.name for signal in self.signals], fs=self.freq)

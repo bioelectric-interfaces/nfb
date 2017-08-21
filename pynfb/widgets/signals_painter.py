@@ -81,8 +81,9 @@ class RawViewer(pg.PlotWidget):
             self.std = 0.5 * np.std(chunk) + 0.5 * self.std
 
     def set_chunk(self, chunk):
-        self.raw_buffer[:-chunk.shape[0]] = self.raw_buffer[chunk.shape[0]:]
-        self.raw_buffer[-chunk.shape[0]:] = chunk
+        n_samples = len(chunk)
+        self.raw_buffer[:-n_samples] = self.raw_buffer[n_samples:]
+        self.raw_buffer[-n_samples:] = chunk
         self.update()
 
     def update(self):
