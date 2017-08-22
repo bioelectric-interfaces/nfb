@@ -382,7 +382,7 @@ class Experiment():
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
                         **kwargs
                     ))
-            elif protocol['sFb_type'] == 'Feedback':
+            elif protocol['sFb_type'] in ['Feedback', 'CircleFeedback']:
                 self.protocols.append(
                     FeedbackProtocol(
                         self.signals,
