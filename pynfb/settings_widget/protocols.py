@@ -3,7 +3,7 @@ from PyQt4 import QtGui, QtCore
 from pynfb.io.defaults import vectors_defaults as defaults
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'CircleFeedback', 'ThresholdBlink', 'Video', 'Psy']
+protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'Psy']
 
 
 class ProtocolsSettingsWidget(QtGui.QWidget):
@@ -137,11 +137,11 @@ class ProtocolDialog(QtGui.QDialog):
         self.type.currentIndexChanged.connect(self.set_enabled_mock_settings)
         self.type.currentIndexChanged.connect(self.update_source_signal_combo_box)
         self.type.currentIndexChanged.connect(
-            lambda: self.circle_border.setEnabled(self.type.currentText() == 'CircleFeedback'))
+            lambda: self.circle_border.setEnabled(self.type.currentText() == 'Feedback'))
         self.type.currentIndexChanged.connect(
-            lambda: self.m_signal.setEnabled(self.type.currentText() == 'CircleFeedback'))
+            lambda: self.m_signal.setEnabled(self.type.currentText() == 'Feedback'))
         self.type.currentIndexChanged.connect(
-            lambda: self.m_signal_threshold.setEnabled(self.type.currentText() == 'CircleFeedback'))
+            lambda: self.m_signal_threshold.setEnabled(self.type.currentText() == 'Feedback'))
         self.type.currentIndexChanged.connect(
             lambda: self.video_path.setEnabled(self.type.currentText() == 'Video'))
         # self.type.setCurrentIndex(protocols_types.index(self.params))
@@ -149,8 +149,8 @@ class ProtocolDialog(QtGui.QDialog):
 
         # random circle bound
         self.circle_border = QtGui.QComboBox()
-        self.circle_border.addItems(['Sin', 'Random'])
-        self.form_layout.addRow('&Circle border:', self.circle_border)
+        self.circle_border.addItems(['SinCircle', 'RandomCircle', 'Bar'])
+        self.form_layout.addRow('&Feedback type:', self.circle_border)
 
 
         # threshold blink settings
@@ -268,7 +268,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.blink_duration_ms.setEnabled(flag)
 
     def set_enabled_mock_settings(self):
-        flag = self.type.currentText() == 'CircleFeedback'
+        flag = self.type.currentText() == 'Feedback'
         self.mock_file.setEnabled(flag and not self.enable_mock_previous.isChecked())
         self.mock_dataset.setEnabled(flag and not self.enable_mock_previous.isChecked())
         self.mock_previous.setEnabled(flag and self.enable_mock_previous.isChecked())
@@ -298,10 +298,12 @@ class ProtocolDialog(QtGui.QDialog):
         self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
         self.source_signal.setCurrentIndex(
             self.source_signal.findText(current_protocol['fbSource'], QtCore.Qt.MatchFixedString))
+        current_protocol_type = ('Feedback' if current_protocol['sFb_type'] == 'CircleFeedback'
+                                 else current_protocol['sFb_type'])
         self.type.setCurrentIndex(
-            self.type.findText(current_protocol['sFb_type'], QtCore.Qt.MatchFixedString))
+            self.type.findText(current_protocol_type, QtCore.Qt.MatchFixedString))
         self.circle_border.setCurrentIndex(current_protocol['iRandomBound'])
-        self.circle_border.setEnabled(self.type.currentText() == 'CircleFeedback')
+        self.circle_border.setEnabled(self.type.currentText() == 'Feedback')
         self.blink_duration_ms.setValue(current_protocol['fBlinkDurationMs'])
         self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
@@ -326,8 +328,8 @@ class ProtocolDialog(QtGui.QDialog):
         signals = ([d['sSignalName'] for d in self.parent().parent().params['vSignals']['DerivedSignal']] +
                    [d['sSignalName'] for d in self.parent().parent().params['vSignals']['CompositeSignal']])
         self.m_signal.addItems(['None'] + signals)
-        self.m_signal.setEnabled(self.type.currentText() == 'CircleFeedback')
-        self.m_signal_threshold.setEnabled(self.type.currentText() == 'CircleFeedback')
+        self.m_signal.setEnabled(self.type.currentText() == 'Feedback')
+        self.m_signal_threshold.setEnabled(self.type.currentText() == 'Feedback')
         current_index = self.m_signal.findText(current_protocol['sMSignal'], QtCore.Qt.MatchFixedString)
         self.m_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.m_signal_threshold.setValue(current_protocol['fMSignalThreshold'])

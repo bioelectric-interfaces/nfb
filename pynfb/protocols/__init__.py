@@ -190,9 +190,14 @@ class FeedbackProtocol(Protocol):
     def __init__(self, signals, name='Feedback', circle_border=0, m_threshold=1, **kwargs):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
-        self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
-                                                                  circle_border=circle_border,
-                                                                  m_threshold=m_threshold)
+        if circle_border == 2:
+            self.widget_painter = BarFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
+                                                                      circle_border=circle_border,
+                                                                      m_threshold=m_threshold)
+        else:
+            self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
+                                                                      circle_border=circle_border,
+                                                                      m_threshold=m_threshold)
         pass
 
 

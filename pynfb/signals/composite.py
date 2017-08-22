@@ -17,6 +17,7 @@ class CompositeSignal:
         self.ind = ind
         self.name = name
         self.signals = signals
+        self.coh_filter = None
         if 'coh' in expression.lower():
             names = ''.join([ch if ch.isalnum() else ' ' for ch in expression]).split()[1:]
             self.signals_idx = [j for j, signal in enumerate(self.signals) if signal.name in names]
@@ -30,7 +31,6 @@ class CompositeSignal:
             self.expression = sympy.sympify(expression)
             self.expression_lambda = sympy.lambdify(self._signals_names, self.expression, modules="numpy")
             self.signals_idx = list(range(len(signals)))
-            self.coh_filter = None
         self.current_sample = 0
         self.current_chunk = None
         # signal statistics
