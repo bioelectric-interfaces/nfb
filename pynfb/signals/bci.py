@@ -34,6 +34,9 @@ class BCIModel():
         X = self.scaler.fit_transform(X)
         self.classifier.fit(X, y)
         print('Fit accuracy {}'.format(sum(self.classifier.predict(X) == y)/len(y)))
+        for label in self.states_labels:
+            print('Fit accuracy label {}: {}'.format(label,
+                sum(self.classifier.predict(X[y == label]) == label) / sum(y == label)))
 
     def apply(self, chunk: np.ndarray):
         chunk = self.prefilter.apply(chunk)
