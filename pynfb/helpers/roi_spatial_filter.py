@@ -42,20 +42,14 @@ def get_roi_by_name(name):
     roi_label = labels[[label.name for label in labels].index(name)]
     return roi_label
 
-def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambda2=1):
-    standard_montage = mne.channels.read_montage(kind='standard_1005')
-    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
-    for j, channel in enumerate(channels):
-        channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
-    info = mne.create_info(ch_names=channels, sfreq=fs, montage=standard_montage, ch_types=['eeg' for ch in channels])
-    #mne.utils.set_config("SUBJECTS_DIR", r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\av_brain', set_env=True)
-    noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
+
+def get_fwd_solution():
     import os
     path = os.path.dirname(os.path.realpath(__file__))
     if not os.path.isfile(path + r'\fsaverage-fwd-1005-2.fif'):
-        print('fsaverage-fwd-1005-2.fif not found\nPlease wait, download is in progress')
         import urllib.request
         import zipfile
+        print('fsaverage-fwd-1005-2.fif not found\nPlease wait, download is in progress')
         url = r'https://github.com/nikolaims/nfb_lab_files/raw/master/fsaverage-fwd-1005-2.zip'
         zipfile_path = path + r'\fsaverage-fwd-1005-2.zip'
         urllib.request.urlretrieve(url, zipfile_path)
@@ -64,7 +58,16 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
             f.extractall(path)
         print('Extracted')
     fwd = mne.read_forward_solution(path + r'\fsaverage-fwd-1005-2.fif', surf_ori=True)
-    #fwd = mne.read_forward_solution(r'C:\Users\nsmetanin\PycharmProjects\nfb\tests\sloreta\fsaverage-fwd-1005-2.fif', surf_ori=True)
+    return fwd
+
+def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambda2=1):
+    standard_montage = mne.channels.read_montage(kind='standard_1005')
+    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+    for j, channel in enumerate(channels):
+        channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
+    info = mne.create_info(ch_names=channels, sfreq=fs, montage=standard_montage, ch_types=['eeg' for ch in channels])
+    noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
+    fwd = get_fwd_solution()
     inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, loose=0.2, depth=0.8, fixed=True)
     inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2, method=method)
     roi_label = get_roi_by_name(label_name)
