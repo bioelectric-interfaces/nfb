@@ -37,7 +37,11 @@ vectors_defaults = OrderedDict([
             ('fAverage', ''),
             ('fStdDev', ''),
             ('bBCIMode', 0),
-            ('sROILabel', '')
+            ('sROILabel', ''),
+            ('sTemporalType', 'envdetector'),
+            ('sTemporalFilterType', 'fft'),
+            ('fTemporalFilterButterOrder', 2),
+            ('sTemporalSmootherType', 'exp')
             # ('sType', 'plain')
         ])]),
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
