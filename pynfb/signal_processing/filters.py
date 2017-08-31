@@ -156,7 +156,7 @@ class SGSmoother(BaseFilter):
 
 
 class FFTBandEnvelopeDetector(BaseFilter):
-    def __init__(self, band, fs, factor, n_samples):
+    def __init__(self, band, fs, smoother, n_samples):
         # bandpass filter settings
         self.buffer = np.zeros((n_samples,))
         self.n_samples = n_samples
@@ -174,7 +174,7 @@ class FFTBandEnvelopeDetector(BaseFilter):
         self.samples_window = samples_window
 
         # exponential smoothing
-        self.exp_smoother = ExponentialSmoother(factor)
+        self.smoother = smoother
 
     def apply(self, chunk: np.ndarray):
         # update buffer
@@ -193,26 +193,23 @@ class FFTBandEnvelopeDetector(BaseFilter):
         y = np.ones_like(chunk) * np.abs(cut_f_signal).mean()
 
         # smoothing
-        y = self.exp_smoother.apply(y)
+        y = self.smoother.apply(y)
         return y
 
 class ButterBandEnvelopeDetector(BaseFilter):
-    def __init__(self, band, fs, factor, order=4):
+    def __init__(self, band, fs, smoother, order=4):
         self.butter_filter = ButterFilter(band, fs, 1, order=order)
-        self.exp_smoother = ExponentialSmoother(factor)
+        self.smoother = smoother
 
     def apply(self, chunk: np.ndarray):
         y = self.butter_filter.apply(chunk[:, None])[:, 0]
         y = np.abs(y)
-        y = self.exp_smoother.apply(y)
+        y = self.smoother.apply(y)
         return y
 
 
 class SGBandEnvelopeDetector(BaseFilter):
-    def __init__(self, band, fs, factor, n_samples, sg_order):
-        self.exp_smoother = ExponentialSmoother(factor)
-        self.buffer = np.zeros((n_samples,))
-        self.n_samples = n_samples
+    def __init__(self, band, fs, smoother):
         self.band = band
         # step 1: demodulation
         main_fq = (self.band[0] + self.band[1]) / 2
@@ -223,24 +220,14 @@ class SGBandEnvelopeDetector(BaseFilter):
         # step 2: iir
         self.iir_b, self.iir_a = butter(1, (self.band[1] - self.band[0]) / fs)
         self.zf = [0]
-        # step 3: sav gol
-        self.savgol_weights = savgol_coeffs(self.n_samples, sg_order, pos=self.n_samples - 1)
-        self.sg_b, self.sg_a = (self.savgol_weights, [1.])
-        self.sg_zf = np.zeros((n_samples - 1, ))
+        # step 3: smoothing
+        self.smoother = smoother
 
     def apply(self, chunk: np.ndarray):
-        # update buffer
-        chunk_size = chunk.shape[0]
-        self.chunk_size = chunk_size
-        if chunk_size <= self.n_samples:
-            self.buffer[:-chunk_size] = self.buffer[chunk_size:]
-            self.buffer[-chunk_size:] = chunk
-        else:
-            self.buffer = chunk[-self.n_samples:]
-
         # bandpass filter and amplitude
+        chunk_size = chunk.shape[0]
         self.modulation_timer += chunk_size
-        starting_index = (self.modulation_timer - self.chunk_size) % self.n_modulation_samples
+        starting_index = (self.modulation_timer - chunk_size) % self.n_modulation_samples
         ending_index = self.modulation_timer % self.n_modulation_samples
         if starting_index > ending_index:
             part1 = self.modulation[starting_index:]
@@ -251,8 +238,8 @@ class SGBandEnvelopeDetector(BaseFilter):
         x = result * chunk
         # print(np.concatenate([[self.iir_buffer], x]))
         y, self.zf = lfilter(self.iir_b, self.iir_a, x, zi=self.zf)
-        y, self.sg_zf = lfilter(self.sg_b, self.sg_a, y, zi=self.sg_zf)
-        #y = self.exp_smoother.apply(y)
+        #y, self.sg_zf = lfilter(self.sg_b, self.sg_a, y, zi=self.sg_zf)
+        y = self.smoother.apply(y)
         y = np.ones_like(chunk) * np.abs(2 * y)
         return y
 
@@ -263,7 +250,7 @@ if __name__ == '__main__':
     n_samples = 10000
     time = np.arange(n_samples)/250
     data = np.sin(10 * 2 * np.pi * time.repeat(2).reshape(n_samples, 2))
-    noise = np.random.normal(size=(n_samples, 1))*0.1
+    noise = np.random.normal(size=(n_samples, 1))*0.0
     butter_filter = ButterFilter((9, None), fs=250, n_channels=1)
     #plt.plot(time, data)
     #plt.plot(time, butter_filter.apply(data))
@@ -286,24 +273,43 @@ if __name__ == '__main__':
     data = data + noise[:, 0]
     data[n_samples//2:] *= 0.5
     print(data.shape)
-    butter_filter = ButterBandEnvelopeDetector((9, 12), 250, 0.99, 1)
-    plt.plot(data)
+    smoother = ExponentialSmoother(0.99)
+    butter_filter = ButterBandEnvelopeDetector((9, 12), 250, smoother, 1)
+    plt.plot(data, 'k', alpha=0.5)
     res = np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)])
-    plt.plot(1.55*res)
+    plt.plot(1.55*res, 'b')
+    smoother = SGSmoother(151, 2)
+    butter_filter = ButterBandEnvelopeDetector((9, 12), 250, smoother, 1)
+    # plt.plot(data)
+    res = np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)])
+    plt.plot(1.55*res, 'b', alpha=0.7)
     #plt.show()
 
     print('TEST: fft env det')
     #data = data + noise
     #data[n_samples//2:] *= 0.5
-    butter_filter = FFTBandEnvelopeDetector((9, 12), 250, 0.96, 500)
+    smoother = ExponentialSmoother(0.99)
+    butter_filter = FFTBandEnvelopeDetector((9, 12), 250, smoother, 500)
     #plt.plot(data)
-    plt.plot(1.45*np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]))
+    plt.plot(1.45*np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), 'g')
     # plt.show()
+
+    smoother = SGSmoother(151, 2)
+    butter_filter = FFTBandEnvelopeDetector((9, 12), 250, smoother, 500)
+    #plt.plot(data)
+    plt.plot(1.45*np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), 'g', alpha=0.7)
 
     print('TEST: sg env det')
     #data = data + noise
     #data[n_samples//2:] *= 0.5
-    butter_filter = SGBandEnvelopeDetector((9, 12), 250, 0.9, 151, 2)
+    smoother = ExponentialSmoother(0.9)
+    butter_filter = SGBandEnvelopeDetector((9, 12), 250, smoother)
     #plt.plot(data)
-    plt.plot(np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]))
+    plt.plot(np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), 'r')
+    smoother = SGSmoother(151, 2)
+    butter_filter = SGBandEnvelopeDetector((9, 12), 250, smoother)
+    #plt.plot(data)
+    plt.plot(np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), 'r', alpha=0.7)
+
+    plt.legend(['raw', 'butter+exp', 'butter+sg', 'fft+exp', 'fft+sg', 'complexdem+exp', 'complexdem+sg'])
     plt.show()
