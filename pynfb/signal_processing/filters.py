@@ -3,6 +3,7 @@ from scipy.signal import butter, lfilter, savgol_coeffs
 from scipy.fftpack import rfft, irfft, fftfreq
 from  scipy import fftpack
 
+
 class BaseFilter:
     def apply(self, chunk: np.ndarray):
         '''
@@ -11,6 +12,10 @@ class BaseFilter:
         '''
         raise NotImplementedError
 
+
+class IdentityFilter(BaseFilter):
+    def apply(self, chunk: np.ndarray):
+        return chunk
 
 class SpatialFilter(BaseFilter):
     def __init__(self, filters, topographies=None):
@@ -74,6 +79,15 @@ class ButterFilter(BaseFilter):
 
     def reset(self):
         self.zi = np.zeros((max(len(self.b), len(self.a)) - 1, self.n_channels))
+
+
+class ScalarButterFilter(BaseFilter):
+    def __init__(self, band, fs, order=4):
+        self.filter = ButterFilter(band, fs, 1, order=order)
+
+    def apply(self, chunk: np.ndarray):
+        return self.filter.apply(chunk[:, None])[:, 0]
+
 
 class FilterSequence(BaseFilter):
     def __init__(self, filter_sequence):

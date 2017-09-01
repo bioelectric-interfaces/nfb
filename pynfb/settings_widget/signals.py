@@ -194,7 +194,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # type
         self.type = QtGui.QComboBox()
-        for protocol_type in ['envdetector']: #, 'filter', 'identity']:
+        for protocol_type in ['envdetector', 'filter', 'identity']:
             self.type.addItem(protocol_type)
 
 
@@ -203,7 +203,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # filter type
         self.filter_type = QtGui.QComboBox()
-        for protocol_type in ['fft']: #, 'butter', 'complexdem']:
+        for protocol_type in ['fft', 'butter', 'complexdem']:
             self.filter_type.addItem(protocol_type)
 
         # filter order
@@ -218,7 +218,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # smoother type
         self.smoother_type = QtGui.QComboBox()
-        for protocol_type in ['exp']: #, 'savgol']:
+        for protocol_type in ['exp', 'savgol']:
             self.smoother_type.addItem(protocol_type)
 
         # filter order

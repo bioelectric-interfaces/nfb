@@ -305,16 +305,20 @@ class Experiment():
 
         # signals
         self.signals = [(DerivedSignal(ind=ind,
-                                      bandpass_high=signal['fBandpassHighHz'],
-                                      bandpass_low=signal['fBandpassLowHz'],
-                                      name=signal['sSignalName'],
-                                      n_channels=self.n_channels,
-                                      spatial_filter=read_spatial_filter(signal['SpatialFilterMatrix'], self.freq,
+                                       bandpass_high=signal['fBandpassHighHz'],
+                                       bandpass_low=signal['fBandpassLowHz'],
+                                       name=signal['sSignalName'],
+                                       n_channels=self.n_channels,
+                                       spatial_filter=read_spatial_filter(signal['SpatialFilterMatrix'], self.freq,
                                                                          channels_labels, signal['sROILabel']),
-                                      disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
-                                      n_samples=signal['fFFTWindowSize'],
-                                      smoothing_factor=signal['fSmoothingFactor'],
-                                      source_freq=self.freq))
+                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
+                                       n_samples=signal['fFFTWindowSize'],
+                                       smoothing_factor=signal['fSmoothingFactor'],
+                                       source_freq=self.freq,
+                                       estimator_type=signal['sTemporalType'],
+                                       temporal_filter_type=signal['sTemporalFilterType'],
+                                       smoother_type=signal['sTemporalSmootherType'],
+                                       filter_order=signal['fTemporalFilterButterOrder']))
                         for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if not signal['bBCIMode']]
 
         # composite signals

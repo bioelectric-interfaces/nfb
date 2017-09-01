@@ -5,6 +5,8 @@ from .composite import CompositeSignal
 from .bci import BCISignal
 from .rejections import Rejections
 from pynfb.io import save_spatial_filter
+from pynfb.signal_processing.filters import FFTBandEnvelopeDetector, ButterBandEnvelopeDetector, SGBandEnvelopeDetector,\
+    ExponentialSmoother, SGSmoother, ScalarButterFilter, IdentityFilter
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
 ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
@@ -25,64 +27,38 @@ ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
 class DerivedSignal():
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
-                 smoothing_factor=0.1, envelope_detector_type=None, envelop_detector_kwargs=None):
-        #envelope_detector_type = 'savgol' if disable_spectrum_evaluation else 'fft'
-        # setup envelope detector
-        self.type = envelope_detector_type or ENVELOPE_DETECTOR_TYPE_DEFAULT
-        if disable_spectrum_evaluation:
-            self.type = 'identity'
+                 smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
+                 estimator_type='envdetector', filter_order=2):
 
-        # validate type
-        valid_types = list(ENVELOPE_DETECTOR_KWARGS_DEFAULT.keys())
-        if self.type not in valid_types:
-            raise TypeError('envelope_detector_type is {}, but it should be in list {}'.format(self.type, valid_types))
-
-        # setup kwargs
-        envelope_detector_kwargs = envelop_detector_kwargs or ENVELOPE_DETECTOR_KWARGS_DEFAULT[self.type]
-        self.n_samples = int(n_samples) #int(envelope_detector_kwargs['n_samples'])
+        self.n_samples = int(n_samples)
 
         # bandpass
         self.bandpass = (bandpass_low if bandpass_low else 0,
                          bandpass_high if bandpass_high else source_freq)
 
-        # setup specific parameters of envelope detector
-        if self.type == 'fft':
-            # bandpass filter settings
-            self.w = fftfreq(2 * self.n_samples, d=1. / source_freq * 2)
-
-            # asymmetric gaussian window
-            p = round(2 * n_samples * 2 / 4)  # maximum
-            eps = 0.0001  # bounds value
-            power = 2  # power of x
-            left_c = - np.log(eps) / (p ** power)
-            right_c = - np.log(eps) / (2 * n_samples - 1 - p) ** power
-            samples_window = np.concatenate([np.exp(-left_c * abs(np.arange(p) - p) ** power),
-                                             np.exp(-right_c * abs(np.arange(p, 2 * n_samples) - p) ** power)])
-            self.samples_window = samples_window
-
-            # exponential smoothing factor
-            self.smoothing_factor = smoothing_factor
-        elif self.type == 'savgol':
-            self.n_samples = int(envelope_detector_kwargs['n_samples'])
-            # step 1: demodulation
-            main_fq = (self.bandpass[1] + self.bandpass[0]) / 2
-            print(source_freq, main_fq)
-            self.modulation = np.exp(-2j*np.pi*np.arange(1000*source_freq/main_fq)/source_freq*main_fq)
-            import pylab as plt
-            plt.plot(np.real(self.modulation))
-            plt.show()
-            self.n_modulation_samples = len(self.modulation)
-            self.modulation_timer = len(self.modulation)-1
-            # step 2: iir
-            self.iir_b, self.iir_a = butter(1, (self.bandpass[1] - self.bandpass[0]) / source_freq)
-            self.zf = [0]
-            # step 3: sav gol
-            sg_order = envelope_detector_kwargs['order']
-            self.savgol_weights = savgol_coeffs(self.n_samples, sg_order, pos=self.n_samples-1, use='dot')
-        elif self.type == 'identity':
-            self.disable_spectrum_evaluation = True
+        if estimator_type == 'envdetector':
+            # setup smoother
+            if smoother_type == 'exp':
+                smoother = ExponentialSmoother(smoothing_factor)
+            elif smoother_type == 'savgol':
+                smoother = SGSmoother(151, 2)
+            else:
+                raise TypeError('Incorrect smoother type')
+            # setup specific parameters of envelope detector
+            if temporal_filter_type == 'fft':
+                self.signal_estimator = FFTBandEnvelopeDetector(self.bandpass, source_freq, smoother, n_samples)
+            elif temporal_filter_type == 'complexdem':
+                self.signal_estimator = SGBandEnvelopeDetector(self.bandpass, source_freq, smoother)
+            elif temporal_filter_type == 'butter':
+                self.signal_estimator = ButterBandEnvelopeDetector(self.bandpass, source_freq, smoother, filter_order)
+            else:
+                raise TypeError('Incorrect envelope detector type')
+        elif estimator_type == 'filter':
+            self.signal_estimator = ScalarButterFilter(self.bandpass, source_freq, filter_order)
+        elif estimator_type == 'identity':
+            self.signal_estimator = IdentityFilter()
         else:
-            pass
+            raise TypeError('Incorrect estimator type')
 
         # id
         self.ind = ind
@@ -120,16 +96,6 @@ class DerivedSignal():
         self.current_sample = 0
         self.previous_sample = 0
         self.current_chunk = None
-
-        # bandpass and exponential smoothing flsg
-        self.disable_spectrum_evaluation = not self.type in ['fft', 'savgol']
-
-        # select envelope detector
-        self.envelope_detector = {
-            'fft': self.fft_envelope_detector,
-            'savgol': self.savgol_envelope_detector,
-            'identity': lambda: None,
-        }[self.type]
         pass
 
     def spatial_filter_is_zeros(self):
@@ -138,72 +104,24 @@ class DerivedSignal():
     def update(self, chunk):
 
         # spatial filter
+        chunk_size = len(chunk)
         filtered_chunk = np.dot(chunk, self.spatial_matrix)
+        current_chunk = self.signal_estimator.apply(filtered_chunk)
 
-        # update buffer
-        chunk_size = filtered_chunk.shape[0]
-        self.chunk_size = chunk_size
-        if chunk_size <= self.n_samples:
-            self.buffer[:-chunk_size] = self.buffer[chunk_size:]
-            self.buffer[-chunk_size:] = filtered_chunk
-        else:
-            self.buffer = filtered_chunk[-self.n_samples:]
-
-        if not self.disable_spectrum_evaluation:
-            self.envelope_detector()
-            # accumulate sum and sum^2
-            self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample) / (self.n_acc + chunk_size)
-            self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc) ** 2) / (
+        # accumulate sum and sum^2
+        self.current_sample = filtered_chunk
+        self.mean_acc = (self.n_acc * self.mean_acc + current_chunk.sum()) / (self.n_acc + chunk_size)
+        self.var_acc = (self.n_acc * self.var_acc + (current_chunk - self.mean_acc).sum() ** 2) / (
                 self.n_acc + chunk_size)
-        else:
-            # accumulate sum and sum^2
-            self.current_sample = filtered_chunk
-            self.mean_acc = (self.n_acc * self.mean_acc + self.current_sample.sum()) / (self.n_acc + chunk_size)
-            self.var_acc = (self.n_acc * self.var_acc + (self.current_sample - self.mean_acc).sum() ** 2) / (
-                self.n_acc + chunk_size)
-
         self.std_acc = self.var_acc ** 0.5
         self.n_acc += chunk_size
 
         if self.scaling_flag and self.std > 0:
-            self.current_sample = (self.current_sample - self.mean) / self.std
+            current_chunk = (current_chunk - self.mean) / self.std
 
-        self.current_chunk = self.current_sample * np.ones(len(chunk))
+        self.current_chunk = current_chunk
+        self.current_sample = current_chunk[-1]
         pass
-
-    def fft_envelope_detector(self):
-        # bandpass filter and amplitude
-        filtered_sample = self.get_bandpass_amplitude()
-        # exponential smoothing
-        if self.n_acc > 10:
-            self.current_sample = (
-                self.smoothing_factor * filtered_sample + (1 - self.smoothing_factor) * self.previous_sample)
-        else:
-            self.current_sample = filtered_sample
-        self.previous_sample = self.current_sample
-
-    def savgol_envelope_detector(self):
-        # bandpass filter and amplitude
-        self.modulation_timer += self.chunk_size
-        starting_index = (self.modulation_timer-self.n_samples) % self.n_modulation_samples
-        ending_index = self.modulation_timer % self.n_modulation_samples
-        if starting_index > ending_index:
-            part1 = self.modulation[starting_index:]
-            part2 = self.modulation[:ending_index]
-            result = np.concatenate([part1, part2])
-        else:
-            result = self.modulation[starting_index:ending_index]
-        x = result * self.buffer
-        #print(np.concatenate([[self.iir_buffer], x]))
-        y, self.zf = lfilter(self.iir_b, self.iir_a, x, zi=self.zf)
-        self.current_sample = np.abs(2*np.dot(self.savgol_weights, y))
-
-    def get_bandpass_amplitude(self):
-        f_signal = rfft(np.hstack((self.buffer, self.buffer[-1::-1])) * self.samples_window)
-        cut_f_signal = f_signal.copy()
-        cut_f_signal[(self.w < self.bandpass[0]) | (self.w > self.bandpass[1])] = 0  # TODO: in one row
-        amplitude = np.abs(cut_f_signal).mean()
-        return amplitude
 
     def update_statistics(self, raw=None, emulate=False, from_acc=False,
                           signals_recorder=None, stats_previous=None, drop_outliers=0):
