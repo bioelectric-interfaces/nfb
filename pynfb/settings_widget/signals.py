@@ -118,7 +118,7 @@ class SignalDialog(QtGui.QDialog):
         # disable spectrum evaluation
         self.disable_spectrum = QtGui.QCheckBox()
         self.disable_spectrum.stateChanged.connect(self.disable_spectrum_event)
-        self.form_layout.addRow('&Disable spectrum \nevaluation:', self.disable_spectrum)
+        #self.form_layout.addRow('&Disable spectrum \nevaluation:', self.disable_spectrum)
 
         # bandpass
         self.bandpass_low = QtGui.QSpinBox()
@@ -138,12 +138,14 @@ class SignalDialog(QtGui.QDialog):
         label.setMaximumWidth(25)
         bandpass_layout.addWidget(label)
         bandpass_layout.addWidget(self.bandpass_high)
-        self.form_layout.addRow('&Bandpass [Hz]:', bandpass_widget)
+        self.bandpass_widget = bandpass_widget
+        #self.form_layout.addRow('&Bandpass [Hz]:', bandpass_widget)
+
 
         # fft window size
         self.window_size = QtGui.QSpinBox()
         self.window_size.setRange(1, 100000)
-        self.form_layout.addRow('&Window size:', self.window_size)
+        #self.form_layout.addRow('&Window size:', self.window_size)
 
         # type
         self.type_list = QtGui.QComboBox()
@@ -155,14 +157,15 @@ class SignalDialog(QtGui.QDialog):
         self.smoothing_factor = QtGui.QDoubleSpinBox()
         self.smoothing_factor.setRange(0, 1)
         self.smoothing_factor.setSingleStep(0.1)
-        self.form_layout.addRow('&Smoothing factor:', self.smoothing_factor)
+        #self.form_layout.addRow('&Smoothing factor:', self.smoothing_factor)
+
+        self.temporal_settings = TemporalSettings()
+        self.form_layout.addRow('&Temporal settings:', self.temporal_settings)
 
         # bci signal
         self.bci_checkbox = QtGui.QCheckBox('BCI mode')
+        self.bci_checkbox.stateChanged.connect(self.bci_mode_changed)
         self.form_layout.addRow('&BCI mode:', self.bci_checkbox)
-
-        self.temporal_settings = TemporalSettings()
-        #self.form_layout.addRow('&Temporal settings:', self.temporal_settings)
 
         # ok button
         self.save_button = QtGui.QPushButton('Save')
@@ -172,6 +175,10 @@ class SignalDialog(QtGui.QDialog):
     def open(self):
         self.reset_items()
         super().open()
+
+    def bci_mode_changed(self):
+        self.spatial_filter.setDisabled(self.bci_checkbox.isChecked())
+        self.temporal_settings.setDisabled(self.bci_checkbox.isChecked())
 
     def reset_items(self):
         current_signal_index = self.parent().list.currentRow()
@@ -240,7 +247,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # type
         self.type = QtGui.QComboBox()
-        for protocol_type in ['envdetector', 'filter', 'identity']:
+        for protocol_type in ['envdetector']: #, 'filter', 'identity']:
             self.type.addItem(protocol_type)
 
 
@@ -249,7 +256,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # filter type
         self.filter_type = QtGui.QComboBox()
-        for protocol_type in ['fft', 'butter', 'complexdem']:
+        for protocol_type in ['fft']: #, 'butter', 'complexdem']:
             self.filter_type.addItem(protocol_type)
 
         # filter order
@@ -264,7 +271,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # smoother type
         self.smoother_type = QtGui.QComboBox()
-        for protocol_type in ['exp', 'savgol']:
+        for protocol_type in ['exp']: #, 'savgol']:
             self.smoother_type.addItem(protocol_type)
 
         # filter order
@@ -313,7 +320,7 @@ class TemporalSettings(QtGui.QWidget):
 
     def smoother_type_changed(self):
         if self.smoother_type.isEnabled():
-            self.smoother_factor.setEnabled(self.filter_type.currentText() == 'exp')
+            self.smoother_factor.setEnabled(self.smoother_type.currentText() == 'exp')
 
     def set_disable_condition(self, condition, widgets):
         for widget in widgets:
