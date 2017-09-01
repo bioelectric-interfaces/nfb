@@ -115,50 +115,7 @@ class SignalDialog(QtGui.QDialog):
         self.spatial_filter = SpatialFilterROIWidget()
         self.form_layout.addRow('Spatial filter:', self.spatial_filter)
 
-        # disable spectrum evaluation
-        self.disable_spectrum = QtGui.QCheckBox()
-        self.disable_spectrum.stateChanged.connect(self.disable_spectrum_event)
-        #self.form_layout.addRow('&Disable spectrum \nevaluation:', self.disable_spectrum)
-
-        # bandpass
-        self.bandpass_low = QtGui.QSpinBox()
-        self.bandpass_low.setRange(0, 250)
-        self.bandpass_low.setValue(0)
-        self.bandpass_high = QtGui.QSpinBox()
-        self.bandpass_high.setRange(0, 250)
-        self.bandpass_high.setValue(250)
-        bandpass_widget = QtGui.QWidget()
-        bandpass_layout = QtGui.QHBoxLayout(bandpass_widget)
-        bandpass_layout.setMargin(0)
-        label = QtGui.QLabel('low:')
-        label.setMaximumWidth(20)
-        bandpass_layout.addWidget(label)
-        bandpass_layout.addWidget(self.bandpass_low)
-        label = QtGui.QLabel('high:')
-        label.setMaximumWidth(25)
-        bandpass_layout.addWidget(label)
-        bandpass_layout.addWidget(self.bandpass_high)
-        self.bandpass_widget = bandpass_widget
-        #self.form_layout.addRow('&Bandpass [Hz]:', bandpass_widget)
-
-
-        # fft window size
-        self.window_size = QtGui.QSpinBox()
-        self.window_size.setRange(1, 100000)
-        #self.form_layout.addRow('&Window size:', self.window_size)
-
-        # type
-        self.type_list = QtGui.QComboBox()
-        for protocol_type in ['fft', 'savgol', 'identity']:
-            self.type_list.addItem(protocol_type)
-        #self.form_layout.addRow('&Envelope detector type:', self.type_list)
-
-        # exponential smoothing factor
-        self.smoothing_factor = QtGui.QDoubleSpinBox()
-        self.smoothing_factor.setRange(0, 1)
-        self.smoothing_factor.setSingleStep(0.1)
-        #self.form_layout.addRow('&Smoothing factor:', self.smoothing_factor)
-
+        # temporal settings
         self.temporal_settings = TemporalSettings()
         self.form_layout.addRow('&Temporal settings:', self.temporal_settings)
 
@@ -182,12 +139,7 @@ class SignalDialog(QtGui.QDialog):
 
     def reset_items(self):
         current_signal_index = self.parent().list.currentRow()
-        self.disable_spectrum.setChecked(self.params[current_signal_index]['bDisableSpectrumEvaluation'])
         self.bci_checkbox.setChecked(self.params[current_signal_index]['bBCIMode'])
-        self.bandpass_low.setValue(self.params[current_signal_index]['fBandpassLowHz'])
-        self.bandpass_high.setValue(self.params[current_signal_index]['fBandpassHighHz'])
-        self.window_size.setValue(self.params[current_signal_index]['fFFTWindowSize'])
-        self.smoothing_factor.setValue(self.params[current_signal_index]['fSmoothingFactor'])
         self.spatial_filter.file.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
         roi_label = self.params[current_signal_index]['sROILabel']
         roi_label = 'CUSTOM' if roi_label == '' else roi_label
@@ -198,15 +150,10 @@ class SignalDialog(QtGui.QDialog):
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sSignalName'] = self.name.text()
-        self.params[current_signal_index]['fBandpassLowHz'] = self.bandpass_low.value()
-        self.params[current_signal_index]['fBandpassHighHz'] = self.bandpass_high.value()
         self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.file.path.text()
         roi_labels = self.spatial_filter.labels.currentText()
         self.params[current_signal_index]['sROILabel'] = roi_labels if roi_labels != 'CUSTOM' else ''
-        self.params[current_signal_index]['bDisableSpectrumEvaluation'] = int(self.disable_spectrum.isChecked())
         self.params[current_signal_index]['bBCIMode'] = int(self.bci_checkbox.isChecked())
-        self.params[current_signal_index]['fFFTWindowSize'] = self.window_size.value()
-        self.params[current_signal_index]['fSmoothingFactor'] = self.smoothing_factor.value()
         for key, val in self.temporal_settings.get_params().items():
             self.params[current_signal_index][key] = val
         self.parent().reset_items()
