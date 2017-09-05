@@ -222,7 +222,7 @@ class ButterBandEnvelopeDetector(BaseFilter):
         return y
 
 
-class SGBandEnvelopeDetector(BaseFilter):
+class ComplexDemodulationBandEnvelopeDetector(BaseFilter):
     def __init__(self, band, fs, smoother):
         self.band = band
         # step 1: demodulation
@@ -317,11 +317,11 @@ if __name__ == '__main__':
     #data = data + noise
     #data[n_samples//2:] *= 0.5
     smoother = ExponentialSmoother(0.9)
-    butter_filter = SGBandEnvelopeDetector((9, 12), 250, smoother)
+    butter_filter = ComplexDemodulationBandEnvelopeDetector((9, 12), 250, smoother)
     #plt.plot(data)
     plt.plot(np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), 'r')
     smoother = SGSmoother(151, 2)
-    butter_filter = SGBandEnvelopeDetector((9, 12), 250, smoother)
+    butter_filter = ComplexDemodulationBandEnvelopeDetector((9, 12), 250, smoother)
     #plt.plot(data)
     plt.plot(np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(n_samples // 8)]), 'r', alpha=0.7)
 

@@ -5,7 +5,7 @@ from .composite import CompositeSignal
 from .bci import BCISignal
 from .rejections import Rejections
 from pynfb.io import save_spatial_filter
-from pynfb.signal_processing.filters import FFTBandEnvelopeDetector, ButterBandEnvelopeDetector, SGBandEnvelopeDetector,\
+from pynfb.signal_processing.filters import FFTBandEnvelopeDetector, ButterBandEnvelopeDetector, ComplexDemodulationBandEnvelopeDetector,\
     ExponentialSmoother, SGSmoother, ScalarButterFilter, IdentityFilter
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
@@ -48,7 +48,7 @@ class DerivedSignal():
             if temporal_filter_type == 'fft':
                 self.signal_estimator = FFTBandEnvelopeDetector(self.bandpass, source_freq, smoother, n_samples)
             elif temporal_filter_type == 'complexdem':
-                self.signal_estimator = SGBandEnvelopeDetector(self.bandpass, source_freq, smoother)
+                self.signal_estimator = ComplexDemodulationBandEnvelopeDetector(self.bandpass, source_freq, smoother)
             elif temporal_filter_type == 'butter':
                 self.signal_estimator = ButterBandEnvelopeDetector(self.bandpass, source_freq, smoother, filter_order)
             else:
