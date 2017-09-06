@@ -1,5 +1,9 @@
 from pynfb.helpers.beep import SingleBeep
-from pynfb.protocols.widgets import *
+from pynfb.protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
+                                     PsyProtocolWidgetPainter, BaselineProtocolWidgetPainter,
+                                     ThresholdBlinkFeedbackProtocolWidgetPainter, VideoProtocolWidgetPainter,
+                                     SourceSpaceWidgetPainter)
+import numpy as np
 from pynfb.protocols.user_inputs import SelectSSDFilterWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
@@ -234,6 +238,17 @@ class PsyProtocol(Protocol):
     def close_protocol(self, **kwargs):
         self.widget_painter.close()
         super(PsyProtocol, self).close_protocol(**kwargs)
+
+
+class SourceSpaceRecontructor(Protocol):
+    def __init__(self, signals, **kwargs):
+        kwargs['ssd_in_the_end'] = True
+        super().__init__(signals, **kwargs)
+        self.widget_painter = SourceSpaceWidgetPainter()
+
+    def close_protocol(self, **kwargs):
+        self.widget_painter.close()
+        super().close_protocol(**kwargs)
 
 
 def main():

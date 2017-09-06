@@ -10,6 +10,7 @@ from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
 from pynfb.helpers.dc_blocker import DCBlocker
+from pynfb.protocols import SourceSpaceRecontructor
 import pyqtgraph as pg
 import time
 
@@ -128,9 +129,10 @@ class PlayerLineInfo(QtGui.QWidget):
 
 
 class MainWindow(QtGui.QMainWindow):
+    # TODO: change plot_source=True to plot_source=False once this option is added
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
-                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, channels_labels=None,
+                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, plot_sources=True, channels_labels=None,
                  subject_backend_expyriment=False):
         super(MainWindow, self).__init__(parent)
 
@@ -201,6 +203,12 @@ class MainWindow(QtGui.QMainWindow):
             self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
         self._subject_window_want_to_close = False
 
+        # Source space window
+        if plot_sources is True:
+            source_space_protocol = SourceSpaceRecontructor(signals)
+            self.sources_window = SubjectWindow(self, source_space_protocol)
+            self.sources_window.show()
+
         # time counter
         self.time_counter = 0
         self.time_counter1 = 0
@@ -248,6 +256,7 @@ class MainWindow(QtGui.QMainWindow):
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
         self.subject_window.close()
+        self.sources_window.close()
         self.experiment.destroy()
         event.accept()
 

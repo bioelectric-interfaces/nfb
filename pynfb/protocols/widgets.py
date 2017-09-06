@@ -1,4 +1,5 @@
 import pyqtgraph as pg
+import pyqtgraph.opengl as gl
 from pynfb.protocols.psycho.cross_present import PsyExperiment
 import numpy as np
 import time
@@ -277,3 +278,46 @@ if __name__ == '__main__':
     #    sleep(1/30)
     #    b.redraw_state(np.random.normal(size=1))
 
+
+class SourceSpaceWidget(gl.GLViewWidget):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.reward = None
+        self.clear_all()
+
+    def clear_all(self):
+        for item in self.items:
+            self.removeItem(item)
+        # self.addItem(self.reward)
+
+    def update_reward(self, reward):
+        pass
+
+    def show_reward(self, flag):
+        pass
+
+
+class SourceSpaceWidgetPainter(Painter):
+    def __init__(self, show_reward=False):
+        super().__init__(show_reward=show_reward)
+
+    def prepare_widget(self, widget):
+        super().prepare_widget(widget)
+        if not isinstance(widget, SourceSpaceWidget):
+            self.switch_widget_to_SourceSpaceWidget(widget)
+
+    def switch_widget_to_SourceSpaceWidget(self, widget):
+        window = widget.parent().parent()
+        layout = window.centralWidget().layout()
+        layout.removeWidget(widget)
+        widget = SourceSpaceWidget()
+        layout.addWidget(widget)
+        window.figure = widget
+
+    def redraw_state(self, sample, m_sample):
+        # TODO
+        pass
+
+    def set_message(self, text):
+        self.text = text
+        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
