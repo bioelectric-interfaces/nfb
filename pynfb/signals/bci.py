@@ -33,10 +33,18 @@ class BCIModel():
         X = self.var_detector.apply(X)
         X = self.scaler.fit_transform(X)
         self.classifier.fit(X, y)
-        print('Fit accuracy {}'.format(sum(self.classifier.predict(X) == y)/len(y)))
+        accuracies = [sum(self.classifier.predict(X) == y)/len(y)]
+        print('Fit accuracy {}'.format(accuracies[0]))
         for label in self.states_labels:
-            print('Fit accuracy label {}: {}'.format(label,
-                sum(self.classifier.predict(X[y == label]) == label) / sum(y == label)))
+            accuracies.append(sum(self.classifier.predict(X[y == label]) == label) / sum(y == label))
+            print('Fit accuracy label {}: {}'.format(label,accuracies[-1]))
+        return accuracies
+
+    def get_accuracies(self, X, y):
+        accuracies = [sum(self.apply(X) == y) / len(y)]
+        for label in self.states_labels:
+            accuracies.append(sum(self.apply(X[y == label]) == label) / sum(y == label))
+        return accuracies
 
     def apply(self, chunk: np.ndarray):
         chunk = self.prefilter.apply(chunk)
@@ -51,7 +59,8 @@ class BCISignal():
         bands = bands if bands is not None else BANDS_DEFAULT
         states_labels = states_labels if states_labels is not None else STATES_LABELS_DEFAULT
         indexes = indexes if indexes is not None else INDEXES_DEFAULT
-        self.model = BCIModel(fs, bands, ch_names, states_labels, indexes)
+        self.model_args = [fs, bands, ch_names, states_labels, indexes]
+        self.model = BCIModel(*self.model_args)
         self.current_sample = 0
         self.name = name
         self.id = id
@@ -72,8 +81,12 @@ class BCISignal():
         return self.model.apply(chunk)
 
     def fit_model(self, X, y):
-        self.model.fit(X, y)
+        accuracies = self.model.fit(X, y)
         self.model_fitted = True
+        return accuracies
+
+    def reset_model(self):
+        self.model = BCIModel(*self.model_args)
 
     def reset_statistic_acc(self):
         pass

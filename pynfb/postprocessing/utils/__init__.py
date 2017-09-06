@@ -102,7 +102,7 @@ def get_colors2():
 
 
 def add_data(powers, name, pow, j):
-    if name == 'Filters':
+    if name in ['Filters', 'Bci']:
         powers['{}. Rest'.format(j + 1)] = pow
     elif name == 'Rotate':
         powers['{}. Right'.format(j + 1)] = pow[:len(pow) // 2]
