@@ -2,13 +2,16 @@ import os
 import sys
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
-from pynfb.protocols.widgets import *
+from pynfb.protocols.widgets import ProtocolWidget
+import numpy as np
 from numpy import isnan
 from expyriment import control, design, misc
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
 from pynfb.helpers.dc_blocker import DCBlocker
+import pyqtgraph as pg
+import time
 
 pg.setConfigOptions(antialias=True)
 
