@@ -68,10 +68,11 @@ for day in range(3):
             #slopes.append(slope)
 
             # get_accuracies
-            print('bci before:', list(raw.keys())[:9])
+            # print('bci before:', list(raw.keys())[:9])
             bci = BCISignal(fs, channels, 'bci', 0)
             def get_Xy(protocols):
-                X = [raw[prot] for prot in list(raw.keys())[:9]]
+                print(protocols)
+                X = [raw[prot] for prot in protocols]
                 def get_state(name):
                     if 'Open' in name:
                         return 0
@@ -80,15 +81,15 @@ for day in range(3):
                     elif 'Right' in name:
                         return 2
                     else:
-                        raise TypeError('Bad state')
-                y = [np.ones(len(raw[prot])) * get_state(prot) for prot in list(raw.keys())[:9]]
+                        raise TypeError('Bad state', name)
+                y = [np.ones(len(raw[prot])) * get_state(prot) for prot in protocols]
                 X = np.vstack(X)
                 y = np.concatenate(y, 0)
                 return X, y
 
             X_before, y_before = get_Xy(list(raw.keys())[:12])
             #print(list(raw.keys())[:12])
-            X_after, y_after = get_Xy(list(raw.keys())[-14:-2])
+            X_after, y_after = get_Xy(list(raw.keys())[-13:-1])
             #print(list(raw.keys())[-13:-1])
             for k in range(5):
 
