@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NeurofeedbackSignalSpecs>
-	<bDC>0.0</bDC>
-	<sExperimentName>experiment</sExperimentName>
+	<bDC>0</bDC>
+	<sExperimentName>Source space visualization</sExperimentName>
 	<sInletType>lsl_generator</sInletType>
-	<sStreamName>raw_fif</sStreamName>
+	<sStreamName>NVX136_Data</sStreamName>
 	<sRawDataFilePath>C:\\Users\\evgenii\\mne_data\\MNE-sample-data/MEG/sample/sample_audvis_raw.fif</sRawDataFilePath>
 	<sFTHostnamePort>localhost:1972</sFTHostnamePort>
-	<bPlotRaw>0.0</bPlotRaw>
-	<bPlotSignals>0.0</bPlotSignals>
+	<bPlotRaw>0</bPlotRaw>
+	<bPlotSignals>0</bPlotSignals>
 	<bPlotSources>1</bPlotSources>
-	<bShowSubjectWindow>1</bShowSubjectWindow>
+	<bShowSubjectWindow>0</bShowSubjectWindow>
 	<fRewardPeriodS>0.25</fRewardPeriodS>
 	<sReference></sReference>
 	<sReferenceSub></sReferenceSub>
-	<bUseExpyriment>0.0</bUseExpyriment>
+	<bUseExpyriment>0</bUseExpyriment>
 	<vSignals>
 		<DerivedSignal>
 			<sSignalName>Signal</sSignalName>
-			<SpatialFilterMatrix>C:/Users/evgenii/Desktop/filter.txt</SpatialFilterMatrix>
-			<bDisableSpectrumEvaluation>0.0</bDisableSpectrumEvaluation>
+			<SpatialFilterMatrix></SpatialFilterMatrix>
+			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
-			<fFFTWindowSize>500.0</fFFTWindowSize>
-			<fBandpassLowHz>0.0</fBandpassLowHz>
-			<fBandpassHighHz>250.0</fBandpassHighHz>
+			<fFFTWindowSize>500</fFFTWindowSize>
+			<fBandpassLowHz>0</fBandpassLowHz>
+			<fBandpassHighHz>250</fBandpassHighHz>
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
-			<bBCIMode>0.0</bBCIMode>
+			<bBCIMode>0</bBCIMode>
 			<sROILabel></sROILabel>
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>fft</sTemporalFilterType>
@@ -39,64 +39,34 @@
 	</vSignals>
 	<vProtocols>
 		<FeedbackProtocol>
-			<sProtocolName>BL</sProtocolName>
-			<bUpdateStatistics>1.0</bUpdateStatistics>
-			<iDropOutliers>0.0</iDropOutliers>
-			<bSSDInTheEnd>0.0</bSSDInTheEnd>
-			<fDuration>2.0</fDuration>
+			<sProtocolName>Protocol</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>10</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
 			<cString></cString>
-			<bUseExtraMessage>0.0</bUseExtraMessage>
+			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
-			<fBlinkDurationMs>50.0</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0</fBlinkThreshold>
 			<sMockSignalFilePath></sMockSignalFilePath>
 			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0.0</iMockPrevious>
-			<bReverseMockPrevious>0.0</bReverseMockPrevious>
-			<bRandomMockPrevious>0.0</bRandomMockPrevious>
-			<sRewardSignal>Signal</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0.0</bShowReward>
-			<bPauseAfter>0.0</bPauseAfter>
-			<bBeepAfter>0.0</bBeepAfter>
-			<iRandomBound>0.0</iRandomBound>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal></sRewardSignal>
+			<bRewardThreshold>0</bRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
 			<sVideoPath></sVideoPath>
 			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-			<bMockSource>0.0</bMockSource>
-			<bEnableDetectionTask>0.0</bEnableDetectionTask>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>Mohn</sProtocolName>
-			<bUpdateStatistics>0.0</bUpdateStatistics>
-			<iDropOutliers>0.0</iDropOutliers>
-			<bSSDInTheEnd>0.0</bSSDInTheEnd>
-			<fDuration>10.0</fDuration>
-			<fbSource>Signal</fbSource>
-			<sFb_type>SourceSpace</sFb_type>
-			<cString></cString>
-			<bUseExtraMessage>0.0</bUseExtraMessage>
-			<cString2></cString2>
-			<fBlinkDurationMs>50.0</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0.0</iMockPrevious>
-			<bReverseMockPrevious>0.0</bReverseMockPrevious>
-			<bRandomMockPrevious>0.0</bRandomMockPrevious>
-			<sRewardSignal>Signal</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0.0</bShowReward>
-			<bPauseAfter>0.0</bPauseAfter>
-			<bBeepAfter>0.0</bBeepAfter>
-			<iRandomBound>0.0</iRandomBound>
-			<sVideoPath></sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-			<bMockSource>0.0</bMockSource>
-			<bEnableDetectionTask>0.0</bEnableDetectionTask>
+			<fMSignalThreshold>1</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
 		</FeedbackProtocol>
 	</vProtocols>
 	<vPGroups>
@@ -104,11 +74,10 @@
 			<sName>Group</sName>
 			<sList></sList>
 			<sNumberList></sNumberList>
-			<bShuffle>0.0</bShuffle>
+			<bShuffle>0</bShuffle>
 		</PGroup>
 	</vPGroups>
 	<vPSequence>
-		<s>BL</s>
-		<s>Mohn</s>
+		<s>Protocol</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>

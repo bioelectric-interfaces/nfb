@@ -204,9 +204,11 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
             self._subject_window_want_to_close = False
+        else:
+            self.subject_window = None
 
         # Source space window
-        if plot_sources_flag is True:
+        if plot_sources_flag:
             source_space_protocol = SourceSpaceRecontructor(signals)
             self.sources_window = SubjectWindow(self, source_space_protocol)
             self.sources_window.show()
@@ -257,7 +259,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
-        self.subject_window.close()
+        if self.subject_window:
+            self.subject_window.close()
+        if self.sources_window:
+            self.sources_window.close()
         self.experiment.destroy()
         event.accept()
 
