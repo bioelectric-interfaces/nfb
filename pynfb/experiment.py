@@ -482,6 +482,8 @@ class Experiment():
                                n_channels=self.n_channels,
                                plot_raw_flag=self.params['bPlotRaw'],
                                plot_signals_flag=self.params['bPlotSignals'],
+                               plot_sources_flag=self.params['bPlotSources'],
+                               show_subject_window=self.params['bShowSubjectWindow'],
                                channels_labels=channels_labels,
                                subject_backend_expyriment=self.params['bUseExpyriment'])
         self.subject = self.main.subject_window
