@@ -3,6 +3,7 @@ import pyqtgraph.opengl as gl
 from pynfb.protocols.psycho.cross_present import PsyExperiment
 import numpy as np
 import time
+from matplotlib import cm
 
 
 class ProtocolWidget(pg.PlotWidget):
@@ -298,8 +299,16 @@ class SourceSpaceWidget(gl.GLViewWidget):
 
 
 class SourceSpaceWidgetPainter(Painter):
-    def __init__(self, show_reward=False):
+    def __init__(self, protocol, show_reward=False):
         super().__init__(show_reward=show_reward)
+        self.protocol = protocol
+        self.chunk_to_sources = protocol.chunk_to_sources
+
+        self.cortex_mesh_data = None
+        self.vertex_idx = None
+        self.cortex_mesh_item = None
+
+        self.colormap = cm.viridis
 
     def prepare_widget(self, widget):
         super().prepare_widget(widget)
@@ -314,10 +323,30 @@ class SourceSpaceWidgetPainter(Painter):
         layout.addWidget(widget)
         window.figure = widget
 
-    def redraw_state(self, sample, m_sample):
-        # TODO
-        pass
+    def prepare_widget(self, widget):
+        widget = super().prepare_widget(widget)
 
-    def set_message(self, text):
-        self.text = text
-        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+        self.cortex_mesh_data = self.protocol.mesh_data
+        self.vertex_idx = self.protocol.vertex_idx
+
+        # We will only be assigning colors to a subset of vertexes used for forward/inverse modelling. First, we need to
+        # assign an initial color to all the vertices.
+        total_vertex_cnt = self.cortex_mesh_data.vertexes().shape[0]
+        initial_color = self.colormap(0.5)
+        initial_colors = np.tile(initial_color, (total_vertex_cnt, 1))
+        self.cortex_mesh_data.setVertexColors(initial_colors)
+
+        # Set the camera at twice the size of the mesh along the widest dimension
+        max_ptp = max(np.ptp(self.cortex_mesh_data.vertexes(), axis=0))
+        widget.setCameraPosition(distance=2*max_ptp)
+
+        self.cortex_mesh_item = gl.GLMeshItem(meshdata=self.cortex_mesh_data)
+        widget.addItem(self.cortex_mesh_item)
+
+        print('Widget prepared')
+
+    def redraw_state(self, sample, m_sample):
+        sources = self.chunk_to_sources(chunk)
+        sources_normalized = self.normalize_to_01(sources)
+        colors = self.colormap(sources_normalized)
+        self.update_mesh_colors(colors)
