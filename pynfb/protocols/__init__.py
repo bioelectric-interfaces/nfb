@@ -14,7 +14,9 @@ from numpy import vstack
 from PyQt4.QtCore import QCoreApplication
 from pynfb.signals import CompositeSignal, DerivedSignal
 from pynfb.io.hdf5 import load_h5py_protocols_raw
-
+import pyqtgraph.opengl as gl
+import mne
+from warnings import warn
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
@@ -244,7 +246,69 @@ class SourceSpaceRecontructor(Protocol):
     def __init__(self, signals, **kwargs):
         kwargs['ssd_in_the_end'] = True
         super().__init__(signals, **kwargs)
-        self.widget_painter = SourceSpaceWidgetPainter()
+        inverse_operator = self.make_inverse_operator()
+        self.mesh_data = self.get_mesh_data_from_inverse_operator(inverse_operator)
+        self._forward_model_matrix = self._assemble_forward_model_matrix(inverse_operator)
+        self.widget_painter = SourceSpaceWidgetPainter(self)
+
+    @staticmethod
+    def _assemble_forward_model_matrix(inverse_operator):
+        from mne.datasets import sample
+
+        warn('Currently info is read from the raw file. TODO: change to getting it from the stream')
+        data_path = sample.data_path()
+        fname_raw = data_path + '/MEG/sample/sample_audvis_raw.fif'
+        raw = mne.io.read_raw_fif(fname_raw, verbose='ERROR')
+        info = raw.info
+        channel_cnt = info['nchan']
+        I = np.identity(channel_cnt)
+        dummy_raw = mne.io.RawArray(data=I, info=info, verbose='ERROR')
+        dummy_raw.set_eeg_reference(verbose='ERROR');
+
+        # Applying inverse modelling to an identity matrix gives us the forward model matrix
+        snr = 1.0  # use smaller SNR for raw data
+        lambda2 = 1.0 / snr ** 2
+        method = "MNE"  # use sLORETA method (could also be MNE or dSPM)
+        stc = mne.minimum_norm.apply_inverse_raw(dummy_raw, inverse_operator, lambda2, method)
+        return stc.data
+
+    def chunk_to_sources(self, chunk):
+        F = self._forward_model_matrix
+        return F.dot(chunk[-1, :])
+
+    @staticmethod
+    def make_inverse_operator():
+        from mne.datasets import sample
+        from mne.minimum_norm import read_inverse_operator
+        data_path = sample.data_path()
+        filename_inv = data_path + '/MEG/sample/sample_audvis-meg-oct-6-meg-inv.fif'
+        return read_inverse_operator(filename_inv, verbose='ERROR')
+
+    def get_mesh_data_from_inverse_operator(self, inverse_operator):
+        # Creates pyqtgraph.opengl.MeshData instance to store the cortical mesh used to create the inverse operator.
+
+        # mne's inverse operator is a dict with the geometry information under the key 'src'.
+        # inverse_operator['src'] is a list two items each of which corresponds to one hemisphere.
+        left_hemi, right_hemi = inverse_operator['src']
+
+        # Each hemisphere is represented by a dict that contains the list of all vertices from the original mesh
+        # representaion of that representation (with default options in FreeSurfer that is ~150K vertices). These are
+        # stored under the key 'rr'.
+
+        # Only a small subset of these vertices was most likely during the construction of the inverse operator. The
+        # mesh containing only the used vertices is represented by an array of faces sotred under the 'use_tris' key.
+        # This submesh still contains some extra vertices so that it is still a manifold.
+
+        # Each face is a row with the indices of the vertices of that face. The indexing is into the 'rr' array
+        # containing all the vertices.
+
+        # Let's now combine two meshes into one. Also save the indexes of the used vertices into vertex_idx property
+        vertexes = np.r_[left_hemi['rr'], right_hemi['rr']]
+        lh_vertex_cnt = left_hemi['rr'].shape[0]
+        faces = np.r_[left_hemi['use_tris'], lh_vertex_cnt + right_hemi['use_tris']]
+        self.vertex_idx = np.r_[left_hemi['vertno'], lh_vertex_cnt + right_hemi['vertno']]
+
+        return gl.MeshData(vertexes=vertexes, faces=faces)
 
     def close_protocol(self, **kwargs):
         self.widget_painter.close()
