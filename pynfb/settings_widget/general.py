@@ -118,6 +118,8 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.reference_sub.setText(self.params['sReferenceSub'])
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
+        self.plot_sources_check.setChecked(self.params['bPlotSources'])
+        self.show_subject_window_check.setChecked(self.params['bShowSubjectWindow'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
         self.dc_check.setChecked(self.params['bDC'])
         self.use_expyriment.setChecked(self.params['bUseExpyriment'])
