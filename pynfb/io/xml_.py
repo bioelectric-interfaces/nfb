@@ -39,7 +39,10 @@ def xml_file_to_odict(filename):
         if value is None:
             value = ''
         try:
-            value = float(value)
+            try:
+                value = int(value)
+            except ValueError:
+                value = float(value)
         except (ValueError, TypeError):
             pass
         return key, value
