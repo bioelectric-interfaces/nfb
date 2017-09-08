@@ -129,10 +129,11 @@ class PlayerLineInfo(QtGui.QWidget):
 
 
 class MainWindow(QtGui.QMainWindow):
-    # TODO: change plot_source=True to plot_source=False once this option is added
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
-                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, plot_sources=True, channels_labels=None,
+                 experiment=None, freq=500,
+                 plot_raw_flag=True, plot_signals_flag=True, plot_sources_flag=False, show_subject_window=True,
+                 channels_labels=None,
                  subject_backend_expyriment=False):
         super(MainWindow, self).__init__(parent)
 
@@ -196,15 +197,16 @@ class MainWindow(QtGui.QMainWindow):
         self.show()
 
         # subject window
-        if not subject_backend_expyriment:
-            self.subject_window = SubjectWindow(self, current_protocol)
-            self.subject_window.show()
-        else:
-            self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
-        self._subject_window_want_to_close = False
+        if show_subject_window:
+            if not subject_backend_expyriment:
+                self.subject_window = SubjectWindow(self, current_protocol)
+                self.subject_window.show()
+            else:
+                self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
+            self._subject_window_want_to_close = False
 
         # Source space window
-        if plot_sources is True:
+        if plot_sources_flag is True:
             source_space_protocol = SourceSpaceRecontructor(signals)
             self.sources_window = SubjectWindow(self, source_space_protocol)
             self.sources_window.show()
@@ -256,7 +258,6 @@ class MainWindow(QtGui.QMainWindow):
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
         self.subject_window.close()
-        self.sources_window.close()
         self.experiment.destroy()
         event.accept()
 

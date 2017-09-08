@@ -45,6 +45,15 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_signals_check.clicked.connect(self.plot_signals_checkbox_event)
         self.form_layout.addRow('&Plot signals:', self.plot_signals_check)
 
+        # plot sources flag
+        self.plot_sources_check = QtGui.QCheckBox()
+        self.plot_sources_check.clicked.connect(self.plot_sources_checkbox_event)
+        self.form_layout.addRow('&Plot sources:', self.plot_sources_check)
+        # show subject window
+        self.show_subject_window_check = QtGui.QCheckBox()
+        self.show_subject_window_check.clicked.connect(self.show_subject_window_checkbox_event)
+        self.form_layout.addRow('&Show subject window:', self.show_subject_window_check)
+
         # reward period
         self.reward_period = QtGui.QDoubleSpinBox()
         self.reward_period.setRange(0.05, 10)
@@ -86,6 +95,12 @@ class GeneralSettingsWidget(QtGui.QWidget):
 
     def plot_signals_checkbox_event(self):
         self.params['bPlotSignals'] = int(self.plot_signals_check.isChecked())
+
+    def plot_sources_checkbox_event(self):
+        self.params['bPlotSources'] = int(self.plot_sources_check.isChecked())
+
+    def show_subject_window_checkbox_event(self):
+        self.params['bShowSubjectWindow'] = int(self.show_subject_window_check.isChecked())
 
     def dc_check_event(self):
         self.params['bDC'] = int(self.dc_check.isChecked())
