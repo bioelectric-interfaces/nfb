@@ -165,7 +165,21 @@ class SpatialDecompositionPool:
         return FilterStack(filters)
 
 
+class ArtifactRejector:
+    def __init__(self, channel_names, fs):
+        self.ica = ICADecomposition(channel_names, fs)
+        self.rejection = None
 
+    def fit(self, X, y=None):
+        scores, filters, topographies = self.ica.decompose(X, y)
+        sorted_indexes = np.argsort(scores)[::-1]
+        print(np.dot(filters, topographies.T))
+        print(np.array(scores)[sorted_indexes])
+        filters[:, sorted_indexes[0]] = 0
+        self.rejection = SpatialRejection(np.dot(filters, topographies.T))
+
+    def apply(self, chunk: np.ndarray):
+        return self.rejection.apply(chunk)
 
 if __name__ == '__main__':
     np.random.seed(42)
