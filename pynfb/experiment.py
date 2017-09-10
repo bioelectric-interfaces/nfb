@@ -115,7 +115,11 @@ class Experiment():
 
             if self.main.player_panel.start.isChecked():
                 # subject update
-                mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+                if self.params['bShowSubjectWindow']:
+                    mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
+                                                              is_half_time=is_half_time)
+                else:
+                    mark = None
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.mark_recorder[self.samples_counter-1] = int(mark or 0)
 
@@ -243,7 +247,10 @@ class Experiment():
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
-            self.subject.close()
+            if self.params['bShowSubjectWindow']:
+                self.subject.close()
+            if self.params['bPlotSourceSpace']:
+                self.source_space_window.close()
             # plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
@@ -492,7 +499,7 @@ class Experiment():
                                subject_backend_expyriment=self.params['bUseExpyriment'])
         self.subject = self.main.subject_window
         if self.params['bPlotSourceSpace']:
-            self.source_space_window = self.main.source_window
+            self.source_space_window = self.main.source_space_window
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
