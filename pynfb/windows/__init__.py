@@ -206,6 +206,7 @@ class MainWindow(QtGui.QMainWindow):
             self._subject_window_want_to_close = False
         else:
             self.subject_window = None
+            self._subject_window_want_to_close = None
 
         # Source space window
         if plot_sources_flag:

@@ -20,6 +20,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
+import mne
 
 
 # helpers
@@ -281,7 +282,6 @@ class Experiment():
         if self.params['sInletType'] == 'lsl_from_file':
             self.restart_lsl_from_file()
         elif self.params['sInletType'] == 'lsl_generator':
-            # TODO: remove 'labels' definition and reference in kwargs
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
             self.thread.start()
@@ -503,10 +503,24 @@ class Experiment():
     def restart_lsl_from_file(self):
         if self.thread is not None:
             self.thread.terminate()
-        source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+
+        file_path = self.params['sRawDataFilePath']
+        file_name, file_extension = os.path.splitext(file_path)
+
+        if file_extension == '.fif':
+            raw = mne.io.read_raw_fif(file_path, verbose='ERROR')
+            start, stop = raw.time_as_index([0, 60])  # read the first 15s of data
+            source_buffer = raw.get_data(start=start, stop=stop)
+        else:
+            source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+
         try:
-            xml_str = load_xml_str_from_hdf5_dataset(self.params['sRawDataFilePath'], 'stream_info.xml')
-            labels, fs = get_lsl_info_from_xml(xml_str)
+            if file_extension == '.fif':
+                labels = raw.info['ch_names']
+                fs = raw.info['sfreq']
+            else:
+                xml_str = load_xml_str_from_hdf5_dataset(file_path, 'stream_info.xml')
+                labels, fs = get_lsl_info_from_xml(xml_str)
             exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(self.params['sReference'])]
             labels_inds = [j for j, label in enumerate(labels) if label.upper() not in exclude]
             labels = [label for label in labels if label.upper() not in exclude]
