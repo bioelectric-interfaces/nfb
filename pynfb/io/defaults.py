@@ -21,7 +21,7 @@ vectors_defaults = OrderedDict([
     ('sFTHostnamePort', 'localhost:1972'),
     ('bPlotRaw', 1),
     ('bPlotSignals', 1),
-    ('bPlotSources', 0),
+    ('bPlotSourceSpace', 0),
     ('bShowSubjectWindow', 1),
     ('fRewardPeriodS', 0.25),
     ('sReference', ''),

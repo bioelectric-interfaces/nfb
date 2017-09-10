@@ -8,7 +8,7 @@
 	<sFTHostnamePort>localhost:1972</sFTHostnamePort>
 	<bPlotRaw>0</bPlotRaw>
 	<bPlotSignals>0</bPlotSignals>
-	<bPlotSources>1</bPlotSources>
+	<bPlotSourceSpace>1</bPlotSourceSpace>
 	<bShowSubjectWindow>0</bShowSubjectWindow>
 	<fRewardPeriodS>0.25</fRewardPeriodS>
 	<sReference></sReference>
