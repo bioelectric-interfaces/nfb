@@ -61,7 +61,8 @@ class Experiment():
 
             # record data
             if self.main.player_panel.start.isChecked():
-                self.subject.figure.update_reward(self.reward.get_score())
+                if self.params['bShowSubjectWindow']:
+                    self.subject.figure.update_reward(self.reward.get_score())
                 if self.samples_counter < self.experiment_n_samples:
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
@@ -92,6 +93,7 @@ class Experiment():
 
             # redraw signals and raw data
             self.main.redraw_signals(sample, chunk, self.samples_counter)
+            self.sources_window.update_protocol_state(chunk)
 
             # redraw protocols
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
@@ -279,6 +281,7 @@ class Experiment():
         if self.params['sInletType'] == 'lsl_from_file':
             self.restart_lsl_from_file()
         elif self.params['sInletType'] == 'lsl_generator':
+            # TODO: remove 'labels' definition and reference in kwargs
             self.thread = Process(target=run_eeg_sim, args=(),
                                   kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
             self.thread.start()
@@ -487,6 +490,7 @@ class Experiment():
                                channels_labels=channels_labels,
                                subject_backend_expyriment=self.params['bUseExpyriment'])
         self.subject = self.main.subject_window
+        self.sources_window = self.main.sources_window
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)

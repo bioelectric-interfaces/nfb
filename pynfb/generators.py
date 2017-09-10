@@ -16,6 +16,8 @@ ch_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc
 
 ch_names32 = ['Fp1','Fp2','F7','F3','Fz','F4','F8','Ft9','Fc5','Fc1','Fc2','Fc6','Ft10','T7','C3','Cz','C4','T8','Tp9',
               'Cp5','Cp1','Cp2','Cp6','Tp10','P7','P3','Pz','P4','P8','O1','Oz','O2']
+# TODO: remove when reading from .fif is implemented
+ch_names32 = ['Ch ' + str(i + 1) for i in range(376)]
 
 
 def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', labels=None):
