@@ -312,19 +312,6 @@ class SourceSpaceWidgetPainter(Painter):
 
     def prepare_widget(self, widget):
         super().prepare_widget(widget)
-        if not isinstance(widget, SourceSpaceWidget):
-            self.switch_widget_to_SourceSpaceWidget(widget)
-
-    def switch_widget_to_SourceSpaceWidget(self, widget):
-        window = widget.parent().parent()
-        layout = window.centralWidget().layout()
-        layout.removeWidget(widget)
-        widget = SourceSpaceWidget()
-        layout.addWidget(widget)
-        window.figure = widget
-
-    def prepare_widget(self, widget):
-        widget = super().prepare_widget(widget)
 
         self.cortex_mesh_data = self.protocol.mesh_data
         self.vertex_idx = self.protocol.vertex_idx
@@ -345,8 +332,20 @@ class SourceSpaceWidgetPainter(Painter):
 
         print('Widget prepared')
 
-    def redraw_state(self, sample, m_sample):
+    def redraw_state(self, chunk):
         sources = self.chunk_to_sources(chunk)
         sources_normalized = self.normalize_to_01(sources)
         colors = self.colormap(sources_normalized)
         self.update_mesh_colors(colors)
+
+    def update_mesh_colors(self, colors):
+        # using cortex_mesh_data.setVertexColors() is much slower, bc we are coloring only a subset of vertices
+        self.cortex_mesh_data._vertexColors[self.vertex_idx] = colors
+        self.cortex_mesh_data._vertexColorsIndexedByFaces = None
+        self.cortex_mesh_item.meshDataChanged()
+
+    @staticmethod
+    def normalize_to_01(values):
+        vmin = np.min(values)
+        vmax = np.max(values)
+        return (values - vmin) / vmax

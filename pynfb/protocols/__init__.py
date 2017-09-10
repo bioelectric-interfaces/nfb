@@ -310,6 +310,9 @@ class SourceSpaceRecontructor(Protocol):
 
         return gl.MeshData(vertexes=vertexes, faces=faces)
 
+    def update_state(self, chunk):
+        self.widget_painter.redraw_state(chunk)
+
     def close_protocol(self, **kwargs):
         self.widget_painter.close()
         super().close_protocol(**kwargs)

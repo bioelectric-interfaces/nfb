@@ -8,7 +8,8 @@ try:
 except ImportError:
     pass
 from numpy import array, random
-DEBUG = False
+# TODO: change to False
+DEBUG = True
 
 
 def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005', azimuthal=True):

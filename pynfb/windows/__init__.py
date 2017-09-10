@@ -2,7 +2,7 @@ import os
 import sys
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
-from pynfb.protocols.widgets import ProtocolWidget
+from pynfb.protocols.widgets import ProtocolWidget, SourceSpaceWidget
 import numpy as np
 from numpy import isnan
 from expyriment import control, design, misc
@@ -210,7 +210,7 @@ class MainWindow(QtGui.QMainWindow):
         # Source space window
         if plot_sources_flag:
             source_space_protocol = SourceSpaceRecontructor(signals)
-            self.sources_window = SubjectWindow(self, source_space_protocol)
+            self.sources_window = SourcesWindow(self, source_space_protocol)
             self.sources_window.show()
 
         # time counter
@@ -272,9 +272,14 @@ class MainWindow(QtGui.QMainWindow):
         self._first_time_start_press = False
 
 
-class SubjectWindow(QtGui.QMainWindow):
+class SecondaryWindow(QtGui.QMainWindow):
+
+    # Must be implemented to return a central widget object in subclasses
+    def create_figure(self):
+        return object()
+
     def __init__(self, parent, current_protocol, **kwargs):
-        super(SubjectWindow, self).__init__(parent, **kwargs)
+        super().__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
 
@@ -282,7 +287,7 @@ class SubjectWindow(QtGui.QMainWindow):
         widget = QtGui.QWidget()
         layout = QtGui.QHBoxLayout()
         widget.setLayout(layout)
-        self.figure = ProtocolWidget()
+        self.figure = self.create_figure()
         layout.addWidget(self.figure)
         self.figure.show_reward(False)
         self.setCentralWidget(widget)
@@ -295,10 +300,6 @@ class SubjectWindow(QtGui.QMainWindow):
         # prepare widget
         self.current_protocol.widget_painter.prepare_widget(self.figure)
 
-    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
-        self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time)
-        pass
-
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol
         self.figure.clear_all()
@@ -309,6 +310,22 @@ class SubjectWindow(QtGui.QMainWindow):
             event.accept()
         else:
             event.ignore()
+
+
+class SubjectWindow(SecondaryWindow):
+    def create_figure(self):
+        return ProtocolWidget()
+
+    def update_protocol_state(self, samples, reward, chunk, chunk_size=1, is_half_time=False):
+        self.current_protocol.update_state(samples=samples, reward=reward, chunk=chunk, chunk_size=chunk_size,
+                                           is_half_time=is_half_time)
+
+class SourcesWindow(SecondaryWindow):
+    def create_figure(self):
+        return SourceSpaceWidget()
+
+    def update_protocol_state(self, chunk):
+        self.current_protocol.update_state(chunk)
 
 
 class CustomExperiment(design.Experiment):
