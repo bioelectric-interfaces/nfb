@@ -94,7 +94,8 @@ class Experiment():
 
             # redraw signals and raw data
             self.main.redraw_signals(sample, chunk, self.samples_counter)
-            self.sources_window.update_protocol_state(chunk)
+            if self.params['bPlotSourceSpace']:
+                self.source_space_window.update_protocol_state(chunk)
 
             # redraw protocols
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
@@ -485,12 +486,13 @@ class Experiment():
                                n_channels=self.n_channels,
                                plot_raw_flag=self.params['bPlotRaw'],
                                plot_signals_flag=self.params['bPlotSignals'],
-                               plot_sources_flag=self.params['bPlotSources'],
+                               plot_source_space_flag=self.params['bPlotSourceSpace'],
                                show_subject_window=self.params['bShowSubjectWindow'],
                                channels_labels=channels_labels,
                                subject_backend_expyriment=self.params['bUseExpyriment'])
         self.subject = self.main.subject_window
-        self.sources_window = self.main.sources_window
+        if self.params['bPlotSourceSpace']:
+            self.source_space_window = self.main.source_window
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)

@@ -132,10 +132,14 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
                  experiment=None, freq=500,
-                 plot_raw_flag=True, plot_signals_flag=True, plot_sources_flag=False, show_subject_window=True,
+                 plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False, show_subject_window=True,
                  channels_labels=None,
                  subject_backend_expyriment=False):
         super(MainWindow, self).__init__(parent)
+
+        # Which windows to draw:
+        self.plot_source_space_flag = plot_source_space_flag
+        self.show_subject_window = show_subject_window
 
         # status info
         self.status = PlayerLineInfo([p.name for p in protocols], [[p.duration for p in protocols]])
@@ -209,10 +213,10 @@ class MainWindow(QtGui.QMainWindow):
             self._subject_window_want_to_close = None
 
         # Source space window
-        if plot_sources_flag:
+        if plot_source_space_flag:
             source_space_protocol = SourceSpaceRecontructor(signals)
-            self.sources_window = SourcesWindow(self, source_space_protocol)
-            self.sources_window.show()
+            self.source_space_window = SourcesSpaceWindow(self, source_space_protocol)
+            self.source_space_window.show()
 
         # time counter
         self.time_counter = 0
@@ -260,10 +264,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
-        if self.subject_window:
+        if self.show_subject_window and self.subject_window:
             self.subject_window.close()
-        if self.sources_window:
-            self.sources_window.close()
+        if self.plot_source_space_flag and self.source_space_window:
+            self.source_space_window.close()
         self.experiment.destroy()
         event.accept()
 
@@ -317,11 +321,11 @@ class SubjectWindow(SecondaryWindow):
     def create_figure(self):
         return ProtocolWidget()
 
-    def update_protocol_state(self, samples, reward, chunk, chunk_size=1, is_half_time=False):
-        self.current_protocol.update_state(samples=samples, reward=reward, chunk=chunk, chunk_size=chunk_size,
+    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
+        self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
                                            is_half_time=is_half_time)
 
-class SourcesWindow(SecondaryWindow):
+class SourcesSpaceWindow(SecondaryWindow):
     def create_figure(self):
         return SourceSpaceWidget()
 

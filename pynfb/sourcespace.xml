@@ -2,7 +2,7 @@
 <NeurofeedbackSignalSpecs>
 	<bDC>0</bDC>
 	<sExperimentName>Source space visualization</sExperimentName>
-	<sInletType>lsl_generator</sInletType>
+	<sInletType>lsl_from_file</sInletType>
 	<sStreamName>NVX136_Data</sStreamName>
 	<sRawDataFilePath>C:\\Users\\evgenii\\mne_data\\MNE-sample-data/MEG/sample/sample_audvis_raw.fif</sRawDataFilePath>
 	<sFTHostnamePort>localhost:1972</sFTHostnamePort>
