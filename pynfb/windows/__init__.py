@@ -215,7 +215,7 @@ class MainWindow(QtGui.QMainWindow):
         # Source space window
         if plot_source_space_flag:
             source_space_protocol = SourceSpaceRecontructor(signals)
-            self.source_space_window = SourcesSpaceWindow(self, source_space_protocol)
+            self.source_space_window = SourceSpaceWindow(self, source_space_protocol)
             self.source_space_window.show()
 
         # time counter
@@ -325,7 +325,8 @@ class SubjectWindow(SecondaryWindow):
         self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
                                            is_half_time=is_half_time)
 
-class SourcesSpaceWindow(SecondaryWindow):
+
+class SourceSpaceWindow(SecondaryWindow):
     def create_figure(self):
         return SourceSpaceWidget()
 
