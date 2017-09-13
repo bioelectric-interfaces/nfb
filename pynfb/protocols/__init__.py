@@ -274,7 +274,7 @@ class SourceSpaceRecontructor(Protocol):
 
     def chunk_to_sources(self, chunk):
         F = self._forward_model_matrix
-        return F.dot(chunk[-1, :])
+        return F.dot(chunk.T).T
 
     @staticmethod
     def make_inverse_operator():

@@ -48,6 +48,7 @@ class Experiment():
         :return: None
         """
         # get next chunk
+        # self.stream is a ChannelsSelector instance!
         chunk, other_chunk = self.stream.get_next_chunk() if self.stream is not None else (None, None)
         if chunk is not None and self.main is not None:
 
