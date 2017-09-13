@@ -22,7 +22,7 @@ class SettingsWidget(QtGui.QWidget):
         self.app = app
         v_layout = QtGui.QVBoxLayout()
         layout = QtGui.QHBoxLayout()
-        self.params = xml_file_to_params()
+        self.params = xml_file_to_params('sourcespace.xml')
         self.general_settings = GeneralSettingsWidget(parent=self)
         v_layout.addWidget(self.general_settings)
         v_layout.addLayout(layout)

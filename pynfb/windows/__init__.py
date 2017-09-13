@@ -344,6 +344,7 @@ class CustomExperiment(design.Experiment):
     def show_reward(self, flag):
         pass
 
+
 class ExpyrimentSubjectWindow:
     def __init__(self, parent, current_protocol, **kwargs):
         control.defaults.initialize_delay = 0
