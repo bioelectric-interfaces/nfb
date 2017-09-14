@@ -4,7 +4,7 @@ from pynfb.protocols.psycho.cross_present import PsyExperiment
 import numpy as np
 import time
 from matplotlib import cm
-from collections import namedtuple
+from collections import namedtuple, deque
 
 
 class ProtocolWidget(pg.PlotWidget):
@@ -302,9 +302,21 @@ class SourceSpaceWidget(gl.GLViewWidget):
 class SourceSpaceWidgetPainter(Painter):
     COLORMAP_LIMITS_GLOBAL = 'global'
     COLORMAP_LIMITS_LOCAL = 'local'
-    COLORMAP_BUFFER_LENGTH_DEFAULT = 1000 # samples, if colormap limits are set to 'global' then 'global' means last
-                                          # COLORMAP_BUFFER_LENGTH_DEFAULT samples
-    RangeBuffer = namedtuple('RangeBuffer', 'min_buffer max_buffer vmin vmax')
+    COLORMAP_BUFFER_LENGTH_DEFAULT = 40000  # samples, if colormap limits are set to 'global' then 'global' means last
+    # COLORMAP_BUFFER_LENGTH_DEFAULT samples
+
+    class RangeBuffer:
+        def __init__(self, buffer_length):
+            self.min_buffer = deque(maxlen=buffer_length)
+            self.max_buffer = deque(maxlen=buffer_length)
+            self.vmin = None
+            self.vmax = None
+
+        def update(self, sources):
+            self.min_buffer.extend(np.min(sources, axis=1))
+            self.vmin = min(self.min_buffer)
+            self.max_buffer.extend(np.max(sources, axis=1))
+            self.vmax = max(self.max_buffer)
 
     def __init__(self, source_space_reconstructor, show_reward=False, params=None):
         super().__init__(show_reward=show_reward)
@@ -321,7 +333,7 @@ class SourceSpaceWidgetPainter(Painter):
             self.colormap_buffer_length = self.COLORMAP_BUFFER_LENGTH_DEFAULT
 
         if self.colormap_limits == self.COLORMAP_LIMITS_GLOBAL:
-            self.range_buffer = self.RangeBuffer([], [], None, None)
+            self.range_buffer = self.RangeBuffer(self.colormap_buffer_length)
 
     def prepare_widget(self, widget):
         super().prepare_widget(widget)
@@ -352,7 +364,7 @@ class SourceSpaceWidgetPainter(Painter):
             vmin = None
             vmax = None
         elif self.colormap_limits == self.COLORMAP_LIMITS_GLOBAL:
-            self.update_range_buffer(chunk)
+            self.range_buffer.update(sources)
             vmin = self.range_buffer.vmin
             vmax = self.range_buffer.vmax
         sources_normalized = self.normalize_to_01(last_sources, vmin=vmin, vmax=vmax)
@@ -364,9 +376,6 @@ class SourceSpaceWidgetPainter(Painter):
         self.cortex_mesh_data._vertexColors[self.vertex_idx] = colors
         self.cortex_mesh_data._vertexColorsIndexedByFaces = None
         self.cortex_mesh_item.meshDataChanged()
-
-    def update_range_buffer(self, chunk):
-        pass
 
     @staticmethod
     def normalize_to_01(values, vmin=None, vmax=None):
