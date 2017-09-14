@@ -1,18 +1,20 @@
 import os
 import sys
+import time
+
+import numpy as np
+import pyqtgraph as pg
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
-from pynfb.protocols.widgets import ProtocolWidget, SourceSpaceWidget
-import numpy as np
-from numpy import isnan
-from expyriment import control, design, misc
+from expyriment import control, design
+
+from pynfb.brain import SourceSpaceRecontructor
+from pynfb.brain import SourceSpaceWidget
+from pynfb.helpers.dc_blocker import DCBlocker
+from pynfb.protocols.widgets import ProtocolWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
-from pynfb.helpers.dc_blocker import DCBlocker
-from pynfb.protocols import SourceSpaceRecontructor
-import pyqtgraph as pg
-import time
 
 pg.setConfigOptions(antialias=True)
 
@@ -326,14 +328,6 @@ class SubjectWindow(SecondaryWindow):
                                            is_half_time=is_half_time)
 
 
-class SourceSpaceWindow(SecondaryWindow):
-    def create_figure(self):
-        return SourceSpaceWidget()
-
-    def update_protocol_state(self, chunk):
-        self.current_protocol.update_state(chunk)
-
-
 class CustomExperiment(design.Experiment):
     def clear_all(self):
         pass
@@ -381,3 +375,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+class SourceSpaceWindow(SecondaryWindow):
+    def create_figure(self):
+        return SourceSpaceWidget()
+
+    def update_protocol_state(self, chunk):
+        self.current_protocol.update_state(chunk)
