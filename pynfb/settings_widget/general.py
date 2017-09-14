@@ -49,6 +49,7 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_source_space_check = QtGui.QCheckBox()
         self.plot_source_space_check.clicked.connect(self.plot_source_space_checkbox_event)
         self.form_layout.addRow('&Plot source space:', self.plot_source_space_check)
+
         # show subject window
         self.show_subject_window_check = QtGui.QCheckBox()
         self.show_subject_window_check.clicked.connect(self.show_subject_window_checkbox_event)

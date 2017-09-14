@@ -1,10 +1,8 @@
-import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-from pynfb.protocols.psycho.cross_present import PsyExperiment
-import numpy as np
 import time
-from matplotlib import cm
-from collections import namedtuple, deque
+
+import pyqtgraph as pg
+
+from pynfb.protocols.psycho.cross_present import PsyExperiment
 
 
 class ProtocolWidget(pg.PlotWidget):
@@ -265,7 +263,6 @@ class VideoProtocolWidgetPainter(Painter):
 if __name__ == '__main__':
     from PyQt4 import QtGui
     from PyQt4 import QtCore
-    from time import sleep
     import numpy as np
     a = QtGui.QApplication([])
     w = ProtocolWidget()
@@ -281,104 +278,3 @@ if __name__ == '__main__':
     #    b.redraw_state(np.random.normal(size=1))
 
 
-class SourceSpaceWidget(gl.GLViewWidget):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.reward = None
-        self.clear_all()
-
-    def clear_all(self):
-        for item in self.items:
-            self.removeItem(item)
-        # self.addItem(self.reward)
-
-    def update_reward(self, reward):
-        pass
-
-    def show_reward(self, flag):
-        pass
-
-
-class SourceSpaceWidgetPainter(Painter):
-    COLORMAP_LIMITS_GLOBAL = 'global'
-    COLORMAP_LIMITS_LOCAL = 'local'
-    COLORMAP_BUFFER_LENGTH_DEFAULT = 40000  # samples, if colormap limits are set to 'global' then 'global' means last
-    # COLORMAP_BUFFER_LENGTH_DEFAULT samples
-
-    class RangeBuffer:
-        def __init__(self, buffer_length):
-            self.min_buffer = deque(maxlen=buffer_length)
-            self.max_buffer = deque(maxlen=buffer_length)
-            self.vmin = None
-            self.vmax = None
-
-        def update(self, sources):
-            self.min_buffer.extend(np.min(sources, axis=1))
-            self.vmin = min(self.min_buffer)
-            self.max_buffer.extend(np.max(sources, axis=1))
-            self.vmax = max(self.max_buffer)
-
-    def __init__(self, source_space_reconstructor, show_reward=False, params=None):
-        super().__init__(show_reward=show_reward)
-        self.protocol = source_space_reconstructor
-        self.chunk_to_sources = source_space_reconstructor.chunk_to_sources
-
-        self.cortex_mesh_data = None
-        self.vertex_idx = None
-        self.cortex_mesh_item = None
-
-        self.colormap = cm.viridis
-        if params is None:
-            self.colormap_limits = self.COLORMAP_LIMITS_GLOBAL
-            self.colormap_buffer_length = self.COLORMAP_BUFFER_LENGTH_DEFAULT
-
-        if self.colormap_limits == self.COLORMAP_LIMITS_GLOBAL:
-            self.range_buffer = self.RangeBuffer(self.colormap_buffer_length)
-
-    def prepare_widget(self, widget):
-        super().prepare_widget(widget)
-
-        self.cortex_mesh_data = self.protocol.mesh_data
-        self.vertex_idx = self.protocol.vertex_idx
-
-        # We will only be assigning colors to a subset of vertexes used for forward/inverse modelling. First, we need to
-        # assign an initial color to all the vertices.
-        total_vertex_cnt = self.cortex_mesh_data.vertexes().shape[0]
-        initial_color = self.colormap(0.5)
-        initial_colors = np.tile(initial_color, (total_vertex_cnt, 1))
-        self.cortex_mesh_data.setVertexColors(initial_colors)
-
-        # Set the camera at twice the size of the mesh along the widest dimension
-        max_ptp = max(np.ptp(self.cortex_mesh_data.vertexes(), axis=0))
-        widget.setCameraPosition(distance=2*max_ptp)
-
-        self.cortex_mesh_item = gl.GLMeshItem(meshdata=self.cortex_mesh_data)
-        widget.addItem(self.cortex_mesh_item)
-
-        print('Widget prepared')
-
-    def redraw_state(self, chunk):
-        sources = self.chunk_to_sources(chunk)
-        last_sources = sources[-1, :]
-        if self.colormap_limits == self.COLORMAP_LIMITS_LOCAL:
-            vmin = None
-            vmax = None
-        elif self.colormap_limits == self.COLORMAP_LIMITS_GLOBAL:
-            self.range_buffer.update(sources)
-            vmin = self.range_buffer.vmin
-            vmax = self.range_buffer.vmax
-        sources_normalized = self.normalize_to_01(last_sources, vmin=vmin, vmax=vmax)
-        colors = self.colormap(sources_normalized)
-        self.update_mesh_colors(colors)
-
-    def update_mesh_colors(self, colors):
-        # using cortex_mesh_data.setVertexColors() is much slower, bc we are coloring only a subset of vertices
-        self.cortex_mesh_data._vertexColors[self.vertex_idx] = colors
-        self.cortex_mesh_data._vertexColorsIndexedByFaces = None
-        self.cortex_mesh_item.meshDataChanged()
-
-    @staticmethod
-    def normalize_to_01(values, vmin=None, vmax=None):
-        vmin = vmin or np.min(values)
-        vmax = vmax or np.max(values)
-        return (values - vmin) / vmax
