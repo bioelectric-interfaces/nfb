@@ -157,7 +157,7 @@ class SourceSpaceWidgetPainter(Painter):
         max_ptp = max(np.ptp(self.cortex_mesh_data.vertexes(), axis=0))
         widget.setCameraPosition(distance=2*max_ptp)
 
-        self.cortex_mesh_item = gl.GLMeshItem(meshdata=self.cortex_mesh_data, shader='balloon')
+        self.cortex_mesh_item = gl.GLMeshItem(meshdata=self.cortex_mesh_data, shader='shaded')
         widget.addItem(self.cortex_mesh_item)
 
         print('Widget prepared')
