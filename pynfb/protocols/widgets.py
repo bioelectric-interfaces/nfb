@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 import pyqtgraph as pg
 
 from pynfb.protocols.psycho.cross_present import PsyExperiment
@@ -263,7 +264,6 @@ class VideoProtocolWidgetPainter(Painter):
 if __name__ == '__main__':
     from PyQt4 import QtGui
     from PyQt4 import QtCore
-    import numpy as np
     a = QtGui.QApplication([])
     w = ProtocolWidget()
     w.show()
