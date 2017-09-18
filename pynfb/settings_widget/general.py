@@ -45,6 +45,16 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.plot_signals_check.clicked.connect(self.plot_signals_checkbox_event)
         self.form_layout.addRow('&Plot signals:', self.plot_signals_check)
 
+        # plot source space flag
+        self.plot_source_space_check = QtGui.QCheckBox()
+        self.plot_source_space_check.clicked.connect(self.plot_source_space_checkbox_event)
+        self.form_layout.addRow('&Plot source space:', self.plot_source_space_check)
+
+        # show subject window
+        self.show_subject_window_check = QtGui.QCheckBox()
+        self.show_subject_window_check.clicked.connect(self.show_subject_window_checkbox_event)
+        self.form_layout.addRow('&Show subject window:', self.show_subject_window_check)
+
         # reward period
         self.reward_period = QtGui.QDoubleSpinBox()
         self.reward_period.setRange(0.05, 10)
@@ -87,6 +97,12 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def plot_signals_checkbox_event(self):
         self.params['bPlotSignals'] = int(self.plot_signals_check.isChecked())
 
+    def plot_source_space_checkbox_event(self):
+        self.params['bPlotSourceSpace'] = int(self.plot_source_space_check.isChecked())
+
+    def show_subject_window_checkbox_event(self):
+        self.params['bShowSubjectWindow'] = int(self.show_subject_window_check.isChecked())
+
     def dc_check_event(self):
         self.params['bDC'] = int(self.dc_check.isChecked())
 
@@ -103,6 +119,8 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.reference_sub.setText(self.params['sReferenceSub'])
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
+        self.plot_source_space_check.setChecked(self.params['bPlotSourceSpace'])
+        self.show_subject_window_check.setChecked(self.params['bShowSubjectWindow'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
         self.dc_check.setChecked(self.params['bDC'])
         self.use_expyriment.setChecked(self.params['bUseExpyriment'])

@@ -1,7 +1,8 @@
-import pyqtgraph as pg
-from pynfb.protocols.psycho.cross_present import PsyExperiment
-import numpy as np
 import time
+
+import pyqtgraph as pg
+
+from pynfb.protocols.psycho.cross_present import PsyExperiment
 
 
 class ProtocolWidget(pg.PlotWidget):
@@ -150,11 +151,11 @@ class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
         super(BaselineProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
+        self.text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text),
+                                     anchor=(0.5, 0.5))
 
     def prepare_widget(self, widget):
         super(BaselineProtocolWidgetPainter, self).prepare_widget(widget)
-        self.text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text),
-                                anchor=(0.5, 0.5))
         self.text_item.setTextWidth(500)
         widget.addItem(self.text_item)
         self.plotItem = widget.plotItem
@@ -262,7 +263,6 @@ class VideoProtocolWidgetPainter(Painter):
 if __name__ == '__main__':
     from PyQt4 import QtGui
     from PyQt4 import QtCore
-    from time import sleep
     import numpy as np
     a = QtGui.QApplication([])
     w = ProtocolWidget()
@@ -276,4 +276,5 @@ if __name__ == '__main__':
     #for k in range(10000):
     #    sleep(1/30)
     #    b.redraw_state(np.random.normal(size=1))
+
 
