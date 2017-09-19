@@ -386,7 +386,8 @@ class Experiment():
                 reverse_mock_previous=bool(protocol['bReverseMockPrevious']),
                 m_signal_index=m_signal_index,
                 shuffle_mock_previous=bool(protocol['bRandomMockPrevious']),
-                as_mock=bool(protocol['bMockSource'])
+                as_mock=bool(protocol['bMockSource']),
+                fast_bci_fit=bool(protocol['bFastBCIFit'])
             )
 
             # type specific arguments
