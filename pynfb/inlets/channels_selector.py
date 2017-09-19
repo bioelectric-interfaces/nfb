@@ -8,13 +8,13 @@ class ChannelsSelector:
         self.last_y = 0
         self.inlet = inlet
         names = [n.upper() for n in self.inlet.get_channels_labels()]
-        names_ = [''.join([ch if ch.isalnum() else ' ' for ch in name]).split()[0] for name in names]
+        names = [''.join([ch if ch.isalnum() else ' ' for ch in name]).split()[0] for name in names]
         self.channels_names = names
         print(names)
         names_isvalid = validate_ch_names(names)
-        # if sum(names_isvalid) < len(names):
-        #     print('WARNING: inlet channels {} are not in standard 1005 scheme'.format(
-        #         [name for name, isvalid in zip(names, names_isvalid) if not isvalid]))
+        if sum(names_isvalid) < len(names):
+            print('WARNING: inlet channels {} are not in standard 1005 scheme'.format(
+                [name for name, isvalid in zip(names, names_isvalid) if not isvalid]))
 
 
         # get channels indices to select
@@ -60,7 +60,7 @@ class ChannelsSelector:
             exclude_indices = []
 
         # exclude not valid channels
-        # exclude_indices += [j for j, isvalid in enumerate(names_isvalid) if not isvalid]
+        exclude_indices += [j for j, isvalid in enumerate(names_isvalid) if not isvalid]
 
         # exclude subtractive channel
         if self.sub_channel_index is not None:
