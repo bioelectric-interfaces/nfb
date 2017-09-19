@@ -2,7 +2,7 @@ import numpy as np
 from PyQt4 import QtGui, QtCore
 from pyqtgraph import PlotWidget
 
-from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
+from ...protocols.ssd.topomap_canvas import TopographicMapCanvas
 
 
 class BarLabelWidget(QtGui.QWidget):

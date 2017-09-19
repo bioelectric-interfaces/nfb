@@ -3,7 +3,7 @@ import time
 import numpy as np
 import pyqtgraph as pg
 
-from pynfb.protocols.psycho.cross_present import PsyExperiment
+from ..protocols.psycho.cross_present import PsyExperiment
 
 
 class ProtocolWidget(pg.PlotWidget):

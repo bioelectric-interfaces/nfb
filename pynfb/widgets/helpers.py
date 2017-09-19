@@ -1,6 +1,6 @@
 from PyQt4 import QtGui, QtCore
 
-from pynfb.helpers.az_proj import azimuthal_equidistant_projection
+from ..helpers.az_proj import azimuthal_equidistant_projection
 
 try:
     from mne.channels import read_montage

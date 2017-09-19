@@ -1,10 +1,10 @@
 from PyQt4 import QtGui
-from pynfb.protocols.ssd.ssd import ssd_analysis
-from pynfb.protocols.ssd.sliders import Sliders
-from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
-from pynfb.protocols.ssd.interactive_barplot import ClickableBarplot
+from ...protocols.ssd.ssd import ssd_analysis
+from ...protocols.ssd.sliders import Sliders
+from ...protocols.ssd.topomap_canvas import TopographicMapCanvas
+from ...protocols.ssd.interactive_barplot import ClickableBarplot
 
-from pynfb.widgets.parameter_slider import ParameterSlider
+from ...widgets.parameter_slider import ParameterSlider
 from numpy import arange, dot, array, eye
 from numpy.linalg import pinv
 
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     app = QtGui.QApplication([])
 
     import numpy as np
-    from pynfb.widgets.helpers import ch_names_to_2d_pos
+    from ..widgets.helpers import ch_names_to_2d_pos
     ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
                 'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
     channels_names = np.array(ch_names)

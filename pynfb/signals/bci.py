@@ -1,10 +1,10 @@
-from pynfb.signal_processing.filters import ButterFilter, FilterSequence, FilterStack, InstantaneousVarianceFilter
-from pynfb.signal_processing.decompositions import SpatialDecompositionPool
+from ..signal_processing.filters import ButterFilter, FilterSequence, FilterStack, InstantaneousVarianceFilter
+from ..signal_processing.decompositions import SpatialDecompositionPool
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
-from pynfb.signal_processing.helpers import get_outliers_mask
-#from pynfb.signals._bci_dev.bcimodel_draft import BCIModel
+from ..signal_processing.helpers import get_outliers_mask
+#from ..signals._bci_dev.bcimodel_draft import BCIModel
 BANDS_DEFAULT = [(6, 10), (8, 12), (10, 14), (12, 16), (14, 18), (16, 20), (18, 22), (20, 24)]
 STATES_LABELS_DEFAULT = [0, 1, 2]
 INDEXES_DEFAULT = [1, -1]

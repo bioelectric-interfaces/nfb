@@ -1,7 +1,7 @@
 from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 import numpy as np
-from pynfb.widgets.parameter_slider import ParameterSlider
+from ...widgets.parameter_slider import ParameterSlider
 from time import time
 
 

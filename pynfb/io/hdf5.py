@@ -1,6 +1,6 @@
 import numpy as np
 import h5py
-from pynfb.signals import DerivedSignal, CompositeSignal, BCISignal
+from ..signals import DerivedSignal, CompositeSignal, BCISignal
 
 
 def save_h5py(file_path, data, dataset_name='dataset'):

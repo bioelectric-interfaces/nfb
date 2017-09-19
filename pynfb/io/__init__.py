@@ -1,5 +1,5 @@
 from numpy import array
-from pynfb.helpers.roi_spatial_filter import get_roi_filter
+from ..helpers.roi_spatial_filter import get_roi_filter
 
 
 def read_spatial_filter(filepath, fs, channel_labels=None, roi_label=''):

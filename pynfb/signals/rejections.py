@@ -1,5 +1,5 @@
 from numpy import eye, dot
-from pynfb.signal_processing.filters import SpatialRejection
+from ..signal_processing.filters import SpatialRejection
 
 
 class Rejections():

@@ -1,6 +1,6 @@
 from PyQt4 import QtGui, QtCore
 
-from pynfb.widgets.multi_topographies import TopographiesDialog
+from ..widgets.multi_topographies import TopographiesDialog
 
 
 class RejectionIcon(QtGui.QLabel):

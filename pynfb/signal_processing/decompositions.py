@@ -3,10 +3,10 @@ from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
 
-from pynfb.signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack
-from pynfb.signal_processing.helpers import get_outliers_mask, stimulus_split
-from pynfb.signals.rejections import SpatialRejection
-from pynfb.widgets.helpers import ch_names_to_2d_pos
+from ..signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack
+from ..signal_processing.helpers import get_outliers_mask, stimulus_split
+from ..signals.rejections import SpatialRejection
+from ..widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
 from scipy.linalg import eigh, inv
 from sklearn.metrics import mutual_info_score
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     n_channels = 3
     n_samples = 50001
     t = np.arange(2000)/fs
-    #from pynfb.signal_processing.filters import ButterFilter
+    #from ..signal_processing.filters import ButterFilter
     import pylab as plt
     alpha = ButterFilter((8, 11), fs, 1).apply(np.random.normal(size=(n_samples, 1)))
     theta = ButterFilter((4, 7), fs, 1).apply(np.random.normal(size=(n_samples, 1)))
