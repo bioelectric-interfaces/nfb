@@ -283,7 +283,10 @@ class SecondaryWindow(QtGui.QMainWindow):
 
     # Must be implemented to return a central widget object in subclasses
     def create_figure(self):
-        return object()
+        raise NotImplementedError('create_figure() must be implemented to return a central widget object in subclasses')
+
+    def update_protocol_state(*args, **kwargs):
+        raise NotImplementedError('update_protocol_state() must be implemented to update window state')
 
     def __init__(self, parent, current_protocol, **kwargs):
         super().__init__(parent, **kwargs)
