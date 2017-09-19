@@ -46,7 +46,7 @@ class DerivedSignal():
                 raise TypeError('Incorrect smoother type')
             # setup specific parameters of envelope detector
             if temporal_filter_type == 'fft':
-                self.signal_estimator = FFTBandEnvelopeDetector(self.bandpass, source_freq, smoother, n_samples)
+                self.signal_estimator = FFTBandEnvelopeDetector(self.bandpass, source_freq, smoother, self.n_samples)
             elif temporal_filter_type == 'complexdem':
                 self.signal_estimator = ComplexDemodulationBandEnvelopeDetector(self.bandpass, source_freq, smoother)
             elif temporal_filter_type == 'butter':
