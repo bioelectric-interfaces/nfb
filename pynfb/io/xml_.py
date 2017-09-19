@@ -17,7 +17,10 @@ def format_odict_by_defaults(odict, defaults):
     for key in defaults.keys():
         if key in odict.keys():
             if key in ['DerivedSignal', 'FeedbackProtocol', 'CompositeSignal', 'PGroup']:
-                formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
+                if odict[key] == '':
+                    formatted_odict[key] = []
+                else:
+                    formatted_odict[key] = [format_odict_by_defaults(item, defaults[key][0])
                                         for item in (odict[key] if isinstance(odict[key], list) else [odict[key]])]
             elif isinstance(defaults[key], OrderedDict):
                 formatted_odict[key] = format_odict_by_defaults(odict[key], defaults[key])
@@ -76,7 +79,12 @@ def params_to_xml(params):
     odict['vProtocols'] = OrderedDict([('FeedbackProtocol', params['vProtocols'])])
     odict['vPSequence'] = OrderedDict([('s', params['vPSequence'])])
     xml_odict = OrderedDict([('NeurofeedbackSignalSpecs', odict.copy())])
-    xml = unparse(xml_odict, pretty=True)
+    def preprocessor(key, val):
+        if key in ['DerivedSignal', 'FeedbackProtocol', 'CompositeSignal', 'PGroup'] and val == []:
+            val = ''
+        return key, val
+    xml = unparse(xml_odict, pretty=True, preprocessor=preprocessor)
+
     return xml
 
 
