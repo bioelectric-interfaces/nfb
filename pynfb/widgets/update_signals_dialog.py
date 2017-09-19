@@ -3,17 +3,17 @@ from copy import deepcopy
 from PyQt4 import QtGui, QtCore
 import sys
 
-from pynfb.protocols import SelectSSDFilterWidget
-from pynfb.protocols.signals_manager.band_selector import BandSelectorWidget
-from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
-from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from pynfb.widgets.rejections_editor import RejectionsWidget
-from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
-from pynfb.widgets.check_table import CheckTable
-from pynfb.signals import DerivedSignal, BCISignal
+from ..protocols import SelectSSDFilterWidget
+from ..protocols.signals_manager.band_selector import BandSelectorWidget
+from ..protocols.ssd.topomap_canvas import TopographicMapCanvas
+from ..protocols.ssd.topomap_selector_ica import ICADialog
+from ..widgets.rejections_editor import RejectionsWidget
+from ..widgets.spatial_filter_setup import SpatialFilterSetup
+from ..widgets.check_table import CheckTable
+from ..signals import DerivedSignal, BCISignal
 from numpy import dot, concatenate, array
 import numpy as np
-from pynfb.widgets.bci_fit import BCIFitWidget
+from ..widgets.bci_fit import BCIFitWidget
 
 
 class SignalsTable(QtGui.QTableWidget):
@@ -456,14 +456,14 @@ if __name__ == '__main__':
     #channels = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
     #            'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
     n_ch = len(channels)
-    from pynfb.signals import CompositeSignal
+    from ..signals import CompositeSignal
     signals = [DerivedSignal(ind = k, source_freq=500, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=n_ch) for k in range(3)]
     signals +=[CompositeSignal(signals, '', 'Composite', 3)]
     signals += [BCISignal(500, channels, 'bci', n_ch)]
     app = QtGui.QApplication([])
 
     #x = np.random.randn(5000, n_ch)
-    from pynfb.widgets.helpers import ch_names_to_2d_pos
+    from ..widgets.helpers import ch_names_to_2d_pos
 
     #x[2500:3000, channels.index('Cz')] /= 50
 

@@ -1,7 +1,7 @@
-from pynfb.io import read_spatial_filter
-from pynfb.io.xmltodict import parse, unparse
+from . import read_spatial_filter
+from .xmltodict import parse, unparse
 from collections import OrderedDict
-from pynfb.io.defaults import *
+from .defaults import *
 from numpy import array
 import xml.etree.ElementTree as ET
 
@@ -94,7 +94,7 @@ def save_signal(signal, filename):
         f.write(unparse(signal_dict, pretty=True))
 
 
-from pynfb.signals import DerivedSignal
+from ..signals import DerivedSignal
 def load_signal(filename, channels_labels):
     signal = xml_file_to_odict(filename)
     default = vectors_defaults['vSignals']['DerivedSignal'][0].copy()

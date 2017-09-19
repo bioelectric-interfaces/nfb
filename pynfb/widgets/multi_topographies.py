@@ -1,6 +1,6 @@
 from PyQt4 import QtGui
 
-from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
+from ..protocols.ssd.topomap_canvas import TopographicMapCanvas
 
 
 class MultiTopographiesCanvas(QtGui.QTableWidget):

@@ -5,16 +5,16 @@ from mne.io import RawArray
 from mne.preprocessing import ICA
 from sklearn.metrics import mutual_info_score
 
-from pynfb.io.xml_ import get_lsl_info_from_xml
-from pynfb.postprocessing.helpers import dc_blocker
-from pynfb.protocols.signals_manager.scored_components_table import ScoredComponentsTable
+from ...io.xml_ import get_lsl_info_from_xml
+from ...postprocessing.helpers import dc_blocker
+from ...protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
-from pynfb.protocols.ssd.sliders_csp import Sliders
-from pynfb.signal_processing.filters import SpatialRejection
-from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
-from pynfb._titles import WAIT_BAR_MESSAGES
-from pynfb.signal_processing.decompositions import CSPDecomposition, ICADecomposition, CSPDecompositionStimulus
-from pynfb.signal_processing.helpers import stimulus_split
+from ...protocols.ssd.sliders_csp import Sliders
+from ...signal_processing.filters import SpatialRejection
+from ...widgets.helpers import ch_names_to_2d_pos, WaitMessage
+from ..._titles import WAIT_BAR_MESSAGES
+from ...signal_processing.decompositions import CSPDecomposition, ICADecomposition, CSPDecompositionStimulus
+from ...signal_processing.helpers import stimulus_split
 from time import time
 
 def mutual_info(x, y, bins=100):

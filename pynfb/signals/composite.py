@@ -1,7 +1,7 @@
 import numpy as np
 import sympy
 
-from pynfb.signal_processing.filters import Coherence
+from ..signal_processing.filters import Coherence
 
 
 class CompositeSignal:

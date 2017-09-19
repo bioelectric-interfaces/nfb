@@ -5,8 +5,8 @@ import expyriment.stimuli
 import expyriment.stimuli.extras
 from PyQt4 import QtGui, QtCore
 import numpy as np
-from pynfb.helpers.gabor import GaborPatch
-from pynfb.helpers.cross import ABCCross
+from ...helpers.gabor import GaborPatch
+from ...helpers.cross import ABCCross
 import pygame
 
 

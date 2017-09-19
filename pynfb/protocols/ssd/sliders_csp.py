@@ -1,5 +1,5 @@
 from PyQt4 import QtGui, QtCore
-from pynfb.widgets.parameter_slider import ParameterSlider
+from ...widgets.parameter_slider import ParameterSlider
 
 
 class Sliders(QtGui.QWidget):

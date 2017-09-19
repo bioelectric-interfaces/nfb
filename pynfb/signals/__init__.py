@@ -4,8 +4,8 @@ from scipy.signal import savgol_coeffs, lfiltic, lfilter, butter
 from .composite import CompositeSignal
 from .bci import BCISignal
 from .rejections import Rejections
-from pynfb.io import save_spatial_filter
-from pynfb.signal_processing.filters import FFTBandEnvelopeDetector, ButterBandEnvelopeDetector, ComplexDemodulationBandEnvelopeDetector,\
+from ..io import save_spatial_filter
+from ..signal_processing.filters import FFTBandEnvelopeDetector, ButterBandEnvelopeDetector, ComplexDemodulationBandEnvelopeDetector,\
     ExponentialSmoother, SGSmoother, ScalarButterFilter, IdentityFilter
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'

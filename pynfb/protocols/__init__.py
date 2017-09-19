@@ -4,15 +4,15 @@ import numpy as np
 from numpy import vstack
 from numpy.random import randint
 
-from pynfb.helpers.beep import SingleBeep
-from pynfb.io.hdf5 import load_h5py_protocols_raw
-from pynfb.protocols.user_inputs import SelectSSDFilterWidget
-from pynfb.protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
+from ..helpers.beep import SingleBeep
+from ..io.hdf5 import load_h5py_protocols_raw
+from ..protocols.user_inputs import SelectSSDFilterWidget
+from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
                                      PsyProtocolWidgetPainter, BaselineProtocolWidgetPainter,
                                      ThresholdBlinkFeedbackProtocolWidgetPainter, VideoProtocolWidgetPainter)
-from pynfb.signals import CompositeSignal, DerivedSignal
-from pynfb.widgets.helpers import ch_names_to_2d_pos
-from pynfb.widgets.update_signals_dialog import SignalsSSDManager
+from ..signals import CompositeSignal, DerivedSignal
+from ..widgets.helpers import ch_names_to_2d_pos
+from ..widgets.update_signals_dialog import SignalsSSDManager
 
 
 class Protocol:

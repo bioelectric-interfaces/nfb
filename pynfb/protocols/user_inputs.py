@@ -1,12 +1,12 @@
 import numpy as np
 from PyQt4 import QtGui, QtCore
 
-from pynfb._titles import WAIT_BAR_MESSAGES
-from pynfb.generators import ch_names
-from pynfb.protocols.ssd import TopomapSelector
-from pynfb.signal_processing.filters import SpatialRejection
-from pynfb.widgets.helpers import ch_names_to_2d_pos, WaitMessage
-from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
+from .._titles import WAIT_BAR_MESSAGES
+from ..generators import ch_names
+from ..protocols.ssd import TopomapSelector
+from ..signal_processing.filters import SpatialRejection
+from ..widgets.helpers import ch_names_to_2d_pos, WaitMessage
+from ..widgets.spatial_filter_setup import SpatialFilterSetup
 
 
 class SelectSSDFilterWidget(QtGui.QDialog):
@@ -108,7 +108,7 @@ class SelectSSDFilterWidget(QtGui.QDialog):
 
 if __name__ == '__main__':
     import numpy as np
-    from pynfb.widgets.helpers import ch_names_to_2d_pos
+    from ..widgets.helpers import ch_names_to_2d_pos
 
     app = QtGui.QApplication([])
 
@@ -123,7 +123,7 @@ if __name__ == '__main__':
                       'Cz',
                       'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz',
                       'O2']
-    from pynfb.io.hdf5 import load_h5py
+    from ..io.hdf5 import load_h5py
 
     x = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol1')
     y = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol2')
