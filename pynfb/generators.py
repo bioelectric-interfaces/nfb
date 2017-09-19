@@ -83,4 +83,19 @@ def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', lab
 
 
 if __name__ == '__main__':
-    run_eeg_sim(chunk_size=0, name='NVX136_Data')
+    # run_eeg_sim(chunk_size=0, name='NVX136_Data')
+    import mne
+
+    # This will download the sample file. Might take a considerable time
+    sample_dir = mne.datasets.sample.data_path()
+    sample_fiff_path = sample_dir + '/MEG/sample/sample_audvis_raw.fif'
+
+    raw = mne.io.read_raw_fif(sample_fiff_path, verbose='ERROR')
+    start, stop = raw.time_as_index([0, 60])  # read the first 60s of data
+    source_buffer = raw.get_data(start=start, stop=stop)
+    labels = raw.info['ch_names']
+    freq = raw.info['sfreq']
+    stream_name = 'mne_sample_raw'
+
+    run_eeg_sim(chunk_size=0, source_buffer=source_buffer, name='mne_sample',
+                labels=labels, freq=freq)

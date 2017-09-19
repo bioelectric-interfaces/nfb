@@ -1,7 +1,9 @@
-import pyqtgraph as pg
-from pynfb.protocols.psycho.cross_present import PsyExperiment
-import numpy as np
 import time
+
+import numpy as np
+import pyqtgraph as pg
+
+from pynfb.protocols.psycho.cross_present import PsyExperiment
 
 
 class ProtocolWidget(pg.PlotWidget):
@@ -262,8 +264,6 @@ class VideoProtocolWidgetPainter(Painter):
 if __name__ == '__main__':
     from PyQt4 import QtGui
     from PyQt4 import QtCore
-    from time import sleep
-    import numpy as np
     a = QtGui.QApplication([])
     w = ProtocolWidget()
     w.show()
@@ -276,4 +276,5 @@ if __name__ == '__main__':
     #for k in range(10000):
     #    sleep(1/30)
     #    b.redraw_state(np.random.normal(size=1))
+
 

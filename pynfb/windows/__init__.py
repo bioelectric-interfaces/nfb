@@ -1,14 +1,20 @@
 import os
 import sys
+import time
+
+import numpy as np
+import pyqtgraph as pg
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
-from pynfb.protocols.widgets import *
-from numpy import isnan
-from expyriment import control, design, misc
+from expyriment import control, design
+
+from pynfb.brain import SourceSpaceRecontructor
+from pynfb.brain import SourceSpaceWidget
+from pynfb.helpers.dc_blocker import DCBlocker
+from pynfb.protocols.widgets import ProtocolWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
-from pynfb.helpers.dc_blocker import DCBlocker
 
 pg.setConfigOptions(antialias=True)
 
@@ -127,9 +133,15 @@ class PlayerLineInfo(QtGui.QWidget):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
-                 experiment=None, freq=500, plot_raw_flag=True, plot_signals_flag=True, channels_labels=None,
+                 experiment=None, freq=500,
+                 plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False, show_subject_window=True,
+                 channels_labels=None,
                  subject_backend_expyriment=False):
         super(MainWindow, self).__init__(parent)
+
+        # Which windows to draw:
+        self.plot_source_space_flag = plot_source_space_flag
+        self.show_subject_window = show_subject_window
 
         # status info
         self.status = PlayerLineInfo([p.name for p in protocols], [[p.duration for p in protocols]])
@@ -191,12 +203,22 @@ class MainWindow(QtGui.QMainWindow):
         self.show()
 
         # subject window
-        if not subject_backend_expyriment:
-            self.subject_window = SubjectWindow(self, current_protocol)
-            self.subject_window.show()
+        if show_subject_window:
+            if not subject_backend_expyriment:
+                self.subject_window = SubjectWindow(self, current_protocol)
+                self.subject_window.show()
+            else:
+                self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
+            self._subject_window_want_to_close = False
         else:
-            self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
-        self._subject_window_want_to_close = False
+            self.subject_window = None
+            self._subject_window_want_to_close = None
+
+        # Source space window
+        if plot_source_space_flag:
+            source_space_protocol = SourceSpaceRecontructor(signals)
+            self.source_space_window = SourceSpaceWindow(self, source_space_protocol)
+            self.source_space_window.show()
 
         # time counter
         self.time_counter = 0
@@ -244,7 +266,10 @@ class MainWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
-        self.subject_window.close()
+        if self.show_subject_window and self.subject_window:
+            self.subject_window.close()
+        if self.plot_source_space_flag and self.source_space_window:
+            self.source_space_window.close()
         self.experiment.destroy()
         event.accept()
 
@@ -254,9 +279,17 @@ class MainWindow(QtGui.QMainWindow):
         self._first_time_start_press = False
 
 
-class SubjectWindow(QtGui.QMainWindow):
+class SecondaryWindow(QtGui.QMainWindow):
+
+    # Must be implemented to return a central widget object in subclasses
+    def create_figure(self):
+        raise NotImplementedError('create_figure() must be implemented to return a central widget object in subclasses')
+
+    def update_protocol_state(*args, **kwargs):
+        raise NotImplementedError('update_protocol_state() must be implemented to update window state')
+
     def __init__(self, parent, current_protocol, **kwargs):
-        super(SubjectWindow, self).__init__(parent, **kwargs)
+        super().__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
 
@@ -264,7 +297,7 @@ class SubjectWindow(QtGui.QMainWindow):
         widget = QtGui.QWidget()
         layout = QtGui.QHBoxLayout()
         widget.setLayout(layout)
-        self.figure = ProtocolWidget()
+        self.figure = self.create_figure()
         layout.addWidget(self.figure)
         self.figure.show_reward(False)
         self.setCentralWidget(widget)
@@ -276,10 +309,6 @@ class SubjectWindow(QtGui.QMainWindow):
 
         # prepare widget
         self.current_protocol.widget_painter.prepare_widget(self.figure)
-
-    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
-        self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time)
-        pass
 
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol
@@ -293,6 +322,15 @@ class SubjectWindow(QtGui.QMainWindow):
             event.ignore()
 
 
+class SubjectWindow(SecondaryWindow):
+    def create_figure(self):
+        return ProtocolWidget()
+
+    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
+        self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
+                                           is_half_time=is_half_time)
+
+
 class CustomExperiment(design.Experiment):
     def clear_all(self):
         pass
@@ -302,6 +340,7 @@ class CustomExperiment(design.Experiment):
 
     def show_reward(self, flag):
         pass
+
 
 class ExpyrimentSubjectWindow:
     def __init__(self, parent, current_protocol, **kwargs):
@@ -339,3 +378,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+class SourceSpaceWindow(SecondaryWindow):
+    def create_figure(self):
+        return SourceSpaceWidget()
+
+    def update_protocol_state(self, chunk):
+        self.current_protocol.update_state(chunk)

@@ -20,6 +20,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
+import mne
 
 
 # helpers
@@ -47,6 +48,7 @@ class Experiment():
         :return: None
         """
         # get next chunk
+        # self.stream is a ChannelsSelector instance!
         chunk, other_chunk = self.stream.get_next_chunk() if self.stream is not None else (None, None)
         if chunk is not None and self.main is not None:
 
@@ -61,7 +63,8 @@ class Experiment():
 
             # record data
             if self.main.player_panel.start.isChecked():
-                self.subject.figure.update_reward(self.reward.get_score())
+                if self.params['bShowSubjectWindow']:
+                    self.subject.figure.update_reward(self.reward.get_score())
                 if self.samples_counter < self.experiment_n_samples:
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
@@ -92,6 +95,8 @@ class Experiment():
 
             # redraw signals and raw data
             self.main.redraw_signals(sample, chunk, self.samples_counter)
+            if self.params['bPlotSourceSpace']:
+                self.source_space_window.update_protocol_state(chunk)
 
             # redraw protocols
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
@@ -111,7 +116,11 @@ class Experiment():
 
             if self.main.player_panel.start.isChecked():
                 # subject update
-                mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0], is_half_time=is_half_time)
+                if self.params['bShowSubjectWindow']:
+                    mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
+                                                              is_half_time=is_half_time)
+                else:
+                    mark = None
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.mark_recorder[self.samples_counter-1] = int(mark or 0)
 
@@ -239,7 +248,10 @@ class Experiment():
             # action in the end of protocols sequence
             self.current_protocol_n_samples = np.inf
             self.is_finished = True
-            self.subject.close()
+            if self.params['bShowSubjectWindow']:
+                self.subject.close()
+            if self.params['bPlotSourceSpace']:
+                self.source_space_window.close()
             # plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
@@ -482,9 +494,13 @@ class Experiment():
                                n_channels=self.n_channels,
                                plot_raw_flag=self.params['bPlotRaw'],
                                plot_signals_flag=self.params['bPlotSignals'],
+                               plot_source_space_flag=self.params['bPlotSourceSpace'],
+                               show_subject_window=self.params['bShowSubjectWindow'],
                                channels_labels=channels_labels,
                                subject_backend_expyriment=self.params['bUseExpyriment'])
         self.subject = self.main.subject_window
+        if self.params['bPlotSourceSpace']:
+            self.source_space_window = self.main.source_space_window
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
@@ -497,10 +513,24 @@ class Experiment():
     def restart_lsl_from_file(self):
         if self.thread is not None:
             self.thread.terminate()
-        source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+
+        file_path = self.params['sRawDataFilePath']
+        file_name, file_extension = os.path.splitext(file_path)
+
+        if file_extension == '.fif':
+            raw = mne.io.read_raw_fif(file_path, verbose='ERROR')
+            start, stop = raw.time_as_index([0, 60])  # read the first 15s of data
+            source_buffer = raw.get_data(start=start, stop=stop)
+        else:
+            source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+
         try:
-            xml_str = load_xml_str_from_hdf5_dataset(self.params['sRawDataFilePath'], 'stream_info.xml')
-            labels, fs = get_lsl_info_from_xml(xml_str)
+            if file_extension == '.fif':
+                labels = raw.info['ch_names']
+                fs = raw.info['sfreq']
+            else:
+                xml_str = load_xml_str_from_hdf5_dataset(file_path, 'stream_info.xml')
+                labels, fs = get_lsl_info_from_xml(xml_str)
             exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(self.params['sReference'])]
             labels_inds = [j for j, label in enumerate(labels) if label.upper() not in exclude]
             labels = [label for label in labels if label.upper() not in exclude]
