@@ -162,14 +162,14 @@
 	</vProtocols>
 	<vPGroups>
 		<PGroup>
-			<sName>orl</sName>
-			<sList>op le ri</sList>
+			<sName>ORL</sName>
+			<sList>Open Left Right</sList>
 			<sNumberList>1 1 1</sNumberList>
-			<bShuffle>0.0</bShuffle>
+			<bShuffle>0</bShuffle>
 		</PGroup>
 	</vPGroups>
 	<vPSequence>
-		<s>orl</s>
+		<s>ORL</s>
 		<s>filt</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>
