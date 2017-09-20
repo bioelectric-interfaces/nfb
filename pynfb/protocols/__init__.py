@@ -20,7 +20,7 @@ class Protocol:
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
-                 shuffle_mock_previous=None, beep_after=False, as_mock=False, fast_bci_fit=False):
+                 shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -51,7 +51,7 @@ class Protocol:
         self.shuffle_mock_previous = shuffle_mock_previous
         self.beep_after = beep_after
         self.as_mock = as_mock
-        self.fast_bci_fit = fast_bci_fit
+        self.auto_bci_fit = auto_bci_fit
         pass
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
@@ -102,13 +102,13 @@ class Protocol:
         if self.beep_after:
             SingleBeep().try_to_play()
 
-        if self.ssd_in_the_end or self.fast_bci_fit:
+        if self.ssd_in_the_end or self.auto_bci_fit:
 
             # stop main timer
             if self.timer:
                 self.timer.stop()
 
-            # get spatial filter
+            # get recorded raw data
             channels_names = self.ch_names
             if raw_file is not None and protocols_seq is not None:
                 x = load_h5py_protocols_raw(raw_file, [j for j in range(len(protocols_seq)-1)])
@@ -117,12 +117,12 @@ class Protocol:
                 raise AttributeError('Attributes protocol_seq and raw_file should be not a None')
             pos = ch_names_to_2d_pos(channels_names)
 
-        if self.fast_bci_fit:
-            X = [x for x, name in zip(x, protocols_seq) if name in ['Open', 'Left', 'Right']]
-            y = [np.ones(len(x), dtype=int) * {'Open': 0, 'Left': 1, 'Right': 2}[name] for x, name in zip(x, protocols_seq)
-                 if name in ['Open', 'Left', 'Right']]
-            X = np.vstack(X)
-            y = np.concatenate(y, 0)
+        if self.auto_bci_fit:
+            # automatic fit bci (protocol names should be in the bci_labels dictionary keys below)
+            bci_labels = {'Open': 0, 'Left': 1, 'Right': 2}
+            X = np.vstack([x for x, name in zip(x, protocols_seq) if name in bci_labels])
+            y = np.concatenate([np.ones(len(x), dtype=int) *  bci_labels[name]
+                                for x, name in zip(x, protocols_seq) if name in bci_labels], 0)
             self.signals[0].fit_model(X, y)
 
         if self.ssd_in_the_end:
@@ -134,7 +134,7 @@ class Protocol:
             signal_manager.test_closed_signal.connect(self.experiment.close_test_protocol)
             signal_manager.exec_()
 
-        if self.ssd_in_the_end or self.fast_bci_fit:
+        if self.ssd_in_the_end or self.auto_bci_fit:
             # run main timer
             if self.timer:
                 self.timer.start(1000 * 1. / self.freq)

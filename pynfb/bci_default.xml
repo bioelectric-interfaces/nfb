@@ -157,7 +157,7 @@
 			<fMSignalThreshold>1.0</fMSignalThreshold>
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
-			<bFastBCIFit>1</bFastBCIFit>
+			<bAutoBCIFit>1</bAutoBCIFit>
 		</FeedbackProtocol>
 	</vProtocols>
 	<vPGroups>
