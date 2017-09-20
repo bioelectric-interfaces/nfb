@@ -106,6 +106,10 @@ class ProtocolDialog(QtGui.QDialog):
         self.beep_after = QtGui.QCheckBox()
         self.form_layout.addRow('&Beep after protocol:', self.beep_after)
 
+        # fast bci fitting
+        self.auto_bci_fit = QtGui.QCheckBox()
+        self.form_layout.addRow('&Auto BCI fitting:', self.auto_bci_fit)
+
         # make signal after protocol
         self.mock_source = QtGui.QCheckBox()
         self.form_layout.addRow('&Mock source:', self.mock_source)
@@ -290,6 +294,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.beep_after.setChecked(current_protocol['bBeepAfter'])
+        self.auto_bci_fit.setChecked(current_protocol['bAutoBCIFit'])
         self.mock_source.setChecked(current_protocol['bMockSource'])
         self.pause_after.setChecked(current_protocol['bPauseAfter'])
         self.detection_task.setChecked(current_protocol['bEnableDetectionTask'])
@@ -341,6 +346,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['fDuration'] = self.duration.value()
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
         self.params[current_signal_index]['bBeepAfter'] = int(self.beep_after.isChecked())
+        self.params[current_signal_index]['bAutoBCIFit'] = int(self.auto_bci_fit.isChecked())
         self.params[current_signal_index]['bMockSource'] = int(self.mock_source.isChecked())
         self.params[current_signal_index]['bPauseAfter'] = int(self.pause_after.isChecked())
         self.params[current_signal_index]['bEnableDetectionTask'] = int(self.detection_task.isChecked())
