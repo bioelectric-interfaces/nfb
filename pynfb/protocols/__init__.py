@@ -102,10 +102,7 @@ class Protocol:
         if self.beep_after:
             SingleBeep().try_to_play()
 
-        if self.fast_bci_fit:
-            print('FAST bci fit action')
-
-        if self.ssd_in_the_end:
+        if self.ssd_in_the_end or self.fast_bci_fit:
 
             # stop main timer
             if self.timer:
@@ -120,6 +117,18 @@ class Protocol:
                 raise AttributeError('Attributes protocol_seq and raw_file should be not a None')
             pos = ch_names_to_2d_pos(channels_names)
 
+        if self.fast_bci_fit:
+            X = [x for x, name in zip(x, protocols_seq) if name in ['Open', 'Left', 'Right']]
+            y = [np.ones(len(x), dtype=int) * {'op': 0, 'le': 1, 'ri': 2}[name] for x, name in zip(x, protocols_seq)
+                 if name in ['Open', 'Left', 'Right']]
+            X = np.vstack(X)
+            y = np.concatenate(y, 0)
+            print('x', X.shape)
+            print('y', y.shape)
+            self.signals[0].fit_model(X, y)
+            print('bci print action')
+
+        if self.ssd_in_the_end:
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
                                                sampling_freq=self.freq, protocol_seq=protocols_seq, marks=marks)
             signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(
@@ -128,6 +137,7 @@ class Protocol:
             signal_manager.test_closed_signal.connect(self.experiment.close_test_protocol)
             signal_manager.exec_()
 
+        if self.ssd_in_the_end or self.fast_bci_fit:
             # run main timer
             if self.timer:
                 self.timer.start(1000 * 1. / self.freq)
