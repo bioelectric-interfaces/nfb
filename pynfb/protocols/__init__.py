@@ -10,7 +10,7 @@ from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
                                      PsyProtocolWidgetPainter, BaselineProtocolWidgetPainter,
                                      ThresholdBlinkFeedbackProtocolWidgetPainter, VideoProtocolWidgetPainter)
-from ..signals import CompositeSignal, DerivedSignal
+from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
 
@@ -117,13 +117,16 @@ class Protocol:
                 raise AttributeError('Attributes protocol_seq and raw_file should be not a None')
             pos = ch_names_to_2d_pos(channels_names)
 
+        # automatic fit bci (protocol names should be in the bci_labels dictionary keys below)
         if self.auto_bci_fit:
-            # automatic fit bci (protocol names should be in the bci_labels dictionary keys below)
+            # prepare train data:
             bci_labels = {'Open': 0, 'Left': 1, 'Right': 2}
             X = np.vstack([x for x, name in zip(x, protocols_seq) if name in bci_labels])
             y = np.concatenate([np.ones(len(x), dtype=int) *  bci_labels[name]
                                 for x, name in zip(x, protocols_seq) if name in bci_labels], 0)
-            self.signals[0].fit_model(X, y)
+            # find and fit first bci signal:
+            bci_signal = [signal for signal in self.signals if isinstance(signal, BCISignal)][0]
+            bci_signal.fit_model(X, y)
 
         if self.ssd_in_the_end:
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
