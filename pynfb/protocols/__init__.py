@@ -119,14 +119,11 @@ class Protocol:
 
         if self.fast_bci_fit:
             X = [x for x, name in zip(x, protocols_seq) if name in ['Open', 'Left', 'Right']]
-            y = [np.ones(len(x), dtype=int) * {'op': 0, 'le': 1, 'ri': 2}[name] for x, name in zip(x, protocols_seq)
+            y = [np.ones(len(x), dtype=int) * {'Open': 0, 'Left': 1, 'Right': 2}[name] for x, name in zip(x, protocols_seq)
                  if name in ['Open', 'Left', 'Right']]
             X = np.vstack(X)
             y = np.concatenate(y, 0)
-            print('x', X.shape)
-            print('y', y.shape)
             self.signals[0].fit_model(X, y)
-            print('bci print action')
 
         if self.ssd_in_the_end:
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
