@@ -118,6 +118,13 @@ def stream_file_in_a_thread(file_path, reference, stream_name):
                           kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
                                   'name': stream_name, 'labels': labels, 'freq': fs})
     thread.start()
+    time.sleep(2)
+    return thread
+
+def stream_generator_in_a_thread(name):
+    thread = Process(target=run_eeg_sim, args=(), kwargs={'chunk_size': 0, 'name': name})
+    thread.start()
+    time.sleep(2)
     return thread
 
 if __name__ == '__main__':

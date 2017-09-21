@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
 from itertools import zip_longest, chain
@@ -8,7 +7,7 @@ from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
 from pynfb.outlets.signals_outlet import SignalsOutlet
-from .generators import run_eeg_sim, stream_file_in_a_thread
+from .generators import run_eeg_sim, stream_file_in_a_thread, stream_generator_in_a_thread
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
@@ -285,16 +284,15 @@ class Experiment():
         # samples counter for protocol sequence
         self.samples_counter = 0
 
-        # run raw
+        # run file lsl stream in a thread
         self.thread = None
         if self.params['sInletType'] == 'lsl_from_file':
             self.restart_lsl_from_file()
+
+        # run simulated eeg lsl stream in a thread
         elif self.params['sInletType'] == 'lsl_generator':
-            self.thread = Process(target=run_eeg_sim, args=(),
-                                  kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
-            self.thread.start()
-            from time import sleep
-            sleep(2)
+            self.thread = stream_generator_in_a_thread(self.params['sStreamName'])
+
         if self.params['sInletType'] == 'ftbuffer':
             hostname, port = self.params['sFTHostnamePort'].split(':')
             port = int(port)
@@ -519,8 +517,6 @@ class Experiment():
 
         self.thread = stream_file_in_a_thread(file_path, reference, stream_name)
 
-        from time import sleep
-        sleep(2)
 
     def destroy(self):
         if self.thread is not None:
