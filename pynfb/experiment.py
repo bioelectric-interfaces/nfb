@@ -1,6 +1,5 @@
 import os
 from datetime import datetime
-from multiprocessing import Process, Pool
 import numpy as np
 from PyQt4 import QtCore
 from itertools import zip_longest, chain
@@ -8,12 +7,11 @@ from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
 from pynfb.outlets.signals_outlet import SignalsOutlet
-from .generators import run_eeg_sim
+from .generators import run_eeg_sim, stream_file_in_a_thread, stream_generator_in_a_thread
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
-from .io.hdf5 import load_h5py_all_samples, save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, \
-    save_xml_str_to_hdf5_dataset, load_xml_str_from_hdf5_dataset, DatasetNotFound
+from .io.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, save_xml_str_to_hdf5_dataset
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, PsyProtocol
@@ -286,16 +284,15 @@ class Experiment():
         # samples counter for protocol sequence
         self.samples_counter = 0
 
-        # run raw
+        # run file lsl stream in a thread
         self.thread = None
         if self.params['sInletType'] == 'lsl_from_file':
             self.restart_lsl_from_file()
+
+        # run simulated eeg lsl stream in a thread
         elif self.params['sInletType'] == 'lsl_generator':
-            self.thread = Process(target=run_eeg_sim, args=(),
-                                  kwargs={'chunk_size': 0, 'name': self.params['sStreamName']})
-            self.thread.start()
-            from time import sleep
-            sleep(2)
+            self.thread = stream_generator_in_a_thread(self.params['sStreamName'])
+
         if self.params['sInletType'] == 'ftbuffer':
             hostname, port = self.params['sFTHostnamePort'].split(':')
             port = int(port)
@@ -516,36 +513,11 @@ class Experiment():
             self.thread.terminate()
 
         file_path = self.params['sRawDataFilePath']
-        file_name, file_extension = os.path.splitext(file_path)
+        reference = self.params['sReference']
+        stream_name = self.params['sStreamName']
 
-        if file_extension == '.fif':
-            raw = mne.io.read_raw_fif(file_path, verbose='ERROR')
-            start, stop = raw.time_as_index([0, 60])  # read the first 15s of data
-            source_buffer = raw.get_data(start=start, stop=stop)
-        else:
-            source_buffer = load_h5py_all_samples(self.params['sRawDataFilePath']).T
+        self.thread = stream_file_in_a_thread(file_path, reference, stream_name)
 
-        try:
-            if file_extension == '.fif':
-                labels = raw.info['ch_names']
-                fs = raw.info['sfreq']
-            else:
-                xml_str = load_xml_str_from_hdf5_dataset(file_path, 'stream_info.xml')
-                labels, fs = get_lsl_info_from_xml(xml_str)
-            exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(self.params['sReference'])]
-            labels_inds = [j for j, label in enumerate(labels) if label.upper() not in exclude]
-            labels = [label for label in labels if label.upper() not in exclude]
-            print('Using {} channels and fs={}.\n[{}]'.format(len(labels), fs, labels))
-        except (FileNotFoundError, DatasetNotFound):
-            print('Channels labels and fs not found. Using default 32 channels and fs=500Hz.')
-            labels = None
-            fs = None
-        self.thread = Process(target=run_eeg_sim, args=(),
-                              kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
-                                      'name': self.params['sStreamName'], 'labels': labels, 'freq': fs})
-        self.thread.start()
-        from time import sleep
-        sleep(2)
 
     def destroy(self):
         if self.thread is not None:

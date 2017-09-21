@@ -1,6 +1,14 @@
 import time
+import os
+from multiprocessing import Process
+
 import numpy as np
 from pylsl import StreamInfo, StreamOutlet
+import mne
+
+from .io.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound
+from .io.xml_ import get_lsl_info_from_xml
+from .inlets.channels_selector import ChannelsSelector
 
 ch_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc2', 'Fc6', 'Ft10', 'T7', 'C3', 'Cz',
             'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz', 'O2',
@@ -82,9 +90,45 @@ def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', lab
     pass
 
 
+def stream_file_in_a_thread(file_path, reference, stream_name):
+    file_name, file_extension = os.path.splitext(file_path)
+
+    if file_extension == '.fif':
+        raw = mne.io.read_raw_fif(file_path, verbose='ERROR')
+        start, stop = raw.time_as_index([0, 60])  # read the first 15s of data
+        source_buffer = raw.get_data(start=start, stop=stop)
+    else:
+        source_buffer = load_h5py_all_samples(file_path=file_path).T
+
+    try:
+        if file_extension == '.fif':
+            labels = raw.info['ch_names']
+            fs = raw.info['sfreq']
+        else:
+            xml_str = load_xml_str_from_hdf5_dataset(file_path, 'stream_info.xml')
+            labels, fs = get_lsl_info_from_xml(xml_str)
+        exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(reference)]
+        labels = [label for label in labels if label.upper() not in exclude]
+        print('Using {} channels and fs={}.\n[{}]'.format(len(labels), fs, labels))
+    except (FileNotFoundError, DatasetNotFound):
+        print('Channels labels and fs not found. Using default 32 channels and fs=500Hz.')
+        labels = None
+        fs = None
+    thread = Process(target=run_eeg_sim, args=(),
+                          kwargs={'chunk_size': 0, 'source_buffer': source_buffer,
+                                  'name': stream_name, 'labels': labels, 'freq': fs})
+    thread.start()
+    time.sleep(2)
+    return thread
+
+def stream_generator_in_a_thread(name):
+    thread = Process(target=run_eeg_sim, args=(), kwargs={'chunk_size': 0, 'name': name})
+    thread.start()
+    time.sleep(2)
+    return thread
+
 if __name__ == '__main__':
     # run_eeg_sim(chunk_size=0, name='NVX136_Data')
-    import mne
 
     # This will download the sample file. Might take a considerable time
     sample_dir = mne.datasets.sample.data_path()
