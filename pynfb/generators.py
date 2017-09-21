@@ -4,6 +4,7 @@ from multiprocessing import Process
 
 import numpy as np
 from pylsl import StreamInfo, StreamOutlet
+import mne
 
 from .io.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound
 from .io.xml_ import get_lsl_info_from_xml
@@ -121,7 +122,6 @@ def stream_file_in_a_thread(file_path, reference, stream_name):
 
 if __name__ == '__main__':
     # run_eeg_sim(chunk_size=0, name='NVX136_Data')
-    import mne
 
     # This will download the sample file. Might take a considerable time
     sample_dir = mne.datasets.sample.data_path()
