@@ -63,6 +63,9 @@ class SignalPainter(pg.PlotWidget):
 
         self.previous_pos = current_pos
 
+    def set_chunk(self, chunk):
+        return self.update(chunk)
+
     def get_y_data(self, chunk_len):
         return self.y_raw_buffer
 
@@ -71,8 +74,8 @@ class SignalPainter(pg.PlotWidget):
 class CuteButton(QtGui.QPushButton):
     def __init__(self, text, parrent):
         super(CuteButton, self).__init__(text, parrent)
-        self.setMaximumWidth(20)
-        self.setMaximumHeight(20)
+        self.setMaximumWidth(18)
+        self.setMaximumHeight(18)
         self.setStyleSheet("QPushButton { background-color: #393231; color: #E5DfC5 }"
                           "QPushButton:pressed { background-color: #252120 }")
 
@@ -87,9 +90,10 @@ class RawSignalPainter(SignalPainter):
         #    [[(val, tick) for val, tick in zip(range(1, self.n_signals + 1), names)]])
         #
         next_channels = CuteButton('->', self)
-        next_channels.setGeometry(20, 0, 20, 20)
+        next_channels.setGeometry(18, 0, 18, 18)
         prev_channels = CuteButton('<-', self)
-        next_channels.clicked.connect(self.next_channels_group)
+        next_channels.clicked.connect(lambda : self.next_channels_group( 1))
+        prev_channels.clicked.connect(lambda : self.next_channels_group(-1))
 
         self.names = names
 
@@ -103,10 +107,10 @@ class RawSignalPainter(SignalPainter):
 
         self.reset_labels()
 
-    def next_channels_group(self):
+    def next_channels_group(self, direction=1):
         self.y_raw_buffer *= np.nan
         self.previous_pos = 0
-        self.current_indexes_ind = (self.current_indexes_ind + 1)%len(self.indexes_to_plot)
+        self.current_indexes_ind = (self.current_indexes_ind + direction)%len(self.indexes_to_plot)
         self.c_slice = self.indexes_to_plot[self.current_indexes_ind]
         self.reset_labels()
         pass
@@ -119,8 +123,8 @@ class RawSignalPainter(SignalPainter):
     def get_y_data(self, chunk_len):
         self.stats_update_counter += chunk_len
         if self.stats_update_counter > self.n_samples:
-            self.mean = self.y_raw_buffer.mean(0)
-            self.iqr = stats.iqr(self.y_raw_buffer, 0, rng=(5, 95))
+            self.mean = np.nanmean(self.y_raw_buffer, 0)
+            self.iqr = stats.iqr(self.y_raw_buffer, 0, rng=(5, 95), nan_policy='omit')
             self.stats_update_counter = 0
         return ((self.y_raw_buffer - self.mean) / self.iqr)[:, self.c_slice]
 
@@ -129,7 +133,7 @@ if __name__ == '__main__':
     fs = 250
     sec_to_plot = 10
     n_samples = sec_to_plot * fs
-    n_channels = 11
+    n_channels = 110
     chunk_len = 8
 
     data = np.random.normal(size=(100000, n_channels)) * 500

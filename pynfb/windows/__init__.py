@@ -15,6 +15,7 @@ from pynfb.protocols.widgets import ProtocolWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
+from ..widgets.signals_recorder import RawSignalPainter
 
 pg.setConfigOptions(antialias=True)
 
@@ -165,7 +166,7 @@ class MainWindow(QtGui.QMainWindow):
         self.signals_viewer = RawViewer(freq, channels_labels=[signal.name for signal in signals], overlap=True)
 
         # raw data viewer
-        self.raw_viewer = RawViewer(freq, channels_labels)
+        self.raw_viewer = RawSignalPainter(freq, channels_labels)
         self.n_channels = n_channels
         self.n_samples = 2000
 
@@ -178,7 +179,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # topomaper
         pos = ch_names_to_2d_pos(channels_labels)
-        self.topomaper = TopomapWidget(pos)
+        #self.topomaper = TopomapWidget(pos)
 
         # dc_blocker
         self.dc_blocker = DCBlocker()
@@ -192,7 +193,7 @@ class MainWindow(QtGui.QMainWindow):
         layout.addWidget(self.raw_viewer, 2, 0, 1, 3)
         layout.addWidget(self.player_panel, 3, 0, 1, 1)
         layout.addWidget(self.timer_label, 3, 1, 1, 1)
-        layout.addWidget(self.topomaper, 3, 2, 1, 1)
+        #layout.addWidget(self.topomaper, 3, 2, 1, 1)
         layout.addWidget(self.status, 4, 0, 1, 3)
         layout.layout.setRowStretch(0, 2)
         layout.layout.setRowStretch(2, 2)
@@ -241,14 +242,10 @@ class MainWindow(QtGui.QMainWindow):
 
         # raw signals
         if self.plot_raw_checkbox.isChecked():
-
-            if self.time_counter < 10:
-                self.raw_viewer.update_std(chunk)
-            else:
-                self.raw_viewer.set_chunk(chunk)
+            self.raw_viewer.set_chunk(chunk)
 
         # topomaper
-        self.topomaper.set_topomap(np.abs(self.raw_viewer.raw_buffer[-50:]).mean(0))
+        #self.topomaper.set_topomap(np.abs(np.nanmean(self.raw_viewer.y_raw_buffer[-50:], 0)))
 
         # timer
         if self.time_counter % 10 == 0:
