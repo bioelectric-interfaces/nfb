@@ -2,9 +2,10 @@ from PyQt4 import QtGui, QtCore
 import pyqtgraph as pg
 import numpy as np
 from scipy import signal, stats
+import os
 
 paired_colors = ['#dbae57','#57db6c','#dbd657','#57db94','#b9db57','#57dbbb','#91db57','#57d3db','#69db57','#57acdb']
-
+static_path =  os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../static')
 
 class SignalPainter(pg.PlotWidget):
     def __init__(self, fs, names, seconds_to_plot, overlap, signals_to_plot=None, **kwargs):
@@ -88,17 +89,15 @@ class RawSignalPainter(SignalPainter):
         self.getPlotItem().setYRange(0, self.n_signals_to_plot+1)
         self.getPlotItem().setXRange(0, seconds_to_plot)
 
-        #self.getPlotItem().getAxis('left').setTicks(
-        #    [[(val, tick) for val, tick in zip(range(1, self.n_signals + 1), names)]])
-        #
-        next_channels = CuteButton('->', self)
-        next_channels.setGeometry(18, 0, 18, 18)
-        prev_channels = CuteButton('<-', self)
+        next_channels = CuteButton('', self)
+        next_channels.setGeometry(18, 0, 18, 25)
+        next_channels.setIcon(QtGui.QIcon(static_path + '/imag/down-arrow.png'))
+        prev_channels = CuteButton('', self)
+        prev_channels.setIcon(QtGui.QIcon(static_path + '/imag/up.png'))
         next_channels.clicked.connect(lambda : self.next_channels_group( 1))
         prev_channels.clicked.connect(lambda : self.next_channels_group(-1))
 
         self.names = names
-
         self.mean = np.zeros(self.n_signals)
         self.iqr = np.ones (self.n_signals)
         self.stats_update_counter = 0
@@ -106,7 +105,6 @@ class RawSignalPainter(SignalPainter):
         print(self.indexes_to_plot)
         self.current_indexes_ind = 0
         self.c_slice = self.indexes_to_plot[self.current_indexes_ind]
-
         self.reset_labels()
 
     def next_channels_group(self, direction=1):
