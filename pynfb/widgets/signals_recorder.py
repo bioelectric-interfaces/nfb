@@ -14,6 +14,8 @@ class SignalPainter(pg.PlotWidget):
         self.getPlotItem().showGrid(y=True)
         self.getPlotItem().setMenuEnabled(enableMenu=False)
         self.getPlotItem().setMouseEnabled(x=False, y=False)
+        self.getPlotItem().autoBtn.disable()
+        self.getPlotItem().autoBtn.setScale(0)
         self.setBackgroundBrush(pg.mkBrush('#252120'))
 
         # init buffers
@@ -39,7 +41,7 @@ class SignalPainter(pg.PlotWidget):
 
         # add vertical running line
         self.vertical_line = pg.PlotDataItem(pen=pg.mkPen(color='B48375', width=1))
-        self.vertical_line_height = [0, self.n_signals + 1] if not overlap else [-1, 1]
+        self.vertical_line_height = [0, self.n_signals_to_plot + 1] if not overlap else [-1, 1]
         self.addItem(self.vertical_line)
 
 
