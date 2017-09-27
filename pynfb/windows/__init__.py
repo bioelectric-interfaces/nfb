@@ -234,11 +234,11 @@ class MainWindow(QtGui.QMainWindow):
 
         # derived signals
         if self.plot_signals_checkbox.isChecked():
-            self.signals_viewer.set_chunk(samples)
+            self.signals_viewer.update(samples)
 
         # raw signals
         if self.plot_raw_checkbox.isChecked():
-            self.raw_viewer.set_chunk(chunk)
+            self.raw_viewer.update(chunk)
 
         # topomaper
         #self.topomaper.set_topomap(np.abs(np.nanmean(self.raw_viewer.y_raw_buffer[-50:], 0)))
