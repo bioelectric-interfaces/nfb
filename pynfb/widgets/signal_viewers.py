@@ -7,9 +7,9 @@ import os
 paired_colors = ['#dbae57','#57db6c','#dbd657','#57db94','#b9db57','#57dbbb','#91db57','#57d3db','#69db57','#57acdb']
 static_path =  os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../static')
 
-class SignalPainter(pg.PlotWidget):
+class SignalViewer(pg.PlotWidget):
     def __init__(self, fs, names, seconds_to_plot, overlap, signals_to_plot=None, **kwargs):
-        super(SignalPainter, self).__init__(**kwargs)
+        super(SignalViewer, self).__init__(**kwargs)
         # gui settings
         #self.getPlotItem().hideAxis('left')
         self.getPlotItem().showGrid(y=True)
@@ -17,6 +17,7 @@ class SignalPainter(pg.PlotWidget):
         self.getPlotItem().setMouseEnabled(x=False, y=False)
         self.getPlotItem().autoBtn.disable()
         self.getPlotItem().autoBtn.setScale(0)
+        self.getPlotItem().setXRange(0, seconds_to_plot)
         self.setBackgroundBrush(pg.mkBrush('#252120'))
 
         # init buffers
@@ -34,15 +35,14 @@ class SignalPainter(pg.PlotWidget):
         # init signal curves
         self.curves = []
         for i in range(self.n_signals_to_plot):
-            curve = pg.PlotDataItem(pen=paired_colors[i%len(paired_colors)])
+            curve = pg.PlotDataItem(pen=paired_colors[i%len(paired_colors)], name=names[i])
             self.addItem(curve)
             if not overlap:
                 curve.setPos(0, i + 1)
             self.curves.append(curve)
 
         # add vertical running line
-        self.vertical_line = pg.PlotDataItem(pen=pg.mkPen(color='B48375', width=1))
-        self.vertical_line_height = [0, self.n_signals_to_plot + 1] if not overlap else [-1, 1]
+        self.vertical_line = pg.InfiniteLine(pos=0, angle=90, pen=pg.mkPen(color='B48375', width=1))
         self.addItem(self.vertical_line)
 
 
@@ -56,13 +56,14 @@ class SignalPainter(pg.PlotWidget):
             self.y_raw_buffer[self.previous_pos:current_pos] = chunk
         else:
             self.y_raw_buffer[self.previous_pos:] = chunk[:self.n_samples - self.previous_pos]
-            self.y_raw_buffer[:current_pos] = chunk[self.n_samples - self.previous_pos:]
+            if current_pos > 0:
+                self.y_raw_buffer[:current_pos] = chunk[self.n_samples - self.previous_pos:]
 
         y_data = self.get_y_data(chunk_len)
         for i, curve in enumerate(self.curves):
-            curve.setData(self.x_mesh, y_data[:, i] if i < y_data.shape[1] else self.x_mesh * np.nan)
+            curve.setData(self.x_mesh, y_data[:, i] if i < y_data.shape[1] else self.x_mesh * np.nan, connect="finite")
 
-        self.vertical_line.setData([current_x, current_x], self.vertical_line_height)
+        self.vertical_line.setValue(current_x)
 
         self.previous_pos = current_pos
 
@@ -72,6 +73,8 @@ class SignalPainter(pg.PlotWidget):
     def get_y_data(self, chunk_len):
         return self.y_raw_buffer
 
+    def reset_buffer(self):
+        self.y_raw_buffer *= np.nan
 
 
 class CuteButton(QtGui.QPushButton):
@@ -80,14 +83,14 @@ class CuteButton(QtGui.QPushButton):
         self.setMaximumWidth(18)
         self.setMaximumHeight(18)
         self.setStyleSheet("QPushButton { background-color: #393231; color: #E5DfC5 }"
-                          "QPushButton:pressed { background-color: #252120 }")
+                           "QPushButton:pressed { background-color: #252120 }")
 
-class RawSignalPainter(SignalPainter):
+
+class RawSignalViewer(SignalViewer):
     def __init__(self, fs, names, seconds_to_plot=5, **kwargs):
-        super(RawSignalPainter, self).__init__(fs, names, seconds_to_plot=seconds_to_plot, overlap=False, signals_to_plot=5, **kwargs)
-        self.getPlotItem().disableAutoRange()
+        super(RawSignalViewer, self).__init__(fs, names, seconds_to_plot=seconds_to_plot, overlap=False, signals_to_plot=5, **kwargs)
         self.getPlotItem().setYRange(0, self.n_signals_to_plot+1)
-        self.getPlotItem().setXRange(0, seconds_to_plot)
+        self.getPlotItem().disableAutoRange()
 
         next_channels = CuteButton('', self)
         next_channels.setGeometry(18, 0, 18, 25)
@@ -99,17 +102,15 @@ class RawSignalPainter(SignalPainter):
 
         self.names = names
         self.mean = np.zeros(self.n_signals)
-        self.iqr = np.ones (self.n_signals)
+        self.iqr = np.ones(self.n_signals)
         self.stats_update_counter = 0
         self.indexes_to_plot = [slice(j, min(self.n_signals, j+5)) for j in range(0, self.n_signals, 5)]
-        print(self.indexes_to_plot)
         self.current_indexes_ind = 0
         self.c_slice = self.indexes_to_plot[self.current_indexes_ind]
         self.reset_labels()
 
     def next_channels_group(self, direction=1):
         self.y_raw_buffer *= np.nan
-        self.previous_pos = 0
         self.current_indexes_ind = (self.current_indexes_ind + direction)%len(self.indexes_to_plot)
         self.c_slice = self.indexes_to_plot[self.current_indexes_ind]
         self.reset_labels()
@@ -122,11 +123,16 @@ class RawSignalPainter(SignalPainter):
 
     def get_y_data(self, chunk_len):
         self.stats_update_counter += chunk_len
-        if self.stats_update_counter > self.n_samples:
+        if self.stats_update_counter > self.n_samples//3:
             self.mean = np.nanmean(self.y_raw_buffer, 0)
             self.iqr = stats.iqr(self.y_raw_buffer, 0, rng=(5, 95), nan_policy='omit')
             self.stats_update_counter = 0
         return ((self.y_raw_buffer - self.mean) / self.iqr)[:, self.c_slice]
+
+
+class DerivedSignalViewer(SignalViewer):
+    def __init__(self, fs, names, seconds_to_plot=5, **kwargs):
+        super(DerivedSignalViewer, self).__init__(fs, names, seconds_to_plot, overlap=True, **kwargs)
 
 
 if __name__ == '__main__':
@@ -141,7 +147,7 @@ if __name__ == '__main__':
     data = signal.lfilter(b, a, data, axis=0)
 
     a = QtGui.QApplication([])
-    w = RawSignalPainter(fs, ['ch'+str(j) for j in range(n_channels)])
+    w = RawSignalViewer(fs, ['ch' + str(j) for j in range(n_channels)])
 
     time = 0
     def update():

@@ -188,7 +188,7 @@ class Experiment():
         self.samples_counter = 0
         if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
             self.main.time_counter1 = 0
-            self.main.signals_viewer.raw_buffer *= 0
+            self.main.signals_viewer.reset_buffer()
         self.seconds = self.freq
 
         # list of real fb protocols (number in protocol sequence)

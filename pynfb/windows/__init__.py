@@ -15,7 +15,7 @@ from pynfb.protocols.widgets import ProtocolWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
-from ..widgets.signals_recorder import RawSignalPainter
+from ..widgets.signal_viewers import RawSignalViewer, DerivedSignalViewer
 
 pg.setConfigOptions(antialias=True)
 
@@ -163,10 +163,10 @@ class MainWindow(QtGui.QMainWindow):
         self.timer_label = QtGui.QLabel('tf')
 
         # signals viewer
-        self.signals_viewer = RawViewer(freq, channels_labels=[signal.name for signal in signals], overlap=True)
+        self.signals_viewer = DerivedSignalViewer(freq, [signal.name for signal in signals])
 
         # raw data viewer
-        self.raw_viewer = RawSignalPainter(freq, channels_labels)
+        self.raw_viewer = RawSignalViewer(freq, channels_labels)
         self.n_channels = n_channels
         self.n_samples = 2000
 
@@ -234,11 +234,7 @@ class MainWindow(QtGui.QMainWindow):
 
         # derived signals
         if self.plot_signals_checkbox.isChecked():
-            if self.time_counter1 < 10:
-                self.signals_viewer.update_std(samples)
-                self.signals_viewer.update_levels()
-            else:
-                self.signals_viewer.set_chunk(samples)
+            self.signals_viewer.set_chunk(samples)
 
         # raw signals
         if self.plot_raw_checkbox.isChecked():
