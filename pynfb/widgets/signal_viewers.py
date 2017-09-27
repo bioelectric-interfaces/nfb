@@ -104,9 +104,9 @@ class RawSignalViewer(SignalViewer):
         self.getPlotItem().disableAutoRange()
 
         # next previous channels groups buttons
-        next_channels = CuteButton(self, 'down-arrow.png')
+        next_channels = CuteButton(self, 'right-arrow.png')
         next_channels.setGeometry(18, 0, 18, 25)
-        prev_channels = CuteButton(self, 'up.png')
+        prev_channels = CuteButton(self, 'left-arrow.png')
         next_channels.clicked.connect(lambda : self.next_channels_group( 1))
         prev_channels.clicked.connect(lambda : self.next_channels_group(-1))
 
