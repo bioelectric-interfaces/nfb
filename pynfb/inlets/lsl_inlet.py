@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from pylsl import StreamInlet, resolve_byprop
+from pylsl import StreamInlet, resolve_byprop, resolve_bypred
 from pylsl.pylsl import lib, StreamInfo, FOREVER, c_int, c_double, byref, handle_error
 import xml.etree.ElementTree as ET
 import time
+import socket
 fmt2string = ['undefined', 'float32', 'float64', 'str', 'int32', 'int16',
               'int8', 'int64']
 LSL_STREAM_NAMES = ['AudioCaptureWin', 'NVX136_Data', 'example']
@@ -24,8 +25,12 @@ class FixedStreamInlet(StreamInlet):
 
 
 class LSLInlet:
-    def __init__(self, name=LSL_STREAM_NAMES[2]):
-        streams = resolve_byprop('name', name, timeout=LSL_RESOLVE_TIMEOUT)
+    def __init__(self, name=LSL_STREAM_NAMES[2], only_this_host=False):
+        if not only_this_host:
+            streams = resolve_byprop('name', name, timeout=LSL_RESOLVE_TIMEOUT)
+        else:
+            streams = resolve_bypred("name='{}' and hostname='{}'".format(name, socket.gethostname()))
+
         self.inlet = None
         self.dtype = 'float64'
         if len(streams) > 0:
