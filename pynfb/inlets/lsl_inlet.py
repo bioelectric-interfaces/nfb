@@ -24,12 +24,12 @@ class FixedStreamInlet(StreamInlet):
 
 
 class LSLInlet:
-    def __init__(self, name=LSL_STREAM_NAMES[2], max_chunklen=8):
+    def __init__(self, name=LSL_STREAM_NAMES[2]):
         streams = resolve_byprop('name', name, timeout=LSL_RESOLVE_TIMEOUT)
         self.inlet = None
         self.dtype = 'float64'
         if len(streams) > 0:
-            self.inlet = FixedStreamInlet(streams[0], max_buflen=1, max_chunklen=max_chunklen)
+            self.inlet = FixedStreamInlet(streams[0])
             # self.dtype = fmt2string[self.inlet.info().channel_format()]
             print(self.dtype)
 
