@@ -13,14 +13,16 @@ def get_acc_slopes(filename, n_subj):
     acc_diff = []
     for day in range(3):
         for subj in range(n_subj):
-            avg_before = df[df['subj'] == subj][df['day'] == day][df['after'] == 0].mean()
-            avg_after  = df[df['subj'] == subj][df['day'] == day][df['after'] == 1].mean()
-            slopes.append(avg_before['fb_slope'] if avg_before['fb_slope']>-0.1 else 0)
-            acc_diff.append(avg_after['acc_train'] - avg_before['acc_train'])
+
+            if any(df[df['subj'] == subj]['day'] == day):
+                avg_before = df[df['subj'] == subj][df['day'] == day][df['after'] == 0].mean()
+                avg_after  = df[df['subj'] == subj][df['day'] == day][df['after'] == 1].mean()
+                slopes.append(avg_before['fb_slope'] if avg_before['fb_slope']>-0.1 else 0)
+                acc_diff.append(avg_after['acc_train'] - avg_before['acc_train'])
     return np.array(slopes), np.array(acc_diff)
 
-slopes, acc_diff = get_acc_slopes('bcinfbbci_metrics.csv', 4)
-slopes_mock, acc_diff_mock = get_acc_slopes('bcinfbbci_mock_metrics.csv', 4)
+slopes, acc_diff = get_acc_slopes('bcinfbbci_metrics.csv', 7)
+slopes_mock, acc_diff_mock = get_acc_slopes('bcinfbbci_mock_metrics.csv', 7)
 
 f, axes = plt.subplots(1, 3)
 
