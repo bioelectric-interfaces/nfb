@@ -23,7 +23,7 @@ class SignalViewer(pg.PlotWidget):
 
         # init buffers
         self.n_signals = len(names)
-        self.n_signals_to_plot = signals_to_plot or self.n_signals
+        self.n_signals_to_plot = min(self.n_signals, signals_to_plot or self.n_signals)
         self.n_samples = int(fs * seconds_to_plot) # samples to show
         self.previous_pos = 0 # resieved samples counter
         self.x_mesh = np.linspace(0, seconds_to_plot, self.n_samples)
