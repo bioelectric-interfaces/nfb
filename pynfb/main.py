@@ -8,6 +8,8 @@ STATIC_PATH = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/s
 print(full_path)
 sys.path.insert(0, full_path)
 
+import pynfb.helpers.expyriment  # has to be imported early because we override some of the methods
+
 from pynfb.settings_widget import SettingsWidget
 from PyQt4 import QtGui
 import sys
