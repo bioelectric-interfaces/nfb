@@ -6,6 +6,7 @@ import numpy as np
 from pylsl import StreamInfo, StreamOutlet
 import mne
 
+from .io.brainvision import read_raw_brainvision
 from .io.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound
 from .io.xml_ import get_lsl_info_from_xml
 from .inlets.channels_selector import ChannelsSelector
@@ -97,11 +98,14 @@ def stream_file_in_a_thread(file_path, reference, stream_name):
         raw = mne.io.read_raw_fif(file_path, verbose='ERROR')
         start, stop = raw.time_as_index([0, 60])  # read the first 15s of data
         source_buffer = raw.get_data(start=start, stop=stop)
+    elif file_extension == '.vhdr':
+        raw = read_raw_brainvision(vhdr_fname=file_path, verbose='ERROR')
+        source_buffer = raw.get_data()
     else:
         source_buffer = load_h5py_all_samples(file_path=file_path).T
 
     try:
-        if file_extension == '.fif':
+        if file_extension in ('.fif', '.vhdr'):
             labels = raw.info['ch_names']
             fs = raw.info['sfreq']
         else:
