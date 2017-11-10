@@ -3,7 +3,7 @@ import numpy as np
 
 class SignalsOutlet:
     def __init__(self, signals, fs):
-        self.info = StreamInfo(name='NFBLab_data', type='', channel_count=len(signals), source_id='nfblab42',
+        self.info = StreamInfo(name='lipa', type='', channel_count=len(signals), source_id='nfblab42',
                                nominal_srate=fs)
         self.info.desc().append_child_value("manufacturer", "BioSemi")
         channels = self.info.desc().append_child("channels")
