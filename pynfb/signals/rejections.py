@@ -36,6 +36,16 @@ class Rejections():
             self.has_ica = False
         self.list.pop(ind)
 
+    def expand_by_mask(self, mask):
+        list = [rej.expand_by_mask(mask) for rej in self.list]
+        n = len(mask)
+        return Rejections(n, list[1:] if self.has_ica else list, ica=list[0] if self.has_ica else None)
+
+    def shrink_by_mask(self, mask):
+        list = [rej.shrink_by_mask(mask) for rej in self.list]
+        n = sum(mask)
+        return Rejections(n, list[1:] if self.has_ica else list, ica=list[0] if self.has_ica else None)
+
     def __len__(self):
         return len(self.list)
 

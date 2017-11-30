@@ -3,27 +3,33 @@ from copy import deepcopy
 from PyQt4 import QtGui, QtCore
 import sys
 
-from ..protocols import SelectSSDFilterWidget
-from ..protocols.signals_manager.band_selector import BandSelectorWidget
-from ..protocols.ssd.topomap_canvas import TopographicMapCanvas
-from ..protocols.ssd.topomap_selector_ica import ICADialog
-from ..widgets.rejections_editor import RejectionsWidget
-from ..widgets.spatial_filter_setup import SpatialFilterSetup
-from ..widgets.check_table import CheckTable
-from ..signals import DerivedSignal, BCISignal
+from pynfb.inlets.montage import Montage
+from pynfb.protocols import SelectSSDFilterWidget
+from pynfb.protocols.signals_manager.band_selector import BandSelectorWidget
+from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
+from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
+from pynfb.widgets.rejections_editor import RejectionsWidget
+from pynfb.widgets.spatial_filter_setup import SpatialFilterSetup
+from pynfb.widgets.check_table import CheckTable
+from pynfb.signals import DerivedSignal, BCISignal
 from numpy import dot, concatenate, array
 import numpy as np
-from ..widgets.bci_fit import BCIFitWidget
+from pynfb.widgets.bci_fit import BCIFitWidget
 
 
 class SignalsTable(QtGui.QTableWidget):
     show_topography_name = {True: 'Topography', False: 'Filter'}
 
-    def __init__(self, signals, channels_names, *args):
+    def __init__(self, signals, channels_names, *args, montage=None):
         super(SignalsTable, self).__init__(*args)
         self.signals = signals
         self.names = [signal.name for signal in signals]
         self.channels_names = channels_names
+        self.montage = montage
+        if self.montage is None:
+            self.channels_mask = np.array([True] * len(channels_names))
+        else:
+            self.channels_mask = self.montage.get_mask('EEG')
 
 
         # set size and names
@@ -89,7 +95,7 @@ class SignalsTable(QtGui.QTableWidget):
             rejections.setAlignment(QtCore.Qt.AlignCenter)
         else:
             rejections = RejectionsWidget(self.channels_names, signal_name=self.signals[ind].name)
-            rejections.set_rejections(signal.rejections)
+            rejections.set_rejections(signal.rejections.shrink_by_mask(self.channels_mask))
             rejections.rejection_deleted.connect(lambda ind: signal.drop_rejection(ind))
         self.setCellWidget(ind, self.columns.index('Rejections'), rejections)
 
@@ -102,7 +108,7 @@ class SignalsTable(QtGui.QTableWidget):
         if data is None:
             topo_canvas.draw_central_text("not\nfound", right_bottom_text=self.show_topography_name[show_topography])
         else:
-            topo_canvas.update_figure(data, names=self.channels_names, show_names=[],
+            topo_canvas.update_figure(data[self.channels_mask], names=self.channels_names, show_names=[],
                                       show_colorbar=False, right_bottom_text=self.show_topography_name[show_topography])
         #text = 'Zeros' if signal.spatial_filter_is_zeros() else 'Not trivial'
         #self.setItem(ind, self.columns.index('Spatial filter'), QtGui.QTableWidgetItem(text))
@@ -188,7 +194,7 @@ class SignalsSSDManager(QtGui.QDialog):
     test_signal = QtCore.pyqtSignal()
     test_closed_signal = QtCore.pyqtSignal()
     def __init__(self, signals, x, pos, channels_names, protocol, signals_rec, protocols, sampling_freq=1000,
-                 message=None, protocol_seq=None, marks=None, **kwargs):
+                 message=None, protocol_seq=None, marks=None, montage=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # name
@@ -200,9 +206,17 @@ class SignalsSSDManager(QtGui.QDialog):
         self.init_signals = deepcopy(self.signals)
         self.all_signals = signals
         self.x = x
-        self.pos = pos
+        self.montage = montage
+        if self.montage is None:
+            self.pos = pos
+            self.channels_names = channels_names
+            self.channels_mask = np.array([True] * len(channels_names))
+        else:
+            self.pos = montage.get_pos('EEG')
+            self.channels_names = montage.get_names('EEG')
+            self.channels_mask = self.montage.get_mask('EEG')
+
         self.marks = marks
-        self.channels_names = channels_names
         self.sampling_freq = sampling_freq
         self.protocol = protocol
         self.signals_rec = signals_rec
@@ -215,7 +229,7 @@ class SignalsSSDManager(QtGui.QDialog):
         main_layout.addLayout(layout)
 
         # table
-        self.table = SignalsTable(self.signals, self.channels_names)
+        self.table = SignalsTable(self.signals, self.channels_names, montage=self.montage)
         self.setMinimumWidth(sum(self.table.columns_width) + 250)
         self.setMinimumHeight(400)
         layout.addWidget(self.table)
@@ -375,6 +389,7 @@ class SignalsSSDManager(QtGui.QDialog):
         if csp:
             x = concatenate([x] + [self.x[j] for j in ind[1]])
         x = dot(x, self.signals[row].rejections.get_prod())
+        x = x[:, self.channels_mask]
 
         to_all = False
         ica_rejection = None
@@ -402,6 +417,20 @@ class SignalsSSDManager(QtGui.QDialog):
                                                                                          self.channels_names,
                                                                                          sampling_freq=
                                                                                          self.sampling_freq)
+        if filter is not None:
+            filter_copy = np.zeros(len(self.channels_mask))
+            filter_copy[self.channels_mask] = filter
+            filter = filter_copy
+
+        if topography is not None:
+            topography_copy = np.zeros(len(self.channels_mask))
+            topography_copy[self.channels_mask] = topography
+            topography = topography_copy
+
+        if ica_rejection is not None:
+            ica_rejection = ica_rejection.expand_by_mask(self.channels_mask)
+
+        rejections = [rej.expand_by_mask(self.channels_mask) for rej in rejections]
 
 
         rows = range(len(self.signals)) if to_all else [row]
@@ -441,44 +470,47 @@ class SignalsSSDManager(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
     from scipy.io import loadmat
-    mat_file = loadmat(r'C:\Users\nsmetanin\Downloads\nfb_bci\wetransfer-07cfaf\Subj1_data.mat')
-    x = np.concatenate(  [mat_file['EEGdata'][:, :, j] for j in range(mat_file['EEGdata'].shape[2])], axis=1).T
-    trial_marks = (mat_file['EEGtimes'] == 0.).astype(int)
-    marks = np.concatenate([trial_marks[0] for k in range(mat_file['EEGdata'].shape[2]) ])
-    import pylab as plt
+    #mat_file = loadmat(r'C:\Users\nsmetanin\Downloads\nfb_bci\wetransfer-07cfaf\Subj1_data.mat')
+    #x = np.concatenate(  [mat_file['EEGdata'][:, :, j] for j in range(mat_file['EEGdata'].shape[2])], axis=1).T
+    #trial_marks = (mat_file['EEGtimes'] == 0.).astype(int)
+    #marks = np.concatenate([trial_marks[0] for k in range(mat_file['EEGdata'].shape[2]) ])
+    #import pylab as plt
     #plt.plot(data)
     #plt.show()
-    channels = [b[0] for b in mat_file['EEGchanslabels'][0]]
+    #channels = [b[0] for b in mat_file['EEGchanslabels'][0]]
 
-    print(np.shape(channels))
-    print(np.shape(x))
-    print(np.shape(marks))
-    #channels = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
-    #            'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
+    #print(np.shape(channels))
+    #print(np.shape(x))
+    #print(np.shape(marks))
+    channels = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
+                'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
     n_ch = len(channels)
-    from ..signals import CompositeSignal
+    from pynfb.signals import CompositeSignal
     signals = [DerivedSignal(ind = k, source_freq=500, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=n_ch) for k in range(3)]
-    signals +=[CompositeSignal(signals, '', 'Composite', 3)]
+    signals +=[CompositeSignal(signals, '', 'Composite', 3, fs=500)]
     signals += [BCISignal(500, channels, 'bci', n_ch)]
     app = QtGui.QApplication([])
 
-    #x = np.random.randn(5000, n_ch)
-    from ..widgets.helpers import ch_names_to_2d_pos
+    x = np.random.randn(5000, n_ch)
+    from pynfb.widgets.helpers import ch_names_to_2d_pos
 
     #x[2500:3000, channels.index('Cz')] /= 50
 
 
     x = x[:50000]
-    marks = marks[:50000]
+    #marks = marks[:50000]
 
     #x[2500:2600, [0, 3]] *= 100
     #marks = np.zeros(len(x)*9)
     #marks[2500::5000] = 1
     #marks[10000] = 1
+    montage = Montage(channels[:-3] + ['Oz', 'O1', 'AUX'])
+    print(montage)
+    #montage = None
     w = SignalsSSDManager(signals, [x], ch_names_to_2d_pos(channels),
-                          channels, None, None, [], protocol_seq=['One'], marks=marks, sampling_freq=258)
+                          channels, None, None, [], protocol_seq=['One'],  sampling_freq=258, montage=montage)
     w.exec()
-    plt.plot(np.arange(50000)/258, np.dot(x, signals[0].spatial_filter))
-    plt.plot(np.arange(50000) / 258, marks * np.max(np.dot(x, signals[0].spatial_filter)))
-    plt.show()
+    #plt.plot(np.arange(50000)/258, np.dot(x, signals[0].spatial_filter))
+    #plt.plot(np.arange(50000) / 258, marks * np.max(np.dot(x, signals[0].spatial_filter)))
+    #plt.show()
     app.exec_()
