@@ -22,7 +22,7 @@ def ch_names_to_2d_pos(list_of_ch_names, kind='standard_1005', azimuthal=True):
         return random.normal(size=(len(list_of_ch_names), 2))
     upper_list_of_ch_names = [ch.upper() for ch in list_of_ch_names]
     upper_montage_ch_names = [ch.upper() for ch in montage.ch_names]
-    indices = [upper_montage_ch_names.index(ch) for ch in upper_list_of_ch_names if ch in upper_montage_ch_names]
+    indices = [upper_montage_ch_names.index(ch) if ch in upper_montage_ch_names else 0 for ch in upper_list_of_ch_names]
     if len(list(indices)) < len(list_of_ch_names):
         raise IndexError('Channels {} not found'.format(
             set(upper_list_of_ch_names).difference(set(array(upper_montage_ch_names)[indices]))

@@ -20,7 +20,7 @@ class Protocol:
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
                  ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
-                 shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False):
+                 shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -42,6 +42,7 @@ class Protocol:
         self.timer = timer
         self.freq = freq
         self.ch_names = ch_names
+        self.montage = montage
         self.mock_previous = mock_previous
         self.reverse_mock_previous = reverse_mock_previous
         self.drop_outliers = drop_outliers
@@ -130,7 +131,8 @@ class Protocol:
 
         if self.ssd_in_the_end:
             signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
-                                               sampling_freq=self.freq, protocol_seq=protocols_seq, marks=marks)
+                                               sampling_freq=self.freq, protocol_seq=protocols_seq, marks=marks,
+                                               montage=self.montage)
             signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(
                 protocols[signal_manager.combo_protocols.currentIndex()]
             ))

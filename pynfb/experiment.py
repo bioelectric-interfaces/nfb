@@ -3,6 +3,8 @@ from datetime import datetime
 import numpy as np
 from PyQt4 import QtCore
 from itertools import zip_longest, chain
+
+from pynfb.inlets.montage import Montage
 from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
 from pynfb.widgets.helpers import WaitMessage
@@ -308,6 +310,7 @@ class Experiment():
         self.n_channels = self.stream.get_n_channels()
         self.n_channels_other = self.stream.get_n_channels_other()
         channels_labels = self.stream.get_channels_labels()
+        montage = Montage(channels_labels)
 
         self.seconds = 2 * self.freq
         self.raw_std = None
@@ -384,7 +387,8 @@ class Experiment():
                 m_signal_index=m_signal_index,
                 shuffle_mock_previous=bool(protocol['bRandomMockPrevious']),
                 as_mock=bool(protocol['bMockSource']),
-                auto_bci_fit=bool(protocol['bAutoBCIFit'])
+                auto_bci_fit=bool(protocol['bAutoBCIFit']),
+                montage=montage
             )
 
             # type specific arguments
