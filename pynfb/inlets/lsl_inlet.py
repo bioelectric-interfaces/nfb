@@ -34,7 +34,7 @@ class LSLInlet:
         self.inlet = None
         self.dtype = 'float64'
         if len(streams) > 0:
-            self.inlet = FixedStreamInlet(streams[0])
+            self.inlet = FixedStreamInlet(streams[0], max_buflen=2)
             # self.dtype = fmt2string[self.inlet.info().channel_format()]
             print(self.dtype)
 
