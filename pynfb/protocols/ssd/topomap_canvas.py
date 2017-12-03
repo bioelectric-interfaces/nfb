@@ -1,7 +1,7 @@
 import sys
 from PyQt4 import QtGui, QtCore
 import numpy as np
-from ...widgets.helpers import ch_names_to_2d_pos
+from pynfb.widgets.helpers import ch_names_to_2d_pos
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import rcParams
@@ -25,9 +25,13 @@ class TopographicMapCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
 
     def update_figure(self, data, pos=None, names=None, show_names=None, show_colorbar=True, central_text=None,
-                      right_bottom_text=None, show_not_found_symbol=False):
-        if pos is None:
-            pos = ch_names_to_2d_pos(names)
+                      right_bottom_text=None, show_not_found_symbol=False, montage=None):
+        if montage is None:
+            if pos is None:
+                pos = ch_names_to_2d_pos(names)
+        else:
+            pos = montage.get_pos('EEG')
+            names = montage.get_names('EEG')
         data = np.array(data)
         self.axes.clear()
         if self.colorbar:
@@ -73,14 +77,18 @@ class TopographicMapCanvas(FigureCanvas):
                            right_bottom_text=right_bottom_text, show_not_found_symbol=show_not_found_symbol)
 
     def test_update_figure(self):
+
+        from pynfb.inlets.montage import Montage
+        montage = Montage(names=['Fp1', 'Fp2', 'Cz', 'AUX', 'MEG 2632'])
+        print(montage)
         data = np.random.randn(3)
         pos = np.array([(0, 0), (1, -1), (-1, -1)])
-        self.update_figure(data=data, pos=pos)
+        self.update_figure(data=data, pos=pos, names=['c1', 'c2', 'oz'], montage=montage)
 
 
 if __name__ == '__main__':
     qApp = QtGui.QApplication(sys.argv)
-    aw = TopographicMapCanvas(np.random.randn(3), np.array([(0, 0), (1, -1), (-1, -1)]), width=5, height=4, dpi=100)
+    aw = TopographicMapCanvas()
     timer = QtCore.QTimer(qApp)
     timer.timeout.connect(aw.test_update_figure)
     timer.start(1000)

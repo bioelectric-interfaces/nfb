@@ -58,6 +58,22 @@ class SpatialRejection(BaseFilter):
     def apply(self, chunk: np.ndarray):
         return np.dot(chunk, self.val)
 
+    def expand_by_mask(self, mask):
+        val = np.eye(len(mask))
+        inds = np.where(mask)[0]
+        for i in range(sum(mask)):
+            for j in range(sum(mask)):
+                val[inds[i], inds[j]] = self.val[i, j]
+        top = np.zeros((len(mask), self.topographies.shape[1]))
+        top[mask] = self.topographies
+        self.topographies = top
+        return SpatialRejection(val, self.rank, self.type_str, top)
+
+    def shrink_by_mask(self, mask):
+        val = self.val[mask][:, mask]
+        top = self.topographies[mask]
+        return SpatialRejection(val, self.rank, self.type_str, top)
+
 
 class ButterFilter(BaseFilter):
     def __init__(self, band, fs, n_channels, order=4):

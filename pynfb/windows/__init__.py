@@ -178,8 +178,8 @@ class MainWindow(QtGui.QMainWindow):
         self.autoscale_raw_chekbox.setChecked(True)
 
         # topomaper
-        pos = ch_names_to_2d_pos(channels_labels)
-        #self.topomaper = TopomapWidget(pos)
+        # pos = ch_names_to_2d_pos(channels_labels)
+        # self.topomaper = TopomapWidget(pos)
 
         # dc_blocker
         self.dc_blocker = DCBlocker()

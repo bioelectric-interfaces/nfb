@@ -18,9 +18,9 @@ from ..widgets.update_signals_dialog import SignalsSSDManager
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
-                 ssd_in_the_end=False, timer=None, freq=500, ch_names=None, mock_previous=0, drop_outliers=0,
+                 ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0,
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
-                 shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False):
+                 shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -41,7 +41,7 @@ class Protocol:
         self.ssd_in_the_end = ssd_in_the_end
         self.timer = timer
         self.freq = freq
-        self.ch_names = ch_names
+        self.montage = montage
         self.mock_previous = mock_previous
         self.reverse_mock_previous = reverse_mock_previous
         self.drop_outliers = drop_outliers
@@ -109,13 +109,11 @@ class Protocol:
                 self.timer.stop()
 
             # get recorded raw data
-            channels_names = self.ch_names
             if raw_file is not None and protocols_seq is not None:
                 x = load_h5py_protocols_raw(raw_file, [j for j in range(len(protocols_seq)-1)])
                 x.append(raw)
             else:
                 raise AttributeError('Attributes protocol_seq and raw_file should be not a None')
-            pos = ch_names_to_2d_pos(channels_names)
 
         # automatic fit bci (protocol names should be in the bci_labels dictionary keys below)
         if self.auto_bci_fit:
@@ -129,7 +127,7 @@ class Protocol:
             bci_signal.fit_model(X, y)
 
         if self.ssd_in_the_end:
-            signal_manager = SignalsSSDManager(self.signals, x, pos, channels_names, self, signals, protocols,
+            signal_manager = SignalsSSDManager(self.signals, x, self.montage, self, signals, protocols,
                                                sampling_freq=self.freq, protocol_seq=protocols_seq, marks=marks)
             signal_manager.test_signal.connect(lambda: self.experiment.start_test_protocol(
                 protocols[signal_manager.combo_protocols.currentIndex()]

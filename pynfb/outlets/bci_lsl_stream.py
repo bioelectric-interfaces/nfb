@@ -25,6 +25,8 @@ def simulate_bci_signal(fs, chunk_size=8, verbose=False):
         if np.random.randint(0, fs/chunk_size/2) == 0:
             x = x_base * np.random.randint(0, 2+1)
         outlet.push_chunk(x)
+        with open("bci_current_state.pkl", "w") as fp:
+            fp.write(str(np.random.randint(0, 2+1)))
         n_chunks += 1
         counter += chunk_size
         if verbose:
