@@ -377,7 +377,6 @@ class Experiment():
                 ssd_in_the_end = protocol['bSSDInTheEnd'],
                 timer=self.main_timer,
                 freq=self.freq,
-                ch_names=channels_labels,
                 mock_previous=int(protocol['iMockPrevious']),
                 drop_outliers=int(protocol['iDropOutliers']),
                 experiment=self,

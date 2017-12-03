@@ -20,16 +20,13 @@ from pynfb.widgets.bci_fit import BCIFitWidget
 class SignalsTable(QtGui.QTableWidget):
     show_topography_name = {True: 'Topography', False: 'Filter'}
 
-    def __init__(self, signals, channels_names, *args, montage=None):
+    def __init__(self, signals, montage, *args):
         super(SignalsTable, self).__init__(*args)
         self.signals = signals
         self.names = [signal.name for signal in signals]
-        self.channels_names = channels_names
         self.montage = montage
-        if self.montage is None:
-            self.channels_mask = np.array([True] * len(channels_names))
-        else:
-            self.channels_mask = self.montage.get_mask('EEG')
+        self.channels_mask = self.montage.get_mask('EEG')
+        self.channels_names = self.montage.get_names('EEG')
 
 
         # set size and names
@@ -145,7 +142,7 @@ class SignalsTable(QtGui.QTableWidget):
             filter_ = np.zeros_like(signal.spatial_filter)
         else:
             filter_ = SpatialFilterSetup.get_filter(
-                self.channels_names,
+                self.montage.get_names(),
                 weights=signal.spatial_filter,
                 message='Please modify spatial filter for "{}"'.format(signal.name),
                 title='"{}" spatial filter'.format(signal.name))
@@ -193,8 +190,8 @@ class BandWidget(QtGui.QWidget):
 class SignalsSSDManager(QtGui.QDialog):
     test_signal = QtCore.pyqtSignal()
     test_closed_signal = QtCore.pyqtSignal()
-    def __init__(self, signals, x, pos, channels_names, protocol, signals_rec, protocols, sampling_freq=1000,
-                 message=None, protocol_seq=None, marks=None, montage=None, **kwargs):
+    def __init__(self, signals, x, montage, protocol, signals_rec, protocols, sampling_freq=1000,
+                 message=None, protocol_seq=None, marks=None, **kwargs):
         super(SignalsSSDManager, self).__init__(**kwargs)
 
         # name
@@ -207,14 +204,9 @@ class SignalsSSDManager(QtGui.QDialog):
         self.all_signals = signals
         self.x = x
         self.montage = montage
-        if self.montage is None:
-            self.pos = pos
-            self.channels_names = channels_names
-            self.channels_mask = np.array([True] * len(channels_names))
-        else:
-            self.pos = montage.get_pos('EEG')
-            self.channels_names = montage.get_names('EEG')
-            self.channels_mask = self.montage.get_mask('EEG')
+        self.pos = self.montage.get_pos('EEG')
+        self.channels_names = self.montage.get_names('EEG')
+        self.channels_mask = self.montage.get_mask('EEG')
 
         self.marks = marks
         self.sampling_freq = sampling_freq
@@ -229,7 +221,7 @@ class SignalsSSDManager(QtGui.QDialog):
         main_layout.addLayout(layout)
 
         # table
-        self.table = SignalsTable(self.signals, self.channels_names, montage=self.montage)
+        self.table = SignalsTable(self.signals, self.montage)
         self.setMinimumWidth(sum(self.table.columns_width) + 250)
         self.setMinimumHeight(400)
         layout.addWidget(self.table)
@@ -507,8 +499,7 @@ if __name__ == '__main__':
     montage = Montage(channels[:-3] + ['Oz', 'O1', 'AUX'])
     print(montage)
     #montage = None
-    w = SignalsSSDManager(signals, [x], ch_names_to_2d_pos(channels),
-                          channels, None, None, [], protocol_seq=['One'],  sampling_freq=258, montage=montage)
+    w = SignalsSSDManager(signals, [x], montage, None, None, [], protocol_seq=['One'],  sampling_freq=258)
     w.exec()
     #plt.plot(np.arange(50000)/258, np.dot(x, signals[0].spatial_filter))
     #plt.plot(np.arange(50000) / 258, marks * np.max(np.dot(x, signals[0].spatial_filter)))
