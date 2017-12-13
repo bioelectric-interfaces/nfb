@@ -303,9 +303,15 @@ class Experiment():
             stream = FieldTripBufferInlet(hostname, port)
         else:
             stream = LSLInlet(name=self.params['sStreamName'])
+
+        # setup events stream by name
+        events_stream_name = self.params['sEventsStreamName']
+        events_stream = LSLInlet(events_stream_name) if events_stream_name else None
+
+        # setup main stream
         self.stream = ChannelsSelector(stream, exclude=self.params['sReference'],
                                        subtractive_channel=self.params['sReferenceSub'],
-                                       dc=self.params['bDC'])
+                                       dc=self.params['bDC'], events_inlet=events_stream)
         self.stream.save_info(self.dir_name + 'stream_info.xml')
         save_xml_str_to_hdf5_dataset(self.dir_name + 'experiment_data.h5', self.stream.info_as_xml(), 'stream_info.xml')
         self.freq = self.stream.get_frequency()
@@ -313,7 +319,7 @@ class Experiment():
         self.n_channels_other = self.stream.get_n_channels_other()
         channels_labels = self.stream.get_channels_labels()
         montage = Montage(channels_labels)
-
+        print(montage)
         self.seconds = 2 * self.freq
         self.raw_std = None
 

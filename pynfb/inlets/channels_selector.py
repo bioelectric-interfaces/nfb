@@ -1,14 +1,18 @@
 import numpy as np
 from pynfb.widgets.helpers import validate_ch_names
-
+EVENTS_CHANNEL_NAME = 'EVENTS'
 
 
 class ChannelsSelector:
-    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None, dc=False):
+    def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None, dc=False,
+                 events_inlet=None):
         self.last_y = 0
         self.inlet = inlet
+        self.events_inlet = events_inlet
         names = [n.upper() for n in self.inlet.get_channels_labels()]
         names = [''.join([ch if ch.isalnum() else ' ' for ch in name]).split()[0] for name in names]
+        if self.events_inlet is not None:
+            names += [EVENTS_CHANNEL_NAME]
         self.channels_names = names
         print('Channels:', names)
 
@@ -25,7 +29,7 @@ class ChannelsSelector:
             else:
                 raise TypeError('Reference list must be list or None')
         else:
-            include_indices = list(range(self.inlet.get_n_channels()))
+            include_indices = list(range(len(names)))
 
         # channel to subtract
         if (subtractive_channel is not None) and (subtractive_channel != ''):
@@ -74,6 +78,14 @@ class ChannelsSelector:
         if chunk is not None:
             if self.dc:
                 chunk = self.dc_blocker(chunk)
+
+            if self.events_inlet is not None:
+                events, events_timestamp = self.events_inlet.get_next_chunk()
+                aug_chunk = np.zeros((chunk.shape[0], 1))
+                if events is not None:
+                    aug_chunk[np.searchsorted(timestamp[:-1], events_timestamp)] = events
+                chunk = np.hstack([chunk, aug_chunk])
+
             if self.sub_channel_index is None:
                 return chunk[:, self.indices], chunk[:, self.other_indices], timestamp
             else:

@@ -136,7 +136,8 @@ class RawSignalViewer(SignalViewer):
         self.stats_update_counter += chunk_len
         if self.stats_update_counter > self.n_samples//3:
             self.mean = np.nanmean(self.y_raw_buffer, 0)
-            self.iqr = stats.iqr(self.y_raw_buffer, 0, rng=(5, 95), nan_policy='omit')
+            self.iqr = stats.iqr(self.y_raw_buffer, 0, rng=(0, 100), nan_policy='omit')
+            self.iqr[self.iqr <=0 ] = 1
             self.stats_update_counter = 0
 
         # return scaled signals
