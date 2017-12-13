@@ -70,16 +70,16 @@ class ChannelsSelector:
 
 
     def get_next_chunk(self):
-        chunk = self.inlet.get_next_chunk()
+        chunk, timestamp = self.inlet.get_next_chunk()
         if chunk is not None:
             if self.dc:
                 chunk = self.dc_blocker(chunk)
             if self.sub_channel_index is None:
-                return chunk[:, self.indices], chunk[:, self.other_indices]
+                return chunk[:, self.indices], chunk[:, self.other_indices], timestamp
             else:
-                return chunk[:, self.indices] - chunk[:, [self.sub_channel_index]], chunk[:, self.other_indices]
+                return chunk[:, self.indices] - chunk[:, [self.sub_channel_index]], chunk[:, self.other_indices], timestamp
         else:
-            return None, None
+            return None, None, None
 
 
     def dc_blocker(self, x, r=0.99):

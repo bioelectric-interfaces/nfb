@@ -91,6 +91,26 @@ def run_eeg_sim(freq=None, chunk_size=0, source_buffer=None, name='example', lab
     pass
 
 
+def run_events_sim(name='events_example'):
+    info = StreamInfo(name=name, type='EEG', channel_count=1, channel_format='float32', source_id='myuid34234')
+
+    # channels labels (in accordance with XDF format, see also code.google.com/p/xdf)
+
+    chns = info.desc().append_child("channels")
+    for label in ['STIM']:
+        ch = chns.append_child("channel")
+        ch.append_child_value("label", label)
+    outlet = StreamOutlet(info)
+
+    # send data and print some info every 5 sec
+    print('now sending data...')
+
+    while True:
+        outlet.push_sample([42])
+        time.sleep(1)
+        print('42 sent')
+    pass
+
 def stream_file_in_a_thread(file_path, reference, stream_name):
     file_name, file_extension = os.path.splitext(file_path)
 
@@ -125,8 +145,8 @@ def stream_file_in_a_thread(file_path, reference, stream_name):
     time.sleep(2)
     return thread
 
-def stream_generator_in_a_thread(name):
-    thread = Process(target=run_eeg_sim, args=(), kwargs={'chunk_size': 0, 'name': name})
+def stream_generator_in_a_thread(name, generator=run_eeg_sim):
+    thread = Process(target=generator, args=(), kwargs={'name': name})
     thread.start()
     time.sleep(2)
     return thread

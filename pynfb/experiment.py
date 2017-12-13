@@ -49,7 +49,7 @@ class Experiment():
         """
         # get next chunk
         # self.stream is a ChannelsSelector instance!
-        chunk, other_chunk = self.stream.get_next_chunk() if self.stream is not None else (None, None)
+        chunk, other_chunk, timestamp = self.stream.get_next_chunk() if self.stream is not None else (None, None)
         if chunk is not None and self.main is not None:
 
             # update and collect current samples
@@ -69,6 +69,7 @@ class Experiment():
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
                     self.raw_recorder_other[chunk_slice] = other_chunk
+                    self.timestamp_recorder[chunk_slice] = timestamp
                     #for s, sample in enumerate(self.current_samples):
                     self.signals_recorder[chunk_slice] = sample
                     self.samples_counter += chunk.shape[0]
@@ -178,6 +179,7 @@ class Experiment():
 
         save_signals(self.dir_name + 'experiment_data.h5', self.signals, protocol_number_str,
                      raw_data=self.raw_recorder[:self.samples_counter],
+                     timestamp_data=self.timestamp_recorder[:self.samples_counter],
                      raw_other_data=self.raw_recorder_other[:self.samples_counter],
                      signals_data=self.signals_recorder[:self.samples_counter],
                      reward_data=self.reward_recorder[:self.samples_counter],
@@ -470,6 +472,7 @@ class Experiment():
         self.experiment_n_samples = max_protocol_n_samples
         self.samples_counter = 0
         self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels)) * np.nan
+        self.timestamp_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.raw_recorder_other = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels_other)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
         self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan

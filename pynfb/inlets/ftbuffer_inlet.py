@@ -28,7 +28,11 @@ class FieldTripBufferInlet:
             retrieve_from = self.last_repeated_sample + 1
         chunk = self.ftc.getData([retrieve_from, last_sample])
         self.last_repeated_sample = last_sample
-        return chunk.astype('float64')
+        chunk = chunk.astype('float64')
+        if len(chunk) == 0:
+            return None, None
+        else:
+            return chunk, chunk[:, 0]*0  # chunk, timestamp mock
 
     def update_action(self):
         pass

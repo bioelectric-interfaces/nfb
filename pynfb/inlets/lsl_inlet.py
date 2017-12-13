@@ -44,7 +44,7 @@ class LSLInlet:
         # convert to numpy array
         chunk = np.array(chunk, dtype=self.dtype)
         # return first n_channels channels or None if empty chunk
-        return chunk if chunk.shape[0] > 0 else None
+        return (chunk, timestamp) if chunk.shape[0] > 0 else (None, None)
 
     def update_action(self):
         pass

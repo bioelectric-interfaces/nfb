@@ -42,8 +42,8 @@ def load_h5py_all_samples(file_path, raw=True):
     return np.vstack(data)
 
 
-def save_signals(file_path, signals, group_name='protocol0', raw_data=None, signals_data=None, raw_other_data=None,
-                 reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None):
+def save_signals(file_path, signals, group_name='protocol0', raw_data=None, timestamp_data=None, signals_data=None,
+                 raw_other_data=None, reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None):
     print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
@@ -73,6 +73,8 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, sign
             signal_group.create_dataset('std', data=np.array(signal.std))
         if raw_data is not None:
             main_group.create_dataset('raw_data', data=raw_data, compression="gzip")
+        if timestamp_data is not None:
+            main_group.create_dataset('timestamp_data', data=timestamp_data, compression="gzip")
         if signals_data is not None:
             main_group.create_dataset('signals_data', data=signals_data, compression="gzip")
         if raw_other_data is not None:
