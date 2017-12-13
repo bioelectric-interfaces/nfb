@@ -1,7 +1,7 @@
 from PyQt4 import QtGui
 
 from pynfb.helpers.beep import SingleBeep
-from .inlet import InletSettingsWidget
+from .inlet import InletSettingsWidget, EventsInletSettingsWidget
 
 class GeneralSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -23,6 +23,10 @@ class GeneralSettingsWidget(QtGui.QWidget):
         # inlet
         self.inlet = InletSettingsWidget(parent=self)
         self.form_layout.addRow('&Inlet:', self.inlet)
+
+        # events inlet
+        self.events_inlet = EventsInletSettingsWidget(parent=self)
+        self.form_layout.addRow('&Events inlet:', self.events_inlet)
 
         # reference
         self.form_layout.addRow('Reference:', None)
@@ -125,3 +129,4 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.dc_check.setChecked(self.params['bDC'])
         self.use_expyriment.setChecked(self.params['bUseExpyriment'])
         self.inlet.reset()
+        self.events_inlet.reset()

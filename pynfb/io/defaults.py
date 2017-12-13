@@ -17,6 +17,7 @@ vectors_defaults = OrderedDict([
     ('sExperimentName', 'experiment'),
     ('sInletType', 'lsl'),
     ('sStreamName', 'NVX136_Data'),
+    ('sEventsStreamName', ''),
     ('sRawDataFilePath', ''),
     ('sFTHostnamePort', 'localhost:1972'),
     ('bPlotRaw', 1),
