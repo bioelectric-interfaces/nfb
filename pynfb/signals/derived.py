@@ -178,6 +178,9 @@ class DerivedSignal:
     def enable_scaling(self):
         self.scaling_flag = True
 
+    def descale_recording(self, data):
+        return data * self.std + self.mean if self.scaling_flag else data
+
     def save_spatial_matrix(self, file_path, channels_labels=None):
         """
         Save full spatial matrix: R1*R2*...*Rk*S, where R1,..Rk - rejections matrices, S - spatial filter

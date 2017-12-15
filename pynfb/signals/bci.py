@@ -95,3 +95,6 @@ class BCISignal():
 
     def enable_scaling(self):
         pass
+
+    def descale_recording(self, data):
+        return data

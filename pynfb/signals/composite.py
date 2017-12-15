@@ -113,4 +113,6 @@ class CompositeSignal:
 
     def enable_scaling(self):
         self.scaling_flag = True
-        pass
+
+    def descale_recording(self, data):
+        return data * self.std + self.mean if self.scaling_flag else data

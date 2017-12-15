@@ -168,6 +168,10 @@ class Experiment():
         # save raw and signals samples asynchronously
         protocol_number_str = 'protocol' + str(self.current_protocol_index + 1)
 
+        # descale signals:
+        signals_recordings = [signal.descale_recording(data)
+                              for signal, data in zip(self.signals, self.signals_recorder[:self.samples_counter].T)]
+
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
@@ -181,7 +185,7 @@ class Experiment():
                      raw_data=self.raw_recorder[:self.samples_counter],
                      timestamp_data=self.timestamp_recorder[:self.samples_counter],
                      raw_other_data=self.raw_recorder_other[:self.samples_counter],
-                     signals_data=self.signals_recorder[:self.samples_counter],
+                     signals_data=signals_recordings,
                      reward_data=self.reward_recorder[:self.samples_counter],
                      protocol_name=self.protocols_sequence[self.current_protocol_index].name,
                      mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous,
