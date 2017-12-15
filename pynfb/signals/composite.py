@@ -52,40 +52,19 @@ class CompositeSignal:
     def push_zeros(self, *args):
         return np.zeros(len(args[0]))
 
-    def update_statistics(self, raw=None, emulate=False,
-                          signals_recorder=None, stats_previous=None, updated_derived_signals_recorder=None,
-                          drop_outliers=0):
-
-        from time import time
-        timer = time()
-        if updated_derived_signals_recorder is None:
-            signals_data = signals_recorder[:, self.signals_idx].copy()
-            for j, signal_data in enumerate(signals_data.T):
-                if np.isfinite(stats_previous[j][0]) and np.isfinite(stats_previous[j][1]):
-                    signal_data = signal_data * stats_previous[j][1] + stats_previous[j][0]
-                if self.signals[j].std > 0:
-                    signals_data[:, j] = (signal_data - self.signals[j].mean) / self.signals[j].std
-        else:
-            signals_data = updated_derived_signals_recorder.copy()
-
+    def update_statistics(self, updated_derived_signals_recorder=None):
+        signals_data = updated_derived_signals_recorder.copy()
         if self.coh_filter is None:
             if signals_data.shape[1] > 1:
                 signal_recordings = self.expression_lambda(*signals_data.T)
             else:
                 signal_recordings = np.apply_along_axis(self.expression_lambda, 0, signals_data)
-            # drop outliers
-            if drop_outliers and signal_recordings.std() > 0:
-                signal_recordings_clear = signal_recordings[
-                    np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
-            else:
-                signal_recordings_clear = signal_recordings
-            self.mean = np.mean(signal_recordings_clear)
-            self.std = np.std(signal_recordings_clear)
-        if self.coh_filter is not None:
+            self.mean = np.mean(signal_recordings)
+            self.std = np.std(signal_recordings)
+        else:
             self.coh_filter.buffer *= 0
-        print('*** COMPOSITE TIME ELAPSED', time() - timer)
-
-
+            self.mean, self.std = (0, 1)
+        self.enable_scaling()
 
     def enable_scaling(self):
         self.scaling_flag = True

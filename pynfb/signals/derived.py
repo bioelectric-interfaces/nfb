@@ -99,8 +99,7 @@ class DerivedSignal:
         self.current_chunk = current_chunk
         pass
 
-    def update_statistics(self, raw=None, emulate=False,
-                          signals_recorder=None, stats_previous=None, drop_outliers=0):
+    def update_statistics(self, raw=None, emulate=False, signals_recorder=None):
         if raw is not None and emulate:
             signal_recordings = np.zeros_like(signals_recorder[:, self.ind])
             mean_chunk_size = 8
@@ -110,17 +109,9 @@ class DerivedSignal:
                 signal_recordings[k:k + mean_chunk_size] = self.current_chunk
         else:
             signal_recordings = signals_recorder[:, self.ind]
-            mean_prev, std_prev = stats_previous[self.ind]
-            if np.isfinite(mean_prev) and np.isfinite(std_prev):
-                signal_recordings = signal_recordings * std_prev + mean_prev
-        # drop outliers:
-        if drop_outliers and signal_recordings.std() > 0:
-                signal_recordings_clear = signal_recordings[
-                    np.abs(signal_recordings - signal_recordings.mean()) < drop_outliers * signal_recordings.std()]
-        else:
-            signal_recordings_clear = signal_recordings
-        self.mean = signal_recordings_clear.mean()
-        self.std = signal_recordings_clear.std()
+        self.mean = signal_recordings.mean()
+        self.std = signal_recordings.std()
+        self.enable_scaling()
         return (signal_recordings - self.mean) / (self.std if self.std > 0 else 1)
 
     def update_spatial_filter(self, spatial_filter=None, topography=None):
