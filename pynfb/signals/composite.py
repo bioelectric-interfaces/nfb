@@ -37,20 +37,9 @@ class CompositeSignal:
         self.scaling_flag = False
         self.mean = np.nan
         self.std = np.nan
-        # signal statistics accumulators
-        self.mean_acc = 0
-        self.var_acc = 0
-        self.std_acc = 0
-        self.n_acc = 0
 
     def update(self, chunk):
-        chunk_size = chunk.shape[0]
         self.current_sample = self.expression_lambda(*[signal.current_chunk for signal in self.signals])
-        self.mean_acc = (self.n_acc * self.mean_acc + chunk_size * self.current_sample.sum()) / (self.n_acc + chunk_size)
-        self.var_acc = (self.n_acc * self.var_acc + chunk_size * (self.current_sample - self.mean_acc).sum() ** 2) / (
-            self.n_acc + chunk_size)
-        self.std_acc = self.var_acc ** 0.5
-        self.n_acc += chunk_size
         if self.scaling_flag and self.std>0:
             self.current_sample = (self.current_sample - self.mean) / self.std
         self.current_chunk = self.current_sample*np.ones(len(chunk))
@@ -63,14 +52,9 @@ class CompositeSignal:
     def push_zeros(self, *args):
         return np.zeros(len(args[0]))
 
-    def update_statistics(self, raw=None, emulate=False, from_acc=False,
+    def update_statistics(self, raw=None, emulate=False,
                           signals_recorder=None, stats_previous=None, updated_derived_signals_recorder=None,
                           drop_outliers=0):
-        if from_acc:
-            self.mean = self.mean_acc
-            self.std = self.std_acc
-            self.reset_statistic_acc()
-            return None
 
         from time import time
         timer = time()
@@ -97,19 +81,11 @@ class CompositeSignal:
                 signal_recordings_clear = signal_recordings
             self.mean = np.mean(signal_recordings_clear)
             self.std = np.std(signal_recordings_clear)
-        else:
-            self.mean = self.mean_acc
-            self.std = self.std_acc
-        self.reset_statistic_acc()
-        print('*** COMPOSITE TIME ELAPSED', time() - timer)
-
-    def reset_statistic_acc(self):
-        self.mean_acc = 0
-        self.var_acc = 0
-        self.std_acc = 0
-        self.n_acc = 0
         if self.coh_filter is not None:
             self.coh_filter.buffer *= 0
+        print('*** COMPOSITE TIME ELAPSED', time() - timer)
+
+
 
     def enable_scaling(self):
         self.scaling_flag = True

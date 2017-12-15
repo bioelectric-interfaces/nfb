@@ -67,11 +67,6 @@ class DerivedSignal:
         self.scaling_flag = scale
         self.mean = np.nan
         self.std = np.nan
-        # signal statistics accumulators
-        self.mean_acc = 0
-        self.var_acc = 0
-        self.std_acc = 0
-        self.n_acc = 0
 
         # rejections matrices list
         self.rejections = Rejections(n_channels)
@@ -97,36 +92,17 @@ class DerivedSignal:
         return (self.spatial_filter == 0).all()
 
     def update(self, chunk):
-
-        # spatial filter
-        chunk_size = len(chunk)
         filtered_chunk = np.dot(chunk, self.spatial_matrix)
         current_chunk = self.signal_estimator.apply(filtered_chunk)
-
-        # accumulate sum and sum^2
-        self.mean_acc = (self.n_acc * self.mean_acc + current_chunk.sum()) / (self.n_acc + chunk_size)
-        self.var_acc = (self.n_acc * self.var_acc + (current_chunk - self.mean_acc).sum() ** 2) / (
-                self.n_acc + chunk_size)
-        self.std_acc = self.var_acc ** 0.5
-        self.n_acc += chunk_size
-
         if self.scaling_flag and self.std > 0:
             current_chunk = (current_chunk - self.mean) / self.std
-
         self.current_chunk = current_chunk
         pass
 
-    def update_statistics(self, raw=None, emulate=False, from_acc=False,
+    def update_statistics(self, raw=None, emulate=False,
                           signals_recorder=None, stats_previous=None, drop_outliers=0):
-        if from_acc:
-            self.mean = self.mean_acc
-            self.std = self.std_acc
-            self.reset_statistic_acc()
-            return None
-
         if raw is not None and emulate:
             signal_recordings = np.zeros_like(signals_recorder[:, self.ind])
-            self.reset_statistic_acc()
             mean_chunk_size = 8
             for k in range(0, raw.shape[0] - mean_chunk_size, mean_chunk_size):
                 chunk = raw[k:k + mean_chunk_size]
@@ -169,11 +145,6 @@ class DerivedSignal:
         self.update_spatial_filter()
         print(self.rejections)
 
-    def reset_statistic_acc(self):
-        self.mean_acc = 0
-        self.var_acc = 0
-        self.std_acc = 0
-        self.n_acc = 0
 
     def enable_scaling(self):
         self.scaling_flag = True

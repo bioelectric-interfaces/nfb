@@ -149,27 +149,23 @@ class Protocol:
         # update statistics action
         if self.update_statistics_in_the_end or must:
             stats_previous = [(signal.mean, signal.std) for signal in self.signals]
-            if self.source_signal_id is not None:
-                self.signals[self.source_signal_id].update_statistics(from_acc=True)
-                self.signals[self.source_signal_id].enable_scaling()
-            else:
-                updated_derived_signals_recorder = []
-                for s, signal in enumerate([signal for signal in self.signals if isinstance(signal, DerivedSignal)]):
-                    updated_derived_signals_recorder.append(
-                        signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
-                                                 stats_previous=stats_previous,
-                                                 signals_recorder=signals,
-                                                 drop_outliers=self.drop_outliers
-                                                 ))
-                    signal.enable_scaling()
-                updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
-                for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
-                    signal.update_statistics(raw=raw,
+            updated_derived_signals_recorder = []
+            for s, signal in enumerate([signal for signal in self.signals if isinstance(signal, DerivedSignal)]):
+                updated_derived_signals_recorder.append(
+                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
                                              stats_previous=stats_previous,
                                              signals_recorder=signals,
-                                             updated_derived_signals_recorder=updated_derived_signals_recorder,
-                                             drop_outliers=self.drop_outliers)
-                    signal.enable_scaling()
+                                             drop_outliers=self.drop_outliers
+                                             ))
+                signal.enable_scaling()
+            updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
+            for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
+                signal.update_statistics(raw=raw,
+                                         stats_previous=stats_previous,
+                                         signals_recorder=signals,
+                                         updated_derived_signals_recorder=updated_derived_signals_recorder,
+                                         drop_outliers=self.drop_outliers)
+                signal.enable_scaling()
 
 
 class BaselineProtocol(Protocol):
