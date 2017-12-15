@@ -52,15 +52,20 @@ class CompositeSignal:
     def push_zeros(self, *args):
         return np.zeros(len(args[0]))
 
-    def update_statistics(self, updated_derived_signals_recorder=None):
+    def update_statistics(self, updated_derived_signals_recorder=None, stats_type='meanstd'):
         signals_data = updated_derived_signals_recorder.copy()
         if self.coh_filter is None:
             if signals_data.shape[1] > 1:
                 signal_recordings = self.expression_lambda(*signals_data.T)
             else:
                 signal_recordings = np.apply_along_axis(self.expression_lambda, 0, signals_data)
-            self.mean = np.mean(signal_recordings)
-            self.std = np.std(signal_recordings)
+            if stats_type == 'meanstd':
+                self.mean = signal_recordings.mean()
+                self.std = signal_recordings.std()
+            elif stats_type == 'max':
+                self.std = signal_recordings.max()
+                self.std = 1 if self.std == 0 else self.std
+                self.mean = 0
         else:
             self.coh_filter.buffer *= 0
             self.mean, self.std = (0, 1)

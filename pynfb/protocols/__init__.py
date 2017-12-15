@@ -18,7 +18,7 @@ from ..widgets.update_signals_dialog import SignalsSSDManager
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
-                 ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0,
+                 ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None):
         """ Constructor
@@ -32,6 +32,7 @@ class Protocol:
         self.reward_signal_id = reward_signal_id
         self.reward_threshold = reward_threshold
         self.update_statistics_in_the_end = update_statistics_in_the_end
+        self.stats_type = stats_type
         self.mock_samples_file_path, self.mock_samples_protocol = mock_samples_path
         self.name = name
         self.duration = duration
@@ -153,12 +154,13 @@ class Protocol:
             updated_derived_signals_recorder = []
             for s, signal in enumerate([signal for signal in self.signals if isinstance(signal, DerivedSignal)]):
                 updated_derived_signals_recorder.append(
-                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end, signals_recorder=signals))
+                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end, signals_recorder=signals,
+                                             stats_type=self.stats_type))
             updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
 
             # secondly update CompositeSignals
             for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
-                signal.update_statistics(updated_derived_signals_recorder)
+                signal.update_statistics(updated_derived_signals_recorder, stats_type=self.stats_type)
 
 
 class BaselineProtocol(Protocol):

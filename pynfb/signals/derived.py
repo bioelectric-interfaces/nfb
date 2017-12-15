@@ -99,7 +99,7 @@ class DerivedSignal:
         self.current_chunk = current_chunk
         pass
 
-    def update_statistics(self, raw=None, emulate=False, signals_recorder=None):
+    def update_statistics(self, raw=None, emulate=False, signals_recorder=None, stats_type='meanstd'):
         if raw is not None and emulate:
             signal_recordings = np.zeros_like(signals_recorder[:, self.ind])
             mean_chunk_size = 8
@@ -109,8 +109,13 @@ class DerivedSignal:
                 signal_recordings[k:k + mean_chunk_size] = self.current_chunk
         else:
             signal_recordings = signals_recorder[:, self.ind]
-        self.mean = signal_recordings.mean()
-        self.std = signal_recordings.std()
+        if stats_type == 'meanstd':
+            self.mean = signal_recordings.mean()
+            self.std = signal_recordings.std()
+        elif stats_type == 'max':
+            self.std = signal_recordings.max()
+            self.std = 1 if self.std == 0 else self.std
+            self.mean = 0
         self.enable_scaling()
         return (signal_recordings - self.mean) / (self.std if self.std > 0 else 1)
 

@@ -382,6 +382,7 @@ class Experiment():
                 name=protocol['sProtocolName'],
                 duration=protocol['fDuration'],
                 update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                stats_type=protocol['sStatisticsType'],
                 mock_samples_path=mock_path,
                 show_reward=bool(protocol['bShowReward']),
                 reward_signal_id=reward_signal_id,
