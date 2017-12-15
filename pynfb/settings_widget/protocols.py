@@ -96,11 +96,24 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Duration [s]:', self.duration)
 
         # update statistics in the end end ssd analysis in the end check boxes
-        self.update_statistics = QtGui.QCheckBox()
         self.ssd_in_the_end = QtGui.QCheckBox()
         self.ssd_in_the_end.clicked.connect(self.update_source_signal_combo_box)
         self.form_layout.addRow('&Open signal manager\nin the end (SSD, CSP, ICA):', self.ssd_in_the_end)
-        self.form_layout.addRow('&Update statistics:', self.update_statistics)
+
+
+        self.update_statistics = QtGui.QCheckBox()
+        self.update_statistics_type = QtGui.QComboBox()
+        self.update_statistics.stateChanged.connect(
+            lambda: self.update_statistics_type.setEnabled(self.update_statistics.isChecked()))
+        for s_type in ['meanstd', 'max']:
+            self.update_statistics_type.addItem(s_type)
+
+        stats_widget = QtGui.QWidget()
+        stats_layout = QtGui.QHBoxLayout(stats_widget)
+        stats_layout.setMargin(0)
+        stats_layout.addWidget(self.update_statistics)
+        stats_layout.addWidget(self.update_statistics_type)
+        self.form_layout.addRow('&Update statistics:', stats_widget)
 
         # make signal after protocol
         self.beep_after = QtGui.QCheckBox()
@@ -293,6 +306,8 @@ class ProtocolDialog(QtGui.QDialog):
         current_protocol = self.params[self.parent().list.currentRow()]
         self.duration.setValue(current_protocol['fDuration'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
+        self.update_statistics_type.setCurrentIndex(['meanstd', 'max'].index(current_protocol['sStatisticsType']))
+        self.update_statistics_type.setEnabled(self.update_statistics.isChecked())
         self.beep_after.setChecked(current_protocol['bBeepAfter'])
         self.auto_bci_fit.setChecked(current_protocol['bAutoBCIFit'])
         self.mock_source.setChecked(current_protocol['bMockSource'])
@@ -345,6 +360,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.params[current_signal_index]['sProtocolName'] = self.name.text()
         self.params[current_signal_index]['fDuration'] = self.duration.value()
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
+        self.params[current_signal_index]['sStatisticsType'] = self.update_statistics_type.currentText()
         self.params[current_signal_index]['bBeepAfter'] = int(self.beep_after.isChecked())
         self.params[current_signal_index]['bAutoBCIFit'] = int(self.auto_bci_fit.isChecked())
         self.params[current_signal_index]['bMockSource'] = int(self.mock_source.isChecked())
