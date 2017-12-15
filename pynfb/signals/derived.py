@@ -89,7 +89,6 @@ class DerivedSignal:
         self.spatial_matrix = self.spatial_filter.copy()
 
         # current sample
-        self.current_sample = 0
         self.previous_sample = 0
         self.current_chunk = None
         pass
@@ -105,7 +104,6 @@ class DerivedSignal:
         current_chunk = self.signal_estimator.apply(filtered_chunk)
 
         # accumulate sum and sum^2
-        self.current_sample = filtered_chunk
         self.mean_acc = (self.n_acc * self.mean_acc + current_chunk.sum()) / (self.n_acc + chunk_size)
         self.var_acc = (self.n_acc * self.var_acc + (current_chunk - self.mean_acc).sum() ** 2) / (
                 self.n_acc + chunk_size)
@@ -116,7 +114,6 @@ class DerivedSignal:
             current_chunk = (current_chunk - self.mean) / self.std
 
         self.current_chunk = current_chunk
-        self.current_sample = current_chunk[-1]
         pass
 
     def update_statistics(self, raw=None, emulate=False, from_acc=False,

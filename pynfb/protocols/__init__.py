@@ -70,8 +70,8 @@ class Protocol:
                 #mock_signals = self.mock_recordings_signals[self.mock_samples_counter - 1]
                 #mark = self.widget_painter.redraw_state(mock_signals[self.source_signal_id], m_sample)
                 #reward.update(mock_signals[reward.signal_ind], chunk_size)
-                mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample, m_sample)
-                reward.update(self.mock[reward.signal_ind].current_sample, chunk_size)
+                mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_chunk[-1], m_sample)
+                reward.update(self.mock[reward.signal_ind].current_chunk[-1], chunk_size)
         else:
             mark = self.widget_painter.redraw_state(samples[0], m_sample)  # if source signal is 'ALL'
         return mark

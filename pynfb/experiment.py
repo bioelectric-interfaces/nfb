@@ -103,7 +103,7 @@ class Experiment():
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
             current_protocol = self.protocols_sequence[self.current_protocol_index]
             if current_protocol.mock_previous > 0:
-                samples = [signal.current_sample for signal in current_protocol.mock]
+                samples = [signal.current_chunk[-1] for signal in current_protocol.mock]
             elif current_protocol.mock_samples_file_path is not None:
                 samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
             else:
