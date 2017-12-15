@@ -2,7 +2,7 @@ import numpy as np
 from pynfb.io import save_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
     ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter
-from pynfb.signals import Rejections
+from pynfb.signals.rejections import Rejections
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
 ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
