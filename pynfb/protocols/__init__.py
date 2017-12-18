@@ -18,7 +18,7 @@ from ..widgets.update_signals_dialog import SignalsSSDManager
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
                  mock_samples_path=(None, None), show_reward=False, reward_signal_id=0, reward_threshold=0.,
-                 ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0,
+                 ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None):
         """ Constructor
@@ -32,6 +32,7 @@ class Protocol:
         self.reward_signal_id = reward_signal_id
         self.reward_threshold = reward_threshold
         self.update_statistics_in_the_end = update_statistics_in_the_end
+        self.stats_type = stats_type
         self.mock_samples_file_path, self.mock_samples_protocol = mock_samples_path
         self.name = name
         self.duration = duration
@@ -70,8 +71,8 @@ class Protocol:
                 #mock_signals = self.mock_recordings_signals[self.mock_samples_counter - 1]
                 #mark = self.widget_painter.redraw_state(mock_signals[self.source_signal_id], m_sample)
                 #reward.update(mock_signals[reward.signal_ind], chunk_size)
-                mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_sample, m_sample)
-                reward.update(self.mock[reward.signal_ind].current_sample, chunk_size)
+                mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_chunk[-1], m_sample)
+                reward.update(self.mock[reward.signal_ind].current_chunk[-1], chunk_size)
         else:
             mark = self.widget_painter.redraw_state(samples[0], m_sample)  # if source signal is 'ALL'
         return mark
@@ -148,28 +149,18 @@ class Protocol:
     def update_mean_std(self, raw, signals, must=False):
         # update statistics action
         if self.update_statistics_in_the_end or must:
-            stats_previous = [(signal.mean, signal.std) for signal in self.signals]
-            if self.source_signal_id is not None:
-                self.signals[self.source_signal_id].update_statistics(from_acc=True)
-                self.signals[self.source_signal_id].enable_scaling()
-            else:
-                updated_derived_signals_recorder = []
-                for s, signal in enumerate([signal for signal in self.signals if isinstance(signal, DerivedSignal)]):
-                    updated_derived_signals_recorder.append(
-                        signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end,
-                                                 stats_previous=stats_previous,
-                                                 signals_recorder=signals,
-                                                 drop_outliers=self.drop_outliers
-                                                 ))
-                    signal.enable_scaling()
-                updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
-                for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
-                    signal.update_statistics(raw=raw,
-                                             stats_previous=stats_previous,
-                                             signals_recorder=signals,
-                                             updated_derived_signals_recorder=updated_derived_signals_recorder,
-                                             drop_outliers=self.drop_outliers)
-                    signal.enable_scaling()
+
+            # firstly update DerivedSignals and collect updated signals data
+            updated_derived_signals_recorder = []
+            for s, signal in enumerate([signal for signal in self.signals if isinstance(signal, DerivedSignal)]):
+                updated_derived_signals_recorder.append(
+                    signal.update_statistics(raw=raw, emulate=self.ssd_in_the_end, signals_recorder=signals,
+                                             stats_type=self.stats_type))
+            updated_derived_signals_recorder = np.array(updated_derived_signals_recorder).T
+
+            # secondly update CompositeSignals
+            for signal in [signal for signal in self.signals if isinstance(signal, CompositeSignal)]:
+                signal.update_statistics(updated_derived_signals_recorder, stats_type=self.stats_type)
 
 
 class BaselineProtocol(Protocol):

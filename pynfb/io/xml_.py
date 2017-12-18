@@ -4,6 +4,7 @@ from collections import OrderedDict
 from .defaults import *
 from numpy import array
 import xml.etree.ElementTree as ET
+from pynfb.signals import DerivedSignal
 
 
 
@@ -102,7 +103,6 @@ def save_signal(signal, filename):
         f.write(unparse(signal_dict, pretty=True))
 
 
-from ..signals import DerivedSignal
 def load_signal(filename, channels_labels):
     signal = xml_file_to_odict(filename)
     default = vectors_defaults['vSignals']['DerivedSignal'][0].copy()

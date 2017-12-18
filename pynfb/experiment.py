@@ -103,7 +103,7 @@ class Experiment():
             is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
             current_protocol = self.protocols_sequence[self.current_protocol_index]
             if current_protocol.mock_previous > 0:
-                samples = [signal.current_sample for signal in current_protocol.mock]
+                samples = [signal.current_chunk[-1] for signal in current_protocol.mock]
             elif current_protocol.mock_samples_file_path is not None:
                 samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
             else:
@@ -168,10 +168,14 @@ class Experiment():
         # save raw and signals samples asynchronously
         protocol_number_str = 'protocol' + str(self.current_protocol_index + 1)
 
+        # descale signals:
+        signals_recordings = np.array([signal.descale_recording(data)
+                             for signal, data in zip(self.signals, self.signals_recorder[:self.samples_counter].T)]).T
+
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
-            signals=self.signals_recorder[:self.samples_counter],
+            signals=signals_recordings,
             protocols=self.protocols,
             protocols_seq=[protocol.name for protocol in self.protocols_sequence[:self.current_protocol_index+1]],
             raw_file=self.dir_name + 'experiment_data.h5',
@@ -181,7 +185,7 @@ class Experiment():
                      raw_data=self.raw_recorder[:self.samples_counter],
                      timestamp_data=self.timestamp_recorder[:self.samples_counter],
                      raw_other_data=self.raw_recorder_other[:self.samples_counter],
-                     signals_data=self.signals_recorder[:self.samples_counter],
+                     signals_data=signals_recordings,
                      reward_data=self.reward_recorder[:self.samples_counter],
                      protocol_name=self.protocols_sequence[self.current_protocol_index].name,
                      mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous,
@@ -378,6 +382,7 @@ class Experiment():
                 name=protocol['sProtocolName'],
                 duration=protocol['fDuration'],
                 update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
+                stats_type=protocol['sStatisticsType'],
                 mock_samples_path=mock_path,
                 show_reward=bool(protocol['bShowReward']),
                 reward_signal_id=reward_signal_id,

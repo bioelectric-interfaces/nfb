@@ -58,6 +58,7 @@ vectors_defaults = OrderedDict([
             # ('sSignalComposition', 'Simple'),
             # ('nMSecondsPerWindow', ''),
             ('bUpdateStatistics', 0),
+            ('sStatisticsType', 'meanstd'),
             ('iDropOutliers', 0),
             ('bSSDInTheEnd', 0),
             # ('bStopAfter', False),
