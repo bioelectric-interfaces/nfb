@@ -82,7 +82,7 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, time
         if reward_data is not None:
             main_group.create_dataset('reward_data', data=reward_data, compression="gzip")
         if mark_data is not None:
-            main_group.create_dataset('mark_data', data=reward_data, compression="gzip")
+            main_group.create_dataset('mark_data', data=mark_data, compression="gzip")
 
     pass
 
