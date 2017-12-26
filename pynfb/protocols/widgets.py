@@ -5,16 +5,18 @@ import pyqtgraph as pg
 
 from ..protocols.psycho.cross_present import PsyExperiment
 
+from scipy.misc import imread
+
 
 class ProtocolWidget(pg.PlotWidget):
     def __init__(self, **kwargs):
         super(ProtocolWidget, self).__init__(**kwargs)
         width = 5
         self.setYRange(-width, width)
-        self.setXRange(-width, width)
+        self.setXRange(-2*width, 2*width)
         size = 500
-        self.setMaximumWidth(size)
-        self.setMaximumHeight(size)
+        self.setMaximumWidth(2000)
+        self.setMaximumHeight(2000)
         self.setMinimumWidth(size)
         self.setMinimumHeight(size)
         self.hideAxis('bottom')
@@ -167,7 +169,53 @@ class BaselineProtocolWidgetPainter(Painter):
     def set_message(self, text):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+                               
+class TrialsProtocolWidgetPainter(Painter):
+    #def __init__(self):
+        #show_reward = False;
+        #super(TrialsProtocolWidgetPainter, self).__init__(show_reward=show_reward)
 
+    def prepare_widget(self, widget):
+        #super(TrialsProtocolWidgetPainter, self).prepare_widget(widget)
+        #self.text_item = pg.TextItem(html='<center><font size="7" color="#e5dfc5">{}</font></center>'.format('text at protocol start'),
+        #                        anchor=(0.5, 0.5))
+        #self.text_item.setTextWidth(500)
+        #widget.addItem(self.text_item)
+        self.plotItem = widget.plotItem
+        
+        #self.image_0 = imread('F:/cut_fish.jpg')
+        self.images = [imread('F:/'+str(image_num)+'.png') for image_num in np.arange(9)]
+        
+        self.img = pg.ImageItem(anchor=(0.5, 0.5))
+        self.img.setScale(0.02)
+        #self.img.rotate(-90)
+        self.img.setX(-2.0)
+        self.img.setY(-2.0)
+        
+        self.img.setImage(self.images[0])
+        widget.addItem(self.img)
+        
+        
+        
+    def change_pic(self, num_pic):
+        # 0 = empty, 1 = left, 2 = right, 3 = up, 4 = down, 5 = left_goal, 6 = right_goal, 7 = up_goal, 8 = down_goal
+        #self.img = pg.ImageItem()
+        #self.img.rotate(-90)
+        #self.img.setX(-5)
+        #self.img.setY(5)
+        self.img.setImage(self.images[num_pic])
+        
+        #self.set_message(str(num_pic))
+    
+    def redraw_state(self):
+        pass
+        
+        
+    def set_message(self, text):
+        #self.text = text
+        #self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+        pass
+    
 class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
     def __init__(self, threshold=2000, time_ms=50, show_reward=False):
         super(ThresholdBlinkFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)

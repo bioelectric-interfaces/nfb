@@ -73,10 +73,10 @@ class LSLInlet:
                     "channel")
                 labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
                           for ch in channels_tree]
-                return labels
+                return labels + ['AUX'+str(j+1) for j in range(8)]
             except OSError:
                 print('OSError during reading channels names', t+1)
-        return ['channel'+str(n+1) for n in range(self.get_n_channels())]
+        return ['channel'+str(n+1) for n in range(self.get_n_channels())] 
 
     def disconnect(self):
         del self.inlet

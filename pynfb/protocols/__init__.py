@@ -1,5 +1,5 @@
 from copy import deepcopy
-
+import pickle as pkl
 import numpy as np
 from numpy import vstack
 from numpy.random import randint
@@ -9,11 +9,14 @@ from ..io.hdf5 import load_h5py_protocols_raw
 from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
                                      PsyProtocolWidgetPainter, BaselineProtocolWidgetPainter,
-                                     ThresholdBlinkFeedbackProtocolWidgetPainter, VideoProtocolWidgetPainter)
+                                     ThresholdBlinkFeedbackProtocolWidgetPainter, VideoProtocolWidgetPainter, TrialsProtocolWidgetPainter)
+									 
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
+
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
-
+import time
+import random
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
@@ -52,10 +55,12 @@ class Protocol:
         self.shuffle_mock_previous = shuffle_mock_previous
         self.beep_after = beep_after
         self.as_mock = as_mock
+        self.istrials = 0
         self.auto_bci_fit = auto_bci_fit
+
         pass
 
-    def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
+    def update_state(self, samples, reward, chunk_size=1, is_half_time=False, samples_counter=None):
 
         m_sample = None if self.m_signal_id is None else samples[self.m_signal_id]
         if self.source_signal_id is not None:
@@ -177,7 +182,7 @@ class BaselineProtocol(Protocol):
         self.beep = SingleBeep()
         pass
 
-    def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
+    def update_state(self, samples, reward, chunk_size=1, is_half_time=False, samples_counter=None):
         if self.half_time_text_change:
             if is_half_time and not self.is_half_time:
                 self.beep.try_to_play()
@@ -190,6 +195,139 @@ class BaselineProtocol(Protocol):
         self.widget_painter.set_message('')
         super(BaselineProtocol, self).close_protocol(**kwargs)
         self.widget_painter.set_message(self.text)
+        
+class TrialsProtocol(Protocol):
+    def __init__(self, signals, name='Trials', update_statistics_in_the_end=True, pic1_path='', #pic2_path, pic3_path, pic4_path,
+                 **kwargs):
+        kwargs['name'] = name
+        kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
+        super().__init__(signals, **kwargs)
+        self.widget_painter = TrialsProtocolWidgetPainter()
+        self.pic1_path = pic1_path
+        self.is_half_time = False
+        self.beep = SingleBeep()
+
+        self.elapsed = 0
+        
+        self.is_first_update = True
+        self.cur_state = 100
+        self.istrials = 1
+        
+        # Construct events sequence with corresponding times
+        
+        before_red_arrow_t = 1
+        red_arrow_on_t = 2
+        after_red_arrow_t = 1
+        
+        all_events_seq = np.array([],dtype=np.int)
+        all_events_times= np.array([],dtype=np.int)
+        
+        # start after 5 seconds
+        cur_ev_time = 5
+        
+        for j in np.arange(1,6):
+            for i in np.arange(1,5):
+                
+                dir_epoch_start_events = np.array([0, i+4, 0],dtype=np.int);
+                dir_epoch_start_event_times = cur_ev_time + np.array([0, before_red_arrow_t, before_red_arrow_t+red_arrow_on_t]);
+                
+                all_events_seq = np.concatenate((all_events_seq, dir_epoch_start_events))
+                all_events_times = np.concatenate((all_events_times, dir_epoch_start_event_times))
+                
+                cur_ev_time = all_events_times[-1] + after_red_arrow_t
+                
+                [seq,times] = self.construct_dir_epoch(10,4,500,400) #[np.zeros(40),np.zeros(40)]#
+                times = times + cur_ev_time
+                
+                all_events_seq = np.concatenate((all_events_seq, seq))
+                all_events_times = np.concatenate((all_events_times, times))
+                
+                cur_ev_time = all_events_times[-1] + before_red_arrow_t
+            
+            
+        self.pos_in_events_times = 0
+        self.events_seq = all_events_seq
+        self.events_times = all_events_times
+        with open("events_seq.pkl", "wb") as f:
+            pkl.dump(all_events_seq, f)
+        with open("all_events_times.pkl", "wb") as f:
+            pkl.dump(all_events_times, f)
+
+    def update_state(self, samples, reward, chunk_size=1, is_half_time=False, samples_counter=None):
+        #if(samples_counter is not None):
+        
+        if(self.is_first_update):
+            self.is_first_update = False
+            self.protocol_start_time=time.time()
+            self.elapsed = 0
+        
+        self.elapsed = time.time() - self.protocol_start_time
+
+        self.check_times()
+        
+        return None, self.cur_state
+                
+
+    def check_times(self):
+        if(self.pos_in_events_times < len(self.events_times)):
+
+            if(self.elapsed > self.events_times[self.pos_in_events_times]):
+                self.pos_in_events_times = self.pos_in_events_times + 1;
+                
+                if(self.pos_in_events_times < len(self.events_times)):
+                    #self.widget_painter.img.setImage(self.widget_painter.image_0)
+                    self.cur_state = self.events_seq[self.pos_in_events_times]
+
+                    self.widget_painter.change_pic(self.cur_state)
+                    #self.widget_painter.img.rotate(90)
+                    #self.widget_painter.set_message(str(self.events_times[self.pos_in_events_times]) + ' seconds passed')
+                    self.check_times()
+#            if(self.pos_in_times > 0):
+#                if(self.elapsed > self.times[self.pos_in_times-1]) + 0.2:
+#                    self.widget_painter.img.setImage(self.widget_painter.up)
+        
+        
+    def close_protocol(self, **kwargs):
+        self.is_half_time = False
+        self.beep = SingleBeep()
+        self.widget_painter.set_message('')
+        super(TrialsProtocol, self).close_protocol(**kwargs)
+        #self.widget_painter.set_message(self.text)
+        
+    def construct_dir_epoch(self,num_trials_in_dir_epoch,num_states,stim_on_t,stim_off_t):
+        num_arrow_flashes = num_states*num_trials_in_dir_epoch
+        fullseq = np.zeros([num_arrow_flashes])
+        
+        for i in np.arange(num_trials_in_dir_epoch):
+            
+            this_trial = np.random.permutation(np.array([1, 2, 3, 4])).astype(int)
+            #this_trial = np.array([1, 2, 3, 4]).astype(int)
+            
+            
+            if(i>0):
+                last_num_prev_trial = fullseq[(4*i - 1)]
+                first_num_this_trial = this_trial[0]
+                
+                if(last_num_prev_trial == first_num_this_trial):
+                    pos_to_switch_with = random.randint(1,3)
+        
+                    new_first = this_trial[pos_to_switch_with]
+                    
+                    this_trial[pos_to_switch_with] = this_trial[0] 
+                    this_trial[0] = new_first
+                
+            fullseq[4*i:(4*i + 4)] = this_trial
+        
+        num_events = num_arrow_flashes*2
+        event_seq_dir_epoch = np.zeros([num_events],dtype=np.int)
+        
+        event_times_dir_epoch = np.zeros([num_events])
+        event_times_dir_epoch = np.arange(0,num_events*stim_on_t,stim_on_t)/float(1000)
+        
+        event_seq_dir_epoch[::2] = fullseq
+        
+        return event_seq_dir_epoch, event_times_dir_epoch
+
 
 
 class FeedbackProtocol(Protocol):

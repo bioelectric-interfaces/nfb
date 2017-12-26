@@ -16,7 +16,7 @@ from .inlets.channels_selector import ChannelsSelector
 from .io.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, save_xml_str_to_hdf5_dataset
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
-from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, PsyProtocol
+from .protocols import BaselineProtocol, TrialsProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, PsyProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -39,6 +39,7 @@ class Experiment():
         self.mock_signals_buffer = None
         self.activate_trouble_catching = False
         self.main = None
+        self.saved_state = 100
         self.restart()
         pass
 
@@ -115,17 +116,34 @@ class Experiment():
                 self.reward_recorder[
                 self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
 
+            
+            
             if self.main.player_panel.start.isChecked():
                 # subject update
                 if self.params['bShowSubjectWindow']:
-                    mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
-                                                              is_half_time=is_half_time)
+                    if current_protocol.istrials:
+                        [mark,state] = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
+                                      is_half_time=is_half_time, samples_counter = self.samples_counter)
+                    else:
+                        mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
+                                                              is_half_time=is_half_time, samples_counter = self.samples_counter)
+                        state = 100
                 else:
                     mark = None
-                self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-                self.mark_recorder[self.samples_counter-1] = int(mark or 0)
+                
+
+                if current_protocol.istrials:
+                    statereclen = self.state_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter].shape[0]
+                    self.state_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = self.saved_state*np.ones(statereclen)
+                    
+                    self.saved_state = state
+                else:
+                    self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                    self.mark_recorder[self.samples_counter-1] = int(mark or 0)
 
 
+                
+                
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
                 self.next_protocol()
@@ -189,7 +207,8 @@ class Experiment():
                      reward_data=self.reward_recorder[:self.samples_counter],
                      protocol_name=self.protocols_sequence[self.current_protocol_index].name,
                      mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous,
-                     mark_data=self.mark_recorder[:self.samples_counter])
+                     mark_data=self.mark_recorder[:self.samples_counter],
+                     state_data=self.state_recorder[:self.samples_counter])
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -412,6 +431,18 @@ class Experiment():
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
                         **kwargs
                     ))
+
+            elif protocol['sFb_type'] == 'Trials':
+                self.protocols.append(
+                    TrialsProtocol(
+                        self.signals,
+                        pic1_path=protocol['sPic1Path'],
+                        #pic2_path=protocol['sPic2Path'],
+                        #pic3_path=protocol['sPic3Path'],
+                        #pic4_path=protocol['sPic4Path'],
+                        # add here: pics, start to pic, pic to end, trial duration
+                        **kwargs))
+                
             elif protocol['sFb_type'] in ['Feedback', 'CircleFeedback']:
                 self.protocols.append(
                     FeedbackProtocol(
@@ -483,12 +514,17 @@ class Experiment():
         self.experiment_n_samples = max_protocol_n_samples
         self.samples_counter = 0
         self.raw_recorder = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels)) * np.nan
+
+        self.state_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.timestamp_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+
         self.raw_recorder_other = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels_other)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
         self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
-
+        
+        
+        
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,
                      group_name='protocol0')

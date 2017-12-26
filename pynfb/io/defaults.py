@@ -86,6 +86,7 @@ vectors_defaults = OrderedDict([
             ('bBeepAfter', 0),
             ('iRandomBound', 0),
             ('sVideoPath', ''),
+            ('sPic1Path', 'default.png'),
             ('sMSignal', 'None'),
             ('fMSignalThreshold', 1),
             ('bMockSource', 0),

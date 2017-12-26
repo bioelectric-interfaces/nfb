@@ -9,8 +9,7 @@ except ImportError:
     pass
 from numpy import array, random
 
-DEBUG = False
-
+DEBUG = True
 
 def seems_to_come_from_neuromag(list_of_ch_names):
     return list_of_ch_names[0].startswith('MEG')

@@ -317,9 +317,9 @@ class SubjectWindow(SecondaryWindow):
     def create_figure(self):
         return ProtocolWidget()
 
-    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
-        self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
-                                           is_half_time=is_half_time)
+    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False, samples_counter=None):
+        return self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
+                                           is_half_time=is_half_time, samples_counter=samples_counter)
 
 
 class CustomExperiment(design.Experiment):
@@ -345,11 +345,11 @@ class ExpyrimentSubjectWindow:
         # prepare widget
         self.current_protocol.widget_painter.prepare_widget(self.exp)
 
-    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
+    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False, samples_counter=None):
         if not self.exp.is_initialized:
             control.initialize(self.exp)
         else:
-            return self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time)
+            return self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time, samples_counter=samples_counter)
 
     def change_protocol(self, new_protocol):
         self.current_protocol = new_protocol
