@@ -1,0 +1,3 @@
+expyriment==0.9.0
+mne==0.15
+pylsl==1.10.5
