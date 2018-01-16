@@ -15,6 +15,7 @@ with h5py.File(r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\alpha-nfb-ex
     channels = [ch.split('-')[0] for ch in channels]
     mock_ind = [f['protocol{}'.format(k + 1)].attrs['mock_previous'] for k in range(len(p_names))]
     data = [f['protocol{}/raw_data'.format(k + 1)][:] for k in range(len(p_names))]
+    signal = [f['protocol{}/signals_data'.format(k + 1)][:] for k in range(len(p_names))]
     spat = f['protocol{}/signals_stats/Alpha/spatial_filter'.format(p_names.index('Baseline')+1)][:]
     band = f['protocol{}/signals_stats/Alpha/bandpass'.format(p_names.index('Baseline') + 1)][:]
 
@@ -31,6 +32,9 @@ df['block_number'] = np.concatenate([[j + 1]*len(d) for j, d in enumerate(data)]
 df['alpha'] = np.dot(df[channels], spat)
 df['alpha_env'] = df['alpha']*0
 df['time'] = np.arange(len(df)) / fs
+df['signal'] = np.concatenate(signal)
+
+
 
 fig, axes = plt.subplots(1, 5)
 
@@ -58,6 +62,19 @@ axes[1].set_ylabel('PSD, $\mu V^2/Hz$')
 
 for n in df.loc[df['block_name'].isin(['Real', 'Mock', 'Baseline']), 'block_number'].unique():
     df.loc[df['block_number'] == n, 'alpha_env'] = np.abs(hilbert(fft_filter(df.loc[df['block_number'] == n, 'alpha'], fs, band)))
+
+
+
+df_fb = df[df['block_name'].isin(['Real', 'Mock'])]
+print(df_fb['alpha_env'])
+fig2, ax = plt.subplots(2, 1)
+corr = [df_fb['signal'].corr(df_fb['alpha_env'].shift(i)) for i in range(100)]
+print(corr)
+ax[0].plot(corr)
+ax[1].plot(df_fb['time'], df_fb['alpha_env'].shift(np.argmax(corr)))
+ax[1].plot(df_fb['time'], df_fb['signal'])
+ax[0].legend([str(np.argmax(corr)/fs) + ' ' + str(np.max(corr))])
+
 
 coeff = df.loc[df['block_name'] == 'Baseline', 'alpha_env'].median()
 #df['ma'] =
