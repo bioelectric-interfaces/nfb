@@ -58,6 +58,8 @@ axes[1].legend(['Close', 'Open'])
 axes[1].set_xlim(5, 15)
 axes[1].set_xlabel('Freq., Hz')
 axes[1].set_ylabel('PSD, $\mu V^2/Hz$')
+axes[1].vlines(band, [-50]*2, [50]*2, alpha=0.8)
+axes[1].set_ylim(0, 40)
 #plt.show()
 
 for n in df.loc[df['block_name'].isin(['Real', 'Mock', 'Baseline']), 'block_number'].unique():
@@ -108,4 +110,7 @@ print(ttest_1samp(slopes.loc[slopes['condition']=='Real', 'slope'], 0))
 print(ttest_1samp(slopes.loc[slopes['condition']=='Mock', 'slope'], 0))
 print(ranksums(slopes.loc[slopes['condition']=='Real', 'slope'], slopes.loc[slopes['condition']=='Mock', 'slope']))
 print(ttest_ind(slopes.loc[slopes['condition']=='Real', 'slope'], slopes.loc[slopes['condition']=='Mock', 'slope']))
+
+for ax, t in zip(axes, 'abcde'):
+    ax.set_title(t)
 plt.show()
