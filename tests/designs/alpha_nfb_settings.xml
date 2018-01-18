@@ -18,7 +18,7 @@
 	<vSignals>
 		<DerivedSignal>
 			<sSignalName>Alpha</sSignalName>
-			<SpatialFilterMatrix>C:/Users/Nikolai/PycharmProjects/nfb/pynfb/p4.txt</SpatialFilterMatrix>
+			<SpatialFilterMatrix></SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.99</fSmoothingFactor>
 			<fFFTWindowSize>500</fFFTWindowSize>

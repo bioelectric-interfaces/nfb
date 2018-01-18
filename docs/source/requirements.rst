@@ -1,19 +1,10 @@
 Requirements
 ============
-Software is written in python (version 3.4) and used the following packages:
+You can find all python dependencies here:
 
-PyQt4  -  for creating graphical user interfaces;
+`Conda requirements`_
 
-pyqtgraph and matplotlib  -   to draw graphs;
+`PIP requirements`_
 
-pylsl  -  to connect various devices, which support work with Lab Stream Layer protocol;
-
-numpy  - to store matrices and perform basic operations on them;
-
-scipy  -  to use various kinds of filters and performing a fast Fourier transform;
-
-sympy  -  for symbolic computations (for composite signals);
-
-mne  -   for processing the neurophysiological teme series;
-
-h5py  -  to save the results of experiments and recorded signals;
+.. _`Conda requirements`: https://github.com/nikolaims/nfb/blob/master/requirements_conda.txt
+.. _`PIP requirements`: https://github.com/nikolaims/nfb/blob/master/requirements_pip.txt

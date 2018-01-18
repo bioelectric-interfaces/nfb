@@ -17,5 +17,6 @@ Contents:
    experimental_design
    experiment
    signals_manager
+   alpha_nfb_example
    experiment_results_file
    requirements
