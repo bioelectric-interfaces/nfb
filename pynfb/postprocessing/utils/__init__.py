@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.fft import fftfreq
-from scipy.fftpack import rfft, irfft
+from scipy.fftpack import rfft, irfft, rfftfreq
 
 from pynfb.io.xml_ import get_lsl_info_from_xml
 
@@ -14,7 +14,7 @@ def dc_blocker(x, r=0.99):
 
 
 def fft_filter(x, fs, band=(9, 14)):
-    w = fftfreq(x.shape[0], d=1. / fs * 2)
+    w = rfftfreq(x.shape[0], d=1. / fs)
     f_signal = rfft(x, axis=0)
     cut_f_signal = f_signal.copy()
     cut_f_signal[(w < band[0]) | (w > band[1])] = 0
