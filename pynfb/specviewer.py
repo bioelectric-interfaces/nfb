@@ -89,7 +89,7 @@ main_timer = QtCore.QTimer(app)
 w = MainWindow(None, fs, channels_labels)
 
 def update():
-    chunk = lsl.get_next_chunk()
+    chunk = lsl.get_next_chunk()[0]
     if chunk is not None:
         w.redraw_signals(chunk)
 
