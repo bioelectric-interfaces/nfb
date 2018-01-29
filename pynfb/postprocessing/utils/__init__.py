@@ -1,8 +1,10 @@
 import numpy as np
 from numpy.fft import fftfreq
+from scipy.signal import welch
 from scipy.fftpack import rfft, irfft, rfftfreq
-
+import h5py
 from pynfb.io.xml_ import get_lsl_info_from_xml
+import pandas as pd
 
 
 def dc_blocker(x, r=0.99):
@@ -155,6 +157,25 @@ def find_lag(x, target, fs=None, show=False):
         plt.show()
     return lag
 
+def get_main_freq(x, fs, band_range=(8, 15), secperseg=4):
+    f, pxx = welch(x, fs, nperseg=fs*secperseg)
+    pxx[(f < band_range[0]) | (f > band_range[1])] = 0
+    return f[np.argmax(pxx)]
+
+def get_main_band(x, fs, band_range=(8, 15), band_width=2, secperseg=4):
+    main_freq = get_main_freq(x, fs, band_range, secperseg)
+    return [main_freq - band_width/2, main_freq + band_width/2]
+
+def load_data(file_path):
+    with h5py.File(file_path) as f:
+        fs, channels, p_names = get_info(f, ['A1', 'A2'])
+        data = [f['protocol{}/raw_data'.format(k + 1)][:] for k in range(len(p_names))]
+
+        df = pd.DataFrame(np.concatenate(data), columns=channels)
+        df['block_name'] = np.concatenate([[p]*len(d) for p, d in zip(p_names, data)])
+        df['block_number'] = np.concatenate([[j + 1]*len(d) for j, d in enumerate(data)])
+
+    return df, fs, p_names, channels
 
 if __name__ == '__main__':
     get_colors()
