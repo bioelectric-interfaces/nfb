@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 import numpy as np
 from PyQt4 import QtCore
@@ -301,12 +302,19 @@ class Experiment():
         elif self.params['sInletType'] == 'lsl_generator':
             self.thread = stream_generator_in_a_thread(self.params['sStreamName'])
 
+        # use FTB inlet
+        aux_streams = None
         if self.params['sInletType'] == 'ftbuffer':
             hostname, port = self.params['sFTHostnamePort'].split(':')
             port = int(port)
             stream = FieldTripBufferInlet(hostname, port)
+
+        # use LSL inlet
         else:
-            stream = LSLInlet(name=self.params['sStreamName'])
+            stream_names = re.split(r"[,; ]+", self.params['sStreamName'])
+            streams = [LSLInlet(name=name) for name in stream_names]
+            stream = streams[0]
+            aux_streams = streams[1:] if len(streams) > 1 else None
 
         # setup events stream by name
         events_stream_name = self.params['sEventsStreamName']
@@ -315,7 +323,7 @@ class Experiment():
         # setup main stream
         self.stream = ChannelsSelector(stream, exclude=self.params['sReference'],
                                        subtractive_channel=self.params['sReferenceSub'],
-                                       dc=self.params['bDC'], events_inlet=events_stream)
+                                       dc=self.params['bDC'], events_inlet=events_stream, aux_inlets=aux_streams)
         self.stream.save_info(self.dir_name + 'stream_info.xml')
         save_xml_str_to_hdf5_dataset(self.dir_name + 'experiment_data.h5', self.stream.info_as_xml(), 'stream_info.xml')
         self.freq = self.stream.get_frequency()

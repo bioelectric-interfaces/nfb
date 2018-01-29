@@ -3,14 +3,38 @@ from pynfb.widgets.helpers import validate_ch_names
 EVENTS_CHANNEL_NAME = 'EVENTS'
 
 
+def interp_nans(y, empty_fill_val=0):
+    nans = np.isnan(y)
+    if sum(~nans) == 0:
+        y = np.ones_like(y) * empty_fill_val
+    else:
+        y[nans] = np.interp(nans.nonzero()[0], (~nans).nonzero()[0], y[~nans])
+    return y
+
+
+
 class ChannelsSelector:
     def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None, dc=False,
-                 events_inlet=None):
+                 events_inlet=None, aux_inlets=None):
         self.last_y = 0
         self.inlet = inlet
         self.events_inlet = events_inlet
+        self.aux_inlets = aux_inlets
+        self.aux_previous_chunks = []
+
+        # get names in uppercase format
         names = [n.upper() for n in self.inlet.get_channels_labels()]
+
+        # cut after first non alphabetic numerical (e.g. 'Fp1-A1' -> 'Fp1')
         names = [''.join([ch if ch.isalnum() else ' ' for ch in name]).split()[0] for name in names]
+
+        # append aux inlets
+        if self.aux_inlets is not None:
+            for aux_inlet in self.aux_inlets:
+                names += aux_inlet.get_channels_labels()
+                self.aux_previous_chunks.append(np.zeros_like((1, aux_inlet.n_channels)))
+
+        # append events inlet
         if self.events_inlet is not None:
             names += [EVENTS_CHANNEL_NAME]
         self.channels_names = names
@@ -41,7 +65,6 @@ class ChannelsSelector:
             self.sub_channel_index = None
 
         # exclude channels
-
         if exclude:
             exclude = self.parse_channels_string(exclude)
             if isinstance(exclude, list):
@@ -69,7 +92,7 @@ class ChannelsSelector:
         # all indices
         exclude_indices = set(exclude_indices)
         self.indices = [j for j in include_indices if j not in exclude_indices]
-        self.other_indices = [j for j in range(self.inlet.get_n_channels()) if j in exclude_indices]
+        self.other_indices = [j for j in range(len(names)) if j in exclude_indices]
         self.dc = dc
 
 
@@ -85,6 +108,20 @@ class ChannelsSelector:
                 if events is not None:
                     aug_chunk[np.searchsorted(timestamp[:-1], events_timestamp)] = events
                 chunk = np.hstack([chunk, aug_chunk])
+
+            if self.aux_inlets is not None:
+                for j_aux_inlet, aux_inlet in enumerate(self.aux_inlets):
+                    aux_chunk_short, aux_timestamp = aux_inlet.get_next_chunk()
+                    if aux_chunk_short is not None:
+                        aux_chunk = np.zeros((chunk.shape[0], aux_inlet.n_channels)) * np.nan
+                        for k in range(aux_inlet.n_channels):
+                            aux_chunk[np.searchsorted(timestamp[:-1], aux_timestamp), k] = aux_chunk_short[:, k]
+                            aux_chunk[:, k] = interp_nans(aux_chunk[:, k])
+                        self.aux_previous_chunks[j_aux_inlet] = aux_chunk
+                    else:
+                        aux_chunk = np.ones((chunk.shape[0], aux_inlet.n_channels))
+                        aux_chunk *= self.aux_previous_chunks[j_aux_inlet][-1]
+                    chunk = np.hstack([chunk, aux_chunk])
 
             if self.sub_channel_index is None:
                 return chunk[:, self.indices], chunk[:, self.other_indices], timestamp
