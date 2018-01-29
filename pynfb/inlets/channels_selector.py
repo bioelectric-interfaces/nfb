@@ -15,12 +15,13 @@ def interp_nans(y, empty_fill_val=0):
 
 class ChannelsSelector:
     def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None, dc=False,
-                 events_inlet=None, aux_inlets=None):
+                 events_inlet=None, aux_inlets=None, aux_interpolate=False):
         self.last_y = 0
         self.inlet = inlet
         self.events_inlet = events_inlet
         self.aux_inlets = aux_inlets
         self.aux_previous_chunks = []
+        self.aux_interpolate = aux_interpolate
 
         # get names in uppercase format
         names = [n.upper() for n in self.inlet.get_channels_labels()]
@@ -112,15 +113,17 @@ class ChannelsSelector:
             if self.aux_inlets is not None:
                 for j_aux_inlet, aux_inlet in enumerate(self.aux_inlets):
                     aux_chunk_short, aux_timestamp = aux_inlet.get_next_chunk()
+                    aux_chunk = np.zeros((chunk.shape[0], aux_inlet.n_channels)) * np.nan
                     if aux_chunk_short is not None:
-                        aux_chunk = np.zeros((chunk.shape[0], aux_inlet.n_channels)) * np.nan
                         for k in range(aux_inlet.n_channels):
                             aux_chunk[np.searchsorted(timestamp[:-1], aux_timestamp), k] = aux_chunk_short[:, k]
-                            aux_chunk[:, k] = interp_nans(aux_chunk[:, k])
+                            if self.aux_interpolate:
+                                aux_chunk[:, k] = interp_nans(aux_chunk[:, k])
                         self.aux_previous_chunks[j_aux_inlet] = aux_chunk
                     else:
-                        aux_chunk = np.ones((chunk.shape[0], aux_inlet.n_channels))
-                        aux_chunk *= self.aux_previous_chunks[j_aux_inlet][-1]
+                        if self.aux_interpolate:
+                            aux_chunk = np.ones((chunk.shape[0], aux_inlet.n_channels)) * \
+                                        self.aux_previous_chunks[j_aux_inlet][-1]
                     chunk = np.hstack([chunk, aux_chunk])
 
             if self.sub_channel_index is None:
