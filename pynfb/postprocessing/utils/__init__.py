@@ -168,7 +168,7 @@ def get_main_band(x, fs, band_range=(8, 15), band_width=2, secperseg=4):
 
 def load_data(file_path):
     with h5py.File(file_path) as f:
-        fs, channels, p_names = get_info(f, ['A1', 'A2'])
+        fs, channels, p_names = get_info(f, ['A1', 'A2', 'AUX'])
         data = [f['protocol{}/raw_data'.format(k + 1)][:] for k in range(len(p_names))]
 
         df = pd.DataFrame(np.concatenate(data), columns=channels)
@@ -177,5 +177,21 @@ def load_data(file_path):
 
     return df, fs, p_names, channels
 
+
+def runica(x, fs, channels, mode='ica'):
+    from PyQt4.QtGui import QApplication
+    from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
+    a = QApplication([])
+    ica = ICADialog(x, channels, fs, mode=mode)
+    ica.exec_()
+    a.exit()
+    return ica.spatial, ica.topography
+
 if __name__ == '__main__':
-    get_colors()
+    from mne.viz import plot_topomap
+    from pynfb.inlets.montage import Montage
+    from pynfb.generators import ch_names32
+    montage = Montage(ch_names32)
+    spatial, topo = runica(np.random.normal(size=(100000, 32)), 1000, montage.get_names(), mode='csp')
+    plot_topomap(spatial, montage.get_pos())
+    plot_topomap(topo, montage.get_pos())
