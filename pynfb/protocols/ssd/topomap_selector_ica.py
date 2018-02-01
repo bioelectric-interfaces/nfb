@@ -24,24 +24,28 @@ def mutual_info(x, y, bins=100):
 
 
 class ICADialog(QtGui.QDialog):
-    def __init__(self, raw_data, channel_names, fs, parent=None, unmixing_matrix=None, mode='ica', filters=None,
+    def __init__(self, raw_data, channel_names, fs, parent=None, decomposition=None, mode='ica', filters=None,
                  scores=None, states=None, labels=None, _stimulus_split=False, marks=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
-        if mode == 'csp':
-            if not _stimulus_split:
-                self.decomposition = CSPDecomposition(channel_names, fs)
-                if labels is None:
-                    labels = np.zeros(raw_data.shape[0])
-                    labels[len(labels)//2:] = 1
-            else:
-                self.decomposition = CSPDecompositionStimulus(channel_names, fs)
-                labels = marks
-        elif mode == 'ica':
-            self.decomposition = ICADecomposition(channel_names, fs)
+
+        if decomposition is None:
+            if mode == 'csp':
+                if not _stimulus_split:
+                    self.decomposition = CSPDecomposition(channel_names, fs)
+                    if labels is None:
+                        labels = np.zeros(raw_data.shape[0])
+                        labels[len(labels)//2:] = 1
+                else:
+                    self.decomposition = CSPDecompositionStimulus(channel_names, fs)
+                    labels = marks
+            elif mode == 'ica':
+                self.decomposition = ICADecomposition(channel_names, fs)
+        else:
+            self.decomposition = decomposition
 
         # attributes
         self.sampling_freq = fs
@@ -57,7 +61,8 @@ class ICADialog(QtGui.QDialog):
 
         # unmixing matrix estimation
         timer = time()
-        self.decomposition.fit(self.raw_data, self.labels)
+        if decomposition is None:
+            self.decomposition.fit(self.raw_data, self.labels)
         self.scores = self.decomposition.scores
         self.unmixing_matrix = self.decomposition.filters
         self.topographies = self.decomposition.topographies

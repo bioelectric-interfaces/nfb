@@ -1,7 +1,6 @@
 import numpy as np
-from numpy.fft import fftfreq
 from scipy.signal import welch
-from scipy.fftpack import rfft, irfft, rfftfreq
+from scipy import fftpack
 import h5py
 from pynfb.io.xml_ import get_lsl_info_from_xml
 import pandas as pd
@@ -16,19 +15,19 @@ def dc_blocker(x, r=0.99):
 
 
 def fft_filter(x, fs, band=(9, 14)):
-    w = rfftfreq(x.shape[0], d=1. / fs)
-    f_signal = rfft(x, axis=0)
+    w = fftpack.rfftfreq(x.shape[0], d=1. / fs)
+    f_signal = fftpack.rfft(x, axis=0)
     cut_f_signal = f_signal.copy()
     cut_f_signal[(w < band[0]) | (w > band[1])] = 0
-    cut_signal = irfft(cut_f_signal, axis=0)
+    cut_signal = fftpack.irfft(cut_f_signal, axis=0)
     return cut_signal
 
 
 def get_power2(x, fs, band, n_sec=5):
     n_steps = int(n_sec * fs)
-    w = fftfreq(n_steps, d=1. / fs * 2)
+    w = fftpack.fftfreq(n_steps, d=1. / fs * 2)
     print(len(range(0, x.shape[0] - n_steps, n_steps)))
-    pows = [2*np.sum(rfft(x[k:k+n_steps])[(w > band[0]) & (w < band[1])]**2)/n_steps
+    pows = [2*np.sum(fftpack.rfft(x[k:k+n_steps])[(w > band[0]) & (w < band[1])]**2)/n_steps
             for k in range(0, x.shape[0] - n_steps, n_steps)]
     return np.array(pows)
 
@@ -186,6 +185,22 @@ def runica(x, fs, channels, mode='ica'):
     ica.exec_()
     a.exit()
     return ica.spatial, ica.topography
+
+def runica2(x, fs, channels, names=('Right', 'Left'), mode='ica'):
+    from PyQt4.QtGui import QApplication
+    from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
+    a = QApplication([])
+    res = []
+    decomposition = None
+    for n in names:
+        print('*** Select component for condition: ' + n)
+        ica = ICADialog(x, channels, fs, decomposition=decomposition, mode=mode)
+        ica.exec_()
+        res.append(np.array((ica.spatial, ica.topography)))
+        decomposition = ica.decomposition
+    a.exit()
+    return res
+
 
 if __name__ == '__main__':
     from mne.viz import plot_topomap
