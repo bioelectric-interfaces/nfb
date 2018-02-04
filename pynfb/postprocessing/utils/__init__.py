@@ -4,6 +4,7 @@ from scipy import fftpack
 import h5py
 from pynfb.io.xml_ import get_lsl_info_from_xml
 import pandas as pd
+import pylab as plt
 
 
 def dc_blocker(x, r=0.99):
@@ -164,6 +165,15 @@ def get_main_freq(x, fs, band_range=(8, 15), secperseg=4):
 def get_main_band(x, fs, band_range=(8, 15), band_width=2, secperseg=4):
     main_freq = get_main_freq(x, fs, band_range, secperseg)
     return [main_freq - band_width/2, main_freq + band_width/2]
+
+def band_hilbert(x, fs, band, N=None, axis=-1):
+    x = np.asarray(x)
+    Xf = fftpack.fft(x, N, axis=axis)
+    w = fftpack.fftfreq(x.shape[0], d=1. / fs)
+    Xf[(w < band[0]) | (w > band[1])] = 0
+    x = fftpack.ifft(Xf, axis=axis)
+    return 2*x
+
 
 def load_data(file_path):
     with h5py.File(file_path) as f:
