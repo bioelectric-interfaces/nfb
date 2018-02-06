@@ -186,6 +186,13 @@ def load_data(file_path):
 
     return df, fs, p_names, channels
 
+def load_signals_data(file_path):
+    with h5py.File(file_path) as f:
+        fs, channels, p_names = get_info(f, ['A1', 'A2', 'AUX'])
+        data = [f['protocol{}/signals_data'.format(k + 1)][:] for k in range(len(p_names))]
+        df = pd.DataFrame(np.concatenate(data), columns=list(f['protocol0/signals_stats']))
+    return df
+
 
 def runica(x, fs, channels, mode='ica'):
     from PyQt4.QtGui import QApplication
