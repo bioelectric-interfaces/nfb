@@ -7,7 +7,7 @@ from matplotlib import cm
 
 rooms = {'104': r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\ghosts-in-104_01-27_18-01-02\experiment_data.h5',
             '111': r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\ghost-rec_01-26_23-14-05\experiment_data.h5',
-         '111-2':  r'C:\Users\Nikolai\PycharmProjects\nfb\pynfb\results\ghosts-in-104_01-27_19-46-18\experiment_data.h5'}
+         '111-2':  r'/home/nikolai/_Work/alpha_delayed_nfb/p4-nfb-pilot_02-06_14-28-12/experiment_data.h5'}
 room = '111-2'
 
 with h5py.File(rooms[room]) as f:
@@ -21,11 +21,11 @@ x = np.concatenate(data)[:, 0]
 t = np.arange(len(x))/fs/60
 axes[0].plot(t, x*1000*1000)
 axes[0].set_ylabel('Voltage [$\mu$V]')
-axes[0].set_ylim(-500, 500)
-axes[0].set_title('Room: {} Date: {} Start time: {}'.format(room.split('-')[0], *rooms[room].split('\\')[-2].split('_')[-2:]))
+axes[0].set_ylim(-200, 200)
+#axes[0].set_title('Room: {} Date: {} Start time: {}'.format(room.split('-')[0], *rooms[room].split('\\')[-2].split('_')[-2:]))
 
 f, t, Sxx = signal.spectrogram(x, fs, scaling='spectrum')
-ax = axes[1].pcolormesh(t/60, f, np.log10(Sxx**0.5), vmin=-7.1, vmax=-2.8, cmap='nipy_spectral')
+ax = axes[1].pcolormesh(t/60, f, np.log10(Sxx**0.5), vmin=-7.1, vmax=-4, cmap='nipy_spectral')
 axes[1].set_ylabel('Frequency [Hz]')
 axes[1].set_xlabel('Time [min]')
 axes[0].set_xlim(0, t.max()/60)
