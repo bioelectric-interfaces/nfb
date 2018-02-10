@@ -44,7 +44,8 @@ vectors_defaults = OrderedDict([
             ('sTemporalType', 'envdetector'),
             ('sTemporalFilterType', 'fft'),
             ('fTemporalFilterButterOrder', 2),
-            ('sTemporalSmootherType', 'exp')
+            ('sTemporalSmootherType', 'exp'),
+            ('iDelayMs', 0)
             # ('sType', 'plain')
         ])]),
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!

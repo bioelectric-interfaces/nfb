@@ -6,10 +6,10 @@ import numpy as np
 from pylsl import StreamInfo, StreamOutlet
 import mne
 
-from .io.brainvision import read_raw_brainvision
-from .io.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound
-from .io.xml_ import get_lsl_info_from_xml
-from .inlets.channels_selector import ChannelsSelector
+from pynfb.io.brainvision import read_raw_brainvision
+from pynfb.io.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound
+from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.inlets.channels_selector import ChannelsSelector
 
 ch_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc2', 'Fc6', 'Ft10', 'T7', 'C3', 'Cz',
             'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz', 'O2',
@@ -152,18 +152,5 @@ def stream_generator_in_a_thread(name, generator=run_eeg_sim):
     return thread
 
 if __name__ == '__main__':
-    # run_eeg_sim(chunk_size=0, name='NVX136_Data')
+    run_eeg_sim(chunk_size=0, name='NVX136_Data')
 
-    # This will download the sample file. Might take a considerable time
-    sample_dir = mne.datasets.sample.data_path()
-    sample_fiff_path = sample_dir + '/MEG/sample/sample_audvis_raw.fif'
-
-    raw = mne.io.read_raw_fif(sample_fiff_path, verbose='ERROR')
-    start, stop = raw.time_as_index([0, 60])  # read the first 60s of data
-    source_buffer = raw.get_data(start=start, stop=stop)
-    labels = raw.info['ch_names']
-    freq = raw.info['sfreq']
-    stream_name = 'mne_sample_raw'
-
-    run_eeg_sim(chunk_size=0, source_buffer=source_buffer, name='mne_sample',
-                labels=labels, freq=freq)

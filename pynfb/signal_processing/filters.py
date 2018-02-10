@@ -273,6 +273,17 @@ class ComplexDemodulationBandEnvelopeDetector(BaseFilter):
         y = np.ones_like(chunk) * np.abs(2 * y)
         return y
 
+class DelayFilter(BaseFilter):
+    def __init__(self, delay_samples):
+        self.a = [1]
+        self.b = np.zeros(delay_samples + 1)
+        self.b[-1] = 1
+        self.zi = np.zeros(len(self.b) - 1)
+
+    def apply(self, chunk: np.ndarray):
+        y, self.zi = lfilter(self.b, self.a, chunk, zi=self.zi)
+        return y
+
 if __name__ == '__main__':
     import pylab as plt
 

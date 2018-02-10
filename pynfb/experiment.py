@@ -328,7 +328,7 @@ class Experiment():
         self.raw_std = None
 
         # signals
-        self.signals = [(DerivedSignal(ind=ind,
+        self.signals = [DerivedSignal(ind=ind,
                                        bandpass_high=signal['fBandpassHighHz'],
                                        bandpass_low=signal['fBandpassLowHz'],
                                        name=signal['sSignalName'],
@@ -342,7 +342,8 @@ class Experiment():
                                        estimator_type=signal['sTemporalType'],
                                        temporal_filter_type=signal['sTemporalFilterType'],
                                        smoother_type=signal['sTemporalSmootherType'],
-                                       filter_order=signal['fTemporalFilterButterOrder']))
+                                       filter_order=signal['fTemporalFilterButterOrder'],
+                                       delay_ms=signal['iDelayMs'])
                         for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if not signal['bBCIMode']]
 
         # composite signals

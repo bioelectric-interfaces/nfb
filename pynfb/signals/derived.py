@@ -1,7 +1,8 @@
 import numpy as np
 from pynfb.io import save_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
-    ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter
+    ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter, \
+    FilterSequence, DelayFilter
 from pynfb.signals.rejections import Rejections
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
@@ -24,7 +25,7 @@ class DerivedSignal:
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
-                 estimator_type='envdetector', filter_order=2):
+                 estimator_type='envdetector', filter_order=2, delay_ms=0):
 
         self.n_samples = int(n_samples)
 
@@ -55,6 +56,9 @@ class DerivedSignal:
             self.signal_estimator = IdentityFilter()
         else:
             raise TypeError('Incorrect estimator type')
+
+        if delay_ms > 0:
+            self.signal_estimator = FilterSequence([self.signal_estimator, DelayFilter(int(source_freq*delay_ms/1000))])
 
         # id
         self.ind = ind
