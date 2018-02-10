@@ -226,14 +226,20 @@ class TemporalSettings(QtGui.QWidget):
         self.smoother_factor.setRange(0, 1)
         self.smoother_factor.setValue(0.3)
 
+        # artificial delay
+        self.art_delay = QtGui.QSpinBox()
+        self.art_delay.setRange(0, 5000)
+        self.art_delay.setValue(0)
+
         layout = QtGui.QFormLayout(self)
         layout.addRow('&Type:', self.type)
         layout.addRow('&Band:', self.band)
         layout.addRow('&Filter type:', self.filter_type)
-        layout.addRow('&Window size:', self.win_size)
+        layout.addRow('&Window size [samp.]:', self.win_size)
         layout.addRow('&Filter order:', self.order)
         layout.addRow('&Smoother type:', self.smoother_type)
         layout.addRow('&Smoother factor:', self.smoother_factor)
+        layout.addRow('&Artif. delay [ms]:', self.art_delay)
 
         # setup disable
         self.smoother_type.currentIndexChanged.connect(self.smoother_type_changed)
@@ -283,6 +289,7 @@ class TemporalSettings(QtGui.QWidget):
         self.smoother_type.setCurrentIndex(
             self.smoother_type.findText(dict['sTemporalSmootherType'], QtCore.Qt.MatchFixedString))
         self.smoother_factor.setValue(dict['fSmoothingFactor'])
+        self.art_delay.setValue(dict['iDelayMs'])
         self.type_changed()
         self.filter_type_changed()
         self.smoother_type_changed()
@@ -299,6 +306,7 @@ class TemporalSettings(QtGui.QWidget):
         params['fTemporalFilterButterOrder'] = self.order.value()
         params['sTemporalSmootherType'] = self.smoother_type.currentText()
         params['fSmoothingFactor'] = self.smoother_factor.value()
+        params['iDelayMs'] = self.art_delay.value()
         return params
 
 if __name__ == '__main__':
