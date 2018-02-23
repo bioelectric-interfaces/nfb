@@ -175,9 +175,9 @@ def band_hilbert(x, fs, band, N=None, axis=-1):
     return 2*x
 
 
-def load_data(file_path):
+def load_data(file_path, drop_channels=()):
     with h5py.File(file_path) as f:
-        fs, channels, p_names = get_info(f, ['A1', 'A2', 'AUX'])
+        fs, channels, p_names = get_info(f, drop_channels)
         data = [f['protocol{}/raw_data'.format(k + 1)][:] for k in range(len(p_names))]
 
         df = pd.DataFrame(np.concatenate(data), columns=channels)
@@ -186,9 +186,9 @@ def load_data(file_path):
 
     return df, fs, p_names, channels
 
-def load_signals_data(file_path):
+def load_signals_data(file_path, drop_channels=()):
     with h5py.File(file_path) as f:
-        fs, channels, p_names = get_info(f, ['A1', 'A2', 'AUX'])
+        fs, channels, p_names = get_info(f, drop_channels)
         data = [f['protocol{}/signals_data'.format(k + 1)][:] for k in range(len(p_names))]
         df = pd.DataFrame(np.concatenate(data), columns=list(f['protocol0/signals_stats']))
     return df
