@@ -166,15 +166,15 @@ class ICADialog(QtGui.QDialog):
         self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, unmixing_matrix=None, mode='ica', states=None, labels=None, _stimulus_split=False, marks=None):
+    def get_rejection(cls, raw_data, channel_names, fs, decomposition=None, mode='ica', states=None, labels=None, _stimulus_split=False, marks=None):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
-        selector = cls(raw_data, channel_names, fs, unmixing_matrix=unmixing_matrix, mode=mode, states=states, labels=labels, _stimulus_split=_stimulus_split, marks=marks)
+        selector = cls(raw_data, channel_names, fs, decomposition=decomposition, mode=mode, states=states, labels=labels, _stimulus_split=_stimulus_split, marks=marks)
         wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None
         return (selector.rejection,
                 selector.spatial, selector.topography,
-                selector.unmixing_matrix,
+                selector.decomposition,
                 bandpass,
                 selector.add_to_all_checkbox.isChecked())
 

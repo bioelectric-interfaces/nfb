@@ -396,7 +396,7 @@ class SignalsSSDManager(QtGui.QDialog):
                                                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 result = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                 unmixing_matrix=self.ica_unmixing_matrix)
+                                                 decomposition=self.ica_unmixing_matrix)
                 ica_rejection, filter, topography, self.ica_unmixing_matrix, bandpass, to_all = result
             rejections = []
         elif csp:
