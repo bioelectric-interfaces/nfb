@@ -21,7 +21,12 @@ exp = experiments.iloc[n_exp]
 desc = '{}-{}-{}-{}'.format(exp['subject'], exp['protocol'], {0: 'exp', 1:'control'}[exp['control']], '-'.join(exp.dataset.split('_')[-2:]))
 print(exp, '\n*******************', desc, '\n*******************')
 df, fs, p_names, channels = load_data('{}{}/experiment_data.h5'.format(data_dir, exp.dataset))
-channels = channels[:32]
+
+
+from scipy.io import savemat
+
+
+print(df.head())
 df = df[~get_outliers_mask(df[channels], std=3)]
 
 right, left = runica2(df.loc[df['block_number'].isin([1, 2, 3, 7, 8, 9]), channels], fs, channels, ['RIGHT', 'LEFT'])
