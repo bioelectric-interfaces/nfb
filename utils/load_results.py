@@ -41,8 +41,9 @@ def load_data(file_path):
         df = pd.concat([df, df_signals], axis=1)
 
         # load timestamps
-        timestamp_data = [f['protocol{}/timestamp_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['timestamps'] = np.concatenate(timestamp_data)
+        if 'timestamp' in df:
+            timestamp_data = [f['protocol{}/timestamp_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['timestamps'] = np.concatenate(timestamp_data)
 
         # events data
         events_data = [f['protocol{}/mark_data'.format(k + 1)][:] for k in range(len(p_names))]
@@ -51,7 +52,7 @@ def load_data(file_path):
         # set block names and numbers
         df['block_name'] = np.concatenate([[p]*len(d) for p, d in zip(p_names, data)])
         df['block_number'] = np.concatenate([[j + 1]*len(d) for j, d in enumerate(data)])
-    return df, fs, channels
+    return df, fs, channels, p_names
 
 
 if __name__ == '__main__':
