@@ -238,6 +238,55 @@ class ButterBandEnvelopeDetector(BaseFilter):
         return y
 
 
+def _get_ideal_H(n_fft, fs, band, delay=0):
+    """
+    Estimate ideal delayed analytic filter freq. response
+    :param n_fft: length of freq. grid
+    :param fs: sampling frequency
+    :param band: freq. range to apply band-pass filtering
+    :param delay: delay in samples
+    :return: freq. response
+    """
+    w = np.arange(n_fft)
+    H = 2*np.exp(-2j*np.pi*w/n_fft*delay)
+    H[(w/n_fft*fs<band[0]) | (w/n_fft*fs>band[1])] = 0
+    return H
+
+
+def _cLS(X, Y, lambda_=0):
+    """
+    Complex valued Least Squares with L2 regularisation
+    """
+    reg = lambda_*np.eye(X.shape[1])
+    b = np.dot(np.dot(np.linalg.inv(np.dot(X.T, X.conj())+reg), X.T.conj()), Y)
+    return b
+
+
+class CFIRBandEnvelopeDetector(BaseFilter):
+    def __init__(self, band, fs, smoother, delay_ms=100, n_taps=500, n_fft=2000, reg_coeff=0):
+        """
+        Complex-valued FIR envelope detector based on analytic signal reconstruction
+        :param band: freq. range to apply band-pass filtering
+        :param fs: sampling frequency
+        :param smoother: smoother class instance to smooth output signal
+        :param delay_ms: delay of ideal filter in ms
+        :param n_taps: length of FIR
+        :param n_fft: length of freq. grid to estimate ideal freq. response
+        :param reg_coeff: least squares L2 regularisation coefficient
+        """
+        H = _get_ideal_H(n_fft, fs, band, int(delay_ms*fs/1000))
+        F = np.array([np.exp(-2j * np.pi / n_fft * k * np.arange(n_taps)) for k in np.arange(n_fft)])
+        self.b = _cLS(F, H, reg_coeff)
+        self.a = np.array([1.])
+        self.zi = np.zeros(len(self.b)-1)
+        self.smoother = smoother
+
+    def apply(self, chunk: np.ndarray):
+        y, self.zi = lfilter(self.b, self.a, chunk, zi=self.zi)
+        y = self.smoother.apply(np.abs(y))
+        return y
+
+
 class ComplexDemodulationBandEnvelopeDetector(BaseFilter):
     def __init__(self, band, fs, smoother):
         self.band = band

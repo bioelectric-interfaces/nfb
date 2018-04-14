@@ -203,7 +203,7 @@ class TemporalSettings(QtGui.QWidget):
 
         # filter type
         self.filter_type = QtGui.QComboBox()
-        for protocol_type in ['fft', 'butter', 'complexdem']:
+        for protocol_type in ['fft', 'butter', 'complexdem', 'cfir']:
             self.filter_type.addItem(protocol_type)
 
         # filter order
@@ -268,8 +268,8 @@ class TemporalSettings(QtGui.QWidget):
 
     def filter_type_changed(self):
         if self.filter_type.isEnabled():
-            self.win_size.setEnabled(self.filter_type.currentText() == 'fft')
-            self.order.setEnabled(self.filter_type.currentText() != 'fft')
+            self.win_size.setEnabled(self.filter_type.currentText() in ['fft', 'cfir'])
+            self.order.setEnabled(self.filter_type.currentText() not in ['fft', 'cfir'])
 
     def smoother_type_changed(self):
         if self.smoother_type.isEnabled():
