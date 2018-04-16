@@ -37,6 +37,7 @@ class LSLInlet:
             self.inlet = FixedStreamInlet(streams[0], max_buflen=2)
             # self.dtype = fmt2string[self.inlet.info().channel_format()]
             print(self.dtype)
+            self.n_channels = self.inlet.info().channel_count()
 
     def get_next_chunk(self):
         # get next chunk

@@ -25,6 +25,7 @@ class SignalViewer(pg.PlotWidget):
         self.n_signals = len(names)
         self.n_signals_to_plot = min(self.n_signals, signals_to_plot or self.n_signals)
         self.n_samples = int(fs * seconds_to_plot) # samples to show
+        self.x_stamps = np.arange(self.n_samples)
         self.previous_pos = 0 # resieved samples counter
         self.x_mesh = np.linspace(0, seconds_to_plot, self.n_samples)
         self.y_raw_buffer = np.zeros(shape=(self.n_samples, self.n_signals)) * np.nan
@@ -62,10 +63,10 @@ class SignalViewer(pg.PlotWidget):
 
         # pre-process y data and update it
         y_data = self.prepare_y_data(chunk_len)
+        before_mask = (self.x_stamps < current_pos)
         for i, curve in enumerate(self.curves):
-            curve.setData(self.x_mesh, y_data[:, i] if i < y_data.shape[1] else self.x_mesh * np.nan, connect="finite")
-
-        # shift vertical line
+            y = y_data[:, i] if i < y_data.shape[1] else self.x_mesh * np.nan
+            curve.setData(self.x_mesh, y, connect=np.isfinite(y) | before_mask)
         self.vertical_line.setValue(current_x)
 
         # update pos
