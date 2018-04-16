@@ -42,6 +42,13 @@ def load_h5py_all_samples(file_path, raw=True):
     return np.vstack(data)
 
 
+def save_channels_and_fs(file_path, channels, fs):
+    # save channels names and sampling frequency
+    with h5py.File(file_path, 'a') as f:
+        f.create_dataset('channels', data=np.array(channels, dtype='S'))
+        f.create_dataset('fs', data=np.array(fs))
+
+
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, timestamp_data=None, signals_data=None,
                  raw_other_data=None, reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None):
     print('Signals stats saving', group_name)

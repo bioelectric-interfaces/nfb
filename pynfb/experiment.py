@@ -14,7 +14,8 @@ from .generators import run_eeg_sim, stream_file_in_a_thread, stream_generator_i
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
-from .io.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, save_xml_str_to_hdf5_dataset
+from .io.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, save_xml_str_to_hdf5_dataset, \
+    save_channels_and_fs
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, PsyProtocol
@@ -325,6 +326,9 @@ class Experiment():
                                        subtractive_channel=self.params['sReferenceSub'],
                                        dc=self.params['bDC'], events_inlet=events_stream, aux_inlets=aux_streams)
         self.stream.save_info(self.dir_name + 'stream_info.xml')
+        save_channels_and_fs(self.dir_name + 'experiment_data.h5', self.stream.get_channels_labels(),
+                             self.stream.get_frequency())
+
         save_xml_str_to_hdf5_dataset(self.dir_name + 'experiment_data.h5', self.stream.info_as_xml(), 'stream_info.xml')
         self.freq = self.stream.get_frequency()
         self.n_channels = self.stream.get_n_channels()
