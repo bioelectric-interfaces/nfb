@@ -2,7 +2,7 @@ import numpy as np
 from pynfb.io import save_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
     ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter, \
-    FilterSequence, DelayFilter
+    FilterSequence, DelayFilter, CFIRBandEnvelopeDetector
 from pynfb.signals.rejections import Rejections
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
@@ -48,6 +48,8 @@ class DerivedSignal:
                 self.signal_estimator = ComplexDemodulationBandEnvelopeDetector(self.bandpass, source_freq, smoother)
             elif temporal_filter_type == 'butter':
                 self.signal_estimator = ButterBandEnvelopeDetector(self.bandpass, source_freq, smoother, filter_order)
+            elif temporal_filter_type == 'cfir':
+                self.signal_estimator = CFIRBandEnvelopeDetector(self.bandpass, source_freq, smoother, n_taps=self.n_samples)
             else:
                 raise TypeError('Incorrect envelope detector type')
         elif estimator_type == 'filter':

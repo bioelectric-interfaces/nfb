@@ -135,7 +135,7 @@ def get_lsl_info_from_xml(xml_str_or_file):
     try:
         tree = ET.parse(xml_str_or_file)
         root = tree.getroot()
-    except FileNotFoundError:
+    except (FileNotFoundError, OSError):
         root = ET.fromstring(xml_str_or_file)
     info = {}
     channels = [k.find('label').text for k in root.find('desc').find('channels').findall('channel')]
