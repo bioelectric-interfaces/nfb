@@ -78,10 +78,18 @@ class Montage(pd.DataFrame):
         layout.names = list(map(str.upper, layout.names))
         return layout
 
+    def make_laplacian_proj(self, type='ALL', n_channels=4):
+        pos = self.get_pos(type)
+        proj = np.eye(pos.shape[0])
+        for k in range(pos.shape[0]):
+            proj[k, np.argsort(((pos[k] - pos) ** 2).sum(1))[1:1+n_channels]] = -1 / n_channels
+        return proj
+
 if __name__ == '__main__':
-    m = Montage(['cz', 'fp1', 'FP2', 'AUX1', 'MEG 2631', 'MEg 2632'])
+    m = Montage(['cz', 'fp1', 'FP2', 'AUX1', 'MEG 2631', 'MEg 2632', 'Pz', 'Fcz'])
     print(m)
     print(m.get_names('EEG'))
     print(m.get_pos('EEG'))
     print(len(m))
     print(m.get_mask('EEG'))
+    print(m.make_laplacian_proj('EEG'))
