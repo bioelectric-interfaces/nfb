@@ -57,13 +57,13 @@ class Montage(pd.DataFrame):
         return list(self[self.get_mask(type)]['name'])
 
     def get_pos(self, type='ALL'):
-        return (self[self.get_mask(type)][['pos_x', 'pos_y']]).as_matrix()
+        return (self[self.get_mask(type)][['pos_x', 'pos_y']]).values
 
     def get_mask(self, type='ALL'):
         if type in self.CHANNEL_TYPES:
-            return (self['type'] == type).as_matrix()
+            return (self['type'] == type).values
         elif type == 'ALL':
-            return (self['type'] == self['type']).as_matrix()
+            return (self['type'] == self['type']).values
         else:
             raise TypeError('Bad channels type')
 
