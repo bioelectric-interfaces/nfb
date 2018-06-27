@@ -24,7 +24,7 @@ while True:
     chunk, timestamp = inlet.get_next_chunk()
     if chunk is not None:
         print(chunk[:, 0].mean())
-        if chunk[:, 0].mean() < 2.2:
+        if chunk[:, 0].mean() < 1.2:
             t = time()
             print('RIGHT!!!!!!!!!!!!!!!!!!!!!!!!')
             motor.run_forever(speed_sp=+20)

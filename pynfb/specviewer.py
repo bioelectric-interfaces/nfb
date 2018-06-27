@@ -82,7 +82,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 app = QtGui.QApplication(sys.argv)
-lsl = LSLInlet(name='NVX136_Data')
+lsl = LSLInlet(name='NFBLab_data')
 channels_labels = lsl.get_channels_labels()
 fs = lsl.get_frequency()
 main_timer = QtCore.QTimer(app)
