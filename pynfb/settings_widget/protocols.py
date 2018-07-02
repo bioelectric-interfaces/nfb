@@ -90,8 +90,8 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Name:', self.name)
 
         # duration spin box
-        self.duration = QtGui.QSpinBox()
-        self.duration.setRange(0, 1000000)
+        self.duration = QtGui.QDoubleSpinBox()
+        self.duration.setRange(0.1, 1000000)
         # self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Duration [s]:', self.duration)
 
