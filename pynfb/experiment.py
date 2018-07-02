@@ -471,6 +471,9 @@ class Experiment():
                 print(subgroup)
                 for subname in subgroup:
                     self.protocols_sequence.append(self.protocols[names.index(subname)])
+                    if len(group['sSplitBy']):
+                        self.protocols_sequence.append(self.protocols[names.index(group['sSplitBy'])])
+
 
         # reward
         from pynfb.reward import Reward
