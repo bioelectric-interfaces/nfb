@@ -228,7 +228,7 @@ class MainWindow(QtGui.QMainWindow):
     def update_statistics_lines(self):
         pass
 
-    def redraw_signals(self, samples, chunk, samples_counter):
+    def redraw_signals(self, samples, chunk, samples_counter, n_samples):
 
         # derived signals
         if self.plot_signals_checkbox.isChecked():
@@ -245,8 +245,8 @@ class MainWindow(QtGui.QMainWindow):
         if self.time_counter % 10 == 0:
             t_curr = time.time()
             self.timer_label.setText(
-                'samples:\t{}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}\t '
-                    .format(samples_counter, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
+                'samples:\t{}\t/{:.0f}\ttime:\t{:.1f}\tfps:\t{:.2f}\tchunk size:\t{}\t '
+                    .format(samples_counter, n_samples, t_curr - self.t0, 1. / (t_curr - self.t) * 10, chunk.shape[0]))
             self.t = t_curr
         self.time_counter += 1
         self.time_counter1 += 1

@@ -95,6 +95,12 @@ class ProtocolDialog(QtGui.QDialog):
         # self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Duration [s]:', self.duration)
 
+        # duration spin box
+        self.random_over_time = QtGui.QDoubleSpinBox()
+        self.random_over_time.setRange(0, 1000000)
+        # self.duration.setValue(protocol_default['fDuration'])
+        self.form_layout.addRow('&Random over time [s]:', self.random_over_time)
+
         # update statistics in the end end ssd analysis in the end check boxes
         self.ssd_in_the_end = QtGui.QCheckBox()
         self.ssd_in_the_end.clicked.connect(self.update_source_signal_combo_box)
@@ -305,6 +311,7 @@ class ProtocolDialog(QtGui.QDialog):
     def reset_items(self):
         current_protocol = self.params[self.parent().list.currentRow()]
         self.duration.setValue(current_protocol['fDuration'])
+        self.random_over_time.setValue(current_protocol['fRandomOverTime'])
         self.update_statistics.setChecked(current_protocol['bUpdateStatistics'])
         self.update_statistics_type.setCurrentIndex(['meanstd', 'max'].index(current_protocol['sStatisticsType']))
         self.update_statistics_type.setEnabled(self.update_statistics.isChecked())
@@ -359,6 +366,7 @@ class ProtocolDialog(QtGui.QDialog):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sProtocolName'] = self.name.text()
         self.params[current_signal_index]['fDuration'] = self.duration.value()
+        self.params[current_signal_index]['fRandomOverTime'] = self.random_over_time.value()
         self.params[current_signal_index]['bUpdateStatistics'] = int(self.update_statistics.isChecked())
         self.params[current_signal_index]['sStatisticsType'] = self.update_statistics_type.currentText()
         self.params[current_signal_index]['bBeepAfter'] = int(self.beep_after.isChecked())

@@ -97,7 +97,7 @@ class Experiment():
                                 self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
 
             # redraw signals and raw data
-            self.main.redraw_signals(sample, chunk, self.samples_counter)
+            self.main.redraw_signals(sample, chunk, self.samples_counter, self.current_protocol_n_samples)
             if self.params['bPlotSourceSpace']:
                 self.source_space_window.update_protocol_state(chunk)
 
@@ -214,7 +214,9 @@ class Experiment():
             # update current protocol index and n_samples
             self.current_protocol_index += 1
             current_protocol = self.protocols_sequence[self.current_protocol_index]
-            self.current_protocol_n_samples = self.freq * current_protocol.duration
+            self.current_protocol_n_samples = self.freq * (
+                        self.protocols_sequence[self.current_protocol_index].duration +
+                        np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
@@ -394,6 +396,7 @@ class Experiment():
                 source_signal_id=source_signal_id,
                 name=protocol['sProtocolName'],
                 duration=protocol['fDuration'],
+                random_over_time=protocol['fRandomOverTime'],
                 update_statistics_in_the_end=bool(protocol['bUpdateStatistics']),
                 stats_type=protocol['sStatisticsType'],
                 mock_samples_path=mock_path,
@@ -490,10 +493,11 @@ class Experiment():
         self.main_timer.start(1000 * 1. / self.freq)
 
         # current protocol number of samples ('frequency' * 'protocol duration')
-        self.current_protocol_n_samples = self.freq * self.protocols_sequence[self.current_protocol_index].duration
+        self.current_protocol_n_samples = self.freq * (self.protocols_sequence[self.current_protocol_index].duration +
+            np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
 
         # experiment number of samples
-        max_protocol_n_samples = int(max([self.freq * p.duration for p in self.protocols_sequence]))
+        max_protocol_n_samples = int(max([self.freq * (p.duration+p.random_over_time) for p in self.protocols_sequence]))
 
         # data recorders
         self.experiment_n_samples = max_protocol_n_samples

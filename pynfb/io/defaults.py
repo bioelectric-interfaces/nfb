@@ -65,6 +65,7 @@ vectors_defaults = OrderedDict([
             # ('bStopAfter', False),
             # ('bShowFBRect', False),
             ('fDuration', 10),
+            ('fRandomOverTime', 0),
             # ('fThreshold', ''),
             ('fbSource', 'All'),
             # ('iNComp', ''),
