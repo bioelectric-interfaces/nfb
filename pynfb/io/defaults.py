@@ -98,7 +98,8 @@ vectors_defaults = OrderedDict([
             ('sName', 'Group'),
             ('sList', ''),
             ('sNumberList', ''),
-            ('bShuffle', 0)
+            ('bShuffle', 0),
+            ('sSplitBy', ''),
     ])])])),
     ('vPSequence', OrderedDict([
         ('s', ['Protocol'])])),

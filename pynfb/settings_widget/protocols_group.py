@@ -100,6 +100,14 @@ class ProtocolGroupDialog(QtGui.QDialog):
         self.shuffle = QtGui.QCheckBox('Shuffle')
         self.form_layout.addRow('&Order:', self.shuffle)
 
+
+        # operation type combo box:
+        self.split_by = QtGui.QLineEdit()
+        self.split_by.setMaximumHeight(50)
+        validator2 = QtGui.QRegExpValidator(QtCore.QRegExp("^[a-zA-Z0-9_]+$"))
+        self.split_by.setValidator(validator2)
+        self.form_layout.addRow('&Split by protocol:', self.split_by)
+
         # ok button
         self.save_button = QtGui.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -114,6 +122,7 @@ class ProtocolGroupDialog(QtGui.QDialog):
         self.expression.setText(str(self.params[current_signal_index]['sList']))
         self.numbers.setText(str(self.params[current_signal_index]['sNumberList']))
         self.shuffle.setChecked(bool(self.params[current_signal_index]['bShuffle']))
+        self.split_by.setText(str(self.params[current_signal_index]['sSplitBy']))
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
@@ -121,6 +130,7 @@ class ProtocolGroupDialog(QtGui.QDialog):
         self.params[current_signal_index]['sList'] = str(self.expression.text())
         self.params[current_signal_index]['sNumberList'] = str(self.numbers.text())
         self.params[current_signal_index]['bShuffle'] = int(self.shuffle.isChecked())
+        self.params[current_signal_index]['sSplitBy'] = str(self.split_by.text())
         self.parent().reset_items()
         self.close()
 
