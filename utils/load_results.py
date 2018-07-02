@@ -14,7 +14,9 @@ def _get_channels_and_fs(xml_str_or_file):
 def _get_signals_list(xml_str):
     root = ET.fromstring(xml_str)
     derived = [s.find('sSignalName').text for s in root.find('vSignals').findall('DerivedSignal')]
-    composite = [s.find('sSignalName').text for s in root.find('vSignals').findall('CompositeSignal')]
+    composite = []
+    if root.find('vSignals').findall('CompositeSignal')[0].find('sSignalName') is not None:
+        composite = [s.find('sSignalName').text for s in root.find('vSignals').findall('CompositeSignal')]
     return derived + composite
 
 
