@@ -3,9 +3,8 @@ from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
 
-from ..signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack
+from ..signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack, SpatialRejection
 from ..signal_processing.helpers import get_outliers_mask, stimulus_split
-from ..signals.rejections import SpatialRejection
 from ..widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
 from scipy.linalg import eigh, inv
