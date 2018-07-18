@@ -1,7 +1,38 @@
 from PyQt4 import QtGui
-
+from PyQt4.QtCore import pyqtSignal
 from pynfb.helpers.beep import SingleBeep
 from .inlet import InletSettingsWidget, EventsInletSettingsWidget
+
+
+class BandWidget(QtGui.QWidget):
+    bandChanged = pyqtSignal()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        bandpass_layout = QtGui.QHBoxLayout(self)
+        bandpass_layout.setMargin(0)
+        self.band = [QtGui.QDoubleSpinBox(), QtGui.QDoubleSpinBox()]
+        for w, name in zip(self.band, ['low:', 'high:']):
+            w.setRange(0, 250)
+            w.setValue(0)
+            w.setMaximumWidth(200)
+            label = QtGui.QLabel(name)
+            label.setMaximumWidth(75)
+            bandpass_layout.addWidget(label)
+            bandpass_layout.addWidget(w)
+            w.valueChanged.connect(self.bandChanged.emit)
+        self.setMaximumWidth(600)
+
+    def set_band(self, band_str):
+        for j, w_str in enumerate(band_str.split(' ')):
+            self.band[j].setValue(float(w_str) if w_str != 'None' else 0)
+
+    def get_band(self):
+        band = [None, None]
+        for j in range(2):
+            value = self.band[j].value()
+            band[j] = str(value) if value else 'None'
+        return ' '.join(band)
+
 
 class GeneralSettingsWidget(QtGui.QWidget):
     def __init__(self, **kwargs):
@@ -78,10 +109,15 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.dc_check.clicked.connect(self.dc_check_event)
         self.form_layout.addRow('&Enable DC Blocker:', self.dc_check)
 
+        # pre-filtering band:
+        self.prefilter_band = BandWidget()
+        self.prefilter_band.bandChanged.connect(self.band_changed_event)
+        self.form_layout.addRow('&Pre-filtering band:', self.prefilter_band)
+
         # dc blocker
-        self.use_expyriment = QtGui.QCheckBox()
-        self.use_expyriment.clicked.connect(self.use_expyriment_event)
-        self.form_layout.addRow('&Use expyriment toolbox:', self.use_expyriment)
+        #self.use_expyriment = QtGui.QCheckBox()
+        #self.use_expyriment.clicked.connect(self.use_expyriment_event)
+        #self.form_layout.addRow('&Use expyriment toolbox:', self.use_expyriment)
 
         self.reset()
         # self.stream
@@ -110,8 +146,9 @@ class GeneralSettingsWidget(QtGui.QWidget):
     def dc_check_event(self):
         self.params['bDC'] = int(self.dc_check.isChecked())
 
-    def use_expyriment_event(self):
-        self.params['bUseExpyriment'] = int(self.use_expyriment.isChecked())
+    def band_changed_event(self):
+        self.params['sPrefilterBand'] = self.prefilter_band.get_band()
+
 
     def reward_period_changed_event(self):
         self.params['fRewardPeriodS'] = self.reward_period.value()
@@ -127,6 +164,6 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.show_subject_window_check.setChecked(self.params['bShowSubjectWindow'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
         self.dc_check.setChecked(self.params['bDC'])
-        self.use_expyriment.setChecked(self.params['bUseExpyriment'])
+        self.prefilter_band.set_band(self.params['sPrefilterBand'])
         self.inlet.reset()
         self.events_inlet.reset()

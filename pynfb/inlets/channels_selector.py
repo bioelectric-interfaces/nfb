@@ -1,4 +1,5 @@
 import numpy as np
+from pynfb.signal_processing.filters import ButterFilter, IdentityFilter
 from pynfb.widgets.helpers import validate_ch_names
 EVENTS_CHANNEL_NAME = 'EVENTS'
 
@@ -15,7 +16,7 @@ def interp_nans(y, empty_fill_val=0):
 
 class ChannelsSelector:
     def __init__(self, inlet, include=None, exclude=None, start_from_1=True, subtractive_channel=None, dc=False,
-                 events_inlet=None, aux_inlets=None, aux_interpolate=False):
+                 events_inlet=None, aux_inlets=None, aux_interpolate=False, prefilter_band=(None, None)):
         self.last_y = 0
         self.inlet = inlet
         self.events_inlet = events_inlet
@@ -96,12 +97,23 @@ class ChannelsSelector:
         self.other_indices = [j for j in range(len(names)) if j in exclude_indices]
         self.dc = dc
 
+        # pre-filtering settings
+        if isinstance(prefilter_band, str):
+            prefilter_band = [(float(s) if s != 'None' else None) for s in prefilter_band.split(' ')]
+        if (prefilter_band[0] is None) and (prefilter_band[1] is None):
+            self.prefilter = IdentityFilter()
+        else:
+            self.prefilter = ButterFilter(prefilter_band, self.inlet.get_frequency(),
+                                          len(self.inlet.get_channels_labels()))
+
 
     def get_next_chunk(self):
         chunk, timestamp = self.inlet.get_next_chunk()
         if chunk is not None:
             if self.dc:
                 chunk = self.dc_blocker(chunk)
+
+            chunk = self.prefilter.apply(chunk)
 
             if self.events_inlet is not None:
                 events, events_timestamp = self.events_inlet.get_next_chunk()
