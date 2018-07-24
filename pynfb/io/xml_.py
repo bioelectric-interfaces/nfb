@@ -32,9 +32,9 @@ def format_odict_by_defaults(odict, defaults):
     return formatted_odict
 
 
-def xml_file_to_odict(filename):
+def xml_file_to_odict(filename_or_str):
     """ Read xml to ordered dict
-    :param filename: path to file
+    :param filename_or_str: path to file or xml str
     :param skip_root: if True skip root
     :return: OrderedDict instance
     """
@@ -51,8 +51,11 @@ def xml_file_to_odict(filename):
             pass
         return key, value
     # read and parse
-    with open(filename, 'r') as f:
-        d = parse(f.read(), postprocessor=postprocessor)
+    if '<NeurofeedbackSignalSpecs>' not in filename_or_str:
+        with open(filename_or_str, 'r') as f:
+            d = parse(f.read(), postprocessor=postprocessor)
+    else:
+        d = parse(filename_or_str, postprocessor=postprocessor)
 
     d = list(d.values())[0]
 
