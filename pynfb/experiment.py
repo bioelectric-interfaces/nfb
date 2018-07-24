@@ -326,7 +326,8 @@ class Experiment():
         # setup main stream
         self.stream = ChannelsSelector(stream, exclude=self.params['sReference'],
                                        subtractive_channel=self.params['sReferenceSub'],
-                                       dc=self.params['bDC'], events_inlet=events_stream, aux_inlets=aux_streams)
+                                       dc=self.params['bDC'], events_inlet=events_stream, aux_inlets=aux_streams,
+                                       prefilter_band=self.params['sPrefilterBand'])
         self.stream.save_info(self.dir_name + 'stream_info.xml')
         save_channels_and_fs(self.dir_name + 'experiment_data.h5', self.stream.get_channels_labels(),
                              self.stream.get_frequency())

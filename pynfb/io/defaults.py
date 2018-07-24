@@ -14,6 +14,7 @@ general_defaults = OrderedDict([
 
 vectors_defaults = OrderedDict([
     ('bDC', 0),
+    ('sPrefilterBand', 'None None'),
     ('sExperimentName', 'experiment'),
     ('sInletType', 'lsl'),
     ('sStreamName', 'NVX136_Data'),
