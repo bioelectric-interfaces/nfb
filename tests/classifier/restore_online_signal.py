@@ -36,11 +36,11 @@ def restore_online_signal(h5_dataset, signal_name, band=None, spatial_filter=Non
 
 
 if __name__ == '__main__':
-    h5_dataset = r'C:\Projects\nfblab\nfb\pynfb\results\S2-Loco-Real-Sit_07-20_18-35-10\experiment_data.h5'
+    h5_dataset = r'C:\Projects\nfblab\nfb\pynfb\results\STEST-Loco-Real-Sit_07-24_15-56-14\experiment_data.h5'
     class_labels = ['Prepare', 'Go']
 
     df, fs, channels, p_names = load_data(h5_dataset)
-    signal_name, time_series = restore_online_signal(h5_dataset, 'Signal', band=None, spatial_filter=None, smoothing_factor=0.99)
+    signal, time_series = restore_online_signal(h5_dataset, 'Signal', band=(1, 3), spatial_filter=np.random.randint(1, 3, len(channels)), smoothing_factor=0.99)
     df['smr'] = time_series
 
     classifier = LogisticRegression()
@@ -54,3 +54,20 @@ if __name__ == '__main__':
     plt.plot(classifier.predict_proba(df['smr'].values.reshape(-1, 1))[:, 1])
     plt.plot(df['smr'].values/df['smr'].values.std())
     plt.show()
+
+    from utils.lsl_transformer import LSLTransformer
+    from time import sleep
+    class Classifier(LSLTransformer):
+        def transform(self, x):
+            #chs = self.inlet.get_channels_labels()
+            #channels_upper = [c.upper() for c in channels]
+            #channels_mask = [j for j, ch in enumerate(chs) if ch.upper() in channels_upper]
+            #print(chs, channels)
+            x = signal.update(x)
+            x = classifier.predict_proba(x[:, None])[:, [1]]
+            return x
+
+    decepticon = Classifier('Mitsar', 'Tesseract_Data', ['BCI'])
+    while True:
+        decepticon.update()
+        sleep(0.05)
