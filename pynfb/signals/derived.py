@@ -23,8 +23,9 @@ ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
 
 class DerivedSignal:
     @classmethod
-    def from_params(cls, ind, fs, n_channels, channels, params):
-        spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['sROILabel'])
+    def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None):
+        if spatial_filter is None:
+            spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['sROILabel'])
         return cls(ind=ind,
                    bandpass_high=params['fBandpassHighHz'],
                    bandpass_low=params['fBandpassLowHz'],
@@ -122,7 +123,7 @@ class DerivedSignal:
         if self.scaling_flag and self.std > 0:
             current_chunk = (current_chunk - self.mean) / self.std
         self.current_chunk = current_chunk
-        pass
+        return current_chunk
 
     def update_statistics(self, raw=None, emulate=False, signals_recorder=None, stats_type='meanstd'):
         if raw is not None and emulate:
