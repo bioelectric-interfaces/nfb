@@ -1,5 +1,5 @@
 import numpy as np
-from pynfb.io import save_spatial_filter
+from pynfb.io import save_spatial_filter, read_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
     ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter, \
     FilterSequence, DelayFilter, CFIRBandEnvelopeDetector
@@ -22,6 +22,25 @@ ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
 
 
 class DerivedSignal:
+    @classmethod
+    def from_params(cls, ind, fs, n_channels, channels, params):
+        spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['sROILabel'])
+        return cls(ind=ind,
+                   bandpass_high=params['fBandpassHighHz'],
+                   bandpass_low=params['fBandpassLowHz'],
+                   name=params['sSignalName'],
+                   n_channels=n_channels,
+                   spatial_filter=spatial_filter,
+                   disable_spectrum_evaluation=params['bDisableSpectrumEvaluation'],
+                   n_samples=params['fFFTWindowSize'],
+                   smoothing_factor=params['fSmoothingFactor'],
+                   source_freq=fs,
+                   estimator_type=params['sTemporalType'],
+                   temporal_filter_type=params['sTemporalFilterType'],
+                   smoother_type=params['sTemporalSmootherType'],
+                   filter_order=params['fTemporalFilterButterOrder'],
+                   delay_ms=params['iDelayMs'])
+
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
