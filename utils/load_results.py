@@ -6,7 +6,10 @@ import numpy as np
 
 def _get_channels_and_fs(xml_str_or_file):
     root = ET.fromstring(xml_str_or_file)
-    channels = [k.find('label').text for k in root.find('desc').find('channels').findall('channel')]
+    if root.find('desc').find('channels') is not None:
+        channels = [k.find('label').text for k in root.find('desc').find('channels').findall('channel')]
+    else:
+        channels = [k.find('name').text for k in root.find('desc').findall('channel')]
     fs = int(root.find('nominal_srate').text)
     return channels, fs
 
@@ -21,7 +24,11 @@ def _get_signals_list(xml_str):
 
 
 def _get_info(f):
-    channels, fs = _get_channels_and_fs(f['stream_info.xml'][0])
+    if 'channels' in f:
+        channels = [ch.decode("utf-8")  for ch in f['channels'][:]]
+        fs = f['fs'].value
+    else:
+        channels, fs = _get_channels_and_fs(f['stream_info.xml'][0])
     signals = _get_signals_list(f['settings.xml'][0])
     n_protocols = len([k for k in f.keys() if ('protocol' in k and k != 'protocol0')])
     block_names = [f['protocol{}'.format(j+1)].attrs['name'] for j in range(n_protocols)]
