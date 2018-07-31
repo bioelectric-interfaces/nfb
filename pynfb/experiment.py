@@ -57,7 +57,7 @@ class Experiment():
             # update and collect current samples
             for i, signal in enumerate(self.signals):
                 signal.update(chunk)
-                #self.current_samples[i] = signal.current_sample
+                # self.current_samples[i] = signal.current_sample
 
             # push current samples
             sample = np.vstack([np.array(signal.current_chunk) for signal in self.signals]).T.tolist()
@@ -72,7 +72,7 @@ class Experiment():
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
                     self.raw_recorder_other[chunk_slice] = other_chunk
                     self.timestamp_recorder[chunk_slice] = timestamp
-                    #for s, sample in enumerate(self.current_samples):
+                    # for s, sample in enumerate(self.current_samples):
                     self.signals_recorder[chunk_slice] = sample
                     self.samples_counter += chunk.shape[0]
 
@@ -82,7 +82,7 @@ class Experiment():
                         if self.samples_counter > self.seconds:
                             self.seconds += 2 * self.freq
                             raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq):
-                            self.samples_counter], 0)
+                                                                   self.samples_counter], 0)
                             if self.raw_std is None:
                                 self.raw_std = raw_std_new
                             else:
@@ -113,7 +113,7 @@ class Experiment():
 
             # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
             if (self.main.player_panel.start.isChecked() and
-                            self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
+                    self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
                 self.reward_recorder[
                 self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
 
@@ -125,8 +125,7 @@ class Experiment():
                 else:
                     mark = None
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-                self.mark_recorder[self.samples_counter-1] = int(mark or 0)
-
+                self.mark_recorder[self.samples_counter - 1] = int(mark or 0)
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -172,14 +171,15 @@ class Experiment():
 
         # descale signals:
         signals_recordings = np.array([signal.descale_recording(data)
-                             for signal, data in zip(self.signals, self.signals_recorder[:self.samples_counter].T)]).T
+                                       for signal, data in
+                                       zip(self.signals, self.signals_recorder[:self.samples_counter].T)]).T
 
         # close previous protocol
         self.protocols_sequence[self.current_protocol_index].close_protocol(
             raw=self.raw_recorder[:self.samples_counter],
             signals=signals_recordings,
             protocols=self.protocols,
-            protocols_seq=[protocol.name for protocol in self.protocols_sequence[:self.current_protocol_index+1]],
+            protocols_seq=[protocol.name for protocol in self.protocols_sequence[:self.current_protocol_index + 1]],
             raw_file=self.dir_name + 'experiment_data.h5',
             marks=self.mark_recorder[:self.samples_counter])
 
@@ -208,15 +208,14 @@ class Experiment():
         elif self.protocols_sequence[self.current_protocol_index].as_mock:
             self.real_fb_number_list += [self.current_protocol_index + 1]
 
-
         if self.current_protocol_index < len(self.protocols_sequence) - 1:
 
             # update current protocol index and n_samples
             self.current_protocol_index += 1
             current_protocol = self.protocols_sequence[self.current_protocol_index]
             self.current_protocol_n_samples = self.freq * (
-                        self.protocols_sequence[self.current_protocol_index].duration +
-                        np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
+                    self.protocols_sequence[self.current_protocol_index].duration +
+                    np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
@@ -233,9 +232,8 @@ class Experiment():
                     mock_raw = load_h5py(self.dir_name + 'experiment_data.h5',
                                          'protocol{}/raw_data'.format(current_protocol.mock_previous))
                     mock_signals = load_h5py(self.dir_name + 'experiment_data.h5',
-                                     'protocol{}/signals_data'.format(current_protocol.mock_previous))
+                                             'protocol{}/signals_data'.format(current_protocol.mock_previous))
                 # print(self.real_fb_number_list)
-
 
                 current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb, mock_signals)
 
@@ -343,23 +341,9 @@ class Experiment():
         self.raw_std = None
 
         # signals
-        self.signals = [DerivedSignal(ind=ind,
-                                       bandpass_high=signal['fBandpassHighHz'],
-                                       bandpass_low=signal['fBandpassLowHz'],
-                                       name=signal['sSignalName'],
-                                       n_channels=self.n_channels,
-                                       spatial_filter=read_spatial_filter(signal['SpatialFilterMatrix'], self.freq,
-                                                                         channels_labels, signal['sROILabel']),
-                                       disable_spectrum_evaluation=signal['bDisableSpectrumEvaluation'],
-                                       n_samples=signal['fFFTWindowSize'],
-                                       smoothing_factor=signal['fSmoothingFactor'],
-                                       source_freq=self.freq,
-                                       estimator_type=signal['sTemporalType'],
-                                       temporal_filter_type=signal['sTemporalFilterType'],
-                                       smoother_type=signal['sTemporalSmootherType'],
-                                       filter_order=signal['fTemporalFilterButterOrder'],
-                                       delay_ms=signal['iDelayMs'])
-                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if not signal['bBCIMode']]
+        self.signals = [DerivedSignal.from_params(ind, self.freq, self.n_channels, channels_labels, signal)
+                        for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if
+                        not signal['bBCIMode']]
 
         # composite signals
         self.composite_signals = [CompositeSignal([s for s in self.signals],
@@ -370,11 +354,12 @@ class Experiment():
 
         # bci signals
         self.bci_signals = [BCISignal(self.freq, channels_labels, signal['sSignalName'], ind)
-                            for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if signal['bBCIMode']]
+                            for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if
+                            signal['bBCIMode']]
 
         self.signals += self.composite_signals
         self.signals += self.bci_signals
-        #self.current_samples = np.zeros_like(self.signals)
+        # self.current_samples = np.zeros_like(self.signals)
 
         # signals outlet
         self.signals_outlet = SignalsOutlet([signal.name for signal in self.signals], fs=self.freq)
@@ -404,7 +389,7 @@ class Experiment():
                 show_reward=bool(protocol['bShowReward']),
                 reward_signal_id=reward_signal_id,
                 reward_threshold=protocol['bRewardThreshold'],
-                ssd_in_the_end = protocol['bSSDInTheEnd'],
+                ssd_in_the_end=protocol['bSSDInTheEnd'],
                 timer=self.main_timer,
                 freq=self.freq,
                 mock_previous=int(protocol['iMockPrevious']),
@@ -466,7 +451,7 @@ class Experiment():
                 group = self.params['vPGroups']['PGroup'][group_names.index(name)]
                 subgroup = []
                 for s_name, s_n in zip(group['sList'].split(' '), list(map(int, group['sNumberList'].split(' ')))):
-                    subgroup.append([s_name]*s_n)
+                    subgroup.append([s_name] * s_n)
                 if group['bShuffle']:
                     subgroup = np.concatenate(subgroup)
                     subgroup = list(subgroup[np.random.permutation(len(subgroup))])
@@ -477,7 +462,6 @@ class Experiment():
                     self.protocols_sequence.append(self.protocols[names.index(subname)])
                     if len(group['sSplitBy']):
                         self.protocols_sequence.append(self.protocols[names.index(group['sSplitBy'])])
-
 
         # reward
         from pynfb.reward import Reward
@@ -495,10 +479,12 @@ class Experiment():
 
         # current protocol number of samples ('frequency' * 'protocol duration')
         self.current_protocol_n_samples = self.freq * (self.protocols_sequence[self.current_protocol_index].duration +
-            np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
+                                                       np.random.uniform(0, self.protocols_sequence[
+                                                           self.current_protocol_index].random_over_time))
 
         # experiment number of samples
-        max_protocol_n_samples = int(max([self.freq * (p.duration+p.random_over_time) for p in self.protocols_sequence]))
+        max_protocol_n_samples = int(
+            max([self.freq * (p.duration + p.random_over_time) for p in self.protocols_sequence]))
 
         # data recorders
         self.experiment_n_samples = max_protocol_n_samples
@@ -555,7 +541,6 @@ class Experiment():
         stream_name = self.params['sStreamName']
 
         self.thread = stream_file_in_a_thread(file_path, reference, stream_name)
-
 
     def destroy(self):
         if self.thread is not None:
