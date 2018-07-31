@@ -6,7 +6,6 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import pyqtSignal
-from expyriment import control, design
 
 from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
@@ -136,8 +135,7 @@ class MainWindow(QtGui.QMainWindow):
                  max_protocol_n_samples=None,
                  experiment=None, freq=500,
                  plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False, show_subject_window=True,
-                 channels_labels=None,
-                 subject_backend_expyriment=False):
+                 channels_labels=None):
         super(MainWindow, self).__init__(parent)
 
         # Which windows to draw:
@@ -203,11 +201,8 @@ class MainWindow(QtGui.QMainWindow):
 
         # subject window
         if show_subject_window:
-            if not subject_backend_expyriment:
-                self.subject_window = SubjectWindow(self, current_protocol)
-                self.subject_window.show()
-            else:
-                self.subject_window = ExpyrimentSubjectWindow(self, current_protocol)
+            self.subject_window = SubjectWindow(self, current_protocol)
+            self.subject_window.show()
             self._subject_window_want_to_close = False
         else:
             self.subject_window = None
@@ -320,43 +315,6 @@ class SubjectWindow(SecondaryWindow):
     def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
         self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
                                            is_half_time=is_half_time)
-
-
-class CustomExperiment(design.Experiment):
-    def clear_all(self):
-        pass
-
-    def update_reward(self, reward):
-        pass
-
-    def show_reward(self, flag):
-        pass
-
-
-class ExpyrimentSubjectWindow:
-    def __init__(self, parent, current_protocol, **kwargs):
-        control.defaults.initialize_delay = 0
-        #control.defaults.window_mode = True
-        self.exp = CustomExperiment(background_colour=(0, 0, 0))
-
-        self.figure = ProtocolWidget()
-        self.current_protocol = current_protocol
-
-        # prepare widget
-        self.current_protocol.widget_painter.prepare_widget(self.exp)
-
-    def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
-        if not self.exp.is_initialized:
-            control.initialize(self.exp)
-        else:
-            return self.current_protocol.update_state(samples, reward, chunk_size=chunk_size, is_half_time=is_half_time)
-
-    def change_protocol(self, new_protocol):
-        self.current_protocol = new_protocol
-        self.current_protocol.widget_painter.prepare_widget(self.exp)
-
-    def close(self):
-        control.end()
 
 def main():
     print(static_path)

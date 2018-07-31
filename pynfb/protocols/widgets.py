@@ -3,8 +3,6 @@ import time
 import numpy as np
 import pyqtgraph as pg
 
-from ..protocols.psycho.cross_present import PsyExperiment
-
 
 class ProtocolWidget(pg.PlotWidget):
     def __init__(self, **kwargs):
@@ -123,28 +121,6 @@ class BarFeedbackProtocolWidgetPainter(Painter):
             sample = np.sum(sample)
         self.p1.setData(self.x, np.zeros_like(self.x)+max(min(sample, 5), -5))
         self.p2.setData(self.x, np.zeros_like(self.x)-5)
-        pass
-
-class PsyProtocolWidgetPainter(Painter):
-    def __init__(self, detection=False):
-        print('DETECTION', detection)
-        self.detection = detection
-        super(PsyProtocolWidgetPainter, self).__init__()
-        print('inited')
-        self.t_start_trial = 0
-
-    def prepare_widget(self, widget):
-        self.exp = PsyExperiment(widget, detection_task=self.detection)
-        #self.exp.run()
-        print('prepared')
-
-    def redraw_state(self, sample, m_sample):
-        stimulus_presented = self.exp.run_trial(sample)
-        if stimulus_presented:
-            print('STIMULUS PRESENTED')
-        return stimulus_presented
-
-    def close(self):
         pass
 
 

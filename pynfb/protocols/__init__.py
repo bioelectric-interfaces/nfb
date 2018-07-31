@@ -8,8 +8,8 @@ from ..helpers.beep import SingleBeep
 from ..io.hdf5 import load_h5py_protocols_raw
 from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
-                                     PsyProtocolWidgetPainter, BaselineProtocolWidgetPainter,
-                                     ThresholdBlinkFeedbackProtocolWidgetPainter, VideoProtocolWidgetPainter)
+                                 BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
+                                 VideoProtocolWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
@@ -230,18 +230,6 @@ class SSDProtocol(Protocol):
         kwargs['ssd_in_the_end'] = True
         super().__init__(signals, **kwargs)
         self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
-
-
-class PsyProtocol(Protocol):
-    def __init__(self, signals, detection, name='Psy', **kwargs):
-        kwargs['name'] = name
-        super().__init__(signals, **kwargs)
-        self.widget_painter = PsyProtocolWidgetPainter(detection)
-        pass
-
-    def close_protocol(self, **kwargs):
-        self.widget_painter.close()
-        super(PsyProtocol, self).close_protocol(**kwargs)
 
 
 def main():

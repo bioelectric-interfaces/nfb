@@ -114,11 +114,6 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.prefilter_band.bandChanged.connect(self.band_changed_event)
         self.form_layout.addRow('&Pre-filtering band:', self.prefilter_band)
 
-        # dc blocker
-        #self.use_expyriment = QtGui.QCheckBox()
-        #self.use_expyriment.clicked.connect(self.use_expyriment_event)
-        #self.form_layout.addRow('&Use expyriment toolbox:', self.use_expyriment)
-
         self.reset()
         # self.stream
 

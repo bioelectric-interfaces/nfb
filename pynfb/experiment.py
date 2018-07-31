@@ -18,7 +18,7 @@ from .io.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_sign
     save_channels_and_fs
 from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .io import read_spatial_filter
-from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, PsyProtocol
+from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -434,8 +434,6 @@ class Experiment():
                         self.signals,
                         video_path=protocol['sVideoPath'],
                         **kwargs))
-            elif protocol['sFb_type'] == 'Psy':
-                self.protocols.append(PsyProtocol(self.signals, protocol['bEnableDetectionTask'], **kwargs))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
 
@@ -518,8 +516,7 @@ class Experiment():
                                plot_signals_flag=self.params['bPlotSignals'],
                                plot_source_space_flag=self.params['bPlotSourceSpace'],
                                show_subject_window=self.params['bShowSubjectWindow'],
-                               channels_labels=channels_labels,
-                               subject_backend_expyriment=self.params['bUseExpyriment'])
+                               channels_labels=channels_labels)
         self.subject = self.main.subject_window
         if self.params['bPlotSourceSpace']:
             self.source_space_window = self.main.source_space_window
