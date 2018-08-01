@@ -16,3 +16,6 @@ Run `main.py` by command
 python pynfb\main.py`
 ```
 Where `python` interpreter is from installed miniconda folder
+
+### PyQt4 stable version
+[https://github.com/nikolaims/nfb/tree/pyqt4-stable](https://github.com/nikolaims/nfb/tree/pyqt4-stable)
