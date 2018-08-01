@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from pynfb.io.defaults import vectors_defaults as defaults
 from pynfb.settings_widget import FileSelectorLine
@@ -22,13 +22,13 @@ roi_labels = ['CUSTOM', 'bankssts-lh', 'bankssts-rh', 'caudalanteriorcingulate-l
               'transversetemporal-rh', 'unknown-lh']
 
 
-class SpatialFilterROIWidget(QtGui.QWidget):
+class SpatialFilterROIWidget(QtWidgets.QWidget):
     def __init__(self):
         super(SpatialFilterROIWidget, self).__init__()
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
 
         # labels
-        self.labels = QtGui.QComboBox()
+        self.labels = QtWidgets.QComboBox()
         for label in roi_labels:
             self.labels.addItem(label)
         layout.addWidget(self.labels)
@@ -41,30 +41,30 @@ class SpatialFilterROIWidget(QtGui.QWidget):
         self.labels.currentIndexChanged.connect(
             lambda: self.file.setEnabled(self.labels.currentIndex() == 0))
 
-class SignalsSettingsWidget(QtGui.QWidget):
+class SignalsSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.params = self.parent().params['vSignals']['DerivedSignal']
 
         # layout
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         self.setLayout(layout)
 
         # label
-        label = QtGui.QLabel('Signals:')
+        label = QtWidgets.QLabel('Signals:')
         layout.addWidget(label)
 
         # list of signals
-        self.list = QtGui.QListWidget(self)
+        self.list = QtWidgets.QListWidget(self)
         self.reset_items()
         self.list.itemDoubleClicked.connect(self.item_double_clicked_event)
         layout.addWidget(self.list)
 
         # buttons layout
-        buttons_layout = QtGui.QHBoxLayout()
-        add_button = QtGui.QPushButton('Add')
+        buttons_layout = QtWidgets.QHBoxLayout()
+        add_button = QtWidgets.QPushButton('Add')
         add_button.clicked.connect(self.add)
-        remove_signal_button = QtGui.QPushButton('Remove')
+        remove_signal_button = QtWidgets.QPushButton('Remove')
         remove_signal_button.clicked.connect(self.remove_current_item)
         buttons_layout.addWidget(add_button)
         buttons_layout.addWidget(remove_signal_button)
@@ -89,23 +89,23 @@ class SignalsSettingsWidget(QtGui.QWidget):
         self.list.clear()
         self.signals_dialogs = []
         for signal in self.params:
-            item = QtGui.QListWidgetItem(signal['sSignalName'])
+            item = QtWidgets.QListWidgetItem(signal['sSignalName'])
             self.signals_dialogs.append(SignalDialog(self, signal_name=signal['sSignalName']))
             self.list.addItem(item)
         if self.list.currentRow() < 0:
-            self.list.setItemSelected(self.list.item(0), True)
+            self.list.setCurrentItem(self.list.item(0))
 
 
-class SignalDialog(QtGui.QDialog):
+class SignalDialog(QtWidgets.QDialog):
     def __init__(self, parent, signal_name='Signal'):
         self.params = parent.params
         super().__init__(parent)
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + signal_name)
-        self.form_layout = QtGui.QFormLayout(self)
+        self.form_layout = QtWidgets.QFormLayout(self)
 
         # name
-        self.name = QtGui.QLineEdit(self)
+        self.name = QtWidgets.QLineEdit(self)
         self.name.setText(signal_name)
         self.form_layout.addRow('&Name:', self.name)
         validator = QtGui.QRegExpValidator(QtCore.QRegExp("^[a-zA-Z0-9_]+$"))
@@ -120,12 +120,12 @@ class SignalDialog(QtGui.QDialog):
         self.form_layout.addRow('&Temporal settings:', self.temporal_settings)
 
         # bci signal
-        self.bci_checkbox = QtGui.QCheckBox('BCI mode')
+        self.bci_checkbox = QtWidgets.QCheckBox('BCI mode')
         self.bci_checkbox.stateChanged.connect(self.bci_mode_changed)
         self.form_layout.addRow('&BCI mode:', self.bci_checkbox)
 
         # ok button
-        self.save_button = QtGui.QPushButton('Save')
+        self.save_button = QtWidgets.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
         self.form_layout.addRow(self.save_button)
 
@@ -167,33 +167,33 @@ class SignalDialog(QtGui.QDialog):
         self.smoothing_factor.setDisabled(flag)
 
 
-class BandWidget(QtGui.QWidget):
+class BandWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.low = QtGui.QSpinBox()
+        self.low = QtWidgets.QSpinBox()
         self.low.setRange(0, 250)
         self.low.setValue(0)
-        self.high = QtGui.QSpinBox()
+        self.high = QtWidgets.QSpinBox()
         self.high.setRange(0, 250)
         self.high.setValue(250)
-        bandpass_layout = QtGui.QHBoxLayout(self)
-        bandpass_layout.setMargin(0)
-        label = QtGui.QLabel('low:')
+        bandpass_layout = QtWidgets.QHBoxLayout(self)
+        bandpass_layout.setContentsMargins(0, 0, 0, 0)
+        label = QtWidgets.QLabel('low:')
         label.setMaximumWidth(20)
         bandpass_layout.addWidget(label)
         bandpass_layout.addWidget(self.low)
-        label = QtGui.QLabel('high:')
+        label = QtWidgets.QLabel('high:')
         label.setMaximumWidth(25)
         bandpass_layout.addWidget(label)
         bandpass_layout.addWidget(self.high)
 
 
-class TemporalSettings(QtGui.QWidget):
+class TemporalSettings(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # type
-        self.type = QtGui.QComboBox()
+        self.type = QtWidgets.QComboBox()
         for protocol_type in ['envdetector', 'filter', 'identity']:
             self.type.addItem(protocol_type)
 
@@ -202,36 +202,36 @@ class TemporalSettings(QtGui.QWidget):
         self.band = BandWidget()
 
         # filter type
-        self.filter_type = QtGui.QComboBox()
+        self.filter_type = QtWidgets.QComboBox()
         for protocol_type in ['fft', 'butter', 'complexdem', 'cfir']:
             self.filter_type.addItem(protocol_type)
 
         # filter order
-        self.order = QtGui.QSpinBox()
+        self.order = QtWidgets.QSpinBox()
         self.order.setRange(1, 7)
         self.order.setValue(2)
 
         # filter order
-        self.win_size = QtGui.QSpinBox()
+        self.win_size = QtWidgets.QSpinBox()
         self.win_size.setRange(2, 5000)
         self.win_size.setValue(500)
 
         # smoother type
-        self.smoother_type = QtGui.QComboBox()
+        self.smoother_type = QtWidgets.QComboBox()
         for protocol_type in ['exp', 'savgol']:
             self.smoother_type.addItem(protocol_type)
 
         # filter order
-        self.smoother_factor = QtGui.QDoubleSpinBox()
+        self.smoother_factor = QtWidgets.QDoubleSpinBox()
         self.smoother_factor.setRange(0, 1)
         self.smoother_factor.setValue(0.3)
 
         # artificial delay
-        self.art_delay = QtGui.QSpinBox()
+        self.art_delay = QtWidgets.QSpinBox()
         self.art_delay.setRange(0, 5000)
         self.art_delay.setValue(0)
 
-        layout = QtGui.QFormLayout(self)
+        layout = QtWidgets.QFormLayout(self)
         layout.addRow('&Type:', self.type)
         layout.addRow('&Band:', self.band)
         layout.addRow('&Filter type:', self.filter_type)
@@ -310,7 +310,7 @@ class TemporalSettings(QtGui.QWidget):
         return params
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     w = TemporalSettings()
     w.show()
     a.exec_()

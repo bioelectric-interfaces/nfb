@@ -1,9 +1,9 @@
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from ..protocols.ssd.topomap_canvas import TopographicMapCanvas
 
 
-class MultiTopographiesCanvas(QtGui.QTableWidget):
+class MultiTopographiesCanvas(QtWidgets.QTableWidget):
     def __init__(self, names):
         super(MultiTopographiesCanvas, self).__init__()
         self.horizontalHeader().hide()
@@ -29,17 +29,17 @@ class MultiTopographiesCanvas(QtGui.QTableWidget):
         self.resizeRowsToContents()
 
 
-class TopographiesDialog(QtGui.QDialog):
+class TopographiesDialog(QtWidgets.QDialog):
     def __init__(self, names, title='', parent=None):
         super(TopographiesDialog, self).__init__(parent)
         self.setWindowTitle(title)
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         self.table = MultiTopographiesCanvas(names)
         layout.addWidget(self.table)
         self.resize(400, 100)
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
 
     import numpy as np
     w = TopographiesDialog(names=['Cp1', 'Cz', 'Fp1'])

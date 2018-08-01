@@ -7,7 +7,7 @@ from pynfb.signal_processing.helpers import get_outliers_mask
 from pynfb.postprocessing.utils import get_info, fft_filter
 from pynfb.protocols import SelectSSDFilterWidget
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 
 

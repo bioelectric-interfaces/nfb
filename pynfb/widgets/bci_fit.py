@@ -1,25 +1,25 @@
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 
-class BCIFitWidget(QtGui.QWidget):
+class BCIFitWidget(QtWidgets.QWidget):
     fit_clicked = QtCore.pyqtSignal()
     def __init__(self, bci_signal, *args):
         super(BCIFitWidget, self).__init__(*args)
-        label = QtGui.QLabel(bci_signal.name)
+        label = QtWidgets.QLabel(bci_signal.name)
 
         # fit button
-        fit_button = QtGui.QPushButton('Fit model')
+        fit_button = QtWidgets.QPushButton('Fit model')
         fit_button.clicked.connect(lambda: self.fit_clicked.emit())
 
         # set layout
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignRight)
         layout.addWidget(label)
         layout.addWidget(fit_button)
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
 
     class BCISignalMock:

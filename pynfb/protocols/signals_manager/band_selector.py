@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import numpy as np
 from ...widgets.parameter_slider import ParameterSlider
@@ -7,7 +7,7 @@ from time import time
 
 
 
-class BandSelectorWidget(QtGui.QDialog):
+class BandSelectorWidget(QtWidgets.QDialog):
     def __init__(self, x, y):
         super(BandSelectorWidget, self).__init__()
 
@@ -42,7 +42,7 @@ class BandSelectorWidget(QtGui.QDialog):
         self.view_box = view_box
 
         # setup grid layout
-        grid_layout = QtGui.QGraphicsGridLayout(graphics_widget)
+        grid_layout = QtWidgets.QGraphicsGridLayout(graphics_widget)
         grid_layout.addItem(axis, 1, 0)
         grid_layout.addItem(view_box, 0, 0)
 
@@ -51,16 +51,16 @@ class BandSelectorWidget(QtGui.QDialog):
         view.setCentralItem(graphics_widget)
         self.width_slider = ParameterSlider('Band width:', 1, 10, interval=0.1, value=self.width, units='Hz')
         self.width_slider.valueChanged.connect(self.changeWidth)
-        main_layout = QtGui.QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addWidget(view)
         main_layout.addWidget(self.width_slider)
         self.band = None
-        btn = QtGui.QPushButton('Select')
+        btn = QtWidgets.QPushButton('Select')
         btn.clicked.connect(self.select_band)
         btn.setMaximumWidth(200)
 
 
-        self.band_str = QtGui.QLabel('Band:\t{}\t-\t{} Hz'.format(*self.region.getRegion()))
+        self.band_str = QtWidgets.QLabel('Band:\t{}\t-\t{} Hz'.format(*self.region.getRegion()))
         main_layout.addWidget(self.band_str)
         main_layout.addWidget(btn)
 
@@ -100,7 +100,7 @@ class BandSelectorWidget(QtGui.QDialog):
 
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     x = np.random.randint(0, 10, size=1000) + np.arange(1000)
     print(BandSelectorWidget.select(np.linspace(0, 250, 1000), x))
     a.exec_()

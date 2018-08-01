@@ -1,13 +1,13 @@
 from pynfb.protocols.ssd.topomap_canvas import TopographicMapCanvas
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-class SpatialFilterWidget(QtGui.QWidget):
+class SpatialFilterWidget(QtWidgets.QWidget):
     def __init__(self, parent=None, channel_names=None):
         self.channel_names = channel_names or []
         super(SpatialFilterWidget, self).__init__(parent)
         self.setMaximumHeight(100)
-        layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # canvas
         canvas = TopographicMapCanvas()
@@ -15,10 +15,10 @@ class SpatialFilterWidget(QtGui.QWidget):
         layout.addWidget(canvas)
 
         # buttons
-        buttons_layout = QtGui.QVBoxLayout()
+        buttons_layout = QtWidgets.QVBoxLayout()
         layout.addLayout(buttons_layout)
-        self.edit_button = QtGui.QPushButton('Edit')
-        self.load_button = QtGui.QPushButton('Load')
+        self.edit_button = QtWidgets.QPushButton('Edit')
+        self.load_button = QtWidgets.QPushButton('Load')
         # buttons_layout.addWidget(self.edit_button)
         buttons_layout.addWidget(self.load_button)
 
@@ -34,7 +34,7 @@ class SpatialFilterWidget(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     w = SpatialFilterWidget()
     w.show()
     a.exec_()

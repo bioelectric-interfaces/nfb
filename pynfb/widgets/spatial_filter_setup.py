@@ -1,9 +1,9 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 from ..protocols.ssd.topomap_canvas import TopographicMapCanvas
 
 
-class Table(QtGui.QTableWidget):
+class Table(QtWidgets.QTableWidget):
     def __init__(self, ch_names, *args):
         super(Table, self).__init__(*args)
 
@@ -14,14 +14,14 @@ class Table(QtGui.QTableWidget):
 
         # set ch names
         for ind, name in enumerate(ch_names):
-            name_item = QtGui.QTableWidgetItem(name)
+            name_item = QtWidgets.QTableWidgetItem(name)
             name_item.setFlags(QtCore.Qt.ItemIsEnabled)
             self.setItem(ind, 0, name_item)
 
         # set spin boxes and default weights
         self.weights = [0 for _j in range(self.rowCount())]
         for ind, w in enumerate(self.weights):
-            spin_box = QtGui.QDoubleSpinBox()
+            spin_box = QtWidgets.QDoubleSpinBox()
             spin_box.setValue(w)
             spin_box.setSingleStep(0.5)
             spin_box.setRange(-1e5, 1e5)
@@ -46,7 +46,7 @@ class Table(QtGui.QTableWidget):
         return self.weights
 
 
-class SpatialFilterSetup(QtGui.QDialog):
+class SpatialFilterSetup(QtWidgets.QDialog):
     def __init__(self, ch_names, weights=None, message=None, title='Spatial filter', **kwargs):
         super(SpatialFilterSetup, self).__init__(**kwargs)
         #
@@ -57,7 +57,7 @@ class SpatialFilterSetup(QtGui.QDialog):
         self.setWindowTitle(title)
 
         # layout
-        layout = QtGui.QGridLayout(self)
+        layout = QtWidgets.QGridLayout(self)
 
         # table
         self.table = Table(ch_names)
@@ -71,14 +71,14 @@ class SpatialFilterSetup(QtGui.QDialog):
         layout.addWidget(self.topomap, 0, 0)
 
         # buttons
-        btn_layout = QtGui.QHBoxLayout()
-        apply_btn = QtGui.QPushButton('Apply')
+        btn_layout = QtWidgets.QHBoxLayout()
+        apply_btn = QtWidgets.QPushButton('Apply')
         apply_btn.clicked.connect(self.apply_action)
-        revert_btn = QtGui.QPushButton('Revert')
+        revert_btn = QtWidgets.QPushButton('Revert')
         revert_btn.clicked.connect(self.table.revert_changes)
-        ok_btn = QtGui.QPushButton('OK')
+        ok_btn = QtWidgets.QPushButton('OK')
         ok_btn.clicked.connect(self.ok_action)
-        zero_btn = QtGui.QPushButton('Set zeros')
+        zero_btn = QtWidgets.QPushButton('Set zeros')
         zero_btn.clicked.connect(self.set_zeros)
         btn_layout.addWidget(zero_btn)
         btn_layout.addWidget(revert_btn)
@@ -87,7 +87,7 @@ class SpatialFilterSetup(QtGui.QDialog):
         layout.addLayout(btn_layout, 1, 1)
 
         if message is not None:
-            layout.addWidget(QtGui.QLabel(message), 1, 0)
+            layout.addWidget(QtWidgets.QLabel(message), 1, 0)
 
     def set_zeros(self):
         self.weights = [0 for _w in self.weights]
@@ -113,7 +113,7 @@ class SpatialFilterSetup(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
 
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     ch_names = ['Fc1', 'Fc3', 'Fc5', 'C1', 'C3', 'C5', 'Cp1', 'Cp3', 'Cp5', 'Cz', 'Pz',
                 'Cp2', 'Cp4', 'Cp6', 'C2', 'C4', 'C6', 'Fc2', 'Fc4', 'Fc6']
     w = SpatialFilterSetup.get_filter(ch_names, np.random.uniform(size=len(ch_names)), message='Current spatial filter '

@@ -2,7 +2,7 @@ import expyriment
 
 from expyriment import control, design, misc
 import expyriment.stimuli
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 def run_exp():
     #control.run_test_suite()
@@ -32,8 +32,8 @@ def run_exp():
     control.end()
 
 
-app = QtGui.QApplication([])
-w = QtGui.QPushButton('Run exp')
+app = QtWidgets.QApplication([])
+w = QtWidgets.QPushButton('Run exp')
 w.show() #showFullScreen()
 w.clicked.connect(run_exp)
 app.exec_()

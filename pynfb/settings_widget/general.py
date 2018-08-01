@@ -1,21 +1,21 @@
-from PyQt4 import QtGui
-from PyQt4.QtCore import pyqtSignal
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSignal
 from pynfb.helpers.beep import SingleBeep
 from .inlet import InletSettingsWidget, EventsInletSettingsWidget
 
 
-class BandWidget(QtGui.QWidget):
+class BandWidget(QtWidgets.QWidget):
     bandChanged = pyqtSignal()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        bandpass_layout = QtGui.QHBoxLayout(self)
-        bandpass_layout.setMargin(0)
-        self.band = [QtGui.QDoubleSpinBox(), QtGui.QDoubleSpinBox()]
+        bandpass_layout = QtWidgets.QHBoxLayout(self)
+        bandpass_layout.setContentsMargins(0, 0, 0, 0)
+        self.band = [QtWidgets.QDoubleSpinBox(), QtWidgets.QDoubleSpinBox()]
         for w, name in zip(self.band, ['low:', 'high:']):
             w.setRange(0, 250)
             w.setValue(0)
             w.setMaximumWidth(200)
-            label = QtGui.QLabel(name)
+            label = QtWidgets.QLabel(name)
             label.setMaximumWidth(75)
             bandpass_layout.addWidget(label)
             bandpass_layout.addWidget(w)
@@ -34,15 +34,15 @@ class BandWidget(QtGui.QWidget):
         return ' '.join(band)
 
 
-class GeneralSettingsWidget(QtGui.QWidget):
+class GeneralSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.params = self.parent().params
-        self.form_layout = QtGui.QFormLayout(self)
+        self.form_layout = QtWidgets.QFormLayout(self)
         self.setLayout(self.form_layout)
 
         # name
-        self.name = QtGui.QLineEdit(self)
+        self.name = QtWidgets.QLineEdit(self)
         self.name.textChanged.connect(self.name_changed_event)
         self.form_layout.addRow('&Name:', self.name)
 
@@ -61,37 +61,37 @@ class GeneralSettingsWidget(QtGui.QWidget):
 
         # reference
         self.form_layout.addRow('Reference:', None)
-        self.reference = QtGui.QLineEdit(self)
+        self.reference = QtWidgets.QLineEdit(self)
         self.reference.setPlaceholderText('Print channels to exclude (labels)')
         self.reference.textChanged.connect(self.reference_changed_event)
         self.form_layout.addRow('&    Exclude channels:', self.reference)
 
-        self.reference_sub = QtGui.QLineEdit(self)
+        self.reference_sub = QtWidgets.QLineEdit(self)
         self.reference_sub.setPlaceholderText('Print subtractive channel (labels)')
         self.reference_sub.textChanged.connect(self.reference_sub_changed_event)
         self.form_layout.addRow('&    Subtract channel from other:', self.reference_sub)
 
         # plot raw flag
-        self.plot_raw_check = QtGui.QCheckBox()
+        self.plot_raw_check = QtWidgets.QCheckBox()
         self.plot_raw_check.clicked.connect(self.plot_raw_checkbox_event)
         self.form_layout.addRow('&Plot raw:', self.plot_raw_check)
         # plot signals flag
-        self.plot_signals_check = QtGui.QCheckBox()
+        self.plot_signals_check = QtWidgets.QCheckBox()
         self.plot_signals_check.clicked.connect(self.plot_signals_checkbox_event)
         self.form_layout.addRow('&Plot signals:', self.plot_signals_check)
 
         # plot source space flag
-        self.plot_source_space_check = QtGui.QCheckBox()
+        self.plot_source_space_check = QtWidgets.QCheckBox()
         self.plot_source_space_check.clicked.connect(self.plot_source_space_checkbox_event)
         self.form_layout.addRow('&Plot source space:', self.plot_source_space_check)
 
         # show subject window
-        self.show_subject_window_check = QtGui.QCheckBox()
+        self.show_subject_window_check = QtWidgets.QCheckBox()
         self.show_subject_window_check.clicked.connect(self.show_subject_window_checkbox_event)
         self.form_layout.addRow('&Show subject window:', self.show_subject_window_check)
 
         # reward period
-        self.reward_period = QtGui.QDoubleSpinBox()
+        self.reward_period = QtWidgets.QDoubleSpinBox()
         self.reward_period.setRange(0.05, 10)
         self.reward_period.setSingleStep(0.01)
         self.reward_period.setMaximumWidth(100)
@@ -99,13 +99,13 @@ class GeneralSettingsWidget(QtGui.QWidget):
         self.form_layout.addRow('&Reward period [s]:', self.reward_period)
 
         # beep button
-        beep_button = QtGui.QPushButton('Beep')
+        beep_button = QtWidgets.QPushButton('Beep')
         beep_button.setMaximumWidth(100)
         beep_button.clicked.connect(lambda : SingleBeep().try_to_play())
         self.form_layout.addRow('&Test beep sound:', beep_button)
 
         # dc blocker
-        self.dc_check = QtGui.QCheckBox()
+        self.dc_check = QtWidgets.QCheckBox()
         self.dc_check.clicked.connect(self.dc_check_event)
         self.form_layout.addRow('&Enable DC Blocker:', self.dc_check)
 

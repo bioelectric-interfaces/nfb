@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..helpers.az_proj import azimuthal_equidistant_projection
 
@@ -48,13 +48,13 @@ if __name__ == '__main__':
     print(validate_ch_names(['Cz', 'Cz0101']))
 
 
-class WaitMessage(QtGui.QWidget):
+class WaitMessage(QtWidgets.QWidget):
     def __init__(self, text=''):
         super(WaitMessage, self).__init__()
         self.setWindowModality(QtCore.Qt.ApplicationModal)
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.setAlignment(QtCore.Qt.AlignCenter)
-        msg = QtGui.QLabel(text or 'Please wait ...')
+        msg = QtWidgets.QLabel(text or 'Please wait ...')
         layout.addWidget(msg)
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.resize(200, 100)

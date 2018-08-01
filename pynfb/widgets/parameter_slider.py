@@ -1,31 +1,31 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 
-class ParameterSlider(QtGui.QWidget):
+class ParameterSlider(QtWidgets.QWidget):
     valueChanged = QtCore.pyqtSignal()
 
     def __init__(self, label, minimum=0, maximum=1, interval=0.05, value=0.05, units='', integer=False):
         super(ParameterSlider, self).__init__()
-        layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
+        layout = QtWidgets.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         # label
-        layout.addWidget(QtGui.QLabel(label), 1)
+        layout.addWidget(QtWidgets.QLabel(label), 1)
 
         # slider
-        slider = QtGui.QSlider(QtCore.Qt.Horizontal)
+        slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.scaler = 5
         layout.addWidget(slider, 3)
         slider.setRange(minimum * self.scaler, maximum * self.scaler)
         slider.setValue(value * self.scaler)
-        slider.setTickPosition(QtGui.QSlider.TicksBelow)
+        slider.setTickPosition(QtWidgets.QSlider.TicksBelow)
         slider.setTickInterval(interval * self.scaler)
         slider.valueChanged.connect(self.set_value_from_slider)
         self.slider = slider
 
         # line edit
-        value_edit = QtGui.QDoubleSpinBox() if not integer else QtGui.QSpinBox()
+        value_edit = QtWidgets.QDoubleSpinBox() if not integer else QtWidgets.QSpinBox()
         value_edit.setRange(minimum, maximum)
         value_edit.setValue(value)
         value_edit.setSingleStep(interval)
@@ -36,7 +36,7 @@ class ParameterSlider(QtGui.QWidget):
 
         #units
         if units:
-            layout.addWidget(QtGui.QLabel(units))
+            layout.addWidget(QtWidgets.QLabel(units))
 
     def set_value_from_slider(self):
         self.value.setValue(self.slider.value() / self.scaler)
@@ -54,7 +54,7 @@ class ParameterSlider(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     w = ParameterSlider('Regularization')
     w.show()
     sys.exit(app.exec_())

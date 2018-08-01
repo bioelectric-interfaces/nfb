@@ -1,7 +1,7 @@
 import os
 import sys
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from pynfb.experiment import Experiment
 from pynfb.io.xml_ import xml_file_to_params
@@ -16,12 +16,12 @@ from pynfb.settings_widget.protocols_group import ProtocolGroupsSettingsWidget
 static_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/static')
 
 
-class SettingsWidget(QtGui.QWidget):
+class SettingsWidget(QtWidgets.QWidget):
     def __init__(self, app, **kwargs):
         super().__init__(**kwargs)
         self.app = app
-        v_layout = QtGui.QVBoxLayout()
-        layout = QtGui.QHBoxLayout()
+        v_layout = QtWidgets.QVBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         self.params = xml_file_to_params()
         self.general_settings = GeneralSettingsWidget(parent=self)
         v_layout.addWidget(self.general_settings)
@@ -37,12 +37,12 @@ class SettingsWidget(QtGui.QWidget):
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocol_groups_list)
         layout.addWidget(self.protocols_sequence_list)
-        start_button = QtGui.QPushButton('Start')
+        start_button = QtWidgets.QPushButton('Start')
         start_button.setIcon(QtGui.QIcon(static_path + '/imag/power-button.png'))
         start_button.setMinimumHeight(50)
         start_button.setMinimumWidth(300)
         start_button.clicked.connect(self.onClicked)
-        name_layout = QtGui.QHBoxLayout()
+        name_layout = QtWidgets.QHBoxLayout()
         v_layout.addWidget(start_button, alignment=QtCore.Qt.AlignCenter)
         self.setLayout(v_layout)
 
@@ -60,7 +60,7 @@ class SettingsWidget(QtGui.QWidget):
 
 
 if __name__ == "__main__":
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = FileSelectorLine()
     window.show()
     sys.exit(app.exec_())

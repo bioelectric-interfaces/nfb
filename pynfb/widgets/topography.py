@@ -1,6 +1,6 @@
 import numpy as np
 import pyqtgraph as pg
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from scipy.linalg import solve
 
 
@@ -68,13 +68,13 @@ class TopomapWidget(pg.PlotWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     pos = np.random.normal(size=(21, 2))
-    ww = QtGui.QWidget()
-    ll = QtGui.QHBoxLayout(ww)
+    ww = QtWidgets.QWidget()
+    ll = QtWidgets.QHBoxLayout(ww)
     tmap_widget = TopomapWidget(pos, 100)
     ll.addWidget(tmap_widget)
-    btn = QtGui.QPushButton('next')
+    btn = QtWidgets.QPushButton('next')
     btn.clicked.connect(lambda : tmap_widget.set_topomap(np.random.normal(size=(21, 1))))
     ll.addWidget(btn)
     ww.show()

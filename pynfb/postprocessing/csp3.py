@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 import h5py
 import pylab as plt
@@ -54,6 +54,6 @@ if __name__ == '__main__':
 
 
         scores, unmixing_matrix, topographies = csp3(x_dict, 250, (9, 14), lambda_=0.5, regularization_coef=0.01)
-        app = QtGui.QApplication([])
+        app = QtWidgets.QApplication([])
         selector = ICADialog(np.vstack((x_filters, x_rotation)), channels, fs, unmixing_matrix=unmixing_matrix, mode='csp', scores=scores)
         selector.exec_()

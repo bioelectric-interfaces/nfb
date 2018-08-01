@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 from pynfb.io.xml_ import get_lsl_info_from_xml
 from pynfb.signals import DerivedSignal
@@ -45,7 +45,7 @@ import h5py
 new_rejections_file = 'new_rejections.pkl'
 if not os.path.isfile(new_rejections_file):
 
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     new_rejections = {}
 
     for experiment in experiments[:]:

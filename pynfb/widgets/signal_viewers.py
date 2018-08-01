@@ -2,7 +2,7 @@ import numpy as np
 import pyqtgraph as pg
 import os
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from scipy import signal, stats
 
 paired_colors = ['#dbae57','#57db6c','#dbd657','#57db94','#b9db57','#57dbbb','#91db57','#57d3db','#69db57','#57acdb']
@@ -79,7 +79,7 @@ class SignalViewer(pg.PlotWidget):
         self.y_raw_buffer *= np.nan
 
 
-class CuteButton(QtGui.QPushButton):
+class CuteButton(QtWidgets.QPushButton):
     """
     Black-star button
     """
@@ -164,7 +164,7 @@ if __name__ == '__main__':
     b, a = signal.butter(2, 10 / fs * 2)
     data = signal.lfilter(b, a, data, axis=0)
 
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     w = RawSignalViewer(fs, ['ch' + str(j) for j in range(n_channels)])
 
     time = 0

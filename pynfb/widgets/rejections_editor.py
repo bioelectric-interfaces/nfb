@@ -1,16 +1,16 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..widgets.multi_topographies import TopographiesDialog
 
 
-class RejectionIcon(QtGui.QLabel):
+class RejectionIcon(QtWidgets.QLabel):
     def __init__(self, rank=1, type_str='ICA'):
         super(RejectionIcon, self).__init__()
         self.setAlignment(QtCore.Qt.AlignCenter)
         self.setText('{}\n rank = {} '.format(type_str, rank))
 
 
-class RejectionsWidget(QtGui.QTableWidget):
+class RejectionsWidget(QtWidgets.QTableWidget):
     rejection_deleted = QtCore.pyqtSignal(int)
 
     def __init__(self, channels_names, signal_name=''):
@@ -41,12 +41,12 @@ class RejectionsWidget(QtGui.QTableWidget):
 
     def open_selection_menu(self, column, row):
         if row >= 0 and column >= 0:
-            menu = QtGui.QMenu()
-            action = QtGui.QAction('Delete', self)
+            menu = QtWidgets.QMenu()
+            action = QtWidgets.QAction('Delete', self)
             action.triggered.connect(lambda: self.delete_rejection(column, row))
             menu.addAction(action)
 
-            action = QtGui.QAction('Show topographies', self)
+            action = QtWidgets.QAction('Show topographies', self)
             action.triggered.connect(lambda: self.show_topographies(column, row))
             menu.addAction(action)
 
@@ -72,7 +72,7 @@ class RejectionsWidget(QtGui.QTableWidget):
 
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
 
     import numpy as np
     w = RejectionsWidget(['Cp1', 'Cp2', 'Fp1'])

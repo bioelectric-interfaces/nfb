@@ -2,7 +2,7 @@ import os
 import re
 from datetime import datetime
 import numpy as np
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from itertools import zip_longest, chain
 
 from pynfb.inlets.montage import Montage

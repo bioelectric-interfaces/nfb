@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import numpy as np
 import pyqtgraph as pg
@@ -67,7 +67,7 @@ class RawViewer(pg.PlotWidget):
 
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, parent, fs, channels_labels):
         super(MainWindow, self).__init__(parent)
         self.plt = RawViewer(fs, channels_labels)
@@ -81,7 +81,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 lsl = LSLInlet(name='NFBLab_data')
 channels_labels = lsl.get_channels_labels()
 fs = lsl.get_frequency()

@@ -1,5 +1,5 @@
 import sys, os, argparse, importlib
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 # parse arguments
 parser = argparse.ArgumentParser()
@@ -28,6 +28,6 @@ from pynfb.experiment import Experiment
 from pynfb.io.xml_ import xml_file_to_params
 
 # run experiment
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 experiment = Experiment(app, xml_file_to_params(args.design))
 sys.exit(app.exec_())

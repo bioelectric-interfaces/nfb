@@ -1,7 +1,7 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class ChannelTroubleWarning(QtGui.QDialog):
+class ChannelTroubleWarning(QtWidgets.QDialog):
     pause_clicked = QtCore.pyqtSignal()
     continue_clicked = QtCore.pyqtSignal()
     closed = QtCore.pyqtSignal()
@@ -22,19 +22,19 @@ class ChannelTroubleWarning(QtGui.QDialog):
         self.message += ' You can pause the experiment and fix the problem or just continue.'
 
         # widgets
-        label = QtGui.QLabel(self.message)
+        label = QtWidgets.QLabel(self.message)
         self.ignore_flag = False
-        self.ignore_checkbox = QtGui.QCheckBox("Don't show this warning again")
-        self.continue_button = QtGui.QPushButton('Continue')
-        self.pause_button = QtGui.QPushButton('Pause')
+        self.ignore_checkbox = QtWidgets.QCheckBox("Don't show this warning again")
+        self.continue_button = QtWidgets.QPushButton('Continue')
+        self.pause_button = QtWidgets.QPushButton('Pause')
 
         # buttons handlers
         self.pause_button.clicked.connect(self.handle_pause_button)
         self.continue_button.clicked.connect(self.handle_continue_button)
 
         # layouts
-        v_layout = QtGui.QVBoxLayout(self)
-        h_layout = QtGui.QHBoxLayout()
+        v_layout = QtWidgets.QVBoxLayout(self)
+        h_layout = QtWidgets.QHBoxLayout()
         h_layout.setAlignment(QtCore.Qt.AlignRight)
 
         # widgets drawing
@@ -59,7 +59,7 @@ class ChannelTroubleWarning(QtGui.QDialog):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     w = ChannelTroubleWarning(['Cp', 'Cz'])
     w.pause_clicked.connect(lambda: print('pause clicked'))
     w.exec_()

@@ -1,17 +1,17 @@
 import numpy as np
 import pyqtgraph as pg
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class CrossButtonsWidget(QtGui.QWidget):
+class CrossButtonsWidget(QtWidgets.QWidget):
     names = ['left', 'right', 'up', 'down']
     symbols = ['<', '>', '^', 'v']
     positions = [(1, 0), (1, 2), (0, 1), (2, 1)]
 
     def __init__(self, parent=None):
         super(CrossButtonsWidget, self).__init__(parent)
-        buttons = dict([(name, QtGui.QPushButton(symbol)) for name, symbol in zip(self.names, self.symbols)])
-        layout = QtGui.QGridLayout(self)
+        buttons = dict([(name, QtWidgets.QPushButton(symbol)) for name, symbol in zip(self.names, self.symbols)])
+        layout = QtWidgets.QGridLayout(self)
         self.clicked_dict = {}
         for name, pos in zip(self.names, self.positions):
             buttons[name].setAutoRepeat(True)
@@ -132,7 +132,7 @@ class RawViewer(pg.PlotWidget):
 
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     plot_widget = RawViewer(250, ['ef', 'sf', 'qwr']*3)
 
     plot_widget.set_chunk(np.sin(np.arange(20)).reshape(20, 1).dot(np.ones((1, 9))))

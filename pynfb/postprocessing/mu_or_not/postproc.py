@@ -5,7 +5,6 @@ import pylab as plt
 from pynfb.postprocessing.utils import fft_filter
 import numpy as np
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from PyQt4 import QtGui
 
 df = pd.read_pickle('p4')
 fs = 1000

@@ -31,9 +31,9 @@ def preproc(x, fs, rej=None):
 
 
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
-a = QtGui.QApplication([])
+a = QtWidgets.QApplication([])
 
 fig1, axes1 = plt.subplots(ncols=3)
 

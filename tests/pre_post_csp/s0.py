@@ -4,7 +4,7 @@ import pylab as plt
 from scipy.io import loadmat
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from PyQt4.QtGui import QApplication
+from PyQt5.QtWidgets import QApplication
 
 fs = 258
 

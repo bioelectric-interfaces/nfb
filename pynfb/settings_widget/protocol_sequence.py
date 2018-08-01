@@ -1,19 +1,19 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class ProtocolSequenceSettingsWidget(QtGui.QWidget):
+class ProtocolSequenceSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.params = self.parent().params['vPSequence']
-        label = QtGui.QLabel('Protocols sequence:')
+        label = QtWidgets.QLabel('Protocols sequence:')
         self.list = ProtocolSequenceListWidget(parent=self)
         # self.list.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
         # self.list.connect.
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(label)
         layout.addWidget(self.list)
-        buttons_layout = QtGui.QHBoxLayout()
-        remove_signal_button = QtGui.QPushButton('Remove')
+        buttons_layout = QtWidgets.QHBoxLayout()
+        remove_signal_button = QtWidgets.QPushButton('Remove')
         remove_signal_button.clicked.connect(self.list.remove_current_row)
         buttons_layout.addWidget(remove_signal_button)
         layout.addLayout(buttons_layout)
@@ -24,11 +24,11 @@ class ProtocolSequenceSettingsWidget(QtGui.QWidget):
         self.list.reset_items()
 
 
-class ProtocolSequenceListWidget(QtGui.QListWidget):
+class ProtocolSequenceListWidget(QtWidgets.QListWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.params = self.parent().params
-        self.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
+        self.setDragDropMode(QtWidgets.QAbstractItemView.DragDrop)
         self.setDefaultDropAction(QtCore.Qt.MoveAction)
         self.reset_items()
 
@@ -41,7 +41,7 @@ class ProtocolSequenceListWidget(QtGui.QListWidget):
 
         self.clear()
         for protocol in self.params:
-            item = QtGui.QListWidgetItem(protocol)
+            item = QtWidgets.QListWidgetItem(protocol)
             self.addItem(item)
 
     def save(self):

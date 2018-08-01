@@ -1,4 +1,4 @@
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 from ...protocols.ssd.ssd import ssd_analysis
 from ...protocols.ssd.sliders import Sliders
 from ...protocols.ssd.topomap_canvas import TopographicMapCanvas
@@ -10,14 +10,14 @@ from numpy.linalg import pinv
 
 
 
-class TopomapSelector(QtGui.QWidget):
+class TopomapSelector(QtWidgets.QWidget):
     def __init__(self, data, pos, names, sampling_freq=500, **kwargs):
         super(TopomapSelector, self).__init__(**kwargs)
 
         # layouts
-        layout = QtGui.QHBoxLayout()
-        layout.setMargin(0)
-        v_layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        v_layout = QtWidgets.QVBoxLayout()
         v_layout.addLayout(layout)
         self.setLayout(v_layout)
 
@@ -37,16 +37,16 @@ class TopomapSelector(QtGui.QWidget):
         self.sampling_freq = sampling_freq
 
         # topomap canvas layout
-        topo_layout = QtGui.QVBoxLayout()
+        topo_layout = QtWidgets.QVBoxLayout()
         layout.addLayout(topo_layout, 1)
 
         # component spinbox and layout
-        component_layout = QtGui.QHBoxLayout()
-        self.component_spinbox = QtGui.QSpinBox()
+        component_layout = QtWidgets.QHBoxLayout()
+        self.component_spinbox = QtWidgets.QSpinBox()
         self.component_spinbox.setRange(1, len(names))
         self.component_spinbox.valueChanged.connect(self.change_topomap)
         self.component_spinbox.valueChanged.connect(self.draw_lambda_level)
-        component_layout.addWidget(QtGui.QLabel('Component:'))
+        component_layout.addWidget(QtWidgets.QLabel('Component:'))
         component_layout.addWidget(self.component_spinbox)
 
         # topomap canvas
@@ -144,7 +144,7 @@ class TopomapSelector(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
     import numpy as np
     from ..widgets.helpers import ch_names_to_2d_pos

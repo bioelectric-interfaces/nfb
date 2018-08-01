@@ -1,15 +1,14 @@
 ## NFB Lab 
 *NFB Lab* is a software that allows you to configure the design and conduct an experiment in real-time EEG/MEG paradigm
 ### Setup python interpreter
-1. Download and install [miniconda](https://conda.io/miniconda.html)
-2. Open `Scripts` folder from installed miniconda folder
-3. Install conda-packages from `requirements_conda.txt` by command: 
+1. Download and install [miniconda](https://conda.io/miniconda.html). Optionally create new environment.
+2. Install conda-packages by command:
 ```
-conda install --yes --file <path to requirements_conda.txt>
+conda install h5py pyqt pyopengl pyqtgraph seaborn scikit-learn sympy
 ```
-4. Install pip-packages from `requirements_pip.txt` by command: 
+3. Install pip-packages by command:
 ```
-pip install -r <path to requirements_pip.txt>
+pip install mne pylsl
 ```
 ### Running NFB Lab *experiment design module*
 Run `main.py` by command 
