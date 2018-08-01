@@ -1,12 +1,12 @@
 import os
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from pynfb.experiment import Experiment
 from pynfb.io.xml_ import xml_file_to_params
 
 def main():
 
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     experiment = Experiment(app, xml_file_to_params('bci_default.xml'))
     sys.exit(app.exec_())
 

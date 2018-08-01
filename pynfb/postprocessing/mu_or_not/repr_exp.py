@@ -6,7 +6,7 @@ from pynfb.postprocessing.utils import fft_filter
 from pynfb.signal_processing.helpers import get_outliers_mask
 import numpy as np
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 fs = 1000
 band = (8, 14)
@@ -27,7 +27,7 @@ plt.show()
 #df['C4env'] = np.abs(hilbert(fft_filter(df['C4'], fs, band)))
 #plt.plot(df['C3env']+df['C4env'])
 
-a = QtGui.QApplication([])
+a = QtWidgets.QApplication([])
 (rej, filt, topo, _unmix, _bandpass, _) = ICADialog.get_rejection(df.iloc[:fs*60*3], channels, fs)
 df['SMR'] = np.dot(df.as_matrix(), filt)
 df.to_pickle('p4')

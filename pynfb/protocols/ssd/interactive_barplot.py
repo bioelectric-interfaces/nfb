@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
 import pyqtgraph as pg
 
@@ -15,12 +15,12 @@ STYLE['underline-central'].setCapStyle(QtCore.Qt.FlatCap)
 STYLE['underline-flanker'].setCapStyle(QtCore.Qt.FlatCap)
 
 
-class ClickableBar(QtGui.QGraphicsRectItem):
+class ClickableBar(QtWidgets.QGraphicsRectItem):
     def __init__(self, barplot, x, y, w, h):
         self.barplot = barplot
         self.x = x
         _scale = 10000
-        QtGui.QGraphicsRectItem.__init__(self, QtCore.QRectF(x * _scale, y * _scale, w * _scale, h * _scale))
+        QtWidgets.QGraphicsRectItem.__init__(self, QtCore.QRectF(x * _scale, y * _scale, w * _scale, h * _scale))
         self.setScale(1 / _scale)
         self.setPen(STYLE['pen'])
         self.setBrush(STYLE['brush'])
@@ -121,7 +121,7 @@ class ClickableBarplot(pg.PlotWidget):
 
     def underline(self, x1=5, x2=8, style='central'):
         y = -0.02
-        item = QtGui.QGraphicsLineItem(QtCore.QLineF(x1, y, x2, y))
+        item = QtWidgets.QGraphicsLineItem(QtCore.QLineF(x1, y, x2, y))
         item.setPen(STYLE['underline-'+style])
         self.addItem(item)
         self.underlines.append(item)
@@ -142,7 +142,7 @@ class ClickableBarplot(pg.PlotWidget):
             self.removeItem(self.bin_level)
         x1 = self.current_x()
         x2 = x1 + delta
-        item = QtGui.QGraphicsLineItem(QtCore.QLineF(x1, y, x2, y))
+        item = QtWidgets.QGraphicsLineItem(QtCore.QLineF(x1, y, x2, y))
         item.setPen(STYLE['underline-central'])
         self.bin_level = item
         self.addItem(item)
@@ -155,7 +155,7 @@ class ClickableBarplot(pg.PlotWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     widget = ClickableBarplot(None, np.linspace(0, 1, 50), np.random.uniform(size=50) + np.sin(np.arange(50) / 10) + 1, True)
     widget.show()
     app.exec_()

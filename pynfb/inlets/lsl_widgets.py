@@ -1,10 +1,10 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from pylsl import StreamInlet
 from pylsl import resolve_bypred
 from pynfb import STATIC_PATH
 
 
-class ResolveButton(QtGui.QPushButton):
+class ResolveButton(QtWidgets.QPushButton):
     def __init__(self):
         super(ResolveButton, self).__init__()
         self.text_str = 'Resolving '
@@ -28,12 +28,12 @@ class ResolveButton(QtGui.QPushButton):
 
 
 
-class LSLResolveWaitWidget(QtGui.QWidget):
+class LSLResolveWaitWidget(QtWidgets.QWidget):
     def __init__(self, parent):
         super(LSLResolveWaitWidget, self).__init__(parent)
 
         # layout
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
 
         # resolve thread
         self.resolve_thread = ResolveThread(self)
@@ -46,7 +46,7 @@ class LSLResolveWaitWidget(QtGui.QWidget):
         layout.addWidget(self.refresh_btn)
 
         # streams table
-        self.streams_table = QtGui.QListWidget()
+        self.streams_table = QtWidgets.QListWidget()
         layout.addWidget(self.streams_table)
 
         # resolve in init
@@ -97,7 +97,7 @@ class ResolveThread(QtCore.QThread):
 
 if __name__ == '__main__':
     import sys
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = LSLResolveWaitWidget(None)
     window.show()
     sys.exit(app.exec_())

@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 from pynfb.io.defaults import vectors_defaults as defaults
 
@@ -6,23 +6,23 @@ protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video']
 
 
-class ProtocolsSettingsWidget(QtGui.QWidget):
+class ProtocolsSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.params = self.parent().params['vProtocols']
-        protocols_label = QtGui.QLabel('Protocols:')
-        self.list = QtGui.QListWidget(self)
+        protocols_label = QtWidgets.QLabel('Protocols:')
+        self.list = QtWidgets.QListWidget(self)
 
-        self.list.setDragDropMode(QtGui.QAbstractItemView.DragOnly)
-        layout = QtGui.QVBoxLayout()
+        self.list.setDragDropMode(QtWidgets.QAbstractItemView.DragOnly)
+        layout = QtWidgets.QVBoxLayout()
         layout.addWidget(protocols_label)
         layout.addWidget(self.list)
         self.reset_items()
         self.list.itemDoubleClicked.connect(self.item_double_clicked_event)
-        buttons_layout = QtGui.QHBoxLayout()
-        add_signal_button = QtGui.QPushButton('Add')
+        buttons_layout = QtWidgets.QHBoxLayout()
+        add_signal_button = QtWidgets.QPushButton('Add')
         add_signal_button.clicked.connect(self.add_action)
-        remove_signal_button = QtGui.QPushButton('Remove')
+        remove_signal_button = QtWidgets.QPushButton('Remove')
         remove_signal_button.clicked.connect(self.remove_current_item)
         buttons_layout.addWidget(add_signal_button)
         buttons_layout.addWidget(remove_signal_button)
@@ -50,110 +50,110 @@ class ProtocolsSettingsWidget(QtGui.QWidget):
         self.list.clear()
         self.dialogs = []
         for signal in self.params:
-            item = QtGui.QListWidgetItem(signal['sProtocolName'])
+            item = QtWidgets.QListWidgetItem(signal['sProtocolName'])
             self.dialogs.append(ProtocolDialog(self, protocol_name=signal['sProtocolName']))
             self.list.addItem(item)
         if self.list.currentRow() < 0:
-            self.list.setItemSelected(self.list.item(0), True)
+            self.list.setCurrentItem(self.list.item(0))
 
 
-class FileSelectorLine(QtGui.QWidget):
+class FileSelectorLine(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         self.setLayout(layout)
         self.setContentsMargins(0, 0, 0, 0)
         layout.setContentsMargins(0, 0, 0, 0)
-        self.path = QtGui.QLineEdit('')
+        self.path = QtWidgets.QLineEdit('')
         # self.path.textChanged.connect(self.raw_path_changed_event)
-        self.select_button = QtGui.QPushButton('Select file...')
+        self.select_button = QtWidgets.QPushButton('Select file...')
         self.select_button.clicked.connect(self.chose_file_action)
         layout.addWidget(self.path)
         layout.addWidget(self.select_button)
 
     def chose_file_action(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', './')
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', './')[0]
         self.path.setText(fname)
 
 
-class ProtocolDialog(QtGui.QDialog):
+class ProtocolDialog(QtWidgets.QDialog):
     def __init__(self, parent, protocol_name='Protocol'):
         super().__init__(parent)
         self.params = parent.params
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + protocol_name)
-        self.form_layout = QtGui.QFormLayout(self)
+        self.form_layout = QtWidgets.QFormLayout(self)
 
         # name line edit
-        self.name = QtGui.QLineEdit(self)
+        self.name = QtWidgets.QLineEdit(self)
         self.name.setText(protocol_name)
         self.form_layout.addRow('&Name:', self.name)
 
         # duration spin box
-        self.duration = QtGui.QDoubleSpinBox()
+        self.duration = QtWidgets.QDoubleSpinBox()
         self.duration.setRange(0.1, 1000000)
         # self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Duration [s]:', self.duration)
 
         # duration spin box
-        self.random_over_time = QtGui.QDoubleSpinBox()
+        self.random_over_time = QtWidgets.QDoubleSpinBox()
         self.random_over_time.setRange(0, 1000000)
         # self.duration.setValue(protocol_default['fDuration'])
         self.form_layout.addRow('&Random over time [s]:', self.random_over_time)
 
         # update statistics in the end end ssd analysis in the end check boxes
-        self.ssd_in_the_end = QtGui.QCheckBox()
+        self.ssd_in_the_end = QtWidgets.QCheckBox()
         self.ssd_in_the_end.clicked.connect(self.update_source_signal_combo_box)
         self.form_layout.addRow('&Open signal manager\nin the end (SSD, CSP, ICA):', self.ssd_in_the_end)
 
 
-        self.update_statistics = QtGui.QCheckBox()
-        self.update_statistics_type = QtGui.QComboBox()
+        self.update_statistics = QtWidgets.QCheckBox()
+        self.update_statistics_type = QtWidgets.QComboBox()
         self.update_statistics.stateChanged.connect(
             lambda: self.update_statistics_type.setEnabled(self.update_statistics.isChecked()))
         for s_type in ['meanstd', 'max']:
             self.update_statistics_type.addItem(s_type)
 
-        stats_widget = QtGui.QWidget()
-        stats_layout = QtGui.QHBoxLayout(stats_widget)
-        stats_layout.setMargin(0)
+        stats_widget = QtWidgets.QWidget()
+        stats_layout = QtWidgets.QHBoxLayout(stats_widget)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
         stats_layout.addWidget(self.update_statistics)
         stats_layout.addWidget(self.update_statistics_type)
         self.form_layout.addRow('&Update statistics:', stats_widget)
 
         # make signal after protocol
-        self.beep_after = QtGui.QCheckBox()
+        self.beep_after = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Beep after protocol:', self.beep_after)
 
         # fast bci fitting
-        self.auto_bci_fit = QtGui.QCheckBox()
+        self.auto_bci_fit = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Auto BCI fitting:', self.auto_bci_fit)
 
         # make signal after protocol
-        self.mock_source = QtGui.QCheckBox()
+        self.mock_source = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Mock source:', self.mock_source)
 
         # make a pause after protocol
-        self.pause_after = QtGui.QCheckBox()
+        self.pause_after = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Make a pause after protocol:', self.pause_after)
 
         # enable detection task
-        self.detection_task = QtGui.QCheckBox()
+        self.detection_task = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Enable detection task:', self.detection_task)
 
         # outliers
-        self.drop_outliers = QtGui.QSpinBox()
+        self.drop_outliers = QtWidgets.QSpinBox()
         self.form_layout.addRow('&Drop outliers [std]:', self.drop_outliers)
         self.update_statistics.stateChanged.connect(lambda:
                                                     self.drop_outliers.setEnabled(self.update_statistics.isChecked()))
 
         # source signal combo box
-        self.source_signal = QtGui.QComboBox()
+        self.source_signal = QtWidgets.QComboBox()
         self.form_layout.addRow('&Signal:', self.source_signal)
         # self.source_signal.currentIndexChanged.connect(self.source_signal_changed_event)
 
         # feedback type
-        self.type = QtGui.QComboBox()
+        self.type = QtWidgets.QComboBox()
         for protocol_type in protocols_types:
             self.type.addItem(protocol_type)
         self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
@@ -171,15 +171,15 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Type:', self.type)
 
         # random circle bound
-        self.circle_border = QtGui.QComboBox()
+        self.circle_border = QtWidgets.QComboBox()
         self.circle_border.addItems(['SinCircle', 'RandomCircle', 'Bar'])
         self.form_layout.addRow('&Feedback type:', self.circle_border)
 
 
         # threshold blink settings
-        self.blink_duration_ms = QtGui.QSpinBox()
+        self.blink_duration_ms = QtWidgets.QSpinBox()
         self.blink_duration_ms.setRange(0, 1000000)
-        self.blink_threshold = QtGui.QDoubleSpinBox()
+        self.blink_threshold = QtWidgets.QDoubleSpinBox()
         self.blink_threshold.setRange(-1e20, 1e20)
         self.blink_threshold.setEnabled(False)
         self.blink_duration_ms.setEnabled(False)
@@ -191,22 +191,22 @@ class ProtocolDialog(QtGui.QDialog):
         # self.form_layout.addRow('&Enable mock signals:', self.mock_checkbox)
         self.mock_file = FileSelectorLine()
         self.form_layout.addRow('&Mock signals file:', self.mock_file)
-        self.mock_dataset = QtGui.QLineEdit('protocol1')
+        self.mock_dataset = QtWidgets.QLineEdit('protocol1')
         self.form_layout.addRow('&Mock signals file\ndataset:', self.mock_dataset)
 
 
         # mock previous
-        mock_previos_layput = QtGui.QHBoxLayout()
-        self.mock_previous = QtGui.QSpinBox()
+        mock_previos_layput = QtWidgets.QHBoxLayout()
+        self.mock_previous = QtWidgets.QSpinBox()
         self.mock_previous.setRange(1, 100)
-        self.enable_mock_previous = QtGui.QCheckBox()
+        self.enable_mock_previous = QtWidgets.QCheckBox()
         self.enable_mock_previous.stateChanged.connect(self.handle_enable_mock_previous)
-        self.reverse_mock_previous = QtGui.QCheckBox('Reverse')
-        self.random_mock_previous = QtGui.QCheckBox('Shuffle')
+        self.reverse_mock_previous = QtWidgets.QCheckBox('Reverse')
+        self.random_mock_previous = QtWidgets.QCheckBox('Shuffle')
         # self.random_mock_previous.hide()
         self.random_mock_previous.stateChanged.connect(self.handle_random_mock_previous)
         mock_previos_layput.addWidget(self.enable_mock_previous)
-        mock_previos_layput.addWidget(QtGui.QLabel('Protocol #'))
+        mock_previos_layput.addWidget(QtWidgets.QLabel('Protocol #'))
         mock_previos_layput.addWidget(self.mock_previous)
         mock_previos_layput.addWidget(self.random_mock_previous)
         mock_previos_layput.addWidget(self.reverse_mock_previous)
@@ -216,36 +216,36 @@ class ProtocolDialog(QtGui.QDialog):
         self.set_enabled_mock_settings()
 
         # muscular signal
-        self.m_signal = QtGui.QComboBox()
-        self.m_signal_threshold = QtGui.QDoubleSpinBox()
+        self.m_signal = QtWidgets.QComboBox()
+        self.m_signal_threshold = QtWidgets.QDoubleSpinBox()
         self.m_signal_threshold.setSingleStep(0.01)
-        muscular_layout = QtGui.QHBoxLayout()
+        muscular_layout = QtWidgets.QHBoxLayout()
         muscular_layout.addWidget(self.m_signal)
-        muscular_layout.addWidget(QtGui.QLabel('Threshold:'))
+        muscular_layout.addWidget(QtWidgets.QLabel('Threshold:'))
         muscular_layout.addWidget(self.m_signal_threshold)
         self.form_layout.addRow('Muscular signal:', muscular_layout)
 
         # message text edit
-        self.message = QtGui.QTextEdit()
+        self.message = QtWidgets.QTextEdit()
         self.message.setMaximumHeight(50)
         self.form_layout.addRow('&Message:', self.message)
 
         # split record (CSP)
-        self.split_checkbox = QtGui.QCheckBox()
+        self.split_checkbox = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Add half time\nextra message (for CSP):', self.split_checkbox)
-        self.message2 = QtGui.QTextEdit()
+        self.message2 = QtWidgets.QTextEdit()
         self.message2.setMaximumHeight(50)
         self.form_layout.addRow('&Half time extra message:', self.message2)
         self.split_checkbox.stateChanged.connect(lambda: self.message2.setEnabled(self.split_checkbox.isChecked()))
         self.message2.setEnabled(False)
 
         # reward settings
-        self.reward_signal = QtGui.QComboBox()
+        self.reward_signal = QtWidgets.QComboBox()
         self.form_layout.addRow('&Reward signal:', self.reward_signal)
-        self.reward_threshold = QtGui.QDoubleSpinBox()
+        self.reward_threshold = QtWidgets.QDoubleSpinBox()
         self.reward_threshold.setRange(-10000, 10000)
         self.form_layout.addRow('&Reward threshold:', self.reward_threshold)
-        self.show_reward = QtGui.QCheckBox()
+        self.show_reward = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Show reward:', self.show_reward)
 
         # video path
@@ -253,7 +253,7 @@ class ProtocolDialog(QtGui.QDialog):
         self.form_layout.addRow('&Video file:', self.video_path)
 
         # ok button
-        self.save_button = QtGui.QPushButton('Save')
+        self.save_button = QtWidgets.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
         self.form_layout.addRow(self.save_button)
 

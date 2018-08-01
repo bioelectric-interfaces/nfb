@@ -1,11 +1,11 @@
 import numpy as np
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from pyqtgraph import PlotWidget
 
 from ...protocols.ssd.topomap_canvas import TopographicMapCanvas
 
 
-class BarLabelWidget(QtGui.QWidget):
+class BarLabelWidget(QtWidgets.QWidget):
     def __init__(self, value, max_value, min_value=0):
         super(BarLabelWidget, self).__init__()
         self.max_value = max_value
@@ -35,7 +35,7 @@ class BarLabelWidget(QtGui.QWidget):
         qp.drawText(1, size.height()//2 + 1, str(round(self.value, 5)))
 
 
-class TopoFilterCavas(QtGui.QWidget):
+class TopoFilterCavas(QtWidgets.QWidget):
     def __init__(self, parent, names, topo, filter, size):
         super(TopoFilterCavas, self).__init__(parent)
 
@@ -53,7 +53,7 @@ class TopoFilterCavas(QtGui.QWidget):
         filter_canvas.setHidden(True)
 
         # layout
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.addWidget(topo_canvas)
         layout.addWidget(filter_canvas)
 
@@ -74,7 +74,7 @@ class TopoFilterCavas(QtGui.QWidget):
         self.topo.update_figure(topo, names=self.names, show_names=[], show_colorbar=False)
 
 
-class ScoredComponentsTable(QtGui.QTableWidget):
+class ScoredComponentsTable(QtWidgets.QTableWidget):
     one_selected = QtCore.pyqtSignal()
     more_one_selected = QtCore.pyqtSignal()
     no_one_selected = QtCore.pyqtSignal()
@@ -104,7 +104,7 @@ class ScoredComponentsTable(QtGui.QTableWidget):
         for ind in range(self.rowCount()):
 
             # checkboxes
-            checkbox = QtGui.QCheckBox()
+            checkbox = QtWidgets.QCheckBox()
             self.checkboxes.append(checkbox)
             self.setCellWidget(ind, self.columns.index('Selection'), checkbox)
 
@@ -160,8 +160,7 @@ class ScoredComponentsTable(QtGui.QTableWidget):
         header.customContextMenuRequested.connect(self.handle_header_menu)
 
         # ctrl+a short cut
-        self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_A), self),
-                     QtCore.SIGNAL('activated()'), self.ctrl_plus_a_event)
+        QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_A), self).activated.connect(self.ctrl_plus_a_event)
 
         # checkbox cell clicked
         self.cellClicked.connect(self.cell_was_clicked)
@@ -186,10 +185,10 @@ class ScoredComponentsTable(QtGui.QTableWidget):
             self.open_selection_menu()
 
     def open_selection_menu(self):
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         for name, method in zip(['Revert selection', 'Select all', 'Clear selection'],
                                 [self.revert_selection, self.select_all, self.clear_selection]):
-            action = QtGui.QAction(name, self)
+            action = QtWidgets.QAction(name, self)
             action.triggered.connect(method)
             menu.addAction(action)
         menu.exec_(QtGui.QCursor.pos())

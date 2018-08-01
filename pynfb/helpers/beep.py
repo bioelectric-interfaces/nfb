@@ -1,4 +1,4 @@
-from PyQt4.QtCore import QCoreApplication
+from PyQt5.QtCore import QCoreApplication
 
 class SingleBeep:
     def __init__(self):
@@ -14,7 +14,7 @@ class SingleBeep:
 
 
 if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
+    from PyQt5.QtWidgets import QApplication
     a = QApplication([])
     beep = SingleBeep()
     beep.try_to_play()

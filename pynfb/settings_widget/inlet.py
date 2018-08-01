@@ -1,35 +1,35 @@
-from PyQt4 import QtGui
+from PyQt5 import QtGui, QtWidgets
 
 inlet_types = ['lsl', 'lsl_from_file', 'lsl_generator', 'ftbuffer']
 
 
-class InletSettingsWidget(QtGui.QWidget):
+class InletSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setContentsMargins(0, 0, 0, 0)
-        self.combo = QtGui.QComboBox()
+        self.combo = QtWidgets.QComboBox()
         self.combo.addItem('LSL stream')
         self.combo.addItem('LSL from file')
         self.combo.addItem('LSL generator')
         self.combo.addItem('Field Trip buffer')
-        self.line_edit_1 = QtGui.QLineEdit()
+        self.line_edit_1 = QtWidgets.QLineEdit()
         self.line_edit_1.textChanged.connect(self.line_edit_1_changed_event)
-        self.line_edit_2 = QtGui.QLineEdit()
+        self.line_edit_2 = QtWidgets.QLineEdit()
         self.line_edit_2.textChanged.connect(self.line_edit_2_changed_event)
         # self.stream_name = QtGui.QLineEdit()
         # self.stream_name.textChanged.connect(self.stream_name_changed_event)
         # self.raw_path = QtGui.QLineEdit('')
         # self.raw_path.textChanged.connect(self.raw_path_changed_event)
-        self.raw_select_button = QtGui.QPushButton('Select file...')
+        self.raw_select_button = QtWidgets.QPushButton('Select file...')
         self.raw_select_button.clicked.connect(self.chose_file_action)
-        layout = QtGui.QHBoxLayout()
+        layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.combo)
         layout.addWidget(self.line_edit_1)
         layout.addWidget(self.line_edit_2)
         # layout.addWidget(self.stream_name)
         # layout.addWidget(self.raw_path)
         layout.addWidget(self.raw_select_button)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.combo.currentIndexChanged.connect(self.combo_changed_event)
         self.combo.setCurrentIndex(inlet_types.index(self.parent().params['sInletType']))
@@ -75,7 +75,7 @@ class InletSettingsWidget(QtGui.QWidget):
             self.line_edit_2.setText(port)
 
     def chose_file_action(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Open file', './')
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', './')[0]
         self.line_edit_1.setText(fname)
         self.parent().params['sRawDataFilePath'] = fname
 
@@ -83,18 +83,18 @@ class InletSettingsWidget(QtGui.QWidget):
         self.combo.setCurrentIndex(inlet_types.index(self.parent().params['sInletType']))
         self.combo_changed_event()
 
-class EventsInletSettingsWidget(QtGui.QWidget):
+class EventsInletSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.setContentsMargins(0, 0, 0, 0)
-        self.use_events = QtGui.QCheckBox('Use events LSL Stream')
+        self.use_events = QtWidgets.QCheckBox('Use events LSL Stream')
         self.use_events.stateChanged.connect(self.use_events_changed_action)
-        self.name_edit = QtGui.QLineEdit()
+        self.name_edit = QtWidgets.QLineEdit()
         self.name_edit.textChanged.connect(self.name_changed_action)
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout(self)
         layout.addWidget(self.use_events)
         layout.addWidget(self.name_edit)
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.reset()
 
     def use_events_changed_action(self):
@@ -116,7 +116,7 @@ class EventsInletSettingsWidget(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     w = EventsInletSettingsWidget()
     w.show()
 

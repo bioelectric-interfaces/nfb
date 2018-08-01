@@ -1,12 +1,12 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from ...widgets.parameter_slider import ParameterSlider
 
 
-class Sliders(QtGui.QWidget):
+class Sliders(QtWidgets.QWidget):
     def __init__(self, sample_freq, reg_coef=True, stimulus_split=True):
         super(Sliders, self).__init__()
-        h_layout = QtGui.QHBoxLayout()
-        v_layout = QtGui.QVBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
+        v_layout = QtWidgets.QVBoxLayout()
         self.setLayout(h_layout)
         h_layout.addLayout(v_layout)
         self.parameters = {}
@@ -54,14 +54,14 @@ class Sliders(QtGui.QWidget):
         self.parameters['bandpass_high'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['bandpass_high'])
 
-        button_layout = QtGui.QVBoxLayout()
+        button_layout = QtWidgets.QVBoxLayout()
         h_layout.addLayout(button_layout)
         # apply button
-        self.apply_button = QtGui.QPushButton('Apply')
+        self.apply_button = QtWidgets.QPushButton('Apply')
         button_layout.addWidget(self.apply_button)
 
         # revert button
-        self.revert_button = QtGui.QPushButton('Restore\ndefaults')
+        self.revert_button = QtWidgets.QPushButton('Restore\ndefaults')
         self.revert_button.setEnabled(False)
         self.revert_button.clicked.connect(self.restore_defaults)
         button_layout.addWidget(self.revert_button)
@@ -77,7 +77,7 @@ class Sliders(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     widget = Sliders()
     widget.show()
     app.exec_()

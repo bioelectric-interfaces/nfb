@@ -101,7 +101,7 @@ for subj, experiments in enumerate(settings['subjects']):
         del raw[list(raw.keys())[-1]]
         # make csp:
         if run_ica:
-            from PyQt4.QtGui import QApplication
+            from PyQt5.QtWidgets import QApplication
             ap = QApplication([])
             all_keys = [key for key in raw.keys() if 'Left' in key or 'Right' in key or 'Close' in key or 'Open' in key]
             first = all_keys[:len(all_keys)//2]

@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 
 from pynfb.inlets.montage import Montage
@@ -17,7 +17,7 @@ import numpy as np
 from pynfb.widgets.bci_fit import BCIFitWidget
 
 
-class SignalsTable(QtGui.QTableWidget):
+class SignalsTable(QtWidgets.QTableWidget):
     show_topography_name = {True: 'Topography', False: 'Filter'}
 
     def __init__(self, signals, montage, *args):
@@ -43,7 +43,7 @@ class SignalsTable(QtGui.QTableWidget):
             self.show_topography.append(False)
 
             # name
-            name_item = QtGui.QTableWidgetItem(signal.name)
+            name_item = QtWidgets.QTableWidgetItem(signal.name)
             name_item.setFlags(QtCore.Qt.ItemIsEnabled)
             name_item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.setItem(ind, self.columns.index('Signal'), name_item)
@@ -56,13 +56,13 @@ class SignalsTable(QtGui.QTableWidget):
         self.csp_buttons = []
         self.ica_buttons = []
         for ind, _w in enumerate(self.names):
-            open_ssd_btn = QtGui.QPushButton('Open')
+            open_ssd_btn = QtWidgets.QPushButton('Open')
             self.buttons.append(open_ssd_btn)
             self.setCellWidget(ind, self.columns.index('SSD'), open_ssd_btn)
-            btn = QtGui.QPushButton('Open')
+            btn = QtWidgets.QPushButton('Open')
             self.csp_buttons.append(btn)
             self.setCellWidget(ind, self.columns.index('CSP'), btn)
-            btn = QtGui.QPushButton('Open')
+            btn = QtWidgets.QPushButton('Open')
             self.ica_buttons.append(btn)
             self.setCellWidget(ind, self.columns.index('ICA'), btn)
 
@@ -88,7 +88,7 @@ class SignalsTable(QtGui.QTableWidget):
 
         # rejection
         if len(signal.rejections) == 0:
-            rejections = QtGui.QLabel('Empty')
+            rejections = QtWidgets.QLabel('Empty')
             rejections.setAlignment(QtCore.Qt.AlignCenter)
         else:
             rejections = RejectionsWidget(self.channels_names, signal_name=self.signals[ind].name)
@@ -124,14 +124,14 @@ class SignalsTable(QtGui.QTableWidget):
 
 
     def open_selection_menu(self, row):
-        menu = QtGui.QMenu()
-        action = QtGui.QAction('Edit', self)
+        menu = QtWidgets.QMenu()
+        action = QtWidgets.QAction('Edit', self)
         action.triggered.connect(lambda: self.edit_spatial_filter(row))
         menu.addAction(action)
-        action = QtGui.QAction('Set zeros', self)
+        action = QtWidgets.QAction('Set zeros', self)
         action.triggered.connect(lambda: self.edit_spatial_filter(row, set_zeros=True))
         menu.addAction(action)
-        action = QtGui.QAction('Show ' + ('topography' if not self.show_topography[row] else 'filter'), self)
+        action = QtWidgets.QAction('Show ' + ('topography' if not self.show_topography[row] else 'filter'), self)
         action.triggered.connect(lambda: self.switch_filter_topography(row))
         menu.addAction(action)
         menu.exec_(QtGui.QCursor.pos())
@@ -150,26 +150,26 @@ class SignalsTable(QtGui.QTableWidget):
         self.update_row(row, modified=True)
 
 
-class BandWidget(QtGui.QWidget):
+class BandWidget(QtWidgets.QWidget):
     def __init__(self, row, max_freq=10000,**kwargs):
         super(BandWidget, self).__init__(**kwargs)
         self.row = row
-        layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
-        self.left = QtGui.QDoubleSpinBox()
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.left = QtWidgets.QDoubleSpinBox()
         self.left.setMinimumHeight(25)
         self.left.setMinimumWidth(50)
         self.left.setRange(0, max_freq)
-        self.right = QtGui.QDoubleSpinBox()
+        self.right = QtWidgets.QDoubleSpinBox()
         self.right.setRange(0, max_freq)
         self.right.setMinimumHeight(25)
         self.right.setMinimumWidth(50)
         layout.addWidget(self.left)
         layout.addWidget(self.right)
-        layout.addWidget(QtGui.QLabel('Hz '))
+        layout.addWidget(QtWidgets.QLabel('Hz '))
 
         # edit
-        self.edit_btn = QtGui.QPushButton('Edit')
+        self.edit_btn = QtWidgets.QPushButton('Edit')
         self.edit_btn.clicked.connect(self.edit)
         layout.addWidget(self.edit_btn)
 
@@ -187,7 +187,7 @@ class BandWidget(QtGui.QWidget):
 
 
 
-class SignalsSSDManager(QtGui.QDialog):
+class SignalsSSDManager(QtWidgets.QDialog):
     test_signal = QtCore.pyqtSignal()
     test_closed_signal = QtCore.pyqtSignal()
     def __init__(self, signals, x, montage, protocol, signals_rec, protocols, sampling_freq=1000,
@@ -216,8 +216,8 @@ class SignalsSSDManager(QtGui.QDialog):
         self.ica_unmixing_matrix = None
 
         # layout
-        main_layout = QtGui.QVBoxLayout(self)
-        layout = QtGui.QHBoxLayout()
+        main_layout = QtWidgets.QVBoxLayout(self)
+        layout = QtWidgets.QHBoxLayout()
         main_layout.addLayout(layout)
 
         # table
@@ -232,34 +232,34 @@ class SignalsSSDManager(QtGui.QDialog):
         self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
         # prestim-poststim split
-        self.stimulus_split = QtGui.QCheckBox('Pre/post-stimulus split')
+        self.stimulus_split = QtWidgets.QCheckBox('Pre/post-stimulus split')
         self.stimulus_split.stateChanged.connect(lambda: protocol_seq_table.setDisabled(self.stimulus_split.isChecked()))
 
         # message
         if message is not None:
-            layout.addWidget(QtGui.QLabel(message))
+            layout.addWidget(QtWidgets.QLabel(message))
 
 
 
         # ok button
-        self.ok_button = QtGui.QPushButton('Continue')
+        self.ok_button = QtWidgets.QPushButton('Continue')
         self.ok_button.clicked.connect(self.ok_button_action)
         self.ok_button.setMaximumWidth(100)
         self.ok_button.setMinimumHeight(25)
 
         # revert changes
-        self.revert_button = QtGui.QPushButton('Revert changes')
+        self.revert_button = QtWidgets.QPushButton('Revert changes')
         self.revert_button.clicked.connect(self.revert_changes)
         self.revert_button.setMaximumWidth(100)
         self.revert_button.setMinimumHeight(25)
 
         # test protocol
-        self.test_button = QtGui.QPushButton('Test')
+        self.test_button = QtWidgets.QPushButton('Test')
         self.test_button.clicked.connect(self.test_action)
         self.test_button.setMaximumWidth(100)
         self.test_button.setMinimumHeight(25)
 
-        self.combo_protocols = QtGui.QComboBox()
+        self.combo_protocols = QtWidgets.QComboBox()
         protocols_names = [prot.name for prot in protocols]
         self.combo_protocols.addItems(protocols_names)
 
@@ -272,11 +272,11 @@ class SignalsSSDManager(QtGui.QDialog):
 
         # bottom layout
         main_layout.addWidget(bci_fit_widget)
-        bottom_layout = QtGui.QHBoxLayout()
+        bottom_layout = QtWidgets.QHBoxLayout()
         main_layout.addLayout(bottom_layout)
 
         # add to bottom layout
-        states_layout = QtGui.QVBoxLayout()
+        states_layout = QtWidgets.QVBoxLayout()
         layout.addLayout(states_layout)
         states_layout.addWidget(self.stimulus_split)
         states_layout.addWidget(protocol_seq_table)
@@ -332,9 +332,9 @@ class SignalsSSDManager(QtGui.QDialog):
 
     def revert_changes(self):
         quit_msg = "Are you sure you want to revert all changes?"
-        reply = QtGui.QMessageBox.question(self, 'Message',
-                                           quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-        if reply == QtGui.QMessageBox.Yes:
+        reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                           quit_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+        if reply == QtWidgets.QMessageBox.Yes:
             for j, signal in enumerate(self.signals):
                 signal.rejections = self.init_signals[j].rejections
                 signal.update_spatial_filter(self.init_signals[j].spatial_filter)
@@ -347,9 +347,9 @@ class SignalsSSDManager(QtGui.QDialog):
             quit_msg = "Are you sure you want to drop {} rejections of signal \"{}\"?".format(
                 len(self.signals[row].rejections),
                 self.signals[row].name)
-            reply = QtGui.QMessageBox.question(self, 'Message',
-                                               quit_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if reply == QtGui.QMessageBox.Yes:
+            reply = QtWidgets.QMessageBox.question(self, 'Message',
+                                               quit_msg, QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
                 self.signals[row].update_rejections(rejections=[], append=False)
                 self.signals[row].update_ica_rejection(rejection=None)
                 self.table.update_row(row, modified=True)
@@ -387,14 +387,14 @@ class SignalsSSDManager(QtGui.QDialog):
         ica_rejection = None
         topography = None
         if ica:
-            reply = QtGui.QMessageBox.Yes
+            reply = QtWidgets.QMessageBox.Yes
             if len(self.signals[row].rejections) > 0:
-                reply = QtGui.QMessageBox.question(self, 'Warning',
+                reply = QtWidgets.QMessageBox.question(self, 'Warning',
                                                    'Changing ICA base selection will '
                                                    'invalidate the current rejections (CSP, SSD). '
                                                    'Are you sure you want to continue?',
-                                                   QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
-            if reply == QtGui.QMessageBox.Yes:
+                                                   QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+            if reply == QtWidgets.QMessageBox.Yes:
                 result = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
                                                  decomposition=self.ica_unmixing_matrix)
                 ica_rejection, filter, topography, self.ica_unmixing_matrix, bandpass, to_all = result
@@ -481,7 +481,7 @@ if __name__ == '__main__':
     signals = [DerivedSignal(ind = k, source_freq=500, name='Signal'+str(k), bandpass_low=0+k, bandpass_high=1+10*k, spatial_filter=np.array([k]), n_channels=n_ch) for k in range(3)]
     signals +=[CompositeSignal(signals, '', 'Composite', 3, fs=500)]
     signals += [BCISignal(500, channels, 'bci', n_ch)]
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
     x = np.random.randn(5000, n_ch)
     from pynfb.widgets.helpers import ch_names_to_2d_pos

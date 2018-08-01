@@ -1,5 +1,5 @@
 import h5py
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
@@ -23,7 +23,7 @@ def mutual_info(x, y, bins=100):
     return mi
 
 
-class ICADialog(QtGui.QDialog):
+class ICADialog(QtWidgets.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None, decomposition=None, mode='ica', filters=None,
                  scores=None, states=None, labels=None, _stimulus_split=False, marks=None):
         super(ICADialog, self).__init__(parent)
@@ -80,18 +80,18 @@ class ICADialog(QtGui.QDialog):
         print('Table drawing time elapsed = {}s'.format(time() - timer))
 
         # reject selected button
-        self.reject_button = QtGui.QPushButton('Reject selection')
-        self.spatial_button = QtGui.QPushButton('Make spatial filter')
-        self.add_to_all_checkbox = QtGui.QCheckBox('Add to all signals')
+        self.reject_button = QtWidgets.QPushButton('Reject selection')
+        self.spatial_button = QtWidgets.QPushButton('Make spatial filter')
+        self.add_to_all_checkbox = QtWidgets.QCheckBox('Add to all signals')
         self.reject_button.setMaximumWidth(150)
         self.spatial_button.setMaximumWidth(150)
         self.reject_button.clicked.connect(self.reject_and_close)
         self.spatial_button.clicked.connect(self.spatial_and_close)
 
         # layout
-        layout = QtGui.QVBoxLayout(self)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.table)
-        self.update_band_checkbox = QtGui.QCheckBox('Update band')
+        self.update_band_checkbox = QtWidgets.QCheckBox('Update band')
 
         # setup sliders
         self.sliders = Sliders(fs, reg_coef=(mode == 'csp'), stimulus_split=_stimulus_split)
@@ -102,19 +102,19 @@ class ICADialog(QtGui.QDialog):
 
         # ica mutual sorting
         if mode == 'ica':
-            sort_layout = QtGui.QHBoxLayout()
-            self.sort_combo = QtGui.QComboBox()
+            sort_layout = QtWidgets.QHBoxLayout()
+            self.sort_combo = QtWidgets.QComboBox()
             self.sort_combo.setMaximumWidth(100)
             self.sort_combo.addItems(channel_names)
             self.sort_combo.setCurrentIndex(self.decomposition.sorted_channel_index)
             self.sort_combo.currentIndexChanged.connect(self.sort_by_mutual)
-            sort_layout.addWidget(QtGui.QLabel('Sort by: '))
+            sort_layout.addWidget(QtWidgets.QLabel('Sort by: '))
             sort_layout.addWidget(self.sort_combo)
             sort_layout.setAlignment(QtCore.Qt.AlignLeft)
             layout.addLayout(sort_layout)
 
         # buttons
-        buttons_layout = QtGui.QHBoxLayout()
+        buttons_layout = QtWidgets.QHBoxLayout()
         buttons_layout.setAlignment(QtCore.Qt.AlignLeft)
         buttons_layout.addWidget(self.reject_button)
         buttons_layout.addWidget(self.spatial_button)
@@ -182,7 +182,7 @@ class ICADialog(QtGui.QDialog):
 if __name__ == '__main__':
     import numpy as np
 
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     n_channels = 3
     fs = 100
 

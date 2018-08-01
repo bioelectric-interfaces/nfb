@@ -4,8 +4,8 @@ import time
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt4 import QtGui, QtCore
-from PyQt4.QtCore import pyqtSignal
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import pyqtSignal
 
 from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
@@ -29,13 +29,13 @@ class LSLPlotDataItem(pg.PlotDataItem):
         return x, y
 
 
-class PlayerButtonsWidget(QtGui.QWidget):
+class PlayerButtonsWidget(QtWidgets.QWidget):
     start_clicked = pyqtSignal()
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # init buttons
-        self.start = QtGui.QPushButton('')
-        self.restart = QtGui.QPushButton('')
+        self.start = QtWidgets.QPushButton('')
+        self.restart = QtWidgets.QPushButton('')
         # set icons
         self.start.setIcon(QtGui.QIcon(static_path + '/imag/play-button.png'))
         self.restart.setIcon(QtGui.QIcon(static_path + '/imag/replay.png'))
@@ -49,7 +49,7 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.start.setCheckable(True)
         self.restart.setEnabled(False)
         # init layer
-        layer = QtGui.QHBoxLayout()
+        layer = QtWidgets.QHBoxLayout()
         self.setLayout(layer)
         layer.addWidget(self.start)
         layer.addWidget(self.restart)
@@ -61,7 +61,7 @@ class PlayerButtonsWidget(QtGui.QWidget):
         styles += styles[::-1]
 
         # animation doesn't work for strings but provides an appropriate delay
-        animation = QtCore.QPropertyAnimation(self.start, 'styleSheet')
+        animation = QtCore.QPropertyAnimation(self.start, b'styleSheet')
         animation.setDuration(40)
 
         states = [QtCore.QState() for style in styles]
@@ -94,16 +94,16 @@ class PlayerButtonsWidget(QtGui.QWidget):
         self.restart.setEnabled(False)
 
 
-class PlayerLineInfo(QtGui.QWidget):
+class PlayerLineInfo(QtWidgets.QWidget):
     def __init__(self, protocols_names, protocols_durations=[], **kwargs):
         super().__init__(**kwargs)
 
         # init layout
-        layer = QtGui.QHBoxLayout()
+        layer = QtWidgets.QHBoxLayout()
         self.setLayout(layer)
 
         # status widget
-        self.status = QtGui.QLabel()
+        self.status = QtWidgets.QLabel()
         layer.addWidget(self.status)
 
         #
@@ -130,7 +130,7 @@ class PlayerLineInfo(QtGui.QWidget):
         self.init()
 
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
                  experiment=None, freq=500,
@@ -156,7 +156,7 @@ class MainWindow(QtGui.QMainWindow):
         self._first_time_start_press = True
 
         # timer label
-        self.timer_label = QtGui.QLabel('tf')
+        self.timer_label = QtWidgets.QLabel('tf')
 
         # signals viewer
         self.signals_viewer = DerivedSignalViewer(freq, [signal.name for signal in signals])
@@ -166,11 +166,11 @@ class MainWindow(QtGui.QMainWindow):
         self.n_channels = n_channels
         self.n_samples = 2000
 
-        self.plot_raw_checkbox = QtGui.QCheckBox('plot raw')
+        self.plot_raw_checkbox = QtWidgets.QCheckBox('plot raw')
         self.plot_raw_checkbox.setChecked(plot_raw_flag)
-        self.plot_signals_checkbox = QtGui.QCheckBox('plot signals')
+        self.plot_signals_checkbox = QtWidgets.QCheckBox('plot signals')
         self.plot_signals_checkbox.setChecked(plot_signals_flag)
-        self.autoscale_raw_chekbox = QtGui.QCheckBox('autoscale')
+        self.autoscale_raw_chekbox = QtWidgets.QCheckBox('autoscale')
         self.autoscale_raw_chekbox.setChecked(True)
 
         # topomaper
@@ -265,7 +265,7 @@ class MainWindow(QtGui.QMainWindow):
         self._first_time_start_press = False
 
 
-class SecondaryWindow(QtGui.QMainWindow):
+class SecondaryWindow(QtWidgets.QMainWindow):
 
     # Must be implemented to return a central widget object in subclasses
     def create_figure(self):
@@ -280,8 +280,8 @@ class SecondaryWindow(QtGui.QMainWindow):
         self.current_protocol = current_protocol
 
         # add central widget
-        widget = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout()
+        widget = QtWidgets.QWidget()
+        layout = QtWidgets.QHBoxLayout()
         widget.setLayout(layout)
         self.figure = self.create_figure()
         layout.addWidget(self.figure)
@@ -318,7 +318,7 @@ class SubjectWindow(SecondaryWindow):
 
 def main():
     print(static_path)
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     widget = PlayerButtonsWidget()
     widget.show()
     sys.exit(app.exec_())

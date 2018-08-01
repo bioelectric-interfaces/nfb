@@ -238,9 +238,9 @@ class VideoProtocolWidgetPainter(Painter):
 
 
 if __name__ == '__main__':
-    from PyQt4 import QtGui
-    from PyQt4 import QtCore
-    a = QtGui.QApplication([])
+    from PyQt5 import QtGui, QtWidgets
+    from PyQt5 import QtCore, QtWidgets
+    a = QtWidgets.QApplication([])
     w = ProtocolWidget()
     w.show()
     b = BarFeedbackProtocolWidgetPainter()

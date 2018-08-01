@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 from ...widgets.parameter_slider import ParameterSlider
 
 defaults = {'bandwidth': 2,
@@ -6,11 +6,11 @@ defaults = {'bandwidth': 2,
             'flanker_bandwidth': 2,
             'flanker_margin': 0}
 
-class Sliders(QtGui.QWidget):
+class Sliders(QtWidgets.QWidget):
     def __init__(self):
         super(Sliders, self).__init__()
-        h_layout = QtGui.QHBoxLayout()
-        v_layout = QtGui.QVBoxLayout()
+        h_layout = QtWidgets.QHBoxLayout()
+        v_layout = QtWidgets.QVBoxLayout()
         self.setLayout(h_layout)
         h_layout.addLayout(v_layout)
         self.parameters = {}
@@ -36,14 +36,14 @@ class Sliders(QtGui.QWidget):
         self.parameters['flanker_margin'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['flanker_margin'])
 
-        button_layout = QtGui.QVBoxLayout()
+        button_layout = QtWidgets.QVBoxLayout()
         h_layout.addLayout(button_layout)
         # apply button
-        self.apply_button = QtGui.QPushButton('Apply')
+        self.apply_button = QtWidgets.QPushButton('Apply')
         button_layout.addWidget(self.apply_button)
 
         # revert button
-        self.revert_button = QtGui.QPushButton('Restore\ndefaults')
+        self.revert_button = QtWidgets.QPushButton('Restore\ndefaults')
         self.revert_button.setEnabled(False)
         self.revert_button.clicked.connect(self.restore_defaults)
         button_layout.addWidget(self.revert_button)
@@ -59,7 +59,7 @@ class Sliders(QtGui.QWidget):
 
 
 if __name__ == '__main__':
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
     widget = Sliders()
     widget.show()
     app.exec_()

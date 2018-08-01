@@ -1,6 +1,6 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-class CheckTable(QtGui.QTableWidget):
+class CheckTable(QtWidgets.QTableWidget):
     def __init__(self, names, state_names, name_col, *args):
         super(CheckTable, self).__init__(*args)
 
@@ -23,14 +23,14 @@ class CheckTable(QtGui.QTableWidget):
             # checkboxes
             checkboxes = []
             for j in range(self.n_check_rows):
-                checkbox = QtGui.QCheckBox()
+                checkbox = QtWidgets.QCheckBox()
                 checkbox.setChecked(j == 0)
                 checkboxes.append(checkbox)
                 self.setCellWidget(ind, j, checkbox)
             self.checkboxes.append(checkboxes)
 
             # name
-            self.setCellWidget(ind, self.columns.index(name_col), QtGui.QLabel(self.names[ind]))
+            self.setCellWidget(ind, self.columns.index(name_col), QtWidgets.QLabel(self.names[ind]))
 
         # formatting
         self.current_row = None
@@ -44,8 +44,7 @@ class CheckTable(QtGui.QTableWidget):
         header.customContextMenuRequested.connect(self.handle_header_menu)
 
         # ctrl+a short cut
-        self.connect(QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_A), self),
-                     QtCore.SIGNAL('activated()'), self.ctrl_plus_a_event)
+        QtWidgets.QShortcut(QtGui.QKeySequence(QtCore.Qt.CTRL + QtCore.Qt.Key_A), self).activated.connect(self.ctrl_plus_a_event)
 
         # checkbox cell clicked
         self.cellClicked.connect(self.cell_was_clicked)
@@ -70,10 +69,10 @@ class CheckTable(QtGui.QTableWidget):
 
     def open_selection_menu(self, col):
         self.col = col
-        menu = QtGui.QMenu()
+        menu = QtWidgets.QMenu()
         for name, method in zip(['Revert selection', 'Select all', 'Clear selection'],
                                 [self.revert_selection, self.select_all, self.clear_selection]):
-            action = QtGui.QAction(name, self)
+            action = QtWidgets.QAction(name, self)
             action.triggered.connect(method)
             menu.addAction(action)
         menu.exec_(QtGui.QCursor.pos())
@@ -103,7 +102,7 @@ class CheckTable(QtGui.QTableWidget):
 
 
 if __name__ == '__main__':
-    a = QtGui.QApplication([])
+    a = QtWidgets.QApplication([])
     w = CheckTable(['One', 'Two'], ['State1', 'saef', 'saeg'], 'weg')
     w.show()
     a.exec_()

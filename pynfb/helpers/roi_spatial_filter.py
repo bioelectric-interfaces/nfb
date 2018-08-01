@@ -94,7 +94,7 @@ if __name__ == '__main__':
             with h5py.File(r'D:\mu_ica\mu_ica\mu_ica_S1_D3_04-21_18-16-03\experiment_data.h5') as f:
                 fs, channels, p_names = get_info(f, [])
                 data = f['protocol{}/raw_data'.format(p_names.index('Baseline') + 1)][:].T
-            from PyQt4.QtGui import QApplication
+            from PyQt5.QtWidgets import QApplication
             a = QApplication([])
             rej, spatial, top = ICADialog.get_rejection(data.T, channels, fs, mode='ica', states=None)[:3]
             data = rej.apply(data.T).T

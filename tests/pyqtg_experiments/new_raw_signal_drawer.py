@@ -1,4 +1,4 @@
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 import numpy as np
 from scipy import signal
@@ -16,7 +16,7 @@ data = signal.lfilter(b, a, data, axis=1)
 
 
 
-a = QtGui.QApplication([])
+a = QtWidgets.QApplication([])
 
 plotWidget = pg.plot()
 

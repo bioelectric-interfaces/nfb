@@ -6,7 +6,6 @@ from pynfb.postprocessing.utils import fft_filter
 from pynfb.signal_processing.helpers import get_outliers_mask
 import numpy as np
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
-from PyQt4 import QtGui
 
 from pynfb.inlets.montage import Montage
 
