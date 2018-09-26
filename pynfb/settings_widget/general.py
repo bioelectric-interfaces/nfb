@@ -109,6 +109,11 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.dc_check.clicked.connect(self.dc_check_event)
         self.form_layout.addRow('&Enable DC Blocker:', self.dc_check)
 
+        # photo sensor show checkbox
+        self.show_photo_rect = QtWidgets.QCheckBox()
+        self.show_photo_rect.clicked.connect(self.show_photo_rect_event)
+        self.form_layout.addRow('&Show photo-sensor rect.:', self.show_photo_rect)
+
         # pre-filtering band:
         self.prefilter_band = BandWidget()
         self.prefilter_band.bandChanged.connect(self.band_changed_event)
@@ -141,6 +146,9 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
     def dc_check_event(self):
         self.params['bDC'] = int(self.dc_check.isChecked())
 
+    def show_photo_rect_event(self):
+        self.params['bShowPhotoRectangle'] = int(self.show_photo_rect.isChecked())
+
     def band_changed_event(self):
         self.params['sPrefilterBand'] = self.prefilter_band.get_band()
 
@@ -159,6 +167,7 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.show_subject_window_check.setChecked(self.params['bShowSubjectWindow'])
         self.reward_period.setValue(self.params['fRewardPeriodS'])
         self.dc_check.setChecked(self.params['bDC'])
+        self.show_photo_rect.setChecked(self.params['bShowPhotoRectangle'])
         self.prefilter_band.set_band(self.params['sPrefilterBand'])
         self.inlet.reset()
         self.events_inlet.reset()

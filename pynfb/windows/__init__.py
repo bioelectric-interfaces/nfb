@@ -135,7 +135,7 @@ class MainWindow(QtWidgets.QMainWindow):
                  max_protocol_n_samples=None,
                  experiment=None, freq=500,
                  plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False, show_subject_window=True,
-                 channels_labels=None):
+                 channels_labels=None, photo_rect=False):
         super(MainWindow, self).__init__(parent)
 
         # Which windows to draw:
@@ -201,7 +201,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # subject window
         if show_subject_window:
-            self.subject_window = SubjectWindow(self, current_protocol)
+            self.subject_window = SubjectWindow(self, current_protocol, photo_rect=photo_rect)
             self.subject_window.show()
             self._subject_window_want_to_close = False
         else:
@@ -289,7 +289,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
 
         # add photo sensor rectangle
         if photo_rect:
-            self.photo_rect = PhotoRect()
+            self.photo_rect = PhotoRect(white_color=True)
             layout.addWidget(self.photo_rect, 0, 0, alignment=QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
             layout.addWidget(PhotoRect(), 0, 2, alignment=QtCore.Qt.AlignRight | QtCore.Qt.AlignTop)
         else:
@@ -320,7 +320,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
 
 
 class PhotoRect(pg.PlotWidget):
-    def __init__(self, size=50, **kwargs):
+    def __init__(self, size=50, white_color=False, **kwargs):
         super(PhotoRect, self).__init__(**kwargs)
         self.setMaximumWidth(size)
         self.setMaximumHeight(size)
@@ -329,7 +329,7 @@ class PhotoRect(pg.PlotWidget):
         self.hideAxis('bottom')
         self.hideAxis('left')
         self.color = np.ones(3) * 255
-        self.setBackgroundBrush((37, 33, 32))
+        self.setBackgroundBrush(pg.mkBrush(self.color if white_color else (37, 33, 32)))
 
     def change_color(self, c):
         # c - color in [0,1]
@@ -344,7 +344,7 @@ class SubjectWindow(SecondaryWindow):
         self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
                                            is_half_time=is_half_time)
         if self.photo_rect is not None:
-            self.photo_rect.change_color(samples[0])
+            self.photo_rect.change_color(samples[self.current_protocol.source_signal_id or 0])
 
 def main():
     print(static_path)
