@@ -97,6 +97,22 @@ class ButterFilter(BaseFilter):
         self.zi = np.zeros((max(len(self.b), len(self.a)) - 1, self.n_channels))
 
 
+class NotchFilter(BaseFilter):
+    def __init__(self, f0, fs, n_channels, mu=0.05):
+        self.n_channels = n_channels
+        w0 = 2*np.pi*f0/fs
+        self.a = np.array([1., 2 * (mu - 1) * np.cos(w0), (1 - 2 * mu)])
+        self.b = np.array([1., -2 * np.cos(w0), 1.]) * (1 - mu)
+        self.zi = np.zeros((max(len(self.b), len(self.a)) - 1, n_channels))
+
+    def apply(self, chunk: np.ndarray):
+        y, self.zi = lfilter(self.b, self.a, chunk, axis=0, zi=self.zi)
+        return y
+
+    def reset(self):
+        self.zi = np.zeros((max(len(self.b), len(self.a)) - 1, self.n_channels))
+
+
 class ScalarButterFilter(BaseFilter):
     def __init__(self, band, fs, order=4):
         self.filter = ButterFilter(band, fs, 1, order=order)
