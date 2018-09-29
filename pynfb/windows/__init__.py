@@ -135,7 +135,7 @@ class MainWindow(QtWidgets.QMainWindow):
                  max_protocol_n_samples=None,
                  experiment=None, freq=500,
                  plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False, show_subject_window=True,
-                 channels_labels=None, photo_rect=False):
+                 channels_labels=None, photo_rect=False, notch_filter=0):
         super(MainWindow, self).__init__(parent)
 
         # Which windows to draw:
@@ -162,7 +162,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.signals_viewer = DerivedSignalViewer(freq, [signal.name for signal in signals])
 
         # raw data viewer
-        self.raw_viewer = RawSignalViewer(freq, channels_labels)
+        self.raw_viewer = RawSignalViewer(freq, channels_labels, notch_filter=notch_filter)
         self.n_channels = n_channels
         self.n_samples = 2000
 
