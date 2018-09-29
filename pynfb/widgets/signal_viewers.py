@@ -4,7 +4,7 @@ import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from scipy import signal, stats
-from pynfb.signal_processing.filters import NotchFilter, IdentityFilter
+from pynfb.signal_processing.filters import NotchFilter, IdentityFilter, FilterSequence
 
 paired_colors = ['#dbae57','#57db6c','#dbd657','#57db94','#b9db57','#57dbbb','#91db57','#57d3db','#69db57','#57acdb']
 images_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/../static/imag') + '/'
@@ -50,7 +50,10 @@ class SignalViewer(pg.PlotWidget):
 
         # notch filter
         if notch_filter:
-            self.notch_filter = NotchFilter(notch_filter, fs, self.n_signals)
+            if isinstance(notch_filter, list):
+                self.notch_filter = FilterSequence([NotchFilter(f0, fs, self.n_signals) for f0 in notch_filter])
+            else:
+                self.notch_filter = NotchFilter(notch_filter, fs, self.n_signals)
         else:
             self.notch_filter = IdentityFilter()
 
