@@ -51,10 +51,14 @@ class SignalViewer(pg.PlotWidget):
         # notch filter
         if notch_filter:
             if isinstance(notch_filter, list):
-                self.notch_filter = FilterSequence([NotchFilter(f0, fs, self.n_signals) for f0 in notch_filter])
-            else:
-                self.notch_filter = NotchFilter(notch_filter, fs, self.n_signals)
+                if len(notch_filter)>1:
+                    self.notch_filter = FilterSequence([NotchFilter(f0, fs, self.n_signals) for f0 in notch_filter])
+                elif notch_filter[0]>0:
+                    self.notch_filter = NotchFilter(notch_filter[0], fs, self.n_signals)
+                else:
+                    self.notch_filter = IdentityFilter()
         else:
+            print('WARNING: incorrect settings for viz. notch filter. Filter is disabled.')
             self.notch_filter = IdentityFilter()
 
     def update(self, chunk):
