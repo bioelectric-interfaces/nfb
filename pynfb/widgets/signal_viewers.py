@@ -11,7 +11,7 @@ images_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/.
 
 
 class SignalViewer(pg.PlotWidget):
-    def __init__(self, fs, names, seconds_to_plot, overlap, signals_to_plot=None, notch_filter=0, **kwargs):
+    def __init__(self, fs, names, seconds_to_plot, overlap, signals_to_plot=None, notch_filter=False, **kwargs):
         super(SignalViewer, self).__init__(**kwargs)
         # gui settings
         self.getPlotItem().showGrid(y=True)
@@ -50,16 +50,11 @@ class SignalViewer(pg.PlotWidget):
 
         # notch filter
         if notch_filter:
-            if isinstance(notch_filter, list):
-                if len(notch_filter)>1:
-                    self.notch_filter = FilterSequence([NotchFilter(f0, fs, self.n_signals) for f0 in notch_filter])
-                elif notch_filter[0]>0:
-                    self.notch_filter = NotchFilter(notch_filter[0], fs, self.n_signals)
-                else:
-                    self.notch_filter = IdentityFilter()
+            self.notch_filter_check_box = NotchButton(self)
+            self.notch_filter_check_box.setGeometry(18*2, 0, 100, 100)
+            self.notch_filter = NotchFilter(50, fs, self.n_signals)
         else:
-            print('WARNING: incorrect settings for viz. notch filter. Filter is disabled.')
-            self.notch_filter = IdentityFilter()
+            self.notch_filter = None
 
     def update(self, chunk):
         # estimate current pos
@@ -68,7 +63,8 @@ class SignalViewer(pg.PlotWidget):
         current_x = self.x_mesh[current_pos]
 
         # notch filter
-        chunk = self.notch_filter.apply(chunk)
+        if self.notch_filter is not None and self.notch_filter_check_box.isChecked():
+            chunk = self.notch_filter.apply(chunk)
 
         # update buffer
         if self.previous_pos < current_pos:
@@ -108,6 +104,14 @@ class CuteButton(QtWidgets.QPushButton):
                            "QPushButton:pressed { background-color: #252120 }")
         print(images_path + icon_name)
         self.setIcon(QtGui.QIcon(images_path + icon_name))
+
+
+class NotchButton(QtWidgets.QRadioButton):
+    def __init__(self, parent):
+        super(NotchButton, self).__init__('Notch', parent)
+        self.setMaximumHeight(18)
+        self.setStyleSheet("QRadioButton { background-color: #393231; color: #E5DfC5 }"
+                           "QRadioButtonn:checked { background-color: #252120 }")
 
 
 class RawSignalViewer(SignalViewer):

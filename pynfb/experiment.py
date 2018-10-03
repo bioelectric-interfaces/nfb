@@ -517,8 +517,7 @@ class Experiment():
                                plot_source_space_flag=self.params['bPlotSourceSpace'],
                                show_subject_window=self.params['bShowSubjectWindow'],
                                channels_labels=channels_labels,
-                               photo_rect=self.params['bShowPhotoRectangle'],
-                               notch_filter=[float(f0) for f0 in str(self.params['sVizNotchFilters']).split(' ')])
+                               photo_rect=self.params['bShowPhotoRectangle'])
         self.subject = self.main.subject_window
         if self.params['bPlotSourceSpace']:
             self.source_space_window = self.main.source_space_window
