@@ -190,6 +190,18 @@ class ExponentialSmoother(BaseFilter):
         y, self.zi = lfilter(self.b, self.a, chunk, zi=self.zi)
         return y
 
+
+class MASmoother(BaseFilter):
+    def __init__(self, n_samples):
+        self.a = [1.]
+        self.b = np.ones(n_samples)/n_samples
+        self.zi = np.zeros((max(len(self.a), len(self.b)) - 1, ))
+
+    def apply(self, chunk: np.ndarray):
+        y, self.zi = lfilter(self.b, self.a, chunk, zi=self.zi)
+        return y
+
+
 class SGSmoother(BaseFilter):
     def __init__(self, n_samples, sg_order):
         self.savgol_weights = savgol_coeffs(n_samples, sg_order, pos=n_samples - 1)
