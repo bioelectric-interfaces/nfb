@@ -59,13 +59,13 @@ while True:
             if is_disable:
                 result = 0
                 is_disable = False
-                Beep(500, 70)
-                Beep(1000, 100)
+                if state == 2:
+                    Beep(500, 70), Beep(1000, 100)
 
         else:
-            if not is_disable:
-                Beep(1000, 70)
-                Beep(500, 100)
+            if not is_disable and prev_state==2:
+                Beep(1000, 70), Beep(500, 100)
+
             is_disable = True
 
         # decoder
