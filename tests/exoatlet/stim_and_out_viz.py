@@ -28,6 +28,11 @@ image_pos = (5*screen_w//10 - 3 * screen_h // 20, 6*screen_h//10)
 images_name_list = ['stop', 'disable', 'go']
 
 
+# perf
+result = None
+prev_state = 0
+is_disable = False
+
 def set_stim_color(color):
     pygame.draw.rect(screen, color, stim_rect)
 
@@ -47,16 +52,43 @@ while True:
         # state
         state = int(chunk[0, -1])
         set_stim_color(stim_color_list[state])
-        if state>1: Beep(350, 100)
+
+
+        if state != 1:
+            prev_state = state
+            if is_disable:
+                result = 0
+                is_disable = False
+                Beep(500, 70)
+                Beep(1000, 100)
+
+        else:
+            if not is_disable:
+                Beep(1000, 70)
+                Beep(500, 100)
+            is_disable = True
 
         # decoder
-        out = chunk[0, -2]
+        out = chunk[0, -3]
         if out < 0.05:
             set_image('stop')
         elif out < 0.5:
-            set_image('disable')
+            if state!=1:
+                set_image('disable')
         else:
             set_image('go')
+            if state != 1:
+                result = 1
+
+        if out > 0.5 and state == 0:
+            Beep(300, 100)
+
+        if state == 1:
+            if (prev_state == 0 and result == 0) or (prev_state == 2 and result == 1):
+                set_image('like')
+            else:
+                set_image('dislike')
 
         pygame.display.update()
+
     time.sleep(0.1)
