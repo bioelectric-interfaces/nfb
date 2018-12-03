@@ -5,7 +5,7 @@ from numpy import vstack
 from numpy.random import randint
 
 from ..helpers.beep import SingleBeep
-from ..io.hdf5 import load_h5py_protocols_raw
+from ..serializers.hdf5 import load_h5py_protocols_raw
 from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
                                  BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,

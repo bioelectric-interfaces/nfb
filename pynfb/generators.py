@@ -6,9 +6,9 @@ import numpy as np
 from pylsl import StreamInfo, StreamOutlet
 import mne
 
-from pynfb.io.brainvision import read_raw_brainvision
-from pynfb.io.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound
-from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.serializers.brainvision import read_raw_brainvision
+from pynfb.serializers.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound, load_channels_and_fs
+from pynfb.serializers.xml_ import get_lsl_info_from_xml
 from pynfb.inlets.channels_selector import ChannelsSelector
 
 ch_names = ['Fp1', 'Fp2', 'F7', 'F3', 'Fz', 'F4', 'F8', 'Ft9', 'Fc5', 'Fc1', 'Fc2', 'Fc6', 'Ft10', 'T7', 'C3', 'Cz',
@@ -129,8 +129,11 @@ def stream_file_in_a_thread(file_path, reference, stream_name):
             labels = raw.info['ch_names']
             fs = raw.info['sfreq']
         else:
-            xml_str = load_xml_str_from_hdf5_dataset(file_path, 'stream_info.xml')
-            labels, fs = get_lsl_info_from_xml(xml_str)
+            try:
+                labels, fs = load_channels_and_fs(file_path)
+            except ValueError:
+                xml_str = load_xml_str_from_hdf5_dataset(file_path, 'stream_info.xml')
+                labels, fs = get_lsl_info_from_xml(xml_str)
         exclude = [ex.upper() for ex in ChannelsSelector.parse_channels_string(reference)]
         labels = [label for label in labels if label.upper() not in exclude]
         print('Using {} channels and fs={}.\n[{}]'.format(len(labels), fs, labels))

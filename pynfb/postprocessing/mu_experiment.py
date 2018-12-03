@@ -7,7 +7,7 @@ from mne.viz import plot_topomap
 from scipy.signal import hilbert, firwin2, filtfilt
 from scipy.fftpack import rfft, irfft, fftfreq
 
-from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.serializers.xml_ import get_lsl_info_from_xml
 from pynfb.signals.rejections import Rejections
 from pynfb.signal_processing.filters import SpatialRejection
 import seaborn as sns

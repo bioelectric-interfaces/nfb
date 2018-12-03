@@ -48,6 +48,11 @@ def save_channels_and_fs(file_path, channels, fs):
         f.create_dataset('channels', data=np.array(channels, dtype='S'))
         f.create_dataset('fs', data=np.array(fs))
 
+def load_channels_and_fs(file_path):
+    # save channels names and sampling frequency
+    with h5py.File(file_path, 'r') as f:
+        return [s.decode('utf-8') for s in f['channels'][:]], int(f['fs'].value)
+
 
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, timestamp_data=None, signals_data=None,
                  raw_other_data=None, reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None):

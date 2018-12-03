@@ -2,7 +2,7 @@ import numpy as np
 from scipy.signal import welch
 from scipy import fftpack
 import h5py
-from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.serializers.xml_ import get_lsl_info_from_xml
 import pandas as pd
 import pylab as plt
 
@@ -120,7 +120,7 @@ def add_data(powers, name, pow, j):
 
 def add_data_simple(odict, name, x):
     import mne
-    to_raw = lambda y: y#mne.io.RawArray(y.T, info)
+    to_raw = lambda y: y#mne.serializers.RawArray(y.T, info)
     if name == 'Filters':
         odict['Closed'] = to_raw(x[:len(x) // 2])
         odict['Opened'] = to_raw(x[len(x) // 2:])

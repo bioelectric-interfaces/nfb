@@ -1,6 +1,6 @@
 from PyQt5 import QtGui, QtWidgets
 
-from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.serializers.xml_ import get_lsl_info_from_xml
 from pynfb.signals import DerivedSignal
 from pynfb.widgets.update_signals_dialog import SignalsSSDManager
 

@@ -6,7 +6,7 @@ from scipy.signal import butter, lfilter, filtfilt
 from scipy.linalg import eigh, inv, eig
 import numpy as np
 
-from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.serializers.xml_ import get_lsl_info_from_xml
 from pynfb.postprocessing.mu_experiment import dc_blocker, fft_filter
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 

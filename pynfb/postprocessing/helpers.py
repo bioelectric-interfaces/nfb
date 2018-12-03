@@ -4,7 +4,7 @@ import h5py
 from scipy.signal import hilbert, firwin2, filtfilt
 from scipy.fftpack import rfft, irfft, fftfreq
 
-from ..io.xml_ import get_lsl_info_from_xml
+from ..serializers.xml_ import get_lsl_info_from_xml
 from ..signals.rejections import Rejections
 from ..signal_processing.filters import SpatialRejection
 

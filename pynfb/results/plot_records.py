@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from pynfb.io.hdf5 import load_h5py_all_samples
+from pynfb.serializers.hdf5 import load_h5py_all_samples
 import os
 import glob
 

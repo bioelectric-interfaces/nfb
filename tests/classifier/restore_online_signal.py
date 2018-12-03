@@ -1,5 +1,5 @@
-from pynfb.io.xml_ import xml_file_to_params
-from pynfb.io.hdf5 import load_xml_str_from_hdf5_dataset
+from pynfb.serializers.xml_ import xml_file_to_params
+from pynfb.serializers.hdf5 import load_xml_str_from_hdf5_dataset
 from pynfb.signals import DerivedSignal
 from utils.load_results import load_data
 import pylab as plt

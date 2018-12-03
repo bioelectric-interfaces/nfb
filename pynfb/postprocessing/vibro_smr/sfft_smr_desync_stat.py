@@ -88,7 +88,7 @@ for n_exp in list(range(0 , len(experiments)))[::-1]:
 
 
     #print(m)
-    #from scipy.io import savemat
+    #from scipy.serializers import savemat
     #savemat('eeg_emg_smr.mat', m)
 
 

@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from pynfb.io.defaults import vectors_defaults as defaults
+from pynfb.serializers.defaults import vectors_defaults as defaults
 from pynfb.settings_widget import FileSelectorLine
 
 default_signal = defaults['vSignals']['DerivedSignal'][0]

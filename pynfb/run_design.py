@@ -25,7 +25,7 @@ if importlib.util.find_spec('pynfb') is None:
 
 # import NFBLab
 from pynfb.experiment import Experiment
-from pynfb.io.xml_ import xml_file_to_params
+from pynfb.serializers.xml_ import xml_file_to_params
 
 # run experiment
 app = QtWidgets.QApplication(sys.argv)

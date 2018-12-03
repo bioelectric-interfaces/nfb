@@ -1,4 +1,4 @@
-from pynfb.io.xml_ import get_lsl_info_from_xml
+from pynfb.serializers.xml_ import get_lsl_info_from_xml
 import numpy as np
 import pylab as plt
 

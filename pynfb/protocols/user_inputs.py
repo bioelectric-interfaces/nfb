@@ -123,7 +123,7 @@ if __name__ == '__main__':
                       'Cz',
                       'C4', 'T8', 'Tp9', 'Cp5', 'Cp1', 'Cp2', 'Cp6', 'Tp10', 'P7', 'P3', 'Pz', 'P4', 'P8', 'O1', 'Oz',
                       'O2']
-    from ..io.hdf5 import load_h5py
+    from ..serializers.hdf5 import load_h5py
 
     x = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol1')
     y = load_h5py('C:\\Users\\Nikolai\Downloads\\raw_.h5', 'protocol2')

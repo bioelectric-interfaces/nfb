@@ -14,10 +14,10 @@ from .generators import run_eeg_sim, stream_file_in_a_thread, stream_generator_i
 from .inlets.ftbuffer_inlet import FieldTripBufferInlet
 from .inlets.lsl_inlet import LSLInlet
 from .inlets.channels_selector import ChannelsSelector
-from .io.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, save_xml_str_to_hdf5_dataset, \
+from .serializers.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_protocol_signals, save_xml_str_to_hdf5_dataset, \
     save_channels_and_fs
-from .io.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
-from .io import read_spatial_filter
+from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
+from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow

@@ -1,5 +1,5 @@
 from pynfb.signals import DerivedSignal, CompositeSignal
-from pynfb.io.hdf5 import save_signals
+from pynfb.serializers.hdf5 import save_signals
 
 signals = [DerivedSignal(name='One'),
            DerivedSignal(name='Two')]

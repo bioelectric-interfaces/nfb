@@ -1,5 +1,5 @@
 import numpy as np
-from pynfb.io import save_spatial_filter, read_spatial_filter
+from pynfb.serializers import save_spatial_filter, read_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
     ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter, \
     FilterSequence, DelayFilter, CFIRBandEnvelopeDetector

@@ -1,6 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from pynfb.io.defaults import vectors_defaults as defaults
+from pynfb.serializers.defaults import vectors_defaults as defaults
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video']

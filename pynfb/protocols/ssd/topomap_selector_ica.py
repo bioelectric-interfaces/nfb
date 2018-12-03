@@ -5,7 +5,7 @@ from mne.io import RawArray
 from mne.preprocessing import ICA
 from sklearn.metrics import mutual_info_score
 
-from ...io.xml_ import get_lsl_info_from_xml
+from ...serializers.xml_ import get_lsl_info_from_xml
 from ...postprocessing.helpers import dc_blocker
 from ...protocols.signals_manager.scored_components_table import ScoredComponentsTable
 import numpy as np
