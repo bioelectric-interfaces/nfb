@@ -448,8 +448,11 @@ class Experiment():
             if name in group_names:
                 group = self.params['vPGroups']['PGroup'][group_names.index(name)]
                 subgroup = []
-                for s_name, s_n in zip(group['sList'].split(' '), list(map(int, group['sNumberList'].split(' ')))):
-                    subgroup.append([s_name] * s_n)
+                if len(group['sList'].split(' ')) == 1:
+                    subgroup.append([group['sList']] * int(group['sNumberList']))
+                else:
+                    for s_name, s_n in zip(group['sList'].split(' '), list(map(int, group['sNumberList'].split(' ')))):
+                        subgroup.append([s_name] * s_n)
                 if group['bShuffle']:
                     subgroup = np.concatenate(subgroup)
                     subgroup = list(subgroup[np.random.permutation(len(subgroup))])
