@@ -66,11 +66,11 @@ class TheMainWindow(QtWidgets.QMainWindow):
         #print(self.widget.params)
         params_to_xml_file(self.widget.params, fname)
 
-
-
+def except_hook(cls, exception, traceback):
+    sys.__excepthook__(cls, exception, traceback)
 
 def main():
-
+    sys.excepthook = except_hook
     app = QtWidgets.QApplication(sys.argv)
     ex = TheMainWindow(app)
     sys.exit(app.exec_())
