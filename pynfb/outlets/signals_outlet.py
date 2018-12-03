@@ -2,7 +2,7 @@ from pylsl import StreamInfo, StreamOutlet
 import numpy as np
 
 class SignalsOutlet:
-    def __init__(self, signals, fs, name='NFBLab_data'):
+    def __init__(self, signals, fs, name='NFBLab_data1'):
         self.info = StreamInfo(name=name, type='', channel_count=len(signals), source_id='nfblab42',
                                nominal_srate=fs)
         self.info.desc().append_child_value("manufacturer", "BioSemi")
