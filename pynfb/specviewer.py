@@ -39,7 +39,7 @@ class RawViewer(pg.PlotWidget):
         self.n_samples = int(buffer_time_sec * fs)
         self.n_samples_to_display = self.n_samples
         self.n_channels = n_channels
-        self.raw_buffer = np.zeros((self.n_samples, n_channels))
+        self.raw_buffer = np.zeros((self.n_samples, n_channels)) * np.nan
         self.curves = []
         self.x_mesh = np.linspace(0, self.n_samples / fs, self.n_samples)
 
