@@ -19,7 +19,7 @@ class FieldTripBufferInlet:
         H = self.ftc.getHeader()
         last_sample = H.nSamples - 1
         if last_sample == self.last_repeated_sample:  # no new data in FT buffer
-            return
+            return None, None
         # If it is the first time then retrieve only one sample
         if self.last_repeated_sample == 0:
             retrieve_from = last_sample
