@@ -51,7 +51,9 @@ class FieldTripBufferInlet:
         return self.ftc.getHeader().nChannels
 
     def get_channels_labels(self):
-        labels = ['Ch{}'.format(k + 1) for k in range(self.get_n_channels())]
+        labels = self.ftc.getHeader().labels
+        if len(labels) == 0:
+            labels = ['Ch{}'.format(k + 1) for k in range(self.get_n_channels())]
         return labels
 
     def disconnect(self):
