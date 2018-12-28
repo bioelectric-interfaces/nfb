@@ -36,7 +36,9 @@ class Montage(pd.DataFrame):
             super(Montage, self).__init__(columns=['name', 'type', 'pos_x', 'pos_y'])
             layout_eeg = Montage.load_layout('EEG1005')
             layout_mag = Montage.load_layout('Vectorview-mag')
+            layout_mag.names = list(map(lambda x: x.replace(' ', ''), layout_mag.names))
             layout_grad = Montage.load_layout('Vectorview-grad')
+            layout_grad.names = list(map(lambda x: x.replace(' ', ''), layout_grad.names))
             for name in names:
                 if name.upper() in layout_eeg.names:
                     ch_ind = layout_eeg.names.index(name.upper())
@@ -64,6 +66,10 @@ class Montage(pd.DataFrame):
             return (self['type'] == type).values
         elif type == 'ALL':
             return (self['type'] == self['type']).values
+        elif type == 'GRAD2':
+            return ((self['type'] == 'GRAD') & (self['name'].apply(lambda x: x[-1]) == '2')).values
+        elif type == 'GRAD3':
+            return ((self['type'] == 'GRAD') & (self['name'].apply(lambda x: x[-1]) == '3')).values
         else:
             raise TypeError('Bad channels type')
 
@@ -85,11 +91,21 @@ class Montage(pd.DataFrame):
             proj[k, np.argsort(((pos[k] - pos) ** 2).sum(1))[1:1+n_channels]] = -1 / n_channels
         return proj
 
+    def combine_grad_data(self, data):
+        names = self.get_names('GRAD')
+        grad2_mask = list(map(lambda x: x[-1]=='2', names))
+        grad3_mask = list(map(lambda x: x[-1] == '3', names))
+        combined_data = (data[grad2_mask]**2 + data[grad3_mask]**2)**0.5
+        return combined_data, self.get_pos('GRAD')[grad2_mask]
+
 if __name__ == '__main__':
-    m = Montage(['cz', 'fp1', 'FP2', 'AUX1', 'MEG 2631', 'MEg 2632', 'Pz', 'Fcz'])
+    m = Montage(['cz', 'fp1', 'FP2', 'AUX1', 'MEG2632', 'MEg2633', 'MEG2332', 'MEg2333', 'Pz', 'Fcz'])
     print(m)
     print(m.get_names('EEG'))
     print(m.get_pos('EEG'))
     print(len(m))
     print(m.get_mask('EEG'))
     print(m.make_laplacian_proj('EEG'))
+    print(m.get_mask('GRAD2'))
+
+    print(m.combine_grad_data(np.arange(len(m.get_names('GRAD')))))
