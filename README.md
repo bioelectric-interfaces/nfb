@@ -17,5 +17,9 @@ python pynfb\main.py`
 ```
 Where `python` interpreter is from installed miniconda folder
 
-### PyQt4 stable version
+## PyQt4 stable version
 [https://github.com/nikolaims/nfb/tree/pyqt4-stable](https://github.com/nikolaims/nfb/tree/pyqt4-stable)
+
+
+## Acknowledgements
+This work was supported by the [Center for Bioelectric Interfaces](https://bioelectric.hse.ru/en/) of the Institute for Cognitive Neuroscience of the National Research University Higher School of Economics, RF Government grant, ag. No. 14.641.31.0003.
