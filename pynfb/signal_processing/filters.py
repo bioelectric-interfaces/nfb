@@ -361,6 +361,23 @@ class DelayFilter(BaseFilter):
         y, self.zi = lfilter(self.b, self.a, chunk, zi=self.zi)
         return y
 
+
+class DownsampleFilter:
+    def __init__(self, q):
+
+        self.b, self.a = sg.butter(1, 1/q)
+        self.zi = np.zeros(len(self.b) - 1)
+        self.shift = 0
+        self.q = q
+
+    def apply(self, chunk):
+        x, self.zi = sg.lfilter(self.b, self.a, chunk, zi=self.zi, axis=1)
+        out = x[self.shift::self.q]
+        self.shift =  (len(chunk) - self.shift) % self.q
+        if self.shift:
+            self.shift = self.q - self.shift
+        return out
+
 if __name__ == '__main__':
     import pylab as plt
 
