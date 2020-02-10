@@ -363,15 +363,18 @@ class DelayFilter(BaseFilter):
 
 
 class DownsampleFilter:
-    def __init__(self, q):
-
-        self.b, self.a = sg.butter(1, 1/q)
-        self.zi = np.zeros(len(self.b) - 1)
+    def __init__(self, q, n_channels, prefilter=True):
+        self.prefilter = prefilter
+        self.b, self.a = butter(1, 1/q)
+        self.zi = np.zeros((len(self.b) - 1, n_channels))
         self.shift = 0
         self.q = q
 
     def apply(self, chunk):
-        x, self.zi = sg.lfilter(self.b, self.a, chunk, zi=self.zi, axis=1)
+        if self.prefilter:
+            x, self.zi = lfilter(self.b, self.a, chunk, zi=self.zi, axis=0)
+        else:
+            x = chunk
         out = x[self.shift::self.q]
         self.shift =  (len(chunk) - self.shift) % self.q
         if self.shift:
