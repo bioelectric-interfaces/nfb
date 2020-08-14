@@ -13,8 +13,13 @@ install_requires = [
     "scikit-learn",
     "sympy",
     "mne==0.12",
-    "pylsl"
+    "pylsl",
+    "matplotlib==3.2.2",
 ]
+
+extras_require = {
+    "freeze":  ["pyinstaller==3.6"]
+}
 
 setup(
     name="nfb",

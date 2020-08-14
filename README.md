@@ -12,6 +12,17 @@ pip install -e .
 ```
 **Warning**: nfb requires you install some outdated versions of packages. Consider installing nfb in a virtual enviroment, using tools such as venv or conda.
 
+### Freezing
+NFB supports building as an executable, using the `pyinstaller` module. To use it, first install nfb with `freeze` addon:
+```
+pip install -e .[freeze]
+```
+Then build the executable from the included spec file (this might take some time):
+```
+pyinstaller freeze.spec
+```
+The executable can then be found in the `dist` folder.
+
 ## Running the experiment designer
 If you are using `conda` as your virtual environment provider, don't forget to create and activate a virtual environment:
 ```
