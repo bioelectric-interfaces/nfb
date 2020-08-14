@@ -1,5 +1,6 @@
 import sys
 import os
+import argparse
 import matplotlib
 matplotlib.use('TkAgg')
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
@@ -71,8 +72,31 @@ def except_hook(cls, exception, traceback):
 
 def main():
     sys.excepthook = except_hook
+
+    # Parse and act upon commandline arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", nargs="?", help="open an xml experiment file when launched (optional)")
+    parser.add_argument("-x", "--execute", action="store_true", help="run the experiment without configuring (requires file to be specified)")
+    args = parser.parse_args()
+
+    if args.file is None and args.execute:
+        print("Could not execute the experiment without configuring because file argument was not specified")
+        parser.print_help()
+        sys.exit(1)
+
     app = QtWidgets.QApplication(sys.argv)
     ex = TheMainWindow(app)
+
+    # If "file" was specified, open the experiment file right away
+    if args.file:
+        params = xml_file_to_params(args.file)
+        ex.widget.params = params
+        ex.widget.reset_parameters()
+    
+    # If "Execute" was specified, run the experiment immediately
+    if args.execute:
+        ex.widget.onClicked()
+
     sys.exit(app.exec_())
 
 
