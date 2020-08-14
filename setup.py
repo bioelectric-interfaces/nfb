@@ -18,6 +18,7 @@ install_requires = [
 
 setup(
     name="nfb",
+    version="0.1",
     description="Conduct experiments in real-time EEG/MEG paradigm",
     install_requires=install_requires
 )
