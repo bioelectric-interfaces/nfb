@@ -1,6 +1,7 @@
 import sys
 import os
 import argparse
+import multiprocessing
 import matplotlib
 matplotlib.use('TkAgg')
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
@@ -71,6 +72,7 @@ def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)
 
 def main():
+    multiprocessing.freeze_support()  # Support running nfb in frozen mode (i.e. as an executable)
     sys.excepthook = except_hook
 
     # Parse and act upon commandline arguments
