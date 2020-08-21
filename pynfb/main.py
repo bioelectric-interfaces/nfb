@@ -10,6 +10,7 @@ STATIC_PATH = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/s
 print(full_path)
 sys.path.insert(0, full_path)
 from pynfb.settings_widget import SettingsWidget
+from pynfb.experiment import Experiment
 from PyQt5 import QtGui, QtWidgets
 import sys
 from pynfb.serializers.xml_ import *
@@ -87,17 +88,17 @@ def main():
         sys.exit(1)
 
     app = QtWidgets.QApplication(sys.argv)
-    ex = TheMainWindow(app)
 
-    # If "file" was specified, open the experiment file right away
-    if args.file:
-        params = xml_file_to_params(args.file)
-        ex.widget.params = params
-        ex.widget.reset_parameters()
-    
-    # If "Execute" was specified, run the experiment immediately
     if args.execute:
-        ex.widget.onClicked()
+        # If "Execute" was specified, run the experiment immediately
+        params = xml_file_to_params(args.file)
+        ex = Experiment(app, params)
+    elif args.file:
+        # If "file" was specified, open the experiment file right away
+        main_window = TheMainWindow(app)
+        params = xml_file_to_params(args.file)
+        main_window.widget.params = params
+        main_window.widget.reset_parameters()
 
     sys.exit(app.exec_())
 
