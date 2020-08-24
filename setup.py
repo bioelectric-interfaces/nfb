@@ -12,7 +12,7 @@ install_requires = [
     "seaborn",
     "scikit-learn",
     "sympy",
-    "mne==0.12",
+    "mne==0.14.1",
     "pylsl",
     "matplotlib==3.2.2",
 ]
