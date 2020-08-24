@@ -93,12 +93,14 @@ def main():
         # If "Execute" was specified, run the experiment immediately
         params = xml_file_to_params(args.file)
         ex = Experiment(app, params)
-    elif args.file:
-        # If "file" was specified, open the experiment file right away
+    else:
         main_window = TheMainWindow(app)
-        params = xml_file_to_params(args.file)
-        main_window.widget.params = params
-        main_window.widget.reset_parameters()
+
+        if args.file:
+            # If "file" was specified, open the experiment file right away
+            params = xml_file_to_params(args.file)
+            main_window.widget.params = params
+            main_window.widget.reset_parameters()
 
     sys.exit(app.exec_())
 
