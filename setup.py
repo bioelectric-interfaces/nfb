@@ -21,10 +21,15 @@ extras_require = {
     "freeze":  ["pyinstaller==3.6"]
 }
 
+entry_points = {
+    "console_scripts": ["pynfb=pynfb.main:main"]
+}
+
 setup(
     name="pynfb",
     version="0.1",
     description="Conduct experiments in real-time EEG/MEG paradigm",
     install_requires=install_requires,
-    extras_require=extras_require
+    extras_require=extras_require,
+    entry_points=entry_points,
 )
