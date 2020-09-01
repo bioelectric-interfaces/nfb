@@ -21,6 +21,10 @@ extras_require = {
     "freeze":  ["pyinstaller==3.6"]
 }
 
+package_data = {
+    "pynfb": ["static/*"]
+}
+
 entry_points = {
     "console_scripts": ["pynfb=pynfb.main:main"]
 }
@@ -33,4 +37,5 @@ setup(
     extras_require=extras_require,
     entry_points=entry_points,
     packages=find_packages(),
+    package_data=package_data,
 )
