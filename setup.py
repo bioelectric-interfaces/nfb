@@ -22,11 +22,11 @@ extras_require = {
 }
 
 package_data = {
-    "pynfb": ["static/*"]
+    "pynfb": ["static/imag/*"]
 }
 
 entry_points = {
-    "console_scripts": ["pynfb=pynfb.main:main"]
+    "gui_scripts": ["pynfb=pynfb.main:main"]
 }
 
 setup(
