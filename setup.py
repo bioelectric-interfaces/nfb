@@ -2,7 +2,7 @@
 Warning: pynfb requires you install some outdated versions of packages. Consider installing pynfb in a virtual
 enviroment, using tools such as venv or conda.
 """
-from setuptools import setup
+from setuptools import setup, find_packages
 
 install_requires = [
     "h5py",
@@ -32,4 +32,5 @@ setup(
     install_requires=install_requires,
     extras_require=extras_require,
     entry_points=entry_points,
+    packages=find_packages(),
 )
