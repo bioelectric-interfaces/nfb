@@ -2,6 +2,7 @@ import numpy as np
 from mne import create_info
 from mne.io import RawArray
 from mne.preprocessing import ICA
+import mne
 
 from ..signal_processing.filters import SpatialFilter, ButterFilter, FilterSequence, FilterStack, SpatialRejection
 from ..signal_processing.helpers import get_outliers_mask, stimulus_split
@@ -124,7 +125,10 @@ class ICADecomposition(SpatialDecomposition):
 
     def decompose(self, X, y=None):
         raw_inst = RawArray(X.T, create_info(self.channel_names, self.fs, 'eeg', None))
-        ica = ICA(method='infomax', fit_params=dict(extended=True))
+        if int(mne.__version__.split('.')[1]) >= 19:  # validate mne version (mne 0.19+)
+            ica = ICA(method='infomax', fit_params=dict(extended=True))
+        else:
+            ica = ICA(method='extended-infomax')
         ica.fit(raw_inst)
         filters = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
         topographies = np.linalg.inv(filters).T
