@@ -6,7 +6,7 @@ import numpy as np
 from pylsl import StreamInfo, StreamOutlet
 import mne
 
-from pynfb.serializers.brainvision import read_raw_brainvision
+from mne.io.brainvision import read_raw_brainvision
 from pynfb.serializers.hdf5 import load_h5py_all_samples, load_xml_str_from_hdf5_dataset, DatasetNotFound, load_channels_and_fs
 from pynfb.serializers.xml_ import get_lsl_info_from_xml
 from pynfb.inlets.channels_selector import ChannelsSelector
