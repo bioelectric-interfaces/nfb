@@ -102,7 +102,7 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, time
 def save_xml_str_to_hdf5_dataset(file_path, xml='', dataset_name='something.xml'):
     # Write the xml file...
     with h5py.File(file_path, 'a') as f:
-        str_type = h5py.new_vlen(str)
+        str_type = h5py.vlen_dtype(str)
         ds = f.create_dataset(dataset_name, shape=(2,), dtype=str_type)
         ds[:] = xml
 
