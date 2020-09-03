@@ -124,7 +124,7 @@ class ICADecomposition(SpatialDecomposition):
 
     def decompose(self, X, y=None):
         raw_inst = RawArray(X.T, create_info(self.channel_names, self.fs, 'eeg', None))
-        ica = ICA(method='extended-infomax')
+        ica = ICA(method='infomax', fit_params=dict(extended=True))
         ica.fit(raw_inst)
         filters = np.dot(ica.unmixing_matrix_, ica.pca_components_[:ica.n_components_]).T
         topographies = np.linalg.inv(filters).T

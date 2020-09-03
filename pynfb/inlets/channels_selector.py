@@ -1,6 +1,5 @@
 import numpy as np
 from pynfb.signal_processing.filters import ButterFilter, IdentityFilter
-from pynfb.widgets.helpers import validate_ch_names
 EVENTS_CHANNEL_NAME = 'EVENTS'
 
 
