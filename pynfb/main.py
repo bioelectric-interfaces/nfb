@@ -1,5 +1,7 @@
 import sys
 import os
+import argparse
+import multiprocessing
 import matplotlib
 matplotlib.use('TkAgg')
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
@@ -8,6 +10,7 @@ STATIC_PATH = os.path.realpath(os.path.dirname(os.path.realpath(__file__)) + '/s
 print(full_path)
 sys.path.insert(0, full_path)
 from pynfb.settings_widget import SettingsWidget
+from pynfb.experiment import Experiment
 from PyQt5 import QtGui, QtWidgets
 import sys
 from pynfb.serializers.xml_ import *
@@ -70,9 +73,35 @@ def except_hook(cls, exception, traceback):
     sys.__excepthook__(cls, exception, traceback)
 
 def main():
+    multiprocessing.freeze_support()  # Support running nfb in frozen mode (i.e. as an executable)
     sys.excepthook = except_hook
+
+    # Parse and act upon commandline arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("file", nargs="?", help="open an xml experiment file when launched (optional)")
+    parser.add_argument("-x", "--execute", action="store_true", help="run the experiment without configuring (requires file to be specified)")
+    args = parser.parse_args()
+
+    if args.file is None and args.execute:
+        print("Could not execute the experiment without configuring because file argument was not specified")
+        parser.print_help()
+        sys.exit(1)
+
     app = QtWidgets.QApplication(sys.argv)
-    ex = TheMainWindow(app)
+
+    if args.execute:
+        # If "Execute" was specified, run the experiment immediately
+        params = xml_file_to_params(args.file)
+        ex = Experiment(app, params)
+    else:
+        main_window = TheMainWindow(app)
+
+        if args.file:
+            # If "file" was specified, open the experiment file right away
+            params = xml_file_to_params(args.file)
+            main_window.widget.params = params
+            main_window.widget.reset_parameters()
+
     sys.exit(app.exec_())
 
 
