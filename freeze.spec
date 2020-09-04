@@ -1,21 +1,30 @@
-# -*- mode: python ; coding: utf-8 -*-
-# NOTE: pyinstaller 4.0 does not work. Works with 3.6
-# NOTE: to build this matplotlib needs to be downgraded. Works with 3.2.2
+#-*-mode:python;coding:utf-8-*-
 import sys
-from distutils.sysconfig import get_python_lib
+import os
+from importlib.util import find_spec
 
 sys.setrecursionlimit(5000)
 block_cipher = None
 
+def module_dir(module_name):
+    """Return module's root directory.
+    If the module does not have a directory (it is a single file) then return None.
+    """
+    module_origin = find_spec(module_name).origin
+    if os.path.basename(module_origin) == "__init__.py":
+        return os.path.dirname(module_origin)
+    return None
+
 
 a = Analysis(
-    ['pynfb\\main.py'],
-    pathex=['D:\\Files\\Develop\\nfb'],
+    ['pynfb/main.py'],
+    pathex=[],
     binaries=[],
     datas=[
-        (get_python_lib()+"/pylsl/lib", "pylsl/lib"),
-        (get_python_lib()+"/mne/channels/data", "mne/channels/data"),
-        ("pynfb/static/imag", "pynfb/static/imag"),
+        (module_dir("pylsl") + "/lib", "pylsl/lib"),
+        (module_dir("mne") + "/channels/data", "mne/channels/data"),
+        (module_dir("matplotlib") + "/mpl-data", "matplotlib/mpl-data"),
+        (module_dir("pynfb") + "/static/imag", "pynfb/static/imag"),
     ],
     hiddenimports=[
         "scipy.special.cython_special",
@@ -32,13 +41,13 @@ a = Analysis(
     cipher=block_cipher,
     noarchive=False
 )
-
+		
 pyz = PYZ(
     a.pure,
     a.zipped_data,
     cipher=block_cipher
 )
-
+			
 exe = EXE(
     pyz,
     a.scripts,

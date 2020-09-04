@@ -14,11 +14,14 @@ install_requires = [
     "sympy",
     "mne",
     "pylsl",
-    "matplotlib==3.2.2",
+    "matplotlib",
 ]
 
 extras_require = {
-    "freeze":  ["pyinstaller==3.6"]
+    "freeze":  [
+        "pyinstaller-hooks-contrib @ https://github.com/pyinstaller/pyinstaller-hooks-contrib/archive/465a2caccb5913ebfc64561e8055e81d73188736.zip",
+        "pyinstaller",
+    ]
 }
 
 package_data = {
