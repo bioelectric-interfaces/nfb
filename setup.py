@@ -19,7 +19,6 @@ install_requires = [
 
 extras_require = {
     "freeze":  [
-        "pyinstaller-hooks-contrib @ https://github.com/pyinstaller/pyinstaller-hooks-contrib/archive/465a2caccb5913ebfc64561e8055e81d73188736.zip",
         "pyinstaller",
     ]
 }
