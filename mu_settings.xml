@@ -37,7 +37,7 @@
 			<fDuration>20</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString>Расслабьтесь. Закройте глаза.</cString>
+			<cString>Р Р°СЃСЃР»Р°Р±СЊС‚РµСЃСЊ. Р—Р°РєСЂРѕР№С‚Рµ РіР»Р°Р·Р°.</cString>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2>+</cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -65,7 +65,7 @@
 			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString>Вращайте только ПРАВОЙ кистью</cString>
+			<cString>Р’СЂР°С‰Р°Р№С‚Рµ С‚РѕР»СЊРєРѕ РџР РђР’РћР™ РєРёСЃС‚СЊСЋ</cString>
 			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50.0</fBlinkDurationMs>
@@ -149,7 +149,7 @@
 			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString>Можно отдохнуть</cString>
+			<cString>РњРѕР¶РЅРѕ РѕС‚РґРѕС…РЅСѓС‚СЊ</cString>
 			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50.0</fBlinkDurationMs>
@@ -177,7 +177,7 @@
 			<fDuration>20.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString>Вращайте только ЛЕВОЙ кистью</cString>
+			<cString>Р’СЂР°С‰Р°Р№С‚Рµ С‚РѕР»СЊРєРѕ Р›Р•Р’РћР™ РєРёСЃС‚СЊСЋ</cString>
 			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50.0</fBlinkDurationMs>
@@ -205,7 +205,7 @@
 			<fDuration>20</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString>Откройте глаза, сидите спокойно</cString>
+			<cString>РћС‚РєСЂРѕР№С‚Рµ РіР»Р°Р·Р°, СЃРёРґРёС‚Рµ СЃРїРѕРєРѕР№РЅРѕ</cString>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -261,7 +261,7 @@
 			<fDuration>60.0</fDuration>
 			<fbSource>All</fbSource>
 			<sFb_type>Baseline</sFb_type>
-			<cString>Вращайте рукой</cString>
+			<cString>Р’СЂР°С‰Р°Р№С‚Рµ СЂСѓРєРѕР№</cString>
 			<bUseExtraMessage>0.0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50.0</fBlinkDurationMs>
