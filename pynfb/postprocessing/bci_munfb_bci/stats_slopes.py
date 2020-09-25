@@ -9,7 +9,7 @@ work_dir = r'C:\Users\Nikolai\Desktop\bci_nfb_bci\bci_nfb_bci'
 
 def open_desc(group='Real'):
     desc_file = 'info_mock.json' if group == 'Mock' else 'info.json'
-    with open('{}/{}'.format(work_dir, desc_file)) as f:
+    with open('{}/{}'.format(work_dir, desc_file), encoding="utf-8") as f:
         desc = json.loads(f.read())
     return desc
 

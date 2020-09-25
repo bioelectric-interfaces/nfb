@@ -75,7 +75,7 @@ class BCISignal():
             labels = self.model.apply(chunk)
             self.current_sample = Counter(labels).most_common(1)[0][0]
         self.current_chunk = self.current_sample * np.ones(len(chunk))
-        with open("bci_current_state.pkl", "w") as fp:
+        with open("bci_current_state.pkl", "w", encoding="utf-8") as fp:
             fp.write(str(self.current_sample))
         #print(self.current_sample, type(self.current_sample))
 

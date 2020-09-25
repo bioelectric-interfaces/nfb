@@ -34,7 +34,7 @@ class LSLInlet:
         pass
 
     def save_info(self, file):
-        with open(file, 'w') as f:
+        with open(file, 'w', encoding="utf-8") as f:
             f.write(self.inlet.info().as_xml())
 
     def get_frequency(self):

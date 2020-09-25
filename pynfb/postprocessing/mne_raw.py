@@ -27,7 +27,7 @@ def add_data_simple(odict, name, x, info):
 settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
 settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
 #settings_file = 'C:\\Users\\nsmetanin\\Desktop\\results\\vnd_spbu_5days.json'
-with open(settings_file, 'r') as f:
+with open(settings_file, 'r', encoding="utf-8") as f:
     settings = loads(f.read())
 
 

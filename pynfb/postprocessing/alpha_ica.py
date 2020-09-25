@@ -18,7 +18,7 @@ mock = False
 
 
 dir_ = 'D:\\alpha'
-with open(dir_ + '\\info.json', 'r') as f:
+with open(dir_ + '\\info.json', 'r', encoding="utf-8") as f:
     settings = loads(f.read())
 
 subj = 0

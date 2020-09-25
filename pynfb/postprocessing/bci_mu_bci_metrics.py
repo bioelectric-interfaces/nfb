@@ -15,7 +15,7 @@ from scipy import stats
 from pynfb.signals.bci import BCISignal
 
 dir_ = r'D:\bci_nfb_bci\bci_nfb_bci'
-with open(dir_ + '\\info_mock.json', 'r') as f:
+with open(dir_ + '\\info_mock.json', 'r', encoding="utf-8") as f:
     settings = loads(f.read())
 
 def drop_outliers(x, threshold=0.00005, window=500):

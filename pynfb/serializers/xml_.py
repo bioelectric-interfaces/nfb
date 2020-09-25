@@ -52,7 +52,7 @@ def xml_file_to_odict(filename_or_str):
         return key, value
     # read and parse
     if '<NeurofeedbackSignalSpecs>' not in filename_or_str:
-        with open(filename_or_str, 'r') as f:
+        with open(filename_or_str, 'r', encoding="utf-8") as f:
             d = parse(f.read(), postprocessor=postprocessor)
     else:
         d = parse(filename_or_str, postprocessor=postprocessor)
@@ -74,7 +74,7 @@ def xml_file_to_params(filename=None):
 
 
 def params_to_xml_file(params, filename):
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding="utf-8") as f:
         f.write(params_to_xml(params))
 
 def params_to_xml(params):
@@ -102,7 +102,7 @@ def save_signal(signal, filename):
     default['fFFTWindowSize'] = signal.n_samples
     default['fSmoothingFactor'] = signal.smoothing_factor
     signal_dict = OrderedDict([('DerivedSignal', default)])
-    with open(filename, 'w') as f:
+    with open(filename, 'w', encoding="utf-8") as f:
         f.write(unparse(signal_dict, pretty=True))
 
 

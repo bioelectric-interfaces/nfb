@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     from json import loads
     settings_file = 'D:\\vnd_spbu\\mock\\vnd_spbu_5days.json'
-    with open(settings_file, 'r') as f:
+    with open(settings_file, 'r', encoding="utf-8") as f:
         settings = loads(f.read())
 
     channel = 'C3'
