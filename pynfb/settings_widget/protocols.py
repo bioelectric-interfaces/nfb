@@ -230,6 +230,10 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.message.setMaximumHeight(50)
         self.form_layout.addRow('&Message:', self.message)
 
+        # voiceover
+        self.voiceover = QtWidgets.QCheckBox()
+        self.form_layout.addRow('&Voiceover:', self.voiceover)
+
         # split record (CSP)
         self.split_checkbox = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Add half time\nextra message (for CSP):', self.split_checkbox)
@@ -337,6 +341,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         self.message.setText(current_protocol['cString'])
         self.message2.setText(current_protocol['cString2'])
+        self.voiceover.setChecked(current_protocol['bVoiceover'])
         self.split_checkbox.setChecked(current_protocol['bUseExtraMessage'])
         current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
@@ -386,6 +391,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
         self.params[current_signal_index]['cString'] = self.message.toPlainText()
         self.params[current_signal_index]['cString2'] = self.message2.toPlainText()
+        self.params[current_signal_index]['bVoiceover'] = int(self.voiceover.isChecked())
         self.params[current_signal_index]['bUseExtraMessage'] = int(self.split_checkbox.isChecked())
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())

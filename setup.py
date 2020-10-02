@@ -15,6 +15,8 @@ install_requires = [
     "mne",
     "pylsl",
     "matplotlib",
+    "gtts",
+    "googletrans"
 ]
 
 extras_require = {

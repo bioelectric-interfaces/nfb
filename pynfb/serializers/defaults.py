@@ -75,6 +75,7 @@ vectors_defaults = OrderedDict([
             ('sFb_type', 'Baseline'),
             # ('dBand', ''),
             ('cString', ''),
+            ('bVoiceover', 0),
             ('bUseExtraMessage', 0),
             ('cString2', ''),
             ('fBlinkDurationMs', 50),
