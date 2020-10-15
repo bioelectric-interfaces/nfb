@@ -2,6 +2,8 @@ import sys
 import os
 import argparse
 import multiprocessing
+
+import pynfb
 import matplotlib
 matplotlib.use('TkAgg')
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
