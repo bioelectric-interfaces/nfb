@@ -12,7 +12,7 @@ names_map = {'Po3': 'Fc5',
 
 
 def save_fif(record_dir, fix_names=False):
-    with open('{}\montage.info'.format(record_dir), 'r') as f:
+    with open('{}\montage.info'.format(record_dir), 'r', encoding="utf-8") as f:
         fs, *channels = f.readline().split(' ')
         fs = int(fs)
 

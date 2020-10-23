@@ -412,7 +412,7 @@ class Experiment():
                         self.signals,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
-                        **kwargs
+                        voiceover=protocol['bVoiceover'], **kwargs
                     ))
             elif protocol['sFb_type'] in ['Feedback', 'CircleFeedback']:
                 self.protocols.append(

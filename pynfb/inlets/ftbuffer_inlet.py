@@ -38,7 +38,7 @@ class FieldTripBufferInlet:
         pass
 
     def save_info(self, file):
-        with open(file, 'w') as f:
+        with open(file, 'w', encoding="utf-8") as f:
             f.write(str(self.ftc.getHeader()))
 
     def info_as_xml(self):

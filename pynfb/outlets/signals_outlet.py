@@ -22,7 +22,7 @@ class SignalsOutlet:
 
     def push_chunk(self, data, n=1):
         self.outlet.push_chunk(data)
-        # with open("../bci_current_state.pkl", "w") as fp:
+        # with open("../bci_current_state.pkl", "w", encoding="utf-8") as fp:
         #    fp.write(str(np.array(data)[:, 0].mean()))
 
 

@@ -33,7 +33,7 @@ else:
     raise FileExistsError('Recording directory exists')
 
 # save montage
-with open('{}\montage.info'.format(record_dir), 'w') as f:
+with open('{}\montage.info'.format(record_dir), 'w', encoding="utf-8") as f:
     f.write(' '.join([str(fs)]+channels + ['timestamps']))
 
 # setup buffer

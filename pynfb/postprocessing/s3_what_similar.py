@@ -14,7 +14,7 @@ from json import loads
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 
 settings_file = 'D:\\vnd_spbu\\pilot\\mu5days\\vnd_spbu_5days.json'
-with open(settings_file, 'r') as f:
+with open(settings_file, 'r', encoding="utf-8") as f:
     settings = loads(f.read())
 
 dir_ = settings['dir']

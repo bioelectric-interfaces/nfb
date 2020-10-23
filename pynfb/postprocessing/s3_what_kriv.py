@@ -15,7 +15,7 @@ from json import loads
 from pynfb.protocols.ssd.topomap_selector_ica import ICADialog
 
 settings_file = 'C:\_NFB\old_desctop\\kriv\\vnd_spbu_5days.json'
-with open(settings_file, 'r') as f:
+with open(settings_file, 'r', encoding="utf-8") as f:
     settings = loads(f.read())
 
 dir_ = settings['dir']

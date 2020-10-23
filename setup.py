@@ -14,11 +14,15 @@ install_requires = [
     "sympy",
     "mne",
     "pylsl",
-    "matplotlib==3.2.2",
+    "matplotlib",
+    "gtts",
+    "googletrans"
 ]
 
 extras_require = {
-    "freeze":  ["pyinstaller==3.6"]
+    "freeze":  [
+        "pyinstaller",
+    ]
 }
 
 package_data = {

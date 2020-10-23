@@ -21,7 +21,7 @@ def read_spatial_filter(filepath_or_str, fs, channel_labels=None, roi_label=''):
                 _filter_dict = dict(zip(names, coefs))
                 _filter = array([_filter_dict.get(label.upper(), 0) for label in channel_labels])
             else:
-                with open(filepath_or_str, 'r') as f:
+                with open(filepath_or_str, 'r', encoding="utf-8") as f:
                     lines = array([l.split() for l in f.read().splitlines()])
                 if len(lines[0]) == 1:
                     _filter = lines.astype(float).flatten()
@@ -46,7 +46,7 @@ def save_spatial_filter(file_path, filter_, channels_labels=None):
     :return:
     """
     filter_str = [val + '\n' for val in array(filter_).astype(str)]
-    with open(file_path, 'w') as f:
+    with open(file_path, 'w', encoding="utf-8") as f:
         if channels_labels is None:
             f.writelines(filter_str)
         else:

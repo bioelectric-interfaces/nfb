@@ -19,7 +19,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            with open("../../bci_current_state.pkl", "r") as fp:
+            with open("../../bci_current_state.pkl", "r", encoding="utf-8") as fp:
                 state = float(fp.read())
             # Send message back to client
             state = 1 if state > 6000 else 2

@@ -1,8 +1,17 @@
+import atexit
+import os
 from copy import deepcopy
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 from numpy import vstack
 from numpy.random import randint
+
+from gtts import gTTS
+from googletrans import Translator
+
+from PyQt5.QtCore import QUrl
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 
 from ..helpers.beep import SingleBeep
 from ..serializers.hdf5 import load_h5py_protocols_raw
@@ -166,8 +175,10 @@ class Protocol:
 
 
 class BaselineProtocol(Protocol):
+    translator = Translator()
+
     def __init__(self, signals, name='Baseline', update_statistics_in_the_end=True, text='Relax', half_time_text=None,
-                 **kwargs):
+                 voiceover=False, **kwargs):
         kwargs['name'] = name
         kwargs['update_statistics_in_the_end'] = update_statistics_in_the_end
         super().__init__(signals, **kwargs)
@@ -177,9 +188,29 @@ class BaselineProtocol(Protocol):
         self.half_time_text = half_time_text
         self.is_half_time = False
         self.beep = SingleBeep()
-        pass
+        
+        # audio
+        self.voiceover = voiceover
+        self._audio_player = QMediaPlayer()
+
+        if self.voiceover:
+            tfile = NamedTemporaryFile(delete=False)  # Temporary file that stores audio recording...
+            audio_path = tfile.name
+            atexit.register(lambda: os.remove(audio_path))  # ...that will be removed at program exit.
+
+            # Write voiceover by using google translate text-to-speech and google translate language detector
+            tts = gTTS(self.text, lang=self.translator.detect(self.text).lang)
+            tts.write_to_fp(tfile)
+            tfile.close()
+
+            self._audio_player.setMedia(QMediaContent(QUrl.fromLocalFile(audio_path)))
+        self._audio_played = False
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
+        if self.voiceover and not self._audio_played:
+            self._audio_player.play()
+            self._audio_played = True
+
         if self.half_time_text_change:
             if is_half_time and not self.is_half_time:
                 self.beep.try_to_play()

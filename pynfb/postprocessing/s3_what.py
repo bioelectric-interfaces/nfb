@@ -12,7 +12,7 @@ from IPython.display import clear_output
 from json import loads
 
 settings_file = 'C:\_data\mu5days\\vnd_spbu_5days.json'
-with open(settings_file, 'r') as f:
+with open(settings_file, 'r', encoding="utf-8") as f:
     settings = loads(f.read())
 
 dir_ = settings['dir']

@@ -2,6 +2,8 @@ import sys
 import os
 import argparse
 import multiprocessing
+
+import pynfb
 import matplotlib
 matplotlib.use('TkAgg')
 full_path = os.path.realpath(os.path.dirname(os.path.realpath(__file__))+'/..')
@@ -69,13 +71,8 @@ class TheMainWindow(QtWidgets.QMainWindow):
         #print(self.widget.params)
         params_to_xml_file(self.widget.params, fname)
 
-def except_hook(cls, exception, traceback):
-    sys.__excepthook__(cls, exception, traceback)
 
 def main():
-    multiprocessing.freeze_support()  # Support running nfb in frozen mode (i.e. as an executable)
-    sys.excepthook = except_hook
-
     # Parse and act upon commandline arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("file", nargs="?", help="open an xml experiment file when launched (optional)")
@@ -87,23 +84,31 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    app = QtWidgets.QApplication(sys.argv)
-
     if args.execute:
         # If "Execute" was specified, run the experiment immediately
-        params = xml_file_to_params(args.file)
-        ex = Experiment(app, params)
-    else:
-        main_window = TheMainWindow(app)
+        sys.exit(run(args.file))
 
-        if args.file:
-            # If "file" was specified, open the experiment file right away
-            params = xml_file_to_params(args.file)
-            main_window.widget.params = params
-            main_window.widget.reset_parameters()
+    app = QtWidgets.QApplication(sys.argv)
+    main_window = TheMainWindow(app)
+
+    if args.file:
+        # If "file" was specified, open the experiment file right away
+        params = xml_file_to_params(args.file)
+        main_window.widget.params = params
+        main_window.widget.reset_parameters()
 
     sys.exit(app.exec_())
 
 
+def run(path):
+    app = QtWidgets.QApplication(sys.argv)
+
+    params = xml_file_to_params(path)
+    ex = Experiment(app, params)
+
+    return app.exec_()
+
+
 if __name__ == '__main__':
+    multiprocessing.freeze_support()  # Support running nfb in frozen mode (i.e. as an executable)
     main()
