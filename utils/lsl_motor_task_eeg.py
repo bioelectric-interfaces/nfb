@@ -2,6 +2,23 @@ import numpy as np
 import time
 from threading import Thread
 import os
+from pylsl import StreamInfo, StreamOutlet
+# stream info
+
+class MotorEEGStreamOutlet(StreamOutlet):
+    def __init__(self, name, fs, n_channels, labels, chunk_size):
+        # create stream info
+        info = StreamInfo(name=name, type='EEG', channel_count=n_channels, nominal_srate=fs,
+                          channel_format='float32', source_id='myuid34234')
+
+        # set channels labels (in accordance with XDF format, see also code.google.com/p/xdf)
+        chns = info.desc().append_child("channels")
+        for label in labels:
+            ch = chns.append_child("channel")
+            ch.append_child_value("label", label)
+
+        # init stream
+        super(MotorEEGStreamOutlet, self).__init__(info, chunk_size=chunk_size)
 
 
 class LSLSim:
@@ -12,6 +29,8 @@ class LSLSim:
         self.states_names = df.block_name.unique().tolist()
         self.df = df
         self.chunk_size = chunk_size
+
+        self.stream = MotorEEGStreamOutlet(stream_name, fs, len(self.channels), self.channels, chunk_size)
 
         self.current_state = 0
         self.current_sample = 0
@@ -41,7 +60,8 @@ class LSLSim:
             self.next_block = self._pick_random_block()
             chunk = data[:self.chunk_size]
             self.current_sample = self.chunk_size
-            print(len(data), self.current_block)
+            # print(len(data), self.current_block)
+        self.stream.push_chunk(chunk.tolist())
         self.total_samples += self.chunk_size
         # push chunk
         # print('push chunk {}x{}, current sample {}'.format(*chunk.shape, self.current_sample))
@@ -81,24 +101,30 @@ if __name__ == '__main__':
         print(str(e) + '\nPlease install googledrivedownloader package:\n\n\tpip install googledrivedownloader')
         os._exit(0)
     import pandas as pd
+    import scipy.signal as sg
 
     data_path = './utils/df_motor_probes.pkl'
     if not os.path.exists(data_path):
         gdd.download_file_from_google_drive(file_id='1O9PZ7TUnhcXpsNu3o4yRsVThofFWFuVP', dest_path=data_path)
+
     df = pd.read_pickle(data_path)
+    channels = [col for col in df.columns if col[0].isupper()]
     fs = 250
+    df[channels] = sg.filtfilt(*sg.butter(3, 1 / fs * 2, 'high'), df[channels].values, axis=0)
+
     stream_name = 'lsl_sim'
-    chunk_size = 125
+    chunk_size = 25
 
     lsl_sim = LSLSim(stream_name, fs, df, chunk_size)
 
     break_flag = False
-    def run_lsl_sim(n_seconds=20):
+    def run_lsl_sim(n_seconds=10):
         print('{} Start streaming'.format(lsl_sim.time_str()))
         for k in range(n_seconds*fs//chunk_size):
             lsl_sim.push_chunk()
             time.sleep(chunk_size/fs)
             if break_flag: break
+        del lsl_sim.stream
         print(lsl_sim.info())
         print('{} Stop streaming'.format(lsl_sim.time_str()))
         print('... Press any key to exit ...')
