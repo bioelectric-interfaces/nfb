@@ -1,29 +1,47 @@
 import numpy as np
 import time
 from threading import Thread
+import os
+
 
 class LSLSim:
-    def __init__(self, stream_name, fs, channels, states, data, chunk_size):
+    def __init__(self, stream_name, fs, df, chunk_size):
         self.stream_name = stream_name
         self.fs = fs
-        self.channels = channels
-        self.states_names = states
-        self.data = data
+        self.channels = [col for col in df.columns if col[0].isupper()]
+        self.states_names = df.block_name.unique().tolist()
+        self.df = df
         self.chunk_size = chunk_size
 
         self.current_state = 0
         self.current_sample = 0
         self.total_samples = 0
+        self.state_block_numbers = self._get_block_numbers()
+        self.current_block = self._pick_random_block()
+        self.next_block = self._pick_random_block()
+
+    def _get_block_numbers(self):
+        return self.df.query('block_name=="{}"'.format(self.state))['block_number'].unique()
+
+    def _pick_random_block(self):
+        return self.state_block_numbers[np.random.randint(0, len(self.state_block_numbers))]
+
+    def _get_block_data(self, block_number):
+        return self.df.query('block_number=={}'.format(block_number))[self.channels].values
 
     def push_chunk(self):
         # prepare chunk
-        data = self.data[self.current_state]
+        data = self._get_block_data(self.current_block)
         if self.current_sample + self.chunk_size < len(data):
             chunk = data[self.current_sample:self.current_sample+self.chunk_size]
             self.current_sample += self.chunk_size
         else:
+            data = self._get_block_data(self.next_block)
+            self.current_block = self.next_block
+            self.next_block = self._pick_random_block()
             chunk = data[:self.chunk_size]
             self.current_sample = self.chunk_size
+            print(len(data), self.current_block)
         self.total_samples += self.chunk_size
         # push chunk
         # print('push chunk {}x{}, current sample {}'.format(*chunk.shape, self.current_sample))
@@ -31,11 +49,13 @@ class LSLSim:
     def set_state_by_name(self, state_name):
         self.current_state = self.states_names.index(state_name)
         self.current_sample = 0
+        self.state_block_numbers = self._get_block_numbers()
+        self.next_block = self._pick_random_block()
         print('{} Current state changed to {} {}'.format(self.time_str(), self.current_state, state_name))
 
     def info(self):
         info = self.time_str()
-        info += " Current state: {} {}. ".format(self.current_state, self.state)
+        info += " Current state: {} {}. Block #{}. ".format(self.current_state, self.state, self.current_block)
         info += "Sent {} samples.".format(self.total_samples, self.total_samples//self.fs)
         return info
 
@@ -55,17 +75,25 @@ class LSLSim:
 
 
 if __name__ == '__main__':
-    channels = ['Fp1', 'Fp2', 'Oz']
-    fs = 500
-    stream_name = 'lsl_sim'
-    states = ['Rest', 'Motor']
-    data = [np.random.randn(fs * 10, len(channels)), np.random.randn(fs * 11, len(channels))]
-    chunk_size=100
+    try:
+        from google_drive_downloader import GoogleDriveDownloader as gdd
+    except ModuleNotFoundError as e:
+        print(str(e) + '\nPlease install googledrivedownloader package:\n\n\tpip install googledrivedownloader')
+        os._exit(0)
+    import pandas as pd
 
-    lsl_sim = LSLSim(stream_name, fs, channels, states, data, chunk_size)
+    data_path = './utils/df_motor_probes.pkl'
+    if not os.path.exists(data_path):
+        gdd.download_file_from_google_drive(file_id='1O9PZ7TUnhcXpsNu3o4yRsVThofFWFuVP', dest_path=data_path)
+    df = pd.read_pickle(data_path)
+    fs = 250
+    stream_name = 'lsl_sim'
+    chunk_size = 125
+
+    lsl_sim = LSLSim(stream_name, fs, df, chunk_size)
 
     break_flag = False
-    def run_lsl_sim(n_seconds=10):
+    def run_lsl_sim(n_seconds=20):
         print('{} Start streaming'.format(lsl_sim.time_str()))
         for k in range(n_seconds*fs//chunk_size):
             lsl_sim.push_chunk()
