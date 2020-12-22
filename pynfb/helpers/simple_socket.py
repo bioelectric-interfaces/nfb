@@ -47,9 +47,12 @@ class SimpleServer(SimpleSocket):
         super(SimpleServer, self).__init__()
         self.s.bind((HOST, PORT))
         self.s.listen(1)
-        self.conn = None
+        print('Waiting clients')
+        self.conn, addr = self.s.accept()
+        self.conn.setblocking(False)
+        print('Connected by', addr)
 
-    def pull_array(self):
+    def pull_message(self):
         received_data = (None, None)
         try:
             buffer = self.conn.recv(1024)
@@ -64,11 +67,6 @@ class SimpleServer(SimpleSocket):
         if self.conn is not None:
             self.conn.close()
         super(SimpleServer, self).close()
-
-    def accept(self):
-        self.conn, addr = self.s.accept()
-        self.conn.setblocking(False)
-        print('Connected by', addr)
 
 
 class SimpleClient(SimpleSocket):
