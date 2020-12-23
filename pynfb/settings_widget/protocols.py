@@ -33,6 +33,7 @@ class ProtocolsSettingsWidget(QtWidgets.QWidget):
     def add_action(self):
         self.params.append(protocol_default.copy())
         self.reset_items()
+        self.list.setCurrentItem(self.list.item(len(self.params)-1))
         self.dialogs[-1].open()
 
     def remove_current_item(self, item):
@@ -99,7 +100,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.random_over_time = QtWidgets.QDoubleSpinBox()
         self.random_over_time.setRange(0, 1000000)
         # self.duration.setValue(protocol_default['fDuration'])
-        self.form_layout.addRow('&Random over time [s]:', self.random_over_time)
+        # self.form_layout.addRow('&Random over time [s]:', self.random_over_time)
 
         # update statistics in the end end ssd analysis in the end check boxes
         self.ssd_in_the_end = QtWidgets.QCheckBox()
@@ -127,7 +128,7 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         # fast bci fitting
         self.auto_bci_fit = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Auto BCI fitting:', self.auto_bci_fit)
+        # self.form_layout.addRow('&Auto BCI fitting:', self.auto_bci_fit)
 
         # make signal after protocol
         self.mock_source = QtWidgets.QCheckBox()
@@ -139,11 +140,11 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         # enable detection task
         self.detection_task = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Enable detection task:', self.detection_task)
+        # self.form_layout.addRow('&Enable detection task:', self.detection_task)
 
         # outliers
         self.drop_outliers = QtWidgets.QSpinBox()
-        self.form_layout.addRow('&Drop outliers [std]:', self.drop_outliers)
+        # self.form_layout.addRow('&Drop outliers [std]:', self.drop_outliers)
         self.update_statistics.stateChanged.connect(lambda:
                                                     self.drop_outliers.setEnabled(self.update_statistics.isChecked()))
 
@@ -183,8 +184,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.blink_threshold.setRange(-1e20, 1e20)
         self.blink_threshold.setEnabled(False)
         self.blink_duration_ms.setEnabled(False)
-        self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
-        self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
+        # self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
+        # self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
 
         # mock settings
         # self.mock_checkbox = QtGui.QCheckBox()
@@ -221,9 +222,9 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.m_signal_threshold.setSingleStep(0.01)
         muscular_layout = QtWidgets.QHBoxLayout()
         muscular_layout.addWidget(self.m_signal)
-        muscular_layout.addWidget(QtWidgets.QLabel('Threshold:'))
+        # muscular_layout.addWidget(QtWidgets.QLabel('Threshold:'))
         muscular_layout.addWidget(self.m_signal_threshold)
-        self.form_layout.addRow('Muscular signal:', muscular_layout)
+        # self.form_layout.addRow('Muscular signal:', muscular_layout)
 
         # message text edit
         self.message = QtWidgets.QTextEdit()
@@ -236,25 +237,25 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         # split record (CSP)
         self.split_checkbox = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Add half time\nextra message (for CSP):', self.split_checkbox)
+        # self.form_layout.addRow('&Add half time\nextra message (for CSP):', self.split_checkbox)
         self.message2 = QtWidgets.QTextEdit()
         self.message2.setMaximumHeight(50)
-        self.form_layout.addRow('&Half time extra message:', self.message2)
+        # self.form_layout.addRow('&Half time extra message:', self.message2)
         self.split_checkbox.stateChanged.connect(lambda: self.message2.setEnabled(self.split_checkbox.isChecked()))
         self.message2.setEnabled(False)
 
         # reward settings
         self.reward_signal = QtWidgets.QComboBox()
-        self.form_layout.addRow('&Reward signal:', self.reward_signal)
+        # self.form_layout.addRow('&Reward signal:', self.reward_signal)
         self.reward_threshold = QtWidgets.QDoubleSpinBox()
         self.reward_threshold.setRange(-10000, 10000)
-        self.form_layout.addRow('&Reward threshold:', self.reward_threshold)
+        # self.form_layout.addRow('&Reward threshold:', self.reward_threshold)
         self.show_reward = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Show reward:', self.show_reward)
+        # self.form_layout.addRow('&Show reward:', self.show_reward)
 
         # video path
         self.video_path = FileSelectorLine()
-        self.form_layout.addRow('&Video file:', self.video_path)
+        # self.form_layout.addRow('&Video file:', self.video_path)
 
         # ok button
         self.save_button = QtWidgets.QPushButton('Save')
