@@ -30,7 +30,7 @@ class Protocol:
                  ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None,
-                 random_over_time=0):
+                 random_over_time=0, text=''):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -64,6 +64,7 @@ class Protocol:
         self.beep_after = beep_after
         self.as_mock = as_mock
         self.auto_bci_fit = auto_bci_fit
+        self.text = text
         pass
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
