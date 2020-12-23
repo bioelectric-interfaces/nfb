@@ -45,6 +45,7 @@ class SimpleSocket:
 class SimpleServer(SimpleSocket):
     def __init__(self):
         super(SimpleServer, self).__init__()
+        self.s.settimeout(None)
         self.s.bind((HOST, PORT))
         self.s.listen(1)
         print('Waiting clients')
@@ -111,8 +112,7 @@ if __name__ == '__main__':
 
     # server side
     server = SimpleServer()
-    server.accept()
     while 1:
-        meta_str, obj = server.pull_array()
+        meta_str, obj = server.pull_message()
         if obj is not None:
             print('Received data:', obj, meta_str)
