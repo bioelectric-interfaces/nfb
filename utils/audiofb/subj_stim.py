@@ -5,11 +5,22 @@ from psychopy import visual, core
 import numpy as np
 from pynfb.signal_processing.filters import CFIRBandEnvelopeDetector, DownsampleFilter, SpatialFilter, IdentityFilter
 from pynfb.outlets.signals_outlet import SignalsOutlet
+from utils.audiofb.volume_controller import VolumeController
 
 # init psychopy window
 win = visual.Window([600, 600])
 message = visual.TextStim(win, text='', alignHoriz='center')
 message.autoDraw = True  # Automatically draw every frame
+
+# connect to volume controller
+message.text = 'Сообщение экспериментатору:\nПодключение к Arduino контроллеру громкости...'
+win.flip()
+volume_controller = VolumeController()
+sleep(2)
+volume_controller.set_volume(100)
+sleep(1)
+volume_controller.set_volume(0)
+
 
 # connect to LSL inlet
 message.text = 'Сообщение экспериментатору:\nПодключение к LSL потоку "NVX136_Data"...'
@@ -51,10 +62,12 @@ while 1:
 
     meta_str, obj = server.pull_message()
     if meta_str == 'msg':
+        volume_controller.set_volume(0)
         print('Dummy.. Set message to "{}"'.format(obj))
         message.text = obj
         win.flip()
     if meta_str == 'fb1':
+        volume_controller.set_volume((np.tanh(score[-1])/2+0.5)*30+70)
         print('Dummy.. Run FB. Set message to "{}"'.format(obj))
         message.text = obj
         win.flip()
