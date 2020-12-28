@@ -44,40 +44,47 @@ cfir = CFIRBandEnvelopeDetector([8, 12], fs, IdentityFilter())
 mean = 0
 std = 1
 
+# init values
+score = np.zeros(1)
 
 while 1:
+    # receive and process chunk
     chunk, timestamp = lsl_in.get_next_chunk()
     if chunk is not None:
-        print(chunk.shape)
+        # down sampling
         chunk = downsampler.apply(chunk)
 
+        # compute feedback score
         if len(chunk) > 0:
-            print(chunk.shape)
             virtual_channel = chunk.dot(spatial_filter)
             envelope = cfir.apply(virtual_channel)
             score = (envelope - mean)/std if std > 0 else 404
 
-            for sample in chunk:
-                lsl_out.push_sample(sample)
+            # push down-sampled chunk to lsl outlet
+            lsl_out.push_chunk(chunk.tolist())
 
+    # handle NFBLab client messages
     meta_str, obj = server.pull_message()
-    if meta_str == 'msg':
+    if meta_str is None:
+        continue
+    elif meta_str == 'msg':  # baseline blocks (set message and stop NFB)
         volume_controller.set_volume(0)
         print('Dummy.. Set message to "{}"'.format(obj))
         message.text = obj
         win.flip()
-    if meta_str == 'fb1':
-        volume_controller.set_volume((np.tanh(score[-1])/2+0.5)*30+70)
+    elif meta_str == 'fb1':  # fb blocks
+        volume = (np.tanh(score[-1])/2+0.5)*30+70
+        volume_controller.set_volume(volume)
         print('Dummy.. Run FB. Set message to "{}"'.format(obj))
         message.text = obj
         win.flip()
-    if meta_str == 'spt':
+    elif meta_str == 'spt':  # update spatial filter
         spatial_filter = obj
         print('Dummy.. Set spatial filter to {}'.format(obj))
-    if meta_str == 'bnd':
+    elif meta_str == 'bnd':  # update bandpass filter
         cfir = CFIRBandEnvelopeDetector(obj, fs, IdentityFilter())
         print('Dummy.. Set band to {}'.format(obj))
-    if meta_str == 'std':
+    elif meta_str == 'std':  # update fb score stats
         mean, std = obj
         print('Dummy.. Set stats to {}'.format(obj))
 
