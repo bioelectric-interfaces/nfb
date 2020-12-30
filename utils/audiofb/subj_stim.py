@@ -7,7 +7,7 @@ from pynfb.signal_processing.filters import CFIRBandEnvelopeDetector, Downsample
 from pynfb.outlets.signals_outlet import SignalsOutlet
 from utils.audiofb.volume_controller import VolumeController
 
-FS_OUT = 250
+FS_OUT = 500
 
 # init psychopy window
 win = visual.Window([600, 600])
@@ -61,10 +61,9 @@ while 1:
             virtual_channel = chunk.dot(spatial_filter)
             envelope = cfir.apply(virtual_channel)
             score = (envelope - mean)/(std if std > 0 else 1)
-            print(envelope, score)
 
             if play_feedback:
-                volume = (np.tanh(score[-1]) / 2 + 0.5) * 100
+                volume = (np.tanh(-score[-1]) / 2 + 0.5) * 50 + 50
                 volume_controller.set_volume(volume)
 
             # push down-sampled chunk to lsl outlet
