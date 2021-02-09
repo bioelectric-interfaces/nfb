@@ -112,6 +112,9 @@ class DerivedSignal:
         # current sample
         self.previous_sample = 0
         self.current_chunk = None
+
+        self.source_freq = source_freq
+        self.smoother = smoother
         pass
 
     def spatial_filter_is_zeros(self):
@@ -161,6 +164,9 @@ class DerivedSignal:
 
     def update_bandpass(self, bandpass):
         self.bandpass = bandpass
+        if isinstance(self.signal_estimator, CFIRBandEnvelopeDetector):
+            self.signal_estimator = CFIRBandEnvelopeDetector(self.bandpass, self.source_freq, self.smoother,
+                                                             n_taps=self.n_samples)
 
     def drop_rejection(self, ind):
         self.rejections.drop(ind)
