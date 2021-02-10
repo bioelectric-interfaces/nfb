@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import multiprocessing
+import traceback
 
 import pynfb
 import matplotlib
@@ -24,6 +25,11 @@ class TheMainWindow(QtWidgets.QMainWindow):
         super(TheMainWindow, self).__init__()
         self.setWindowIcon(QtGui.QIcon(STATIC_PATH + '/imag/settings.png'))
         self.app = app
+        
+        # Set custom excepthook that shows the error message as a QMessageBox
+        self.__excepthook__ = sys.excepthook
+        sys.excepthook = self.excepthook
+
         self.initUI()
 
 
@@ -71,6 +77,47 @@ class TheMainWindow(QtWidgets.QMainWindow):
         #print(self.widget.params)
         params_to_xml_file(self.widget.params, fname)
 
+    def excepthook(self, etype, value, tb):
+        message = tracebackMessageBox(self, etype, value, tb)
+        message.exec_()
+
+        self.__excepthook__(etype, value, tb)
+
+
+def tracebackMessageBox(parent, etype, value, tb):
+    msg = QtWidgets.QMessageBox(parent)
+    msg.setWindowTitle("Critical Error")
+    msg.setText(
+        "An unknown critical error occured. It is recommended to save your work and restart NFB Lab.\n\n"
+        "Please inform the developer, describing what you were doing before the error, and attach the text below."
+    )
+    msg.setIcon(msg.Critical)
+
+    exception_field = QtWidgets.QTextEdit()
+    exception_field.setText("".join(traceback.format_exception(etype, value, tb)))
+    exception_field.setReadOnly(True)
+    msg.layout().addWidget(exception_field, 1, 0, 1, -1)
+
+    return msg
+
+
+def run(path):
+    """Run the experiment without showing config UI."""
+    app = QtWidgets.QApplication(sys.argv)
+
+    # Set up exceptions
+    __excepthook__ = sys.excepthook
+    def excepthook(etype, value, tb):
+        message = tracebackMessageBox(None, etype, value, tb)
+        message.exec_()
+        __excepthook__(etype, value, tb)
+    sys.excepthook = excepthook
+
+    params = xml_file_to_params(path)
+    ex = Experiment(app, params)
+
+    return app.exec_()
+
 
 def main():
     # Parse and act upon commandline arguments
@@ -97,18 +144,9 @@ def main():
         main_window.widget.params = params
         main_window.widget.reset_parameters()
 
-    sys.exit(app.exec_())
-
-
-def run(path):
-    app = QtWidgets.QApplication(sys.argv)
-
-    params = xml_file_to_params(path)
-    ex = Experiment(app, params)
-
     return app.exec_()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # Support running nfb in frozen mode (i.e. as an executable)
-    main()
+    sys.exit(main())
