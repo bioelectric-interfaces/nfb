@@ -51,7 +51,7 @@ def save_channels_and_fs(file_path, channels, fs):
 def load_channels_and_fs(file_path):
     # save channels names and sampling frequency
     with h5py.File(file_path, 'r') as f:
-        return [s.decode('utf-8') for s in f['channels'][:]], int(f['fs'].value)
+        return [s.decode('utf-8') for s in f['channels'][:]], int(f['fs'][()])
 
 
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, timestamp_data=None, signals_data=None,

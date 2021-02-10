@@ -26,7 +26,7 @@ def _get_signals_list(xml_str):
 def _get_info(f):
     if 'channels' in f:
         channels = [ch.decode("utf-8")  for ch in f['channels'][:]]
-        fs = f['fs'].value
+        fs = int(f['fs'][()])
     else:
         channels, fs = _get_channels_and_fs(f['stream_info.xml'][0])
     signals = _get_signals_list(f['settings.xml'][0])
