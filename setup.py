@@ -30,7 +30,8 @@ package_data = {
 }
 
 entry_points = {
-    "gui_scripts": ["pynfb=pynfb.main:main"]
+    "gui_scripts": ["pynfb = pynfb.main:main"],
+    "console_scripts": ["pynfb-d = pynfb.main:main"],
 }
 
 setup(
