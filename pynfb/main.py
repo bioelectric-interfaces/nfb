@@ -14,7 +14,9 @@ print(full_path)
 sys.path.insert(0, full_path)
 from pynfb.settings_widget import SettingsWidget
 from pynfb.experiment import Experiment
+from pynfb.widgets.helpers import ScrollArea
 from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 import sys
 from pynfb.serializers.xml_ import *
 
@@ -59,9 +61,15 @@ class TheMainWindow(QtWidgets.QMainWindow):
         fileMenu.addAction(exitAction)
         # parameter tree
         self.widget = SettingsWidget(self.app)
-        self.setCentralWidget(self.widget)
+        scrollArea = ScrollArea()
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scrollArea.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scrollArea.setWidget(self.widget)
+        self.setCentralWidget(scrollArea)
         # window settings
-        self.setGeometry(200, 200, 500, 400)
         self.setWindowTitle('Experiment settings')
         self.show()
 

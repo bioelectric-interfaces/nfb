@@ -31,3 +31,19 @@ class WaitMessage(QtWidgets.QWidget):
         self.show()
         self.repaint()
         return self
+
+
+class ScrollArea(QtWidgets.QScrollArea):
+    """A QScrollArea without silly size restrictions (see https://stackoverflow.com/a/55528401/9118363)"""
+    def sizeHint(self) -> QtCore.QSize:
+        sz = self.viewportSizeHint()
+        f = self.frameWidth() * 2
+        sz += QtCore.QSize(f, f)
+
+        if self.verticalScrollBarPolicy() == QtCore.Qt.ScrollBarAlwaysOn:
+            sz.setWidth(sz.width() + self.verticalScrollBar().sizeHint().width())
+        
+        if self.horizontalScrollBarPolicy() == QtCore.Qt.ScrollBarAlwaysOn:
+            sz.setHeight(sz.height() + self.horizontalScrollBar().sizeHint().height())
+        
+        return sz
