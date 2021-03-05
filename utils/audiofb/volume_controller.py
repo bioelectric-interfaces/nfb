@@ -44,3 +44,8 @@ class VolumeController:
 
     def set_volume(self, volume):
         self.ser.write(codes_to_bytes(level_to_codes(volume)))
+
+
+if __name__ == '__main__':
+    vc = VolumeController()
+    vc.set_volume(100)

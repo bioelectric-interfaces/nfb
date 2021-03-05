@@ -42,6 +42,7 @@ server = SimpleServer()
 # setup filters
 downsampler = DownsampleFilter(int(fs_in / FS_OUT), len(channels))
 spatial_filter = np.zeros(len(channels))
+spatial_filter[0] = 1
 cfir = CFIRBandEnvelopeDetector([8, 12], FS_OUT, ExponentialSmoother(0.), n_taps=500)
 mean = 0
 std = 1
@@ -54,6 +55,7 @@ while 1:
     chunk, timestamp = lsl_in.get_next_chunk()
     if chunk is not None:
         # down sampling
+        chunk[:, -1] = np.abs(chunk[:, -1])
         chunk = downsampler.apply(chunk)
 
         # compute feedback score
@@ -63,7 +65,8 @@ while 1:
             score = (envelope - mean)/(std if std > 0 else 1)
 
             if play_feedback:
-                volume = (np.tanh(-score[-1]) / 2 + 0.5) * 50 + 50
+                volume = (np.tanh(score[-1]) / 2 + 0.5) * 50 + 50
+                # print(score, volume)
                 volume_controller.set_volume(volume)
 
             # push down-sampled chunk to lsl outlet
