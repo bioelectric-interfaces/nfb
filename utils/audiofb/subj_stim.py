@@ -1,7 +1,7 @@
 from pynfb.helpers.simple_socket import SimpleServer
 from pynfb.inlets.lsl_inlet import LSLInlet
 from time import sleep
-from psychopy import visual, core
+from psychopy import visual, core, sound
 import numpy as np
 from pynfb.signal_processing.filters import CFIRBandEnvelopeDetector, DownsampleFilter, SpatialFilter, IdentityFilter, ExponentialSmoother
 from pynfb.outlets.signals_outlet import SignalsOutlet
@@ -13,6 +13,7 @@ FS_OUT = 500
 win = visual.Window([600, 600])
 message = visual.TextStim(win, text='', alignHoriz='center')
 message.autoDraw = True  # Automatically draw every frame
+beep = sound.Sound('A')
 
 # connect to volume controller
 message.text = 'Сообщение экспериментатору:\nПодключение к Arduino контроллеру громкости...'
@@ -81,6 +82,8 @@ while 1:
         volume_controller.set_volume(0)
         print('Dummy.. Set message to "{}"'.format(obj))
         message.text = obj
+        if obj == 'Pause':
+            beep.play()
         win.flip()
     elif meta_str == 'fb1':  # fb blocks
         play_feedback = True
