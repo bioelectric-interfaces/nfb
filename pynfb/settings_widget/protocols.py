@@ -1,6 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 
 from pynfb.serializers.defaults import vectors_defaults as defaults
+from pynfb.widgets.helpers import ScrollArea
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
 protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video']
@@ -82,7 +84,24 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params = parent.params
         self.parent_list = parent
         self.setWindowTitle('Properties: ' + protocol_name)
-        self.form_layout = QtWidgets.QFormLayout(self)
+
+        # Set up a scroll area
+        dialogLayout = QtWidgets.QVBoxLayout(self)
+        dialogLayout.setContentsMargins(0, 0, 0, 0)
+
+        scrollArea = ScrollArea()
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scrollArea.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
+        dialogLayout.addWidget(scrollArea)
+
+        scrollWidget = QtWidgets.QWidget()
+        self.form_layout = QtWidgets.QFormLayout(scrollWidget)
+        scrollWidget.sizeHint = lambda: scrollWidget.layout().sizeHint()
+        scrollWidget.setContentsMargins(0, 0, 0, 0)
+        scrollArea.setWidget(scrollWidget)
 
         # name line edit
         self.name = QtWidgets.QLineEdit(self)
@@ -260,6 +279,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.save_button = QtWidgets.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
         self.form_layout.addRow(self.save_button)
+
+        self.setMaximumWidth(self.layout().sizeHint().width())
 
     def handle_enable_mock_previous(self):
         self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
