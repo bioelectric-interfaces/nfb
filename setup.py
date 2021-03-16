@@ -30,12 +30,13 @@ package_data = {
 }
 
 entry_points = {
-    "gui_scripts": ["pynfb=pynfb.main:main"]
+    "gui_scripts": ["pynfb = pynfb.main:main"],
+    "console_scripts": ["pynfb-d = pynfb.main:main"],
 }
 
 setup(
     name="pynfb",
-    version="0.1",
+    version="1.0.0",
     description="Conduct experiments in real-time EEG/MEG paradigm",
     install_requires=install_requires,
     extras_require=extras_require,

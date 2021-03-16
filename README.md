@@ -4,7 +4,7 @@
 ## Installation
 Prerequisites: [python](https://www.python.org/), [git](https://git-scm.com/), optionally [conda](https://docs.conda.io/en/latest/miniconda.html).
 
-**Warning:** NFB Studio requires you install some outdated versions of packages. Consider installing it in a virtual enviroment, using tools such as venv or conda. For example, if using conda, create and activate a new environment by running these commands first:
+**Warning:** NFB Lab requires you install some outdated versions of packages. Consider installing it in a virtual enviroment, using tools such as venv or conda. For example, if using conda, create and activate a new environment by running these commands first:
 ```
 conda create -n nfb python pip
 conda activate nfb
@@ -12,7 +12,7 @@ conda activate nfb
 
 Regardless of whether or not you are using a virtual environment, clone this repository and install the package in editable mode by running:
 ```
-git clone https://github.com/nikolaims/nfb
+git clone https://github.com/bioelectric-interfaces/nfb
 cd nfb
 pip install -e .
 ```
@@ -21,6 +21,10 @@ pip install -e .
 After installation, NFB Lab can be run from anywhere by using this command (when using a virtual environment, it has to be active):
 ```
 pynfb
+```
+If you are experiencing sudden application crashes, you may wish to launch NFB Lab in debug mode:
+```
+pynfb-d
 ```
 Or from the folder you installed it in:
 ```
@@ -53,13 +57,12 @@ optional arguments:
 ```
 For example, to open an XML file with an experiment that you designed from command line, specify the path to it like so:
 ```
-python pynfb/main.py your-experiment-file.xml
+pynfb your-experiment-file.xml
 ```
 To run the experiment without configuring, use the `-x` or `--execute` option:
 ```
-python pynfb/main.py -x your-experiment-file.xml
+pynfb -x your-experiment-file.xml
 ```
-**Note:** The same command-line options are available for the `pynfb` executable, but since the console output is hidden, if you make a mistake the application will just not start.
 
 ## Acknowledgements
 This work was supported by the [Center for Bioelectric Interfaces](https://bioelectric.hse.ru/en/) of the Institute for Cognitive Neuroscience of the National Research University Higher School of Economics, RF Government grant, ag. No. 14.641.31.0003.

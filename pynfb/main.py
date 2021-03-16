@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 import multiprocessing
+import traceback
 
 import pynfb
 import matplotlib
@@ -13,7 +14,9 @@ print(full_path)
 sys.path.insert(0, full_path)
 from pynfb.settings_widget import SettingsWidget
 from pynfb.experiment import Experiment
+from pynfb.widgets.helpers import ScrollArea
 from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 import sys
 from pynfb.serializers.xml_ import *
 
@@ -24,6 +27,11 @@ class TheMainWindow(QtWidgets.QMainWindow):
         super(TheMainWindow, self).__init__()
         self.setWindowIcon(QtGui.QIcon(STATIC_PATH + '/imag/settings.png'))
         self.app = app
+        
+        # Set custom excepthook that shows the error message as a QMessageBox
+        self.__excepthook__ = sys.excepthook
+        sys.excepthook = self.excepthook
+
         self.initUI()
 
 
@@ -53,9 +61,15 @@ class TheMainWindow(QtWidgets.QMainWindow):
         fileMenu.addAction(exitAction)
         # parameter tree
         self.widget = SettingsWidget(self.app)
-        self.setCentralWidget(self.widget)
+        scrollArea = ScrollArea()
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scrollArea.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scrollArea.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
+        scrollArea.setWidgetResizable(True)
+        scrollArea.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scrollArea.setWidget(self.widget)
+        self.setCentralWidget(scrollArea)
         # window settings
-        self.setGeometry(200, 200, 500, 400)
         self.setWindowTitle('Experiment settings')
         self.show()
 
@@ -70,6 +84,47 @@ class TheMainWindow(QtWidgets.QMainWindow):
         fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', './')[0]
         #print(self.widget.params)
         params_to_xml_file(self.widget.params, fname)
+
+    def excepthook(self, etype, value, tb):
+        message = tracebackMessageBox(self, etype, value, tb)
+        message.exec_()
+
+        self.__excepthook__(etype, value, tb)
+
+
+def tracebackMessageBox(parent, etype, value, tb):
+    msg = QtWidgets.QMessageBox(parent)
+    msg.setWindowTitle("Critical Error")
+    msg.setText(
+        "An unknown critical error occured. It is recommended to save your work and restart NFB Lab.\n\n"
+        "Please inform the developer, describing what you were doing before the error, and attach the text below."
+    )
+    msg.setIcon(msg.Critical)
+
+    exception_field = QtWidgets.QTextEdit()
+    exception_field.setText("".join(traceback.format_exception(etype, value, tb)))
+    exception_field.setReadOnly(True)
+    msg.layout().addWidget(exception_field, 1, 0, 1, -1)
+
+    return msg
+
+
+def run(path):
+    """Run the experiment without showing config UI."""
+    app = QtWidgets.QApplication(sys.argv)
+
+    # Set up exceptions
+    __excepthook__ = sys.excepthook
+    def excepthook(etype, value, tb):
+        message = tracebackMessageBox(None, etype, value, tb)
+        message.exec_()
+        __excepthook__(etype, value, tb)
+    sys.excepthook = excepthook
+
+    params = xml_file_to_params(path)
+    ex = Experiment(app, params)
+
+    return app.exec_()
 
 
 def main():
@@ -97,18 +152,9 @@ def main():
         main_window.widget.params = params
         main_window.widget.reset_parameters()
 
-    sys.exit(app.exec_())
-
-
-def run(path):
-    app = QtWidgets.QApplication(sys.argv)
-
-    params = xml_file_to_params(path)
-    ex = Experiment(app, params)
-
     return app.exec_()
 
 
 if __name__ == '__main__':
     multiprocessing.freeze_support()  # Support running nfb in frozen mode (i.e. as an executable)
-    main()
+    sys.exit(main())

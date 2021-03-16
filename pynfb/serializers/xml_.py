@@ -52,8 +52,12 @@ def xml_file_to_odict(filename_or_str):
         return key, value
     # read and parse
     if '<NeurofeedbackSignalSpecs>' not in filename_or_str:
-        with open(filename_or_str, 'r', encoding="utf-8") as f:
-            d = parse(f.read(), postprocessor=postprocessor)
+        try:
+            with open(filename_or_str, 'r', encoding="utf-8") as f:
+                d = parse(f.read(), postprocessor=postprocessor)
+        except UnicodeDecodeError:
+            with open(filename_or_str, 'r', encoding="cp1251") as f:
+                d = parse(f.read(), postprocessor=postprocessor)
     else:
         d = parse(filename_or_str, postprocessor=postprocessor)
 

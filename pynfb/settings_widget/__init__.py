@@ -45,6 +45,10 @@ class SettingsWidget(QtWidgets.QWidget):
         name_layout = QtWidgets.QHBoxLayout()
         v_layout.addWidget(start_button, alignment=QtCore.Qt.AlignCenter)
         self.setLayout(v_layout)
+        self.setMinimumSize(self.layout().minimumSize())
+
+    def sizeHint(self):
+        return self.minimumSize()
 
     def reset_parameters(self):
         self.signals_list.reset_items()
