@@ -31,6 +31,7 @@ a = Analysis(
         "sklearn.neighbors._typedefs",
         "sklearn.neighbors._quad_tree",
         "sklearn.utils._cython_blas",
+        "sklearn.utils._weight_vector",
         "sklearn.tree._utils"
     ],
     hookspath=[],
