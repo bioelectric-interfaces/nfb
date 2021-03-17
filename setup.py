@@ -36,7 +36,7 @@ entry_points = {
 
 setup(
     name="pynfb",
-    version="0.1.0",
+    version="0.2.0",
     description="Conduct experiments in real-time EEG/MEG paradigm",
     install_requires=install_requires,
     extras_require=extras_require,
