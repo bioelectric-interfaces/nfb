@@ -120,11 +120,11 @@ class ScoredComponentsTable(QtWidgets.QTableWidget):
                 plot_widget.setXLink(_previous_plot_link)
                 # plot_widget.setYLink(_previous_plot_link)
             _previous_plot_link = plot_widget
-            plot_widget.plot(y=self.time_series[:, ind])
+            x = np.arange(self.time_series.shape[0]) / fs
+            plot_widget.plot(x=x, y=self.time_series[:, ind])
             if self.marks is not None:
-                plot_widget.plot(y=self.marks*np.max(self.time_series[:, ind]), pen=(1,3))
-                plot_widget.plot(y=-self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
-            plot_widget.plot(x=np.arange(self.time_series.shape[0]) / fs)
+                plot_widget.plot(x=x, y=self.marks*np.max(self.time_series[:, ind]), pen=(1,3))
+                plot_widget.plot(x=x, y=-self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
 
             plot_widget.setMaximumHeight(self.row_items_max_height)
             plot_widget.plotItem.getViewBox().state['wheelScaleFactor'] = 0
