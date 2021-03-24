@@ -48,39 +48,20 @@ class DerivedSignal:
                  estimator_type='envdetector', filter_order=2, delay_ms=0):
 
         self.n_samples = int(n_samples)
+        self.fs = source_freq
+        self.delay_ms = delay_ms
+
+        self.estimator_type = estimator_type
+        self.smoother_type = smoother_type
+        self.smoothing_factor = smoothing_factor
+        self.temporal_filter_type = temporal_filter_type
+        self.filter_order = filter_order
 
         # bandpass
         self.bandpass = (bandpass_low if bandpass_low else 0,
                          bandpass_high if bandpass_high else source_freq)
 
-        if estimator_type == 'envdetector':
-            # setup smoother
-            if smoother_type == 'exp':
-                smoother = ExponentialSmoother(smoothing_factor)
-            elif smoother_type == 'savgol':
-                smoother = SGSmoother(151, 2)
-            else:
-                raise TypeError('Incorrect smoother type')
-            # setup specific parameters of envelope detector
-            if temporal_filter_type == 'fft':
-                self.signal_estimator = FFTBandEnvelopeDetector(self.bandpass, source_freq, smoother, self.n_samples)
-            elif temporal_filter_type == 'complexdem':
-                self.signal_estimator = ComplexDemodulationBandEnvelopeDetector(self.bandpass, source_freq, smoother)
-            elif temporal_filter_type == 'butter':
-                self.signal_estimator = ButterBandEnvelopeDetector(self.bandpass, source_freq, smoother, filter_order)
-            elif temporal_filter_type == 'cfir':
-                self.signal_estimator = CFIRBandEnvelopeDetector(self.bandpass, source_freq, smoother, n_taps=self.n_samples)
-            else:
-                raise TypeError('Incorrect envelope detector type')
-        elif estimator_type == 'filter':
-            self.signal_estimator = ScalarButterFilter(self.bandpass, source_freq, filter_order)
-        elif estimator_type == 'identity':
-            self.signal_estimator = IdentityFilter()
-        else:
-            raise TypeError('Incorrect estimator type')
-
-        if delay_ms > 0:
-            self.signal_estimator = FilterSequence([self.signal_estimator, DelayFilter(int(source_freq*delay_ms/1000))])
+        self.signal_estimator = self.reset_signal_estimator()
 
         # id
         self.ind = ind
@@ -113,6 +94,38 @@ class DerivedSignal:
         self.previous_sample = 0
         self.current_chunk = None
         pass
+
+    def reset_signal_estimator(self):
+        if self.estimator_type == 'envdetector':
+            # setup smoother
+            if self.smoother_type == 'exp':
+                smoother = ExponentialSmoother(self.smoothing_factor)
+            elif self.smoother_type == 'savgol':
+                smoother = SGSmoother(151, 2)
+            else:
+                raise TypeError('Incorrect smoother type')
+            # setup specific parameters of envelope detector
+            if self.temporal_filter_type == 'fft':
+                self.signal_estimator = FFTBandEnvelopeDetector(self.bandpass, self.fs, smoother, self.n_samples)
+            elif self.temporal_filter_type == 'complexdem':
+                self.signal_estimator = ComplexDemodulationBandEnvelopeDetector(self.bandpass, self.fs, smoother)
+            elif self.temporal_filter_type == 'butter':
+                self.signal_estimator = ButterBandEnvelopeDetector(self.bandpass, self.fs, smoother, self.filter_order)
+            elif self.temporal_filter_type == 'cfir':
+                self.signal_estimator = CFIRBandEnvelopeDetector(self.bandpass, self.fs, smoother, n_taps=self.n_samples)
+            else:
+                raise TypeError('Incorrect envelope detector type')
+        elif self.estimator_type == 'filter':
+            self.signal_estimator = ScalarButterFilter(self.bandpass, self.fs, self.filter_order)
+        elif self.estimator_type == 'identity':
+            self.signal_estimator = IdentityFilter()
+        else:
+            raise TypeError('Incorrect estimator type')
+
+        if self.delay_ms > 0:
+            self.signal_estimator = FilterSequence([self.signal_estimator, DelayFilter(int(self.fs*self.delay_ms/1000))])
+
+        return self.signal_estimator
 
     def spatial_filter_is_zeros(self):
         return (self.spatial_filter == 0).all()
@@ -161,6 +174,7 @@ class DerivedSignal:
 
     def update_bandpass(self, bandpass):
         self.bandpass = bandpass
+        self.signal_estimator = self.reset_signal_estimator()
 
     def drop_rejection(self, ind):
         self.rejections.drop(ind)
