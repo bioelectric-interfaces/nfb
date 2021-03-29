@@ -66,7 +66,7 @@ class ICADialog(QtWidgets.QDialog):
         self.scores = self.decomposition.scores
         self.unmixing_matrix = self.decomposition.filters
         self.topographies = self.decomposition.topographies
-        self.components = np.dot(self.raw_data, self.unmixing_matrix)
+        self.components = np.dot(self.decomposition.temporal_filter.apply(self.raw_data), self.unmixing_matrix)
 
 
         print('ICA/CSP time elapsed = {}s'.format(time() - timer))
@@ -162,7 +162,7 @@ class ICADialog(QtWidgets.QDialog):
         self.scores = self.decomposition.scores
         self.unmixing_matrix = self.decomposition.filters
         self.topographies = self.decomposition.topographies
-        self.components = np.dot(self.raw_data, self.unmixing_matrix)
+        self.components = np.dot(self.decomposition.temporal_filter.apply(self.raw_data), self.unmixing_matrix)
         self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
