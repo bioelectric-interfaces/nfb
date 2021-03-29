@@ -79,11 +79,12 @@ class ButterFilter(BaseFilter):
     def __init__(self, band, fs, n_channels, order=4):
         self.n_channels = n_channels
         low, high = band
-        if low is None and high is None:
-            raise ValueError('band should involve one or two not None values')
-        elif low is None:
+        if (low is None and high is None) or (low == 0 and high == fs/2):
+            print(f'Band {band} covers full fft range {(0, fs/2)}')
+            self.b = self.a = np.array([1.])
+        elif low is None or low == 0:
             self.b, self.a = butter(order, high/fs*2, btype='low')
-        elif high is None:
+        elif high is None or high == fs/2:
             self.b, self.a = butter(order, low/fs*2, btype='high')
         else:
             self.b, self.a = butter(order, [low/fs*2, high/fs*2], btype='band')

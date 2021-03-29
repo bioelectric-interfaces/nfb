@@ -25,7 +25,7 @@ def mutual_info(x, y, bins=100):
 
 class ICADialog(QtWidgets.QDialog):
     def __init__(self, raw_data, channel_names, fs, parent=None, decomposition=None, mode='ica', filters=None,
-                 scores=None, states=None, labels=None, _stimulus_split=False, marks=None):
+                 scores=None, states=None, labels=None, _stimulus_split=False, marks=None, band=None):
         super(ICADialog, self).__init__(parent)
         self.setWindowTitle(mode.upper())
         self.setMinimumWidth(800)
@@ -35,15 +35,15 @@ class ICADialog(QtWidgets.QDialog):
         if decomposition is None:
             if mode == 'csp':
                 if not _stimulus_split:
-                    self.decomposition = CSPDecomposition(channel_names, fs)
+                    self.decomposition = CSPDecomposition(channel_names, fs, band)
                     if labels is None:
                         labels = np.zeros(raw_data.shape[0])
                         labels[len(labels)//2:] = 1
                 else:
-                    self.decomposition = CSPDecompositionStimulus(channel_names, fs)
+                    self.decomposition = CSPDecompositionStimulus(channel_names, fs, band)
                     labels = marks
             elif mode == 'ica':
-                self.decomposition = ICADecomposition(channel_names, fs)
+                self.decomposition = ICADecomposition(channel_names, fs, band)
         else:
             self.decomposition = decomposition
 
@@ -94,7 +94,7 @@ class ICADialog(QtWidgets.QDialog):
         self.update_band_checkbox = QtWidgets.QCheckBox('Update band')
 
         # setup sliders
-        self.sliders = Sliders(fs, reg_coef=(mode == 'csp'), stimulus_split=_stimulus_split)
+        self.sliders = Sliders(fs, reg_coef=(mode == 'csp'), stimulus_split=_stimulus_split, band=band)
         self.sliders.apply_button.clicked.connect(self.recompute)
         self.lambda_csp3 = states
         layout.addWidget(self.sliders)
@@ -166,9 +166,11 @@ class ICADialog(QtWidgets.QDialog):
         self.table.redraw(self.components, self.topographies, self.unmixing_matrix, self.scores)
 
     @classmethod
-    def get_rejection(cls, raw_data, channel_names, fs, decomposition=None, mode='ica', states=None, labels=None, _stimulus_split=False, marks=None):
+    def get_rejection(cls, raw_data, channel_names, fs, decomposition=None, mode='ica', states=None, labels=None,
+                      _stimulus_split=False, marks=None, band=None):
         wait_bar = WaitMessage(mode.upper() + WAIT_BAR_MESSAGES['CSP_ICA']).show_and_return()
-        selector = cls(raw_data, channel_names, fs, decomposition=decomposition, mode=mode, states=states, labels=labels, _stimulus_split=_stimulus_split, marks=marks)
+        selector = cls(raw_data, channel_names, fs, decomposition=decomposition, mode=mode, states=states,
+                       labels=labels, _stimulus_split=_stimulus_split, marks=marks, band=band)
         wait_bar.close()
         result = selector.exec_()
         bandpass = selector.bandpass if selector.update_band_checkbox.isChecked() else None

@@ -401,9 +401,9 @@ class SignalsSSDManager(QtWidgets.QDialog):
                 ica_rejection, filter, topography, self.ica_unmixing_matrix, bandpass, to_all = result
             rejections = []
         elif csp:
-            rejection, filter, topography, _, bandpass, to_all = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                                     mode='csp', _stimulus_split=self.stimulus_split.isChecked(),
-                                                                                         marks=self.marks)
+            rejection, filter, topography, _, bandpass, to_all = ICADialog.get_rejection(
+                x, self.channels_names, self.sampling_freq, mode='csp', _stimulus_split=self.stimulus_split.isChecked(),
+                marks=self.marks, band=self.table.cellWidget(row, self.table.columns.index('Band')).get_band())
             rejections = [rejection] if rejection is not None else []
         else:
             filter, topography, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, self.pos,
