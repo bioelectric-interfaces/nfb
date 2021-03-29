@@ -10,6 +10,7 @@ class Sliders(QtWidgets.QWidget):
         self.setLayout(h_layout)
         h_layout.addLayout(v_layout)
         self.parameters = {}
+        self.sample_freq = sample_freq
 
         self.defaults = {'bandpass_low': 3,
                         'regularizator': 0.05,
@@ -43,13 +44,13 @@ class Sliders(QtWidgets.QWidget):
             self.parameters['poststim_interval'].hide()
 
         # central bandpass_low slider
-        self.parameters['bandpass_low'] = ParameterSlider('Bandpass low:', 0, sample_freq/2, sample_freq/10,
+        self.parameters['bandpass_low'] = ParameterSlider('Bandpass low:', 0, min(50, sample_freq/2), 1,
                                                           value=self.defaults['bandpass_low'])
         self.parameters['bandpass_low'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['bandpass_low'])
 
         # flanker bandpass_low
-        self.parameters['bandpass_high'] = ParameterSlider('Bandpass high:', 0, sample_freq/2, sample_freq/10,
+        self.parameters['bandpass_high'] = ParameterSlider('Bandpass high:', 0, min(50, sample_freq/2), 1,
                                                            value=self.defaults['bandpass_high'])
         self.parameters['bandpass_high'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['bandpass_high'])
@@ -73,6 +74,10 @@ class Sliders(QtWidgets.QWidget):
 
     def getValues(self):
         values = dict([(key, param.getValue()) for key, param in self.parameters.items()])
+        if values['bandpass_low'] == 0:
+            values['bandpass_low'] = None
+        if values['bandpass_high'] == self.sample_freq/2:
+            values['bandpass_high'] = None
         return values
 
 
