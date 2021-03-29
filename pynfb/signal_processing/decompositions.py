@@ -29,7 +29,7 @@ class SpatialDecomposition:
         self.pos = ch_names_to_2d_pos(channel_names)
         self.fs = fs
         self.band = band if band else BAND_DEFAULT
-        self.temporal_filter = ButterFilter(self.band, fs, len(channel_names))
+        self.temporal_filter = ButterFilter(self.band, self.fs, len(self.channel_names))
         self.filters = None  # un-mixing matrix
         self.topographies = None  # transposed mixing matrix
         self.scores = None  # eigenvalues (squared de-synchronization)
@@ -48,6 +48,7 @@ class SpatialDecomposition:
 
     def set_parameters(self, **parameters):
         self.band = (parameters['bandpass_low'], parameters['bandpass_high'])
+        self.temporal_filter = ButterFilter(self.band, self.fs, len(self.channel_names))
 
     def get_filter(self, index=None):
         """
