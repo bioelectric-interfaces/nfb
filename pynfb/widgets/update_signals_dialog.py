@@ -227,13 +227,14 @@ class SignalsSSDManager(QtWidgets.QDialog):
         layout.addWidget(self.table)
 
         # protocols seq check table
-        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP, BCI)', 'State 3\n(BCI)'], 'Protocol')
+        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP, BCI)', 'State 3\n(BCI)'], 'Block')
         protocol_seq_table.setMaximumWidth(200)
         self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
         # prestim-poststim split
         self.stimulus_split = QtWidgets.QCheckBox('Pre/post-stimulus split')
         self.stimulus_split.stateChanged.connect(lambda: protocol_seq_table.setDisabled(self.stimulus_split.isChecked()))
+        self.stimulus_split.hide()
 
         # message
         if message is not None:
