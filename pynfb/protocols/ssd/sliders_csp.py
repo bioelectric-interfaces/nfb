@@ -72,6 +72,11 @@ class Sliders(QtWidgets.QWidget):
             self.parameters[key].setValue(self.defaults[key])
         self.revert_button.setEnabled(False)
 
+    def set_default_band(self, low, high):
+        self.defaults['bandpass_low'] = low
+        self.defaults['bandpass_high'] = high
+        self.restore_defaults()
+
     def getValues(self):
         values = dict([(key, param.getValue()) for key, param in self.parameters.items()])
         if values['bandpass_low'] == 0:
