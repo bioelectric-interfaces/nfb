@@ -3,6 +3,23 @@ import numpy as np
 import pylab as plt
 from mne.minimum_norm.inverse import _assemble_kernel
 
+def _get_label_flip(labels, label_vertidx, src):
+    """Get sign-flip for labels."""
+    # do the import here to avoid circular dependency
+    from mne.label import label_sign_flip
+    # get the sign-flip vector for every label
+    label_flip = list()
+    for label, vertidx in zip(labels, label_vertidx):
+        if label.hemi == 'both':
+            raise ValueError('BiHemiLabel not supported when using sign-flip')
+        if vertidx is not None:
+            flip = label_sign_flip(label, src)[:, None]
+        else:
+            flip = None
+        label_flip.append(flip)
+
+    return label_flip
+
 # get flip
 def get_flip(label, vertno, inv):
     nvert = [len(vn) for vn in vertno]
@@ -22,7 +39,6 @@ def get_flip(label, vertno, inv):
             raise ValueError('label %s has invalid hemi' % label.name)
         this_vertidx.append(vertidx)
     vertidx = np.concatenate(this_vertidx)
-    from mne.source_estimate import _get_label_flip
     label_flip = _get_label_flip([label], [vertidx], inv['src'][:2])
     label_flip = np.array(label_flip).flatten()
     return label_flip
@@ -46,6 +62,8 @@ def get_roi_by_name(name):
 def get_fwd_solution():
     import os
     path = os.path.dirname(os.path.realpath(__file__))
+    mne.datasets.fetch_fsaverage(path)
+    mne.utils.set_config("SUBJECTS_DIR", path, set_env=True)
     file_path = os.path.join(path, 'fsaverage-fwd-1005-2.fif')
     if not os.path.isfile(file_path):
         import urllib.request
@@ -68,12 +86,13 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
     for j, channel in enumerate(channels):
         channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
     info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
+    info.set_montage(standard_montage)
     noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
     fwd = get_fwd_solution()
     inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, fixed=True)
     inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2, method=method)
     roi_label = get_roi_by_name(label_name)
-    K, noise_norm, vertno = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None)
+    K, noise_norm, vertno, source_nn = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None)
     w = get_filter(K, vertno, inv, roi_label, noise_norm)
     if show:
         mne.viz.plot_topomap(w, info)
