@@ -96,6 +96,9 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
     w = get_filter(K, vertno, inv, roi_label, noise_norm)
     if show:
         mne.viz.plot_topomap(w, info)
+    common_ref_proj = np.eye(len(w)) - np.ones((len(w), len(w)))/len(w)
+    w = common_ref_proj.dot(w)
+    w /= np.linalg.norm(w)
     return w
 
 
