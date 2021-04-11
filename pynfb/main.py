@@ -1,8 +1,10 @@
 import sys
 import os
 import argparse
+import platform
 import multiprocessing
 import traceback
+from pathlib import Path
 
 import pynfb
 import matplotlib
@@ -25,7 +27,17 @@ class TheMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, app):
         super(TheMainWindow, self).__init__()
-        self.setWindowIcon(QtGui.QIcon(STATIC_PATH + '/imag/settings.png'))
+
+        if platform.system() == "Darwin":
+            icon_dir = Path(STATIC_PATH) / 'imag/icon/macos'
+        else:
+            icon_dir = Path(STATIC_PATH) / 'imag/icon/generic'
+        
+        icon = QtGui.QIcon()
+        for file in icon_dir.glob("*"):
+            icon.addFile(str(file))
+        app.setWindowIcon(icon)
+
         self.app = app
         
         # Set custom excepthook that shows the error message as a QMessageBox

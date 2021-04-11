@@ -3,6 +3,13 @@ Warning: pynfb requires you install some outdated versions of packages. Consider
 enviroment, using tools such as venv or conda.
 """
 from setuptools import setup, find_packages
+from pathlib import Path
+
+def setuptools_glob_workaround(package_name, glob):
+    # https://stackoverflow.com/q/27664504/9118363
+    package_path = Path(f'./{package_name}').resolve()
+    return [str(path.relative_to(package_path)) for path in package_path.glob(glob)]
+
 
 install_requires = [
     "h5py",
@@ -26,7 +33,7 @@ extras_require = {
 }
 
 package_data = {
-    "pynfb": ["static/imag/*"]
+    "pynfb": setuptools_glob_workaround("pynfb", "static/**/*")
 }
 
 entry_points = {
