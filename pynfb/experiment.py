@@ -18,7 +18,7 @@ from .serializers.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_prot
     save_channels_and_fs
 from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .serializers import read_spatial_filter
-from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol
+from .protocols import BaselineProtocol, FeedbackProtocol, VideoProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -420,13 +420,6 @@ class Experiment():
                         self.signals,
                         circle_border=protocol['iRandomBound'],
                         m_threshold=protocol['fMSignalThreshold'],
-                        **kwargs))
-            elif protocol['sFb_type'] == 'ThresholdBlink':
-                self.protocols.append(
-                    ThresholdBlinkFeedbackProtocol(
-                        self.signals,
-                        threshold=protocol['fBlinkThreshold'],
-                        time_ms=protocol['fBlinkDurationMs'],
                         **kwargs))
             elif protocol['sFb_type'] == 'Video':
                 self.protocols.append(

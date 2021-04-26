@@ -78,8 +78,6 @@ vectors_defaults = OrderedDict([
             ('bVoiceover', 0),
             ('bUseExtraMessage', 0),
             ('cString2', ''),
-            ('fBlinkDurationMs', 50),
-            ('fBlinkThreshold', 0),
             ('sMockSignalFilePath', ''),
             ('sMockSignalFileDataset', 'protocol1'),
             ('iMockPrevious', 0),

@@ -5,7 +5,7 @@ from pynfb.serializers.defaults import vectors_defaults as defaults
 from pynfb.widgets.helpers import ScrollArea
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video']
+protocols_types = ['Baseline', 'Feedback', 'Video']
 
 
 class ProtocolsSettingsWidget(QtWidgets.QWidget):
@@ -175,7 +175,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.type = QtWidgets.QComboBox()
         for protocol_type in protocols_types:
             self.type.addItem(protocol_type)
-        self.type.currentIndexChanged.connect(self.set_enabled_threshold_blink_settings)
         self.type.currentIndexChanged.connect(self.set_enabled_mock_settings)
         self.type.currentIndexChanged.connect(self.update_source_signal_combo_box)
         self.type.currentIndexChanged.connect(
@@ -194,16 +193,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.circle_border.addItems(['SinCircle', 'RandomCircle', 'Bar'])
         self.form_layout.addRow('&Feedback type:', self.circle_border)
 
-
-        # threshold blink settings
-        self.blink_duration_ms = QtWidgets.QSpinBox()
-        self.blink_duration_ms.setRange(0, 1000000)
-        self.blink_threshold = QtWidgets.QDoubleSpinBox()
-        self.blink_threshold.setRange(-1e20, 1e20)
-        self.blink_threshold.setEnabled(False)
-        self.blink_duration_ms.setEnabled(False)
-        self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
-        self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
 
         # mock settings
         # self.mock_checkbox = QtGui.QCheckBox()
@@ -310,11 +299,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         current_index = self.source_signal.findText(text, QtCore.Qt.MatchFixedString)
         self.source_signal.setCurrentIndex(current_index if current_index > -1 else 0)
 
-    def set_enabled_threshold_blink_settings(self):
-        flag = (self.type.currentText() == 'ThresholdBlink')
-        self.blink_threshold.setEnabled(flag)
-        self.blink_duration_ms.setEnabled(flag)
-
     def set_enabled_mock_settings(self):
         flag = self.type.currentText() == 'Feedback'
         self.mock_file.setEnabled(flag and not self.enable_mock_previous.isChecked())
@@ -356,8 +340,6 @@ class ProtocolDialog(QtWidgets.QDialog):
             self.type.findText(current_protocol_type, QtCore.Qt.MatchFixedString))
         self.circle_border.setCurrentIndex(current_protocol['iRandomBound'])
         self.circle_border.setEnabled(self.type.currentText() == 'Feedback')
-        self.blink_duration_ms.setValue(current_protocol['fBlinkDurationMs'])
-        self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         self.message.setText(current_protocol['cString'])
@@ -406,8 +388,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['fbSource'] = self.source_signal.currentText()
         self.params[current_signal_index]['sFb_type'] = self.type.currentText()
         self.params[current_signal_index]['iRandomBound'] = self.circle_border.currentIndex()
-        self.params[current_signal_index]['fBlinkDurationMs'] = self.blink_duration_ms.value()
-        self.params[current_signal_index]['fBlinkThreshold'] = self.blink_threshold.value()
         self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()
         self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
         self.params[current_signal_index]['cString'] = self.message.toPlainText()

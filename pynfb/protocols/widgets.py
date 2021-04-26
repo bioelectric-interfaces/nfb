@@ -144,48 +144,6 @@ class BaselineProtocolWidgetPainter(Painter):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
-class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, threshold=2000, time_ms=50, show_reward=False):
-        super(ThresholdBlinkFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
-        self.threshold = threshold
-        self.time_ms = time_ms
-        self.blink_start_time = -1
-        self.widget = None
-        self.x = np.linspace(-10, 10, 2)
-        self.previous_sample = -np.inf
-
-    def prepare_widget(self, widget):
-        super(ThresholdBlinkFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
-        self.p1 = widget.plot([-10, 10], [10, 10], pen=pg.mkPen(77, 144, 254)).curve
-        self.p2 = widget.plot([-10, 10], [-10, -10], pen=pg.mkPen(77, 144, 254)).curve
-        self.fill = pg.FillBetweenItem(self.p1, self.p2, brush=(255, 255, 255, 25))
-        widget.addItem(self.fill)
-
-    def redraw_state(self, samples, m_sample):
-        samples = np.abs(samples)
-        if np.ndim(samples)==0:
-            samples = samples.reshape((1, ))
-
-        previous_sample = self.previous_sample
-        do_blink = False
-        for sample in samples:
-            if (sample >= self.threshold >= previous_sample) and (self.blink_start_time < 0):
-                do_blink = True
-            previous_sample = sample
-
-        if do_blink:
-            self.blink_start_time = time.time()
-
-        if ((time.time() - self.blink_start_time < self.time_ms * 0.001) and (self.blink_start_time > 0)):
-            self.fill.setBrush((255, 255, 255, 255))
-        else:
-            self.blink_start_time = -1
-            self.fill.setBrush((255, 255, 255, 10))
-
-
-        self.previous_sample = previous_sample
-        pass
-
 
 class VideoProtocolWidgetPainter(Painter):
     def __init__(self, video_file_path):

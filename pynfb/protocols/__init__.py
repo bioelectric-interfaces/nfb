@@ -17,7 +17,7 @@ from ..helpers.beep import SingleBeep
 from ..serializers.hdf5 import load_h5py_protocols_raw
 from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
-                                 BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
+                                 BaselineProtocolWidgetPainter,
                                  VideoProtocolWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
@@ -238,14 +238,6 @@ class FeedbackProtocol(Protocol):
                                                                       circle_border=circle_border,
                                                                       m_threshold=m_threshold)
         pass
-
-
-class ThresholdBlinkFeedbackProtocol(Protocol):
-    def __init__(self, signals, name='ThresholdBlink', threshold=1000, time_ms=50, **kwargs):
-        kwargs['name'] = name
-        super().__init__(signals, **kwargs)
-        self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter(threshold=threshold, time_ms=time_ms,
-                                                                          show_reward=self.show_reward)
 
 
 class VideoProtocol(Protocol):
