@@ -9,11 +9,17 @@ Protocol settings include:
 
 **Name**: name of the protocol.
 
-**Duration**: the duration of the protocol in seconds.
+**Duration [s]**: the duration of the protocol in seconds.
+
+**Random over time [s]**: a random number between 0 and the entered value will be added or substracted from the main duration each time the protocol is used. 
 
 **Open signal manager in the end (SSD, CSP, ICA)**: opens at the end of protocol signaling manager where, by using different methods (SSD, CSP, ICA), computed spatial filters signals.
 
-**Update statistics**: if this checkmark is exhibited, then, at the end of the protocol will be recalculated the average (mean) and standard deviation (std) of the signal, and subsequently from the signal will be subtracted mean and then the signal be divided by std.
+**Update statistics**: if this checkmark is exhibited and "meanstd" is selected, then, at the end of the protocol the average (mean) and standard deviation (std) of the signal will be recalculated, and subsequently mean will be subtracted from the signal and it will be divided by std. Min/max calculates values above zero (minimum) and usually below one (maximum), where minimum and maximum are taken from the finished protocol. 
+
+**Beep after protocol**: after the protocol there will be sound indicating the end of the protocol.
+
+**Auto BCI fitting**: ...
 
 **Type**: type of the protocol. Available 3 types of protocols: Baseline (on the screen of subject will be displayed a message, is used to collect data, to update the signal statistics, calculation of spatial filters, etc.), CircleFeedback (on the subjects screen will be displayed, with jagged edges, the degree of unevenness depends on the particular signal in the “Signal” (see previous paragraph.), the subjects task is to achieve complete smoothness of the edge of the circle), ThresholdBlink  (subjects screen at the time specified in paragraph “Blink duration” will turn white if the signal exceeds threshold defined in “Blink threshold”; this protocol is needed for measuring delays).
 
