@@ -156,10 +156,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.pause_after = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Make a pause after protocol:', self.pause_after)
 
-        # enable detection task
-        self.detection_task = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Enable detection task:', self.detection_task)
-
         # outliers
         self.drop_outliers = QtWidgets.QSpinBox()
         self.form_layout.addRow('&Drop outliers [std]:', self.drop_outliers)
@@ -237,19 +233,11 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.message = QtWidgets.QTextEdit()
         self.message.setMaximumHeight(50)
         self.form_layout.addRow('&Message:', self.message)
+        self.type.currentTextChanged.connect(lambda ptype: self.message.setEnabled(ptype == "Baseline"))
 
         # voiceover
         self.voiceover = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Voiceover:', self.voiceover)
-
-        # split record (CSP)
-        self.split_checkbox = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Add half time\nextra message (for CSP):', self.split_checkbox)
-        self.message2 = QtWidgets.QTextEdit()
-        self.message2.setMaximumHeight(50)
-        self.form_layout.addRow('&Half time extra message:', self.message2)
-        self.split_checkbox.stateChanged.connect(lambda: self.message2.setEnabled(self.split_checkbox.isChecked()))
-        self.message2.setEnabled(False)
 
         # reward settings
         self.reward_signal = QtWidgets.QComboBox()
@@ -328,7 +316,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.auto_bci_fit.setChecked(current_protocol['bAutoBCIFit'])
         self.mock_source.setChecked(current_protocol['bMockSource'])
         self.pause_after.setChecked(current_protocol['bPauseAfter'])
-        self.detection_task.setChecked(current_protocol['bEnableDetectionTask'])
         self.drop_outliers.setValue(current_protocol['iDropOutliers'])
         self.drop_outliers.setEnabled(self.update_statistics.isChecked())
         self.ssd_in_the_end.setChecked(current_protocol['bSSDInTheEnd'])
@@ -343,9 +330,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         self.message.setText(current_protocol['cString'])
-        self.message2.setText(current_protocol['cString2'])
         self.voiceover.setChecked(current_protocol['bVoiceover'])
-        self.split_checkbox.setChecked(current_protocol['bUseExtraMessage'])
         current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.show_reward.setChecked(current_protocol['bShowReward'])
@@ -381,7 +366,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['bAutoBCIFit'] = int(self.auto_bci_fit.isChecked())
         self.params[current_signal_index]['bMockSource'] = int(self.mock_source.isChecked())
         self.params[current_signal_index]['bPauseAfter'] = int(self.pause_after.isChecked())
-        self.params[current_signal_index]['bEnableDetectionTask'] = int(self.detection_task.isChecked())
         self.params[current_signal_index]['iDropOutliers'] = (
             self.drop_outliers.value() if self.update_statistics.isChecked() else 0)
         self.params[current_signal_index]['bSSDInTheEnd'] = int(self.ssd_in_the_end.isChecked())
@@ -391,9 +375,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()
         self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
         self.params[current_signal_index]['cString'] = self.message.toPlainText()
-        self.params[current_signal_index]['cString2'] = self.message2.toPlainText()
         self.params[current_signal_index]['bVoiceover'] = int(self.voiceover.isChecked())
-        self.params[current_signal_index]['bUseExtraMessage'] = int(self.split_checkbox.isChecked())
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())
         self.params[current_signal_index]['bRewardThreshold'] = self.reward_threshold.value()

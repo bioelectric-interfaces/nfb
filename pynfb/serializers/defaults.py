@@ -76,8 +76,6 @@ vectors_defaults = OrderedDict([
             # ('dBand', ''),
             ('cString', ''),
             ('bVoiceover', 0),
-            ('bUseExtraMessage', 0),
-            ('cString2', ''),
             ('sMockSignalFilePath', ''),
             ('sMockSignalFileDataset', 'protocol1'),
             ('iMockPrevious', 0),
@@ -93,7 +91,6 @@ vectors_defaults = OrderedDict([
             ('sMSignal', 'None'),
             ('fMSignalThreshold', 1),
             ('bMockSource', 0),
-            ('bEnableDetectionTask', 0),
             ('bAutoBCIFit', 0)
         ])])])),
     ('vPGroups', OrderedDict([
