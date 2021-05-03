@@ -96,7 +96,8 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.reward_period.setSingleStep(0.01)
         self.reward_period.setMaximumWidth(100)
         self.reward_period.valueChanged.connect(self.reward_period_changed_event)
-        self.form_layout.addRow('&Reward period [s]:', self.reward_period)
+        self.reward_period.setSuffix(" s")
+        self.form_layout.addRow('&Reward refractory period:', self.reward_period)
 
         # beep button
         beep_button = QtWidgets.QPushButton('Beep')
