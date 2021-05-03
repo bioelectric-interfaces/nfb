@@ -510,7 +510,6 @@ class Experiment():
                                plot_raw_flag=self.params['bPlotRaw'],
                                plot_signals_flag=self.params['bPlotSignals'],
                                plot_source_space_flag=self.params['bPlotSourceSpace'],
-                               show_subject_window=self.params['bShowSubjectWindow'],
                                channels_labels=channels_labels,
                                photo_rect=self.params['bShowPhotoRectangle'])
         self.subject = self.main.subject_window

@@ -134,13 +134,12 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, current_protocol, protocols, signals, n_signals=1, parent=None, n_channels=32,
                  max_protocol_n_samples=None,
                  experiment=None, freq=500,
-                 plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False, show_subject_window=True,
+                 plot_raw_flag=True, plot_signals_flag=True, plot_source_space_flag=False,
                  channels_labels=None, photo_rect=False):
         super(MainWindow, self).__init__(parent)
 
         # Which windows to draw:
         self.plot_source_space_flag = plot_source_space_flag
-        self.show_subject_window = show_subject_window
 
         # status info
         self.status = PlayerLineInfo([p.name for p in protocols], [[p.duration for p in protocols]])
@@ -200,13 +199,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
         # subject window
-        if show_subject_window:
-            self.subject_window = SubjectWindow(self, current_protocol, photo_rect=photo_rect)
-            self.subject_window.show()
-            self._subject_window_want_to_close = False
-        else:
-            self.subject_window = None
-            self._subject_window_want_to_close = None
+        self.subject_window = SubjectWindow(self, current_protocol, photo_rect=photo_rect)
+        self.subject_window.show()
+        self._subject_window_want_to_close = False
 
         # Source space window
         if plot_source_space_flag:
@@ -252,8 +247,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, event):
         self._subject_window_want_to_close = True
-        if self.show_subject_window and self.subject_window:
-            self.subject_window.close()
+        self.subject_window.close()
+        
         if self.plot_source_space_flag and self.source_space_window:
             self.source_space_window.close()
         self.experiment.destroy()
