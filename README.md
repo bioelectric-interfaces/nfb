@@ -1,7 +1,7 @@
 # NFB Lab 
 *NFB Lab* allows you to configure the design and conduct an experiment in real-time EEG/MEG paradigm.
 - [Documentation](https://nfb-lab.readthedocs.io/en/latest/)
-- [Report an issue](https://github.com/bioelectric-interfaces/nfb/issues)
+- [Report an issue](https://github.com/bioelectric-interfaces/nfb/issues/new/choose)
 
 ## Installation
 Prerequisites: [python 3](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/installing/).  
