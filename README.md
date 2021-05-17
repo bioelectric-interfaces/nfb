@@ -1,5 +1,5 @@
 # NFB Lab 
-*NFB Lab* allows you to configure the design and conduct an experiment in real-time EEG/MEG paradigm.
+*NFB Lab* allows you to configure the design and conduct an experiment in real-time EEG/MEG paradigm. [Documentation](https://nfb-lab.readthedocs.io/en/latest/)
 
 ## Installation
 Prerequisites: [python](https://www.python.org/), [git](https://git-scm.com/), optionally [conda](https://docs.conda.io/en/latest/miniconda.html).
@@ -63,6 +63,8 @@ To run the experiment without configuring, use the `-x` or `--execute` option:
 ```
 pynfb -x your-experiment-file.xml
 ```
+
+Refer to the [documentation](https://nfb-lab.readthedocs.io/en/latest/) for more information on working with NFB Lab.
 
 ## Acknowledgements
 This work was supported by the [Center for Bioelectric Interfaces](https://bioelectric.hse.ru/en/) of the Institute for Cognitive Neuroscience of the National Research University Higher School of Economics, RF Government grant, ag. No. 14.641.31.0003.
