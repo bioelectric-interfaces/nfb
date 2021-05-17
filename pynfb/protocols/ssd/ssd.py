@@ -63,9 +63,9 @@ def ssd(x, fs, bands, butter_order=3, regularization_coef=0.05):
 def ssd_analysis(x, sampling_frequency, freqs, flanker_delta=2, flanker_margin=0, regularization_coef=0.05):
     freq_delta = freqs[1] - freqs[0]
     bands = [
-        [[fc - freq_delta / 2 - flanker_delta - flanker_margin, fc - freq_delta / 2 - flanker_margin],
-         [fc - freq_delta / 2, fc + freq_delta / 2],
-         [fc + freq_delta / 2 + flanker_margin, fc + freq_delta / 2 + flanker_delta + flanker_margin]]
+        [[fc - flanker_delta - flanker_margin, fc - flanker_margin],
+         [fc, fc + freq_delta],
+         [fc + freq_delta + flanker_margin, fc + freq_delta + flanker_delta + flanker_margin]]
         for fc in freqs]
     major_vals = []
     topographies = []

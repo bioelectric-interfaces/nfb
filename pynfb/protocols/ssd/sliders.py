@@ -1,10 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ...widgets.parameter_slider import ParameterSlider
+from pynfb.signal_processing.decompositions import DEFAULTS as defaults
 
-defaults = {'bandwidth': 2,
-            'regularizator': 0.05,
-            'flanker_bandwidth': 2,
-            'flanker_margin': 0}
+defaults.update({'bandwidth': 2, 'flanker_bandwidth': 2, 'flanker_margin': 0})
 
 class Sliders(QtWidgets.QWidget):
     def __init__(self):
@@ -17,7 +15,7 @@ class Sliders(QtWidgets.QWidget):
 
         # regularizator slider
         self.parameters['regularizator'] = ParameterSlider('Regularization coefficient:', 0, 10, 0.5,
-                                                           value=defaults['regularizator'])
+                                                           value=defaults['regularizator'], decimals=3)
         self.parameters['regularizator'].slider.valueChanged.connect(lambda: self.revert_button.setEnabled(True))
         v_layout.addWidget(self.parameters['regularizator'])
 
