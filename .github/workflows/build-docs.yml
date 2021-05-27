@@ -1,0 +1,34 @@
+name: build-docs
+
+on:
+  push:
+    branches: master
+
+  workflow_dispatch:
+
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - run: |
+          # Install everything and switch to docs
+          pip install -e .[docs]
+          git checkout --orphan docs
+          # Build docs and remove everything else
+          sphinx-build docs/source build
+          rm -rf *.egg-info
+          git rm -rf .  # remove everyting except the build and .git folder
+          mv build/* .
+          rm -rf build
+          touch .nojekyll  # Let Github know we have our own style
+          # Add, commit and force push
+          git add .
+          git config user.name "GitHub Actions"
+          git config user.email "<>"
+          git commit --allow-empty-message -m ''
+          git push --force --set-upstream origin docs
