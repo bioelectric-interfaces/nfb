@@ -227,13 +227,14 @@ class SignalsSSDManager(QtWidgets.QDialog):
         layout.addWidget(self.table)
 
         # protocols seq check table
-        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP, BCI)', 'State 3\n(BCI)'], 'Protocol')
+        protocol_seq_table = CheckTable(protocol_seq, ['State 1\n ', 'State 2\n(CSP, BCI)', 'State 3\n(BCI)'], 'Block')
         protocol_seq_table.setMaximumWidth(200)
         self.get_checked_protocols = lambda: protocol_seq_table.get_checked_rows()
 
         # prestim-poststim split
         self.stimulus_split = QtWidgets.QCheckBox('Pre/post-stimulus split')
         self.stimulus_split.stateChanged.connect(lambda: protocol_seq_table.setDisabled(self.stimulus_split.isChecked()))
+        self.stimulus_split.hide()
 
         # message
         if message is not None:
@@ -400,9 +401,9 @@ class SignalsSSDManager(QtWidgets.QDialog):
                 ica_rejection, filter, topography, self.ica_unmixing_matrix, bandpass, to_all = result
             rejections = []
         elif csp:
-            rejection, filter, topography, _, bandpass, to_all = ICADialog.get_rejection(x, self.channels_names, self.sampling_freq,
-                                                                     mode='csp', _stimulus_split=self.stimulus_split.isChecked(),
-                                                                                         marks=self.marks)
+            rejection, filter, topography, _, bandpass, to_all = ICADialog.get_rejection(
+                x, self.channels_names, self.sampling_freq, mode='csp', _stimulus_split=self.stimulus_split.isChecked(),
+                marks=self.marks, band=self.table.cellWidget(row, self.table.columns.index('Band')).get_band())
             rejections = [rejection] if rejection is not None else []
         else:
             filter, topography, bandpass, rejections = SelectSSDFilterWidget.select_filter_and_bandpass(x, self.pos,

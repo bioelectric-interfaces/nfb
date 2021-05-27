@@ -12,7 +12,7 @@ from scipy.linalg import eigh, inv
 from sklearn.metrics import mutual_info_score
 
 DEFAULTS = {'bandpass_low': 3,
-            'regularizator': 0.05,
+            'regularizator': 0.001,
             'bandpass_high': 45}
 BAND_DEFAULT = (DEFAULTS['bandpass_low'], DEFAULTS['bandpass_high'])
 
@@ -29,7 +29,7 @@ class SpatialDecomposition:
         self.pos = ch_names_to_2d_pos(channel_names)
         self.fs = fs
         self.band = band if band else BAND_DEFAULT
-        self.temporal_filter = ButterFilter(self.band, fs, len(channel_names))
+        self.temporal_filter = ButterFilter(self.band, self.fs, len(self.channel_names))
         self.filters = None  # un-mixing matrix
         self.topographies = None  # transposed mixing matrix
         self.scores = None  # eigenvalues (squared de-synchronization)
@@ -48,6 +48,7 @@ class SpatialDecomposition:
 
     def set_parameters(self, **parameters):
         self.band = (parameters['bandpass_low'], parameters['bandpass_high'])
+        self.temporal_filter = ButterFilter(self.band, self.fs, len(self.channel_names))
 
     def get_filter(self, index=None):
         """
@@ -71,9 +72,9 @@ class SpatialDecomposition:
 
 
 class CSPDecomposition(SpatialDecomposition):
-    def __init__(self, channel_names, fs, band=None, reg_coef=0.001):
+    def __init__(self, channel_names, fs, band=None, reg_coef=None):
         super(CSPDecomposition, self).__init__(channel_names, fs, band)
-        self.reg_coef = reg_coef
+        self.reg_coef = reg_coef if (reg_coef is not None) else DEFAULTS['regularizator']
         self.name = 'csp'
 
     def decompose(self, X, y=None):
@@ -99,9 +100,9 @@ class CSPDecomposition(SpatialDecomposition):
         
 
 class CSPDecompositionStimulus(CSPDecomposition):
-    def __init__(self, channel_names, fs, band=None, reg_coef=0.001, pre_interval=500, post_interval=500):
+    def __init__(self, channel_names, fs, band=None, reg_coef=None, pre_interval=500, post_interval=500):
         super(CSPDecompositionStimulus, self).__init__(channel_names, fs, band, reg_coef)
-        self.reg_coef = reg_coef
+        self.reg_coef = reg_coef if (reg_coef is not None) else DEFAULTS['regularizator']
         self.name = 'csp-s'
         self.pre_interval = pre_interval
         self.post_interval = post_interval

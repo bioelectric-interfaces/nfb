@@ -29,6 +29,10 @@ install_requires = [
 extras_require = {
     "freeze":  [
         "pyinstaller",
+    ],
+    "docs": [
+        "sphinx",
+        "sphinx-rtd-theme"
     ]
 }
 

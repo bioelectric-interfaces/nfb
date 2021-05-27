@@ -1,10 +1,20 @@
 # NFB Lab 
 *NFB Lab* allows you to configure the design and conduct an experiment in real-time EEG/MEG paradigm.
+- [Documentation](https://bioelectric-interfaces.github.io/nfb/)
+- [Report an issue](https://github.com/bioelectric-interfaces/nfb/issues/new/choose)
 
 ## Installation
-Prerequisites: [python](https://www.python.org/), [git](https://git-scm.com/), optionally [conda](https://docs.conda.io/en/latest/miniconda.html).
+Prerequisites: [python 3](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/installing/).  
+*Note:* depending on how you have installed python, pip may or may not be available by default. If installed from python.org, there is no need to install pip separately. Otherwise, please consult pip documentation.
 
-**Warning:** NFB Lab requires you install some outdated versions of packages. Consider installing it in a virtual enviroment, using tools such as venv or conda. For example, if using conda, create and activate a new environment by running these commands first:
+Install NFB Lab by running this command in your terminal:
+```
+pip install https://github.com/bioelectric-interfaces/nfb/archive/refs/heads/master.zip
+```
+<details><summary>Installing NFB Lab for developers</summary><p>
+
+Prerequisites: [python 3](https://www.python.org/), [pip](https://pip.pypa.io/en/stable/installing/), [git](https://git-scm.com/), optionally [conda](https://docs.conda.io/en/latest/miniconda.html).  
+If you would like to separate NFB Lab from other packages on the system, consider installing it in a virtual enviroment, using tools such as venv or conda. For example, if using conda, create and activate a new environment by running these commands first:
 ```
 conda create -n nfb python pip
 conda activate nfb
@@ -16,6 +26,9 @@ git clone https://github.com/bioelectric-interfaces/nfb
 cd nfb
 pip install -e .
 ```
+Editable mode will allow you to make changes to the repository and observe them when running NFB Lab.
+
+</p></details>
 
 ## Running the experiment designer
 After installation, NFB Lab can be run from anywhere by using this command (when using a virtual environment, it has to be active):
@@ -63,6 +76,8 @@ To run the experiment without configuring, use the `-x` or `--execute` option:
 ```
 pynfb -x your-experiment-file.xml
 ```
+
+Refer to the [documentation](https://bioelectric-interfaces.github.io/nfb/) for more information on working with NFB Lab.
 
 ## Acknowledgements
 This work was supported by the [Center for Bioelectric Interfaces](https://bioelectric.hse.ru/en/) of the Institute for Cognitive Neuroscience of the National Research University Higher School of Economics, RF Government grant, ag. No. 14.641.31.0003.

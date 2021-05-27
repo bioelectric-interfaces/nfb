@@ -35,6 +35,7 @@ class ProtocolsSettingsWidget(QtWidgets.QWidget):
     def add_action(self):
         self.params.append(protocol_default.copy())
         self.reset_items()
+        self.list.setCurrentItem(self.list.item(len(self.params) - 1))
         self.dialogs[-1].open()
 
     def remove_current_item(self, item):

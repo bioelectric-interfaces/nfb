@@ -120,11 +120,11 @@ class ScoredComponentsTable(QtWidgets.QTableWidget):
                 plot_widget.setXLink(_previous_plot_link)
                 # plot_widget.setYLink(_previous_plot_link)
             _previous_plot_link = plot_widget
-            plot_widget.plot(y=self.time_series[:, ind])
+            x = np.arange(self.time_series.shape[0]) / fs
+            plot_widget.plot(x=x, y=self.time_series[:, ind])
             if self.marks is not None:
-                plot_widget.plot(y=self.marks*np.max(self.time_series[:, ind]), pen=(1,3))
-                plot_widget.plot(y=-self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
-            plot_widget.plot(x=np.arange(self.time_series.shape[0]) / fs)
+                plot_widget.plot(x=x, y=self.marks*np.max(self.time_series[:, ind]), pen=(1,3))
+                plot_widget.plot(x=x, y=-self.marks * np.max(self.time_series[:, ind]), pen=(1, 3))
 
             plot_widget.setMaximumHeight(self.row_items_max_height)
             plot_widget.plotItem.getViewBox().state['wheelScaleFactor'] = 0
@@ -146,9 +146,8 @@ class ScoredComponentsTable(QtWidgets.QTableWidget):
         self.horizontalHeader().sectionClicked.connect(self.handle_header_click)
         self.is_spectrum_mode = False
 
-        # reorder
-        self.order = np.argsort(scores)
-        self.reorder()
+        # set scores and order
+        self.set_scores(scores)
 
         # checkbox signals
         for checkbox in self.checkboxes:
@@ -218,6 +217,7 @@ class ScoredComponentsTable(QtWidgets.QTableWidget):
         if index == 3:
             self.set_spectrum_mode(flag=not self.is_spectrum_mode)
         if index == 1:
+            self.order = self.order[::-1]
             self.reorder()
         if index == 2:
             self.switch_topo_filter()
@@ -260,8 +260,7 @@ class ScoredComponentsTable(QtWidgets.QTableWidget):
         for topo_filt in self.topographies_items:
             topo_filt.switch()
 
-    def reorder(self, order=None):
-        self.order = self.order[-1::-1] if order is None else order
+    def reorder(self):
         for ind, new_ind in enumerate(self.order):
             self.insertRow(ind)
             self.setCellWidget(ind, 0, self.checkboxes[new_ind])
@@ -277,19 +276,18 @@ class ScoredComponentsTable(QtWidgets.QTableWidget):
         min_score = min(scores)
         for j, score in enumerate(self.scores):
             score.set_values(scores[j], max_score, min_score)
-        self.order = np.argsort(scores)
+        self.order = np.argsort(scores)[::-1]
         self.reorder()
 
     def redraw(self, time_series, topographies, filters, scores):
-        print(scores)
         # components
         self.time_series = time_series
         self.set_spectrum_mode()
 
         for ind in range(self.rowCount()):
-            widget = self.cellWidget(self.order[ind], 2)
+            widget = self.cellWidget(ind, 2)
             widget.update_data(topographies[:, ind], filters[:, ind])
-            self.topographies_items[self.order[ind]] = widget
+            self.topographies_items[ind] = widget
 
         # scores
         self.set_scores(scores)

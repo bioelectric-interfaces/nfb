@@ -142,7 +142,8 @@ class Experiment():
         self.main.signals_buffer *= 0
         self.test_mode = True
 
-        self.subject.change_protocol(protocol)
+        if self.params['bShowSubjectWindow']:
+            self.subject.change_protocol(protocol)
 
     def close_test_protocol(self):
         if self.main_timer.isActive():
@@ -238,7 +239,8 @@ class Experiment():
                 current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb, mock_signals)
 
             # change protocol widget
-            self.subject.change_protocol(current_protocol)
+            if self.params['bShowSubjectWindow']:
+                self.subject.change_protocol(current_protocol)
             if current_protocol.mock_samples_file_path is not None:
                 self.mock_signals_buffer = load_h5py_protocol_signals(
                     current_protocol.mock_samples_file_path,

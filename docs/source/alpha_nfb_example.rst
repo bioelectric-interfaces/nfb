@@ -1,39 +1,39 @@
 Occipital alpha rhythm neurofeedback
 ====================================
 
-Простейшим примером эксперимента с использованием NFB Lab является тренировка альфа ритма в парадигме НОС.
-В качестве сигнала обратной связи использовался сигнал типа Derived со следующими настройками:
-пространственный фильтр определяется во время эксперимента, полоса частотной фильтрации 9-11 Гц,
-детектор огибающей - последовательность из комплексной демодуляции,
-ильтрацией в заданной полосе фильтром Баттерворта 4-го порядка и сглаживанием фильтром Савицкого-Голая 2-го порядка
-c шириной окна 151 семпл. При частоте дискретизации 250 Гц данные настройки в связи с каузальностью использованных
-фильтров вносят задержку 131 мс для оценки огибающей по сравнению с некаузальной фильтрацией, при этом корреляция
-восстанавливаемой огибающей по сравнению с огибающей полученной преобразованием Гильберта равна значению порядка 0,7.
-Эксперимент разбит на 19 блоков:
+The simplest example of an experiment using NFB Lab is alpha rhythm training in the neurofeedback paradigm.
+As a feedback signal, the derived signal was used with the following settings:
+the spatial filter is determined during the experiment, the frequency filtering band is 9-11 Hz,
+the envelope detector is a sequence of complex demodulation, the 4th-order Butterworth filter is used in the specified band, and smoothing by the
+Savitzky–Golay filter of the 2nd order with a window width of 151 samples.
+At a sampling rate of 250 Hz, these settings, due to the causality of the used filters, introduce a delay of 131 ms. When evaluating the envelope
+versus non-causal filtering, the correlation of the reconstructed envelope versus the envelope obtained by the Hilbert transform is 0.7. The
+experiment is divided into 19 blocks
+
 
 
 .. figure::  alpha-nfb-example.png
 
-    Рис 1. Сценарий эксперимента (a) и стимул обратной связи (b)
+    Fig. 1. Experiment sequence (a) and feedback stimulus (b).
 
-В первой части эксперимента в блоках 1-6  “Open” и “Close” записываются данные ЭЭГ в состояниях с открытыми и закрытыми
-глазами соответственно. Далее в блоке 7 (“CSP”) при помощи модуля “Настройки фильтров по собранным данным” по полученным
-в блоках 1-6 функциональным пробам выделяется пространственный фильтр соответствующий альфа ритму.
-Для этого используется CSP анализ блоков “Open” против “Close”. Применение CSP мотивировано предположением, что источник
-генерирующий альфа-ритм работает в синхронном режиме при закрытых глазах и де-синхронизируется при открытых.
+In the first part of the experiment (blocks 1-6 “Open” and “Close”) EEG data are recorded in states with eyes open and closed, respectively. 
+Further, in block 7 (“CSP”), using the module “Filter settings by collected data”, a spatial filter corresponding to the alpha rhythm is selected
+from the functional samples obtained in blocks 1-6. For this, CSP analysis of “Open” vs. “Close” blocks is used. The use of CSP is motivated by
+the assumption that the source generating the alpha rhythm works in a synchronous mode with the eyes closed and de-synchronizes when the eyes are
+open. 
+
 
 
 .. figure:: alpha-nfb-example-stats.png
 
-    Рис 2. Свойства сигнала обратной связи
+    Fig. 2. Properties of the feedback signal.
 
-На рисунке 2 изображены свойства выделенной CSP компоненты, а именно участок временного ряда с ярко выраженным
-альфа-веретеном (a), спектр компоненты в двух состояниях Open и Close (b), пространственный фильтр (c) и топография (d).
-Далее происходит запись состояния покоя (Baseline) для расчета z-score статистик сигнала
-(среднее и стандартное отклонение). Данные статистики нужны для верного отображения подкрепляющего стимула (b)
-в дальнейшем. Данный стимул является раздувающимся кругом и предполагает, что среднее выделенного сигнала равно 0 и
-стандартное отклонение равно 1. Неровность границы круга обратно пропорциональна поступающему на вход сигналу.
-После, проводится тренировка в парадигме НОС: 10 сессий по 2 минуты без перерыва, среди которых половина сессий
-основана на предъявлении ложной (Mock) обратной связи (не отвечающей текущей активности головного мозга),
-а вторая половина - реальная обратная связь (Real).
-Дизайн эксперимента доступен по ссылке (https://github.com/nikolaims/nfb/blob/master/tests/designs/alpha_nfb_settings.xml).
+Figure 2 shows the properties of the selected CSP component, namely, a portion of the time series with a pronounced alpha spindle (a), the
+spectrum of the component in two states Open and Close (b), a spatial filter (c), and topography (d). Next, the resting state (Baseline) is
+recorded to calculate the z-score of signal statistics (mean and standard deviation). These statistics are needed to correctly display the
+reinforcing stimulus (b) in the future. This stimulus is an inflating circle and assumes that the mean of the selected signal is 0 and the
+standard deviation is 1. The roughness of the border of the circle is inversely proportional to the input signal. After that, training is carried
+out in the NFB paradigm: 10 sessions of 2 minutes without a break, among which half of the sessions are based on the presentation of a false
+(Mock) feedback (not corresponding to the current activity of the brain), and the second half is real feedback (Real).
+
+The experiment design is available at the link (https://github.com/nikolaims/nfb/blob/master/tests/designs/alpha_nfb_settings.xml).

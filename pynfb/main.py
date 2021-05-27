@@ -87,6 +87,10 @@ class TheMainWindow(QtWidgets.QMainWindow):
 
     def open_event(self):
         fname = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', './')[0]
+
+        if fname == "":
+            return  # User cancelled
+
         params = xml_file_to_params(fname)
         self.widget.params = params
         self.widget.reset_parameters()
@@ -94,6 +98,9 @@ class TheMainWindow(QtWidgets.QMainWindow):
     def save_event(self):
         #print(self.widget.params)
         fname = QtWidgets.QFileDialog.getSaveFileName(self, 'Save file', './')[0]
+
+        if fname == "":
+            return  # User cancelled
         #print(self.widget.params)
         params_to_xml_file(self.widget.params, fname)
 
