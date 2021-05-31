@@ -10,7 +10,7 @@ from utils.audiofb.volume_controller import VolumeController
 FS_OUT = 500
 
 # init psychopy window
-win = visual.Window(fullscr=True)
+win = visual.Window(fullscr=False)
 message = visual.TextStim(win, text='', alignHoriz='center')
 message.autoDraw = True  # Automatically draw every frame
 beep = sound.Sound('A')

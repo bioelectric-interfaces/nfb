@@ -3,7 +3,7 @@ import socket
 from time import sleep
 import numpy as np
 
-HOST = '192.168.0.1'  # Symbolic name meaning all available interfaces
+HOST = 'localhost'  # Symbolic name meaning all available interfaces
 PORT = 50007  # Arbitrary non-privileged port
 META_STR_LENGTH = 3 # length of meta info in the message
 

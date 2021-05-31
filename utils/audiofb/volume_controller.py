@@ -36,7 +36,7 @@ def codes_to_bytes(x):
 
 class VolumeController:
     def __init__(self):
-        self.ser = serial.Serial(port='COM4', baudrate=115200)
+        self.ser = serial.Serial(port='COM3', baudrate=115200)
         self.ser.write(b'216\n')
 
     def close(self):
