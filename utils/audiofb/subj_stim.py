@@ -15,6 +15,15 @@ message = visual.TextStim(win, text='', alignHoriz='center')
 message.autoDraw = True  # Automatically draw every frame
 beep = sound.Sound('A')
 
+# voice synthesizer https://cloud.yandex.ru/services/speechkit#demo
+# ogg to wav 1 channel https://online-audio-converter.com/ru/
+voices = {'close': sound.Sound('voice/close2.wav'),
+          'open': sound.Sound('voice/open_eyes.wav'),
+          'filters': sound.Sound('voice/filters.wav'),
+          'baseline': sound.Sound('voice/baseline.wav'),
+          'start': sound.Sound('voice/start.wav'),
+          'pause': sound.Sound('voice/pause.wav')}
+
 # connect to volume controller
 message.text = 'Сообщение экспериментатору:\nПодключение к Arduino контроллеру громкости...'
 win.flip()
@@ -83,9 +92,19 @@ while 1:
         print('Dummy.. Set message to "{}"'.format(obj))
         message.text = obj
         if obj == 'Pause':
-            beep.play()
+            voices['pause'].play()
+        elif obj == 'Close':
+            voices['close'].play()
+        elif obj == 'Open':
+            voices['open'].play()
+        elif obj == 'Baseline':
+            voices['baseline'].play()
+        elif obj == 'Filters':
+            voices['filters'].play()
+
         win.flip()
     elif meta_str == 'fb1':  # fb blocks
+        voices['start'].play()
         play_feedback = True
         print('Dummy.. Run FB. Set message to "{}"'.format(obj))
         message.text = obj
