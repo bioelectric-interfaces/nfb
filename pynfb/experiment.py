@@ -23,6 +23,9 @@ from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
 import mne
+from pynfb.helpers.simple_socket import SimpleClient
+
+ENABLE_SOCKET = True
 
 
 # helpers
@@ -142,8 +145,7 @@ class Experiment():
         self.main.signals_buffer *= 0
         self.test_mode = True
 
-        if self.params['bShowSubjectWindow']:
-            self.subject.change_protocol(protocol)
+        self.subject.change_protocol(protocol)
 
     def close_test_protocol(self):
         if self.main_timer.isActive():
@@ -183,6 +185,14 @@ class Experiment():
             protocols_seq=[protocol.name for protocol in self.protocols_sequence[:self.current_protocol_index + 1]],
             raw_file=self.dir_name + 'experiment_data.h5',
             marks=self.mark_recorder[:self.samples_counter])
+
+        if ENABLE_SOCKET:
+            if self.protocols_sequence[self.current_protocol_index].ssd_in_the_end:
+                self.client.push_message('spt', np.array(self.signals[0].spatial_matrix))
+                self.client.push_message('bnd', np.array(self.signals[0].bandpass))
+
+            if self.protocols_sequence[self.current_protocol_index].update_statistics_in_the_end:
+                self.client.push_message('std', np.array((self.signals[0].mean, self.signals[0].std)))
 
         save_signals(self.dir_name + 'experiment_data.h5', self.signals, protocol_number_str,
                      raw_data=self.raw_recorder[:self.samples_counter],
@@ -239,8 +249,14 @@ class Experiment():
                 current_protocol.prepare_raw_mock_if_necessary(mock_raw, random_previos_fb, mock_signals)
 
             # change protocol widget
-            if self.params['bShowSubjectWindow']:
-                self.subject.change_protocol(current_protocol)
+            self.subject.change_protocol(current_protocol)
+
+            if ENABLE_SOCKET:
+                if isinstance(current_protocol, BaselineProtocol):
+                    self.client.push_message('msg', current_protocol.text)
+                elif isinstance(current_protocol, FeedbackProtocol):
+                    self.client.push_message('fb1', current_protocol.text)
+
             if current_protocol.mock_samples_file_path is not None:
                 self.mock_signals_buffer = load_h5py_protocol_signals(
                     current_protocol.mock_samples_file_path,
@@ -404,7 +420,8 @@ class Experiment():
                 shuffle_mock_previous=bool(protocol['bRandomMockPrevious']),
                 as_mock=bool(protocol['bMockSource']),
                 auto_bci_fit=bool(protocol['bAutoBCIFit']),
-                montage=montage
+                montage=montage,
+                text=protocol['cString'] if protocol['cString'] != '' else 'Relax'
             )
 
             # type specific arguments
@@ -412,7 +429,6 @@ class Experiment():
                 self.protocols.append(
                     BaselineProtocol(
                         self.signals,
-                        text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         half_time_text=protocol['cString2'] if bool(protocol['bUseExtraMessage']) else None,
                         voiceover=protocol['bVoiceover'], **kwargs
                     ))
@@ -534,6 +550,9 @@ class Experiment():
         self.real_fb_number_list = []
 
         wait_bar.close()
+        if ENABLE_SOCKET:
+            self.client = SimpleClient()
+            self.client.push_message('msg', self.protocols_sequence[self.current_protocol_index].text)
 
     def restart_lsl_from_file(self):
         if self.thread is not None:

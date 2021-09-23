@@ -364,6 +364,7 @@ class SignalsSSDManager(QtWidgets.QDialog):
         x = dot(x, self.signals[row].spatial_filter)
         from scipy.signal import welch
         f, Pxx = welch(x, self.sampling_freq, nperseg=2048,)
+        Pxx[f < 5] = 0
         band = BandSelectorWidget.select(f, Pxx)
         if band is not None:
             self.table.cellWidget(row, self.table.columns.index('Band')).set_band(band)

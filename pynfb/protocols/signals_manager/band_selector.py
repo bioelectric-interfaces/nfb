@@ -12,8 +12,8 @@ class BandSelectorWidget(QtWidgets.QDialog):
         super(BandSelectorWidget, self).__init__()
 
         # parameters
-        self.width = 3
-        self.x = 20
+        self.width = 4
+        self.x = 10
         self.x_max = 30.
         self.gran = x[1] - x[0]
 

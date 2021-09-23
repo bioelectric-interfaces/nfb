@@ -24,7 +24,8 @@ class CheckTable(QtWidgets.QTableWidget):
             checkboxes = []
             for j in range(self.n_check_rows):
                 checkbox = QtWidgets.QCheckBox()
-                checkbox.setChecked(j == 0)
+                if (ind==1 and j==0) or (ind==2 and j==1):
+                    checkbox.setChecked(True)
                 checkboxes.append(checkbox)
                 self.setCellWidget(ind, j, checkbox)
             self.checkboxes.append(checkboxes)
