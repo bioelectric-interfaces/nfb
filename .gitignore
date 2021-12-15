@@ -144,9 +144,17 @@ dmypy.json
 .pyre/
 
 # pytype static type analyzer
-.pytype/
+fsaverage/
+.fif
+.zip
 
 # profiling data
 .prof
+
+# EEG data
+fsaverage/
+*.fif
+*.zip
+.surf
 
 # End of https://www.toptal.com/developers/gitignore/api/python
