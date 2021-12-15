@@ -7,6 +7,7 @@ import numpy as np
 from numpy import vstack
 from numpy.random import randint
 
+
 from gtts import gTTS
 from googletrans import Translator
 
@@ -17,7 +18,7 @@ from ..helpers.beep import SingleBeep
 from ..serializers.hdf5 import load_h5py_protocols_raw
 from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
-                                 GaborFeedbackProtocolWidgetPainter,
+                                 GaborFeedbackProtocolWidgetPainter, ParticipantInputWidgetPainter,
                                  BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
                                  VideoProtocolWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
@@ -266,6 +267,14 @@ class SSDProtocol(Protocol):
         kwargs['ssd_in_the_end'] = True
         super().__init__(signals, **kwargs)
         self.widget_painter = BaselineProtocolWidgetPainter(text=text, show_reward=self.show_reward)
+
+
+class ParticipantInputProtocol(Protocol):
+    def __init__(self, signals, name="ParticipantInput", text='Relax', **kwargs):
+        kwargs['name'] = name
+        self.hold = True
+        super().__init__(signals, **kwargs)
+        self.widget_painter = ParticipantInputWidgetPainter(text=text, show_reward=self.show_reward)
 
 
 def main():

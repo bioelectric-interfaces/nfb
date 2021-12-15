@@ -10,6 +10,7 @@ from PyQt5.QtCore import pyqtSignal
 from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
 from pynfb.helpers.dc_blocker import DCBlocker
+from pynfb.protocols import ParticipantInputProtocol
 from pynfb.protocols.widgets import ProtocolWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
@@ -278,6 +279,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         super().__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
+        self.pause = False
 
         # add central widget
         widget = QtWidgets.QWidget()
@@ -311,6 +313,9 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         self.current_protocol = new_protocol
         self.figure.clear_all()
         self.current_protocol.widget_painter.prepare_widget(self.figure)
+        if isinstance(new_protocol, ParticipantInputProtocol):
+            print("PAUSING!!!")
+            self.pause = True
 
     def closeEvent(self, event):
         if self.parent().experiment.is_finished or self.parent()._subject_window_want_to_close:
@@ -318,6 +323,18 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         else:
             event.ignore()
 
+    def keyPressEvent(self, e):
+        # TODO: make it so this can't be pressed when the pre-calcs are happening!!!!
+        if e.key() == QtCore.Qt.Key_Space:
+        # If the space key is pressed, then start the block
+            self.pause = False
+
+        if e.key() == QtCore.Qt.Key_Escape:
+        # Toggle fullscreen on the escape key
+            if self.windowState() & QtCore.Qt.WindowFullScreen:
+                self.showNormal()
+            else:
+                self.showFullScreen()
 
 class PhotoRect(pg.PlotWidget):
     def __init__(self, size=50, white_color=False, **kwargs):
