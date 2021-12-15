@@ -20,7 +20,8 @@ from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
                                  GaborFeedbackProtocolWidgetPainter, ParticipantInputWidgetPainter,
                                  BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
-                                 VideoProtocolWidgetPainter)
+                                 VideoProtocolWidgetPainter, ParticipantChoiceWidgetPainter,
+                                 ExperimentStartWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
@@ -275,6 +276,20 @@ class ParticipantInputProtocol(Protocol):
         self.hold = True
         super().__init__(signals, **kwargs)
         self.widget_painter = ParticipantInputWidgetPainter(text=text, show_reward=self.show_reward)
+
+class ParticipantChoiceProtocol(Protocol):
+    def __init__(self, signals, name="ParticipantChoice", text='Relax', **kwargs):
+        kwargs['name'] = name
+        self.hold = True
+        super().__init__(signals, **kwargs)
+        self.widget_painter = ParticipantChoiceWidgetPainter(text=text, show_reward=self.show_reward)
+
+class ExperimentStartProtocol(Protocol):
+    def __init__(self, signals, name="ExperimentStart", text='Relax', **kwargs):
+        kwargs['name'] = name
+        self.hold = True
+        super().__init__(signals, **kwargs)
+        self.widget_painter = ExperimentStartWidgetPainter(text=text, show_reward=self.show_reward)
 
 
 def main():

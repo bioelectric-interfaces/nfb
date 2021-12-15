@@ -18,7 +18,8 @@ from .serializers.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_prot
     save_channels_and_fs
 from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .serializers import read_spatial_filter
-from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, ParticipantInputProtocol
+from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
+    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -440,6 +441,18 @@ class Experiment():
             elif protocol['sFb_type'] == 'ParticipantInput':
                 self.protocols.append(
                     ParticipantInputProtocol(
+                        self.signals,
+                        text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
+                        **kwargs))
+            elif protocol['sFb_type'] == 'ParticipantChoice':
+                self.protocols.append(
+                    ParticipantChoiceProtocol(
+                        self.signals,
+                        text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
+                        **kwargs))
+            elif protocol['sFb_type'] == 'ExperimentStart':
+                self.protocols.append(
+                    ExperimentStartProtocol(
                         self.signals,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         **kwargs))

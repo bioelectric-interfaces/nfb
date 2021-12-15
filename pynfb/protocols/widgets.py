@@ -210,6 +210,50 @@ class ParticipantInputWidgetPainter(Painter):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
+class ParticipantChoiceWidgetPainter(Painter):
+    def __init__(self, text='Relax', show_reward=False):
+        super(ParticipantChoiceWidgetPainter, self).__init__(show_reward=show_reward)
+        self.text = text
+        self.text_item = pg.TextItem()
+
+    def prepare_widget(self, widget):
+        super(ParticipantChoiceWidgetPainter, self).prepare_widget(widget)
+        score = widget.reward.toPlainText().split(":")[1]
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">Is this the image you saw? (Y<-) (->N)</font></center>')
+        self.text_item.setAnchor((0.5, 0.5))
+        self.text_item.setTextWidth(500)
+        widget.addItem(self.text_item)
+        self.plotItem = widget.plotItem
+
+    def redraw_state(self, sample, m_sample):
+        pass
+
+    def set_message(self, text):
+        self.text = text
+        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+
+class ExperimentStartWidgetPainter(Painter):
+    def __init__(self, text='Relax', show_reward=False):
+        super(ExperimentStartWidgetPainter, self).__init__(show_reward=show_reward)
+        self.text = text
+        self.text_item = pg.TextItem()
+
+    def prepare_widget(self, widget):
+        super(ExperimentStartWidgetPainter, self).prepare_widget(widget)
+        score = widget.reward.toPlainText().split(":")[1]
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">Push SPACE when ready to begin</font></center>')
+        self.text_item.setAnchor((0.5, 0.5))
+        self.text_item.setTextWidth(500)
+        widget.addItem(self.text_item)
+        self.plotItem = widget.plotItem
+
+    def redraw_state(self, sample, m_sample):
+        pass
+
+    def set_message(self, text):
+        self.text = text
+        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+
 
 class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
     def __init__(self, threshold=2000, time_ms=50, show_reward=False):

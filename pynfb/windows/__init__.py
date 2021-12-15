@@ -10,7 +10,7 @@ from PyQt5.QtCore import pyqtSignal
 from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
 from pynfb.helpers.dc_blocker import DCBlocker
-from pynfb.protocols import ParticipantInputProtocol
+from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol
 from pynfb.protocols.widgets import ProtocolWidget
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
@@ -280,6 +280,8 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         self.resize(500, 500)
         self.current_protocol = current_protocol
         self.pause = False
+        if isinstance(current_protocol, ExperimentStartProtocol):
+            self.pause=True
 
         # add central widget
         widget = QtWidgets.QWidget()
@@ -313,7 +315,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         self.current_protocol = new_protocol
         self.figure.clear_all()
         self.current_protocol.widget_painter.prepare_widget(self.figure)
-        if isinstance(new_protocol, ParticipantInputProtocol):
+        if isinstance(new_protocol, (ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol)):
             print("PAUSING!!!")
             self.pause = True
 
