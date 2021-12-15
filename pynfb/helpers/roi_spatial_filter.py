@@ -84,9 +84,12 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
     standard_montage = mne.channels.make_standard_montage(kind='standard_1005')
     standard_montage_names = [name.upper() for name in standard_montage.ch_names]
     for j, channel in enumerate(channels):
-        channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
+        try:
+            channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
+        except ValueError as e:
+            print(f"ERROR ENCOUNTERED: {e}")
     info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
-    info.set_montage(standard_montage)
+    info.set_montage(standard_montage, on_missing='ignore')
     noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
     fwd = get_fwd_solution()
     inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, fixed=True)
