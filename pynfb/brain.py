@@ -3,6 +3,7 @@ from warnings import warn
 
 import mne
 import numpy as np
+import os.path as op
 from matplotlib import cm
 from pyqtgraph import opengl as gl
 
@@ -25,18 +26,20 @@ class SourceSpaceRecontructor(Protocol):
 
         warn('Currently info is read from the raw file. TODO: change to getting it from the stream')
         data_path = sample.data_path()
-        fname_raw = data_path + '/MEG/sample/sample_audvis_raw.fif'
-        raw = mne.io.read_raw_fif(fname_raw, verbose='ERROR')
+        # fname_raw = data_path + '/MEG/sample/sample_audvis_raw.fif'
+        # raw = mne.io.read_raw_fif(fname_raw, verbose='ERROR')
+        fname_raw = "/Users/christopherturner/Documents/EEG DATA/ct_102/ct_102_ec.vhdr"
+        raw = mne.io.read_raw_brainvision(fname_raw)
         info = raw.info
         channel_cnt = info['nchan']
         I = np.identity(channel_cnt)
         dummy_raw = mne.io.RawArray(data=I, info=info, verbose='ERROR')
-        dummy_raw.set_eeg_reference(verbose='ERROR');
+        dummy_raw.set_eeg_reference(projection=True)# verbose='ERROR')
 
         # Applying inverse modelling to an identity matrix gives us the forward model matrix
         snr = 1.0  # use smaller SNR for raw data
         lambda2 = 1.0 / snr ** 2
-        method = "MNE"  # use sLORETA method (could also be MNE or dSPM)
+        method = "sLORETA"  # use sLORETA method (could also be MNE or dSPM)
         stc = mne.minimum_norm.apply_inverse_raw(dummy_raw, inverse_operator, lambda2, method)
         return stc.data
 
@@ -47,10 +50,34 @@ class SourceSpaceRecontructor(Protocol):
     @staticmethod
     def make_inverse_operator():
         from mne.datasets import sample
-        from mne.minimum_norm import read_inverse_operator
-        data_path = sample.data_path()
-        filename_inv = data_path + '/MEG/sample/sample_audvis-meg-oct-6-meg-inv.fif'
-        return read_inverse_operator(filename_inv, verbose='ERROR')
+        from mne.minimum_norm import read_inverse_operator, make_inverse_operator
+        from mne.datasets import fetch_fsaverage
+        from mne.channels import make_standard_montage
+        # data_path = sample.data_path()
+        # filename_inv = data_path + '/MEG/sample/sample_audvis-meg-oct-6-meg-inv.fif'
+        # return read_inverse_operator(filename_inv, verbose='ERROR')
+
+        fname_raw = "/Users/christopherturner/Documents/EEG DATA/ct_102/ct_102_ec.vhdr"
+        raw = mne.io.read_raw_brainvision(fname_raw)
+        raw.set_eeg_reference(projection=True)
+        raw_twitch = raw.drop_channels(['ECG', 'EOG'])
+        montage = make_standard_montage('standard_1005')
+        raw_twitch.set_montage(montage)
+        info = raw.info
+        fs_dir = fetch_fsaverage(verbose=True)
+        # --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
+        trans = 'fsaverage'  # MNE has a built-in fsaverage transformation #TODO: figure out how to get this for own/MRI data
+        src = op.join(fs_dir, 'bem',
+                      'fsaverage-ico-5-src.fif')  # TODO: does this just need to be caluculated differently if using own MRI data? - look at mne.setup_source_space (example in the mixed_source_space_inverse.py)
+        bem = op.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+        fwd = mne.make_forward_solution(info, trans=trans, src=src,
+                                        bem=bem, eeg=True, mindist=5.0, n_jobs=1)
+        noise_cov = mne.compute_raw_covariance(raw,tmax=0.5)  # LOOKS LIKE THIS NEEDS TO BE JUST RAW DATA - i.e. WITH NO EVENTS (OTHERWISE NEED TO DO THE EPOCH ONE AND FIND EVENTS) - PROBABLY GET THIS FROM BASELINE
+        loose = 0.2
+        depth = 0.8
+        return make_inverse_operator(info, fwd, noise_cov, loose=loose, depth=depth)
+
+
 
     def get_mesh_data_from_inverse_operator(self, inverse_operator):
         # Creates pyqtgraph.opengl.MeshData instance to store the cortical mesh used to create the inverse operator.
