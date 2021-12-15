@@ -2,7 +2,8 @@ import time
 
 import numpy as np
 import pyqtgraph as pg
-
+from PyQt5.QtGui import QPainter, QPen, QBrush
+from PyQt5.QtCore import Qt
 
 class ProtocolWidget(pg.PlotWidget):
     def __init__(self, **kwargs):
@@ -123,6 +124,47 @@ class BarFeedbackProtocolWidgetPainter(Painter):
         self.p2.setData(self.x, np.zeros_like(self.x)-5)
         pass
 
+
+class GaborFeedbackProtocolWidgetPainter(Painter):
+    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1):
+        super(GaborFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
+        self.noise_scaler = noise_scaler
+        self.x = np.linspace(-np.pi/2, np.pi/2, 100)
+        np.random.seed(42)
+        self.noise = np.sin(15*self.x)*0.5-0.5 if not circle_border else np.random.uniform(-0.5, 0.5, 100)-0.5
+        self.widget = None
+        self.radius = radius
+        self.m_threshold = m_threshold
+
+    def prepare_widget(self, widget):
+        super(GaborFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
+        self.p1 = widget.plot(np.sin(self.x), np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
+        self.p2 = widget.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
+        brush = QBrush(Qt.red, Qt.DiagCrossPattern)
+        fill = pg.FillBetweenItem(self.p1, self.p2, brush=brush)
+        self.fill = fill
+        widget.addItem(fill)
+
+    def set_red_state(self, flag):
+        if flag:
+            self.p1.setPen(pg.mkPen(176, 35, 48))
+            self.p2.setPen(pg.mkPen(176, 35, 48))
+            self.fill.setBrush(176, 35, 48, 25)
+        else:
+            self.p1.setPen(pg.mkPen(229, 223, 213))
+            self.p2.setPen(pg.mkPen(229, 223, 213))
+            self.fill.setBrush(229, 223, 213, 25)
+
+    def redraw_state(self, sample, m_sample):
+        if m_sample is not None:
+            self.set_red_state(m_sample > self.m_threshold)
+        if np.ndim(sample)>0:
+            sample = np.sum(sample)
+        noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
+        noise = self.noise*noise_ampl
+        self.p1.setData(self.radius * np.sin(self.x)*(1+noise), self.radius * np.cos(self.x)*(1+noise))
+        self.p2.setData(self.radius * np.sin(self.x)*(1+noise), -self.radius * np.cos(self.x)*(1+noise))
+        pass
 
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):

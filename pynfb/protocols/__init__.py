@@ -17,6 +17,7 @@ from ..helpers.beep import SingleBeep
 from ..serializers.hdf5 import load_h5py_protocols_raw
 from ..protocols.user_inputs import SelectSSDFilterWidget
 from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbackProtocolWidgetPainter,
+                                 GaborFeedbackProtocolWidgetPainter,
                                  BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
                                  VideoProtocolWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
@@ -79,9 +80,9 @@ class Protocol:
                     signal.update(mock_chunk)
                 self.mock_samples_counter += chunk_size
                 self.mock_samples_counter %= self.mock_recordings.shape[0]
-                #mock_signals = self.mock_recordings_signals[self.mock_samples_counter - 1]
-                #mark = self.widget_painter.redraw_state(mock_signals[self.source_signal_id], m_sample)
-                #reward.update(mock_signals[reward.signal_ind], chunk_size)
+                # mock_signals = self.mock_recordings_signals[self.mock_samples_counter - 1]
+                # mark = self.widget_painter.redraw_state(mock_signals[self.source_signal_id], m_sample)
+                # reward.update(mock_signals[reward.signal_ind], chunk_size)
                 mark = self.widget_painter.redraw_state(self.mock[self.source_signal_id].current_chunk[-1], m_sample)
                 reward.update(self.mock[reward.signal_ind].current_chunk[-1], chunk_size)
         else:
@@ -122,7 +123,7 @@ class Protocol:
 
             # get recorded raw data
             if raw_file is not None and protocols_seq is not None:
-                x = load_h5py_protocols_raw(raw_file, [j for j in range(len(protocols_seq)-1)])
+                x = load_h5py_protocols_raw(raw_file, [j for j in range(len(protocols_seq) - 1)])
                 x.append(raw)
             else:
                 raise AttributeError('Attributes protocol_seq and raw_file should be not a None')
@@ -132,7 +133,7 @@ class Protocol:
             # prepare train data:
             bci_labels = {'Open': 0, 'Left': 1, 'Right': 2}
             X = np.vstack([x for x, name in zip(x, protocols_seq) if name in bci_labels])
-            y = np.concatenate([np.ones(len(x), dtype=int) *  bci_labels[name]
+            y = np.concatenate([np.ones(len(x), dtype=int) * bci_labels[name]
                                 for x, name in zip(x, protocols_seq) if name in bci_labels], 0)
             # find and fit first bci signal:
             bci_signal = [signal for signal in self.signals if isinstance(signal, BCISignal)][0]
@@ -188,7 +189,7 @@ class BaselineProtocol(Protocol):
         self.half_time_text = half_time_text
         self.is_half_time = False
         self.beep = SingleBeep()
-        
+
         # audio
         self.voiceover = voiceover
         self._audio_player = QMediaPlayer()
@@ -231,8 +232,12 @@ class FeedbackProtocol(Protocol):
         super().__init__(signals, **kwargs)
         if circle_border == 2:
             self.widget_painter = BarFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
-                                                                      circle_border=circle_border,
-                                                                      m_threshold=m_threshold)
+                                                                   circle_border=circle_border,
+                                                                   m_threshold=m_threshold)
+        elif circle_border == 3:
+            self.widget_painter = GaborFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
+                                                                   circle_border=circle_border,
+                                                                   m_threshold=m_threshold)
         else:
             self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                       circle_border=circle_border,
