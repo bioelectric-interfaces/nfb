@@ -140,13 +140,14 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
     def prepare_widget(self, widget):
         super(GaborFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
         gabor = GaborPatch()
+        self.widget = widget
         self.gabor = gabor
-        fill = pg.ImageItem(gabor)
+        self.fill = pg.ImageItem(gabor)
         tr = QTransform()  # prepare ImageItem transformation:
         tr.scale(0.02, 0.02)  # scale horizontal and vertical axes
-        tr.translate(-80, -80)
-        fill.setTransform(tr)
-        widget.addItem(fill)
+        tr.translate(-140, -93)
+        self.fill.setTransform(tr)
+        self.widget.addItem(self.fill)
 
     def set_red_state(self, flag):
         if flag:
@@ -163,7 +164,9 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
-        self.gabor = GaborPatch(theta=sample*180/np.pi)
+        print(f"SAMPLE: {sample}, ANGLE: {sample*180/np.pi}")
+        self.fill.setOpts(update=True, opacity=abs(sample))
+
         pass
 
 class BaselineProtocolWidgetPainter(Painter):
