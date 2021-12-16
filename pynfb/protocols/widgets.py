@@ -1,8 +1,9 @@
 import time
-
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 import numpy as np
 import pyqtgraph as pg
-from PyQt5.QtGui import QPainter, QPen, QBrush
+from PyQt5.QtGui import QPainter, QPen, QBrush, QTransform
 from PyQt5.QtCore import Qt
 
 class ProtocolWidget(pg.PlotWidget):
@@ -138,11 +139,13 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
 
     def prepare_widget(self, widget):
         super(GaborFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
-        self.p1 = widget.plot(np.sin(self.x), np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
-        self.p2 = widget.plot(np.sin(self.x), -np.cos(self.x), pen=pg.mkPen(229, 223, 213)).curve
-        brush = QBrush(Qt.red, Qt.DiagCrossPattern)
-        fill = pg.FillBetweenItem(self.p1, self.p2, brush=brush)
-        self.fill = fill
+        gabor = GaborPatch()
+        self.gabor = gabor
+        fill = pg.ImageItem(gabor)
+        tr = QTransform()  # prepare ImageItem transformation:
+        tr.scale(0.02, 0.02)  # scale horizontal and vertical axes
+        tr.translate(-80, -80)
+        fill.setTransform(tr)
         widget.addItem(fill)
 
     def set_red_state(self, flag):
@@ -160,10 +163,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
-        noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
-        noise = self.noise*noise_ampl
-        self.p1.setData(self.radius * np.sin(self.x)*(1+noise), self.radius * np.cos(self.x)*(1+noise))
-        self.p2.setData(self.radius * np.sin(self.x)*(1+noise), -self.radius * np.cos(self.x)*(1+noise))
+        self.gabor = GaborPatch(theta=sample*180/np.pi)
         pass
 
 class BaselineProtocolWidgetPainter(Painter):
@@ -347,6 +347,83 @@ class VideoProtocolWidgetPainter(Painter):
                 self.img.setImage(self.video.get_data(self.frame_counter))
             pass
 
+
+def GaborPatch(position=None,
+                 sigma=55,
+                 theta=35,
+                 lambda_=12.5,
+                 phase=0.5,
+                 psi=120,
+                 gamma=1,
+                 background_colour=(127, 127, 127)):
+    """A class implementing a Gabor Patch.
+    From expyriment: https://github.com/expyriment/expyriment-stash/blob/master/extras/expyriment_stimuli_extras/gaborpatch/_gaborpatch.py
+    """
+
+
+    """Create a Gabor Patch.
+    Parameters
+    ----------
+    position  : (int, int), optional
+        position of the mask stimulus
+    sigma : int or float, optional
+        gaussian standard deviation (in pixels) (default=20)
+    theta : int or float, optional
+        Grating orientation in degrees (default=35)
+    lambda_ : int, optional
+        Spatial frequency (pixel per cycle) (default=10)
+    phase : float
+        0 to 1 inclusive (default=.5)
+    psi : int, optional
+        0 to 1 inclusive (default=1)
+    gamma : float
+        0 to 1 inclusive (default=1)
+    background_colour : (int,int,int), optional
+        colour of the background, default: (127, 127, 127)
+    Notes
+    -----
+    The background colour of the stimulus depends of the parameters of
+    the Gabor patch and can be determined (e.g. for plotting) with the
+    property `GaborPatch.background_colour`.
+    """
+
+
+    sigma_x = sigma
+    sigma_y = float(sigma) / gamma
+
+    # Bounding box
+    nstds = 3
+    theta = theta / 180.0 * np.pi
+    xmax = max(abs(nstds * sigma_x * np.cos(theta)), abs(nstds * sigma_y * np.sin(theta)))
+    xmax = np.ceil(max(1, xmax))
+    ymax = max(abs(nstds * sigma_x * np.sin(theta)), abs(nstds * sigma_y * np.cos(theta)))
+    ymax = np.ceil(max(1, ymax))
+    xmin = -xmax
+    ymin = -ymax
+    (x, y) = np.meshgrid(np.arange(xmin, xmax + 1), np.arange(ymin, ymax + 1))
+    (y, x) = np.meshgrid(np.arange(ymin, ymax + 1), np.arange(xmin, xmax + 1))
+
+    # Rotation
+    x_theta = x * np.cos(theta) + y * np.sin(theta)
+    y_theta = -x * np.sin(theta) + y * np.cos(theta)
+
+    pattern = np.exp(-.5 * (x_theta ** 2 / sigma_x ** 2 + y_theta ** 2 / sigma_y ** 2)) * np.cos(
+            2 * np.pi / lambda_ * x_theta + psi)
+
+    # make numpy pixel array
+    bkg = np.ones((pattern.shape[0], pattern.shape[1], 3)) * \
+                                    (np.ones((pattern.shape[1], 3)) * background_colour) #background
+    modulation = np.ones((3, pattern.shape[1], pattern.shape[0])) * \
+                                    ((255/2.0) * phase * np.ones(pattern.shape) * pattern)  # alpha
+
+    # self._pixel_array = bkg + modulation.T
+    # self._pixel_array[self._pixel_array<0] = 0
+    # self._pixel_array[self._pixel_array>255] = 255
+
+    # make stimulus
+    # Canvas.__init__(self, size=pattern.shape, position=position, colour=background_colour)
+    # self._background_colour = background_colour
+    return pattern
 
 if __name__ == '__main__':
     from PyQt5 import QtGui, QtWidgets
