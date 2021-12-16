@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPainter, QPen, QBrush, QTransform
 from PyQt5.QtCore import Qt
 
 class ProtocolWidget(pg.PlotWidget):
-    def __init__(self, **kwargs):
+    def __init__(self, type=None, **kwargs):
         super(ProtocolWidget, self).__init__(**kwargs)
         width = 5
         self.setYRange(-width, width)
@@ -20,6 +20,8 @@ class ProtocolWidget(pg.PlotWidget):
         self.hideAxis('bottom')
         self.hideAxis('left')
         self.setBackgroundBrush(pg.mkBrush('#252120'))
+        if type and type == "Gabor":
+            self.setBackgroundBrush(pg.mkBrush(127,127,127))
         self.reward_str = '<font size="4" color="#B48375">Reward: </font><font size="5" color="#91C7A9">{}</font>'
         self.reward = pg.TextItem(html=self.reward_str.format(0))
         self.reward.setPos(-4.7, 4.7)
@@ -358,7 +360,7 @@ def GaborPatch(position=None,
                  phase=0.5,
                  psi=120,
                  gamma=1,
-                 background_colour=(127, 127, 127)):
+                 background_colour=(0, 0, 0)):
     """A class implementing a Gabor Patch.
     From expyriment: https://github.com/expyriment/expyriment-stash/blob/master/extras/expyriment_stimuli_extras/gaborpatch/_gaborpatch.py
     """
@@ -419,13 +421,15 @@ def GaborPatch(position=None,
     modulation = np.ones((3, pattern.shape[1], pattern.shape[0])) * \
                                     ((255/2.0) * phase * np.ones(pattern.shape) * pattern)  # alpha
 
-    # self._pixel_array = bkg + modulation.T
+    pixel_array = bkg + modulation.T
     # self._pixel_array[self._pixel_array<0] = 0
     # self._pixel_array[self._pixel_array>255] = 255
 
     # make stimulus
     # Canvas.__init__(self, size=pattern.shape, position=position, colour=background_colour)
     # self._background_colour = background_colour
+
+
     return pattern
 
 if __name__ == '__main__':

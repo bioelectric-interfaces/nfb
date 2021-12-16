@@ -11,7 +11,7 @@ from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
 from pynfb.helpers.dc_blocker import DCBlocker
 from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol
-from pynfb.protocols.widgets import ProtocolWidget
+from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
@@ -306,6 +306,9 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         # background
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(37, 33, 32))
+        if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
+            p.setColor(self.backgroundRole(), QtGui.QColor(127, 127, 127))
+
         self.setPalette(p)
 
         # prepare widget
@@ -357,7 +360,10 @@ class PhotoRect(pg.PlotWidget):
 
 class SubjectWindow(SecondaryWindow):
     def create_figure(self):
-        return ProtocolWidget()
+        type = None
+        if isinstance(self.current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
+            type = "Gabor"
+        return ProtocolWidget(type=type)
 
     def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
         self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
