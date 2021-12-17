@@ -21,7 +21,7 @@ class ProtocolWidget(pg.PlotWidget):
         self.hideAxis('left')
         self.setBackgroundBrush(pg.mkBrush('#252120'))
         if type and type == "Gabor":
-            self.setBackgroundBrush(pg.mkBrush(127,127,127))
+            self.setBackgroundBrush(pg.mkBrush(126,126,126))
         self.reward_str = '<font size="4" color="#B48375">Reward: </font><font size="5" color="#91C7A9">{}</font>'
         self.reward = pg.TextItem(html=self.reward_str.format(0))
         self.reward.setPos(-4.7, 4.7)
@@ -146,8 +146,8 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         self.gabor = gabor
         self.fill = pg.ImageItem(gabor)
         tr = QTransform()  # prepare ImageItem transformation:
-        tr.scale(0.02, 0.02)  # scale horizontal and vertical axes
-        tr.translate(-140, -93)
+        tr.scale(0.05, 0.05)  # scale horizontal and vertical axes
+        tr.translate(-104, -104)
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
 
@@ -167,7 +167,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         if np.ndim(sample)>0:
             sample = np.sum(sample)
         print(f"SAMPLE: {sample}, ANGLE: {sample*180/np.pi}")
-        self.fill.setOpts(update=True, opacity=abs(sample))
+        self.fill.setOpts(update=True, opacity=abs(sample)) #TODO make sure this is in an approriate range (for 0%-100%)
 
         pass
 
@@ -354,7 +354,7 @@ class VideoProtocolWidgetPainter(Painter):
 
 
 def GaborPatch(position=None,
-                 sigma=55,
+                 sigma=25,
                  theta=35,
                  lambda_=12.5,
                  phase=0.5,
@@ -397,7 +397,7 @@ def GaborPatch(position=None,
     sigma_y = float(sigma) / gamma
 
     # Bounding box
-    nstds = 3
+    nstds = 5
     theta = theta / 180.0 * np.pi
     xmax = max(abs(nstds * sigma_x * np.cos(theta)), abs(nstds * sigma_y * np.sin(theta)))
     xmax = np.ceil(max(1, xmax))
@@ -430,7 +430,7 @@ def GaborPatch(position=None,
     # self._background_colour = background_colour
 
 
-    return pattern
+    return pixel_array
 
 if __name__ == '__main__':
     from PyQt5 import QtGui, QtWidgets
