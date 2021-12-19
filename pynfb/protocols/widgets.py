@@ -20,8 +20,8 @@ class ProtocolWidget(pg.PlotWidget):
         self.hideAxis('bottom')
         self.hideAxis('left')
         self.setBackgroundBrush(pg.mkBrush('#252120'))
-        if type and type == "Gabor":
-            self.setBackgroundBrush(pg.mkBrush(126,126,126))
+        # if type and type == "Gabor":
+        self.setBackgroundBrush(pg.mkBrush(126,126,126))
         self.reward_str = '<font size="4" color="#B48375">Reward: </font><font size="5" color="#91C7A9">{}</font>'
         self.reward = pg.TextItem(html=self.reward_str.format(0))
         self.reward.setPos(-4.7, 4.7)
@@ -254,8 +254,8 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
 
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the image you saw? (Y&larr) (&rarrN)</p></font></center>')
-        self.text_item.setAnchor((0.5, 0.5))
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the image you saw? <br>Y (\u2190), N (\u2192)</p></font></center>')
+        self.text_item.setAnchor((0.5, -1.75))
         self.text_item.setTextWidth(500)
         self.widget.addItem(self.text_item)
         self.plotItem = self.widget.plotItem

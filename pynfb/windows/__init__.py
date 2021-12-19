@@ -11,7 +11,7 @@ from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
 from pynfb.helpers.dc_blocker import DCBlocker
 from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol
-from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter
+from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
@@ -306,8 +306,8 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         # background
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(37, 33, 32))
-        if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
-            p.setColor(self.backgroundRole(), QtGui.QColor(126, 126, 126))
+        # if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
+        p.setColor(self.backgroundRole(), QtGui.QColor(126, 126, 126))
 
         self.setPalette(p)
 
@@ -333,6 +333,10 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         if e.key() == QtCore.Qt.Key_Space:
         # If the space key is pressed, then start the block
             self.pause = False
+
+        if isinstance(self.current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
+            if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
+                self.pause = False
 
         if e.key() == QtCore.Qt.Key_Escape:
         # Toggle fullscreen on the escape key
