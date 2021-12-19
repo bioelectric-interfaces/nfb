@@ -129,37 +129,42 @@ class BarFeedbackProtocolWidgetPainter(Painter):
 
 
 class GaborFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1):
+    def __init__(self, gabor_theta=45, m_threshold=1, show_reward=False):
         super(GaborFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
-        self.noise_scaler = noise_scaler
-        self.x = np.linspace(-np.pi/2, np.pi/2, 100)
         np.random.seed(42)
-        self.noise = np.sin(15*self.x)*0.5-0.5 if not circle_border else np.random.uniform(-0.5, 0.5, 100)-0.5
+        self.x = np.linspace(-0.25, 0.25, 10)
         self.widget = None
-        self.radius = radius
+        self.gabor_theta = gabor_theta
         self.m_threshold = m_threshold
+        print(f'GABOR_THETA={gabor_theta}')
 
     def prepare_widget(self, widget):
         super(GaborFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
-        gabor = GaborPatch()
+
+        # Draw and align gabor patch
+        gabor = GaborPatch(theta=self.gabor_theta)
         self.widget = widget
         self.gabor = gabor
         self.fill = pg.ImageItem(gabor)
         tr = QTransform()  # prepare ImageItem transformation:
-        tr.scale(0.05, 0.05)  # scale horizontal and vertical axes
-        tr.translate(-104, -104)
+        scale_factor = 20
+        x_off = gabor.shape[0]/(2*scale_factor)
+        y_off = gabor.shape[1]/(2*scale_factor)
+        tr.translate(-x_off, -y_off)
+        tr.scale(1./scale_factor, 1./scale_factor)  # scale horizontal and vertical axes
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
+        # draw cross
+        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
+        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
 
     def set_red_state(self, flag):
         if flag:
-            self.p1.setPen(pg.mkPen(176, 35, 48))
-            self.p2.setPen(pg.mkPen(176, 35, 48))
-            self.fill.setBrush(176, 35, 48, 25)
+            # TODO: figure out what needs to go here
+            pass
         else:
-            self.p1.setPen(pg.mkPen(229, 223, 213))
-            self.p2.setPen(pg.mkPen(229, 223, 213))
-            self.fill.setBrush(229, 223, 213, 25)
+            # TODO: figure out what needs to go here
+            pass
 
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
@@ -170,7 +175,6 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         #TODO: normalise the value of sample to fit between 0 and 1 for below - this maybe can be done after baseline normalisation
         self.fill.setOpts(update=True, opacity=max(min(sample, 1.0), 0.0))
 
-        pass
 
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
@@ -195,6 +199,9 @@ class BaselineProtocolWidgetPainter(Painter):
 
 
 class ParticipantInputWidgetPainter(Painter):
+    """
+    Protocol that waits for participant to press space to continue
+    """
     def __init__(self, text='Relax', show_reward=False):
         super(ParticipantInputWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
@@ -217,19 +224,42 @@ class ParticipantInputWidgetPainter(Painter):
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
 class ParticipantChoiceWidgetPainter(Painter):
-    def __init__(self, text='Relax', show_reward=False):
+    """
+    Protocol for 2-alternative forced choice task (currently for gabor patch specifically)
+    TODO: make this generic, i.e. not only for gabor patch
+    """
+    def __init__(self, text='Relax', gabor_theta=45, show_reward=False):
         super(ParticipantChoiceWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
         self.text_item = pg.TextItem()
+        self.gabor_theta = gabor_theta
+        print(f'CHOICE_THETA={gabor_theta}')
+
 
     def prepare_widget(self, widget):
         super(ParticipantChoiceWidgetPainter, self).prepare_widget(widget)
+
+        self.widget = widget
         score = widget.reward.toPlainText().split(":")[1]
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">Is this the image you saw? (Y<-) (->N)</font></center>')
+
+        gabor = GaborPatch(theta=self.gabor_theta)
+        self.gabor = gabor
+        self.fill = pg.ImageItem(gabor)
+        tr = QTransform()  # prepare ImageItem transformation:
+        scale_factor = 20
+        x_off = gabor.shape[0]/(2*scale_factor)
+        y_off = gabor.shape[1]/(2*scale_factor)
+        tr.translate(-x_off, -y_off)
+        tr.scale(1./scale_factor, 1./scale_factor)  # scale horizontal and vertical axes
+        self.fill.setTransform(tr)
+        self.widget.addItem(self.fill)
+
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the image you saw? (Y&larr) (&rarrN)</p></font></center>')
         self.text_item.setAnchor((0.5, 0.5))
         self.text_item.setTextWidth(500)
-        widget.addItem(self.text_item)
-        self.plotItem = widget.plotItem
+        self.widget.addItem(self.text_item)
+        self.plotItem = self.widget.plotItem
+
 
     def redraw_state(self, sample, m_sample):
         pass
