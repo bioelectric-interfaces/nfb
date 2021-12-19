@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime
+import random as r
 import numpy as np
 from PyQt5 import QtCore
 from itertools import zip_longest, chain
@@ -42,7 +43,9 @@ class Experiment():
         self.mock_signals_buffer = None
         self.activate_trouble_catching = False
         self.main = None
+        self.current_gabor_theta = [r.choice(range(0, 360, 30))] # Init the gabor theta with a random angle
         self.restart()
+
         pass
 
     def update(self):
@@ -251,6 +254,8 @@ class Experiment():
 
             self.reward.threshold = current_protocol.reward_threshold
             reward_signal_id = current_protocol.reward_signal_id
+            print(self.signals)
+            print(reward_signal_id)
             self.reward.signal = self.signals[reward_signal_id]  # TODO: REward for MOCK
             self.reward.set_enabled(isinstance(current_protocol, FeedbackProtocol))
 
@@ -409,6 +414,10 @@ class Experiment():
                 montage=montage
             )
 
+
+            # Randomly set offset between +/- 5 degrees and 0
+            rn_offset = r.choice([-5,5,0])
+
             # type specific arguments
             if protocol['sFb_type'] == 'Baseline':
                 self.protocols.append(
@@ -422,6 +431,7 @@ class Experiment():
                 self.protocols.append(
                     FeedbackProtocol(
                         self.signals,
+                        gabor_theta=self.current_gabor_theta[-1] + rn_offset,
                         circle_border=protocol['iRandomBound'],
                         m_threshold=protocol['fMSignalThreshold'],
                         **kwargs))
@@ -448,6 +458,7 @@ class Experiment():
                 self.protocols.append(
                     ParticipantChoiceProtocol(
                         self.signals,
+                        gabor_theta=self.current_gabor_theta[-1] + rn_offset,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         **kwargs))
             elif protocol['sFb_type'] == 'ExperimentStart':
@@ -458,6 +469,7 @@ class Experiment():
                         **kwargs))
             else:
                 raise TypeError('Undefined protocol type \"{}\"'.format(protocol['sFb_type']))
+
 
         # protocols sequence
         names = [protocol.name for protocol in self.protocols]
@@ -549,6 +561,12 @@ class Experiment():
 
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
+
+        # update the gabor_theta for the next run if the current protocol is a choice protocol
+        current_protocol = self.protocols_sequence[self.current_protocol_index]
+        if isinstance(current_protocol, ParticipantChoiceProtocol):
+            rn = r.choice(range(0, 360, 30))
+            self.current_gabor_theta.append(rn)
 
         # create real fb list
         self.real_fb_number_list = []
