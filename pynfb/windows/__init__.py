@@ -307,7 +307,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         p = self.palette()
         p.setColor(self.backgroundRole(), QtGui.QColor(37, 33, 32))
         if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
-            p.setColor(self.backgroundRole(), QtGui.QColor(127, 127, 127))
+            p.setColor(self.backgroundRole(), QtGui.QColor(126, 126, 126))
 
         self.setPalette(p)
 
