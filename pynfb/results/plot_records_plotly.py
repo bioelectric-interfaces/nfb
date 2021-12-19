@@ -6,6 +6,7 @@ import os
 import glob
 import pandas as pd
 import plotly.express as px
+import mne
 
 dir_name = max(glob.glob(os.path.join('./', '*/')), key=os.path.getmtime)
 #dir_name = 'C:\\Users\\Nikolai\\Downloads\\composite_res\\'
@@ -28,12 +29,20 @@ df1['sample'] = df1.index
 protocol_data = {}
 block_numbers = df1['block_number'].unique()
 protocol_names = [f"{a_}{b_}"for a_, b_ in zip(p_names, block_numbers)]
-df2 = pd.melt(df1, id_vars=['block_name', 'block_number', 'sample'], value_vars=channels.append("signal_AAI"), var_name="channel", value_name='data')
+channels_signal = channels.copy()
+channels_signal.append("signal_AAI")
+df2 = pd.melt(df1, id_vars=['block_name', 'block_number', 'sample'], value_vars=channels_signal, var_name="channel", value_name='data')
 
 for protocol_n in block_numbers:
     protocol_data[protocol_names[protocol_n-1]] = df2.loc[df2['block_number'] == protocol_n]
 
-fig = px.line(protocol_data["NFB5"], x="sample", y="data", color='channel')
-fig.show()
+# fig = px.line(protocol_data["NFB5"], x="sample", y="data", color='channel')
+# fig.show()
 pass
 
+# Try plot through MNE
+m_info = mne.create_info(channels, fs, ch_types='eeg', verbose=None)
+channel_data = df1.drop(columns=['signal_alpha_left', 'signal_alpha_right', 'signal_AAI', 'events', 'block_name', 'block_number', 'sample'])
+m_raw = mne.io.RawArray(channel_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+m_raw.plot()
+pass
