@@ -7,7 +7,6 @@ import numpy as np
 from numpy import vstack
 from numpy.random import randint
 
-
 from gtts import gTTS
 from googletrans import Translator
 
@@ -21,11 +20,13 @@ from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbac
                                  GaborFeedbackProtocolWidgetPainter, ParticipantInputWidgetPainter,
                                  BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
                                  VideoProtocolWidgetPainter, ParticipantChoiceWidgetPainter,
-                                 ExperimentStartWidgetPainter)
+                                 ExperimentStartWidgetPainter, FixationCrossProtocolWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
 
+
+# TODO: Separate out protocols so it's easier to add new ones in (make a template for different and generic types)
 
 class Protocol:
     def __init__(self, signals, source_signal_id=None, name='', duration=30, update_statistics_in_the_end=False,
@@ -229,7 +230,7 @@ class BaselineProtocol(Protocol):
 
 
 class FeedbackProtocol(Protocol):
-    def __init__(self, signals, name='Feedback', circle_border=0, m_threshold=1, **kwargs):
+    def __init__(self, signals, name='Feedback', circle_border=0, m_threshold=1, gabor_theta=45, **kwargs):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
         if circle_border == 2:
@@ -238,8 +239,8 @@ class FeedbackProtocol(Protocol):
                                                                    m_threshold=m_threshold)
         elif circle_border == 3:
             self.widget_painter = GaborFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
-                                                                   circle_border=circle_border,
-                                                                   m_threshold=m_threshold)
+                                                                     gabor_theta=gabor_theta,
+                                                                     m_threshold=m_threshold)
         else:
             self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                       circle_border=circle_border,
@@ -253,6 +254,13 @@ class ThresholdBlinkFeedbackProtocol(Protocol):
         super().__init__(signals, **kwargs)
         self.widget_painter = ThresholdBlinkFeedbackProtocolWidgetPainter(threshold=threshold, time_ms=time_ms,
                                                                           show_reward=self.show_reward)
+
+
+class FixationCrossProtocol(Protocol):
+    def __init__(self, signals, name='FixationCross', colour=(0,0,0), **kwargs):
+        kwargs['name'] = name
+        super().__init__(signals, **kwargs)
+        self.widget_painter = FixationCrossProtocolWidgetPainter(colour=colour)
 
 
 class VideoProtocol(Protocol):
@@ -277,12 +285,14 @@ class ParticipantInputProtocol(Protocol):
         super().__init__(signals, **kwargs)
         self.widget_painter = ParticipantInputWidgetPainter(text=text, show_reward=self.show_reward)
 
+
 class ParticipantChoiceProtocol(Protocol):
-    def __init__(self, signals, name="ParticipantChoice", text='Relax', **kwargs):
+    def __init__(self, signals, name="ParticipantChoice", text='Relax', gabor_theta=45, **kwargs):
         kwargs['name'] = name
         self.hold = True
         super().__init__(signals, **kwargs)
-        self.widget_painter = ParticipantChoiceWidgetPainter(text=text, show_reward=self.show_reward)
+        self.widget_painter = ParticipantChoiceWidgetPainter(text=text, gabor_theta=gabor_theta, show_reward=self.show_reward)
+
 
 class ExperimentStartProtocol(Protocol):
     def __init__(self, signals, name="ExperimentStart", text='Relax', **kwargs):
