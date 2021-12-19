@@ -20,7 +20,7 @@ from .serializers.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_prot
 from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
-    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol
+    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -441,6 +441,12 @@ class Experiment():
                         self.signals,
                         threshold=protocol['fBlinkThreshold'],
                         time_ms=protocol['fBlinkDurationMs'],
+                        **kwargs))
+            elif protocol['sFb_type'] == 'FixationCross':
+                self.protocols.append(
+                    FixationCrossProtocol(
+                        self.signals,
+                        colour=protocol['tFixationCrossColour'],
                         **kwargs))
             elif protocol['sFb_type'] == 'Video':
                 self.protocols.append(

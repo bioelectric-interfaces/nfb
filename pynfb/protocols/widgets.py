@@ -176,6 +176,35 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         self.fill.setOpts(update=True, opacity=max(min(sample, 1.0), 0.0))
 
 
+class FixationCrossProtocolWidgetPainter(Painter):
+    def __init__(self, colour=(0,0,0)):
+        super(FixationCrossProtocolWidgetPainter, self).__init__()
+        self.x = np.linspace(-0.25, 0.25, 10)
+        self.widget = None
+        self.colour = colour
+
+    def prepare_widget(self, widget):
+        super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
+
+        # draw cross
+        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
+
+    def set_red_state(self, flag):
+        if flag:
+            # TODO: figure out what needs to go here
+            pass
+        else:
+            # TODO: figure out what needs to go here
+            pass
+
+    def redraw_state(self, sample, m_sample):
+        if m_sample is not None:
+            self.set_red_state(m_sample > self.m_threshold)
+        if np.ndim(sample)>0:
+            sample = np.sum(sample)
+
+
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
         super(BaselineProtocolWidgetPainter, self).__init__(show_reward=show_reward)

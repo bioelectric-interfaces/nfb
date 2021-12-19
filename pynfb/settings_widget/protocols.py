@@ -5,7 +5,7 @@ from pynfb.serializers.defaults import vectors_defaults as defaults
 from pynfb.widgets.helpers import ScrollArea
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'ParticipantInput', "ParticipantChoice", "ExperimentStart"]
+protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'ParticipantInput', "ParticipantChoice", "ExperimentStart", 'FixationCross']
 
 
 class ProtocolsSettingsWidget(QtWidgets.QWidget):
@@ -195,6 +195,10 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.circle_border.addItems(['SinCircle', 'RandomCircle', 'Bar', 'Gabor'])
         self.form_layout.addRow('&Feedback type:', self.circle_border)
 
+        # Fixation Cross settings
+        self.cross_colour = QtWidgets.QComboBox()
+        self.cross_colour.addItems(['Black', 'White', 'Red', 'Blue', 'Green'])
+        self.form_layout.addRow('&Fixation cross colour:', self.cross_colour)
 
         # threshold blink settings
         self.blink_duration_ms = QtWidgets.QSpinBox()
@@ -387,6 +391,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         current_index = self.m_signal.findText(current_protocol['sMSignal'], QtCore.Qt.MatchFixedString)
         self.m_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.m_signal_threshold.setValue(current_protocol['fMSignalThreshold'])
+        self.cross_colour.setCurrentText(current_protocol['tFixationCrossColour'])
+        # todo: set the cross colour here (make sure it is set when data is loaded)
         pass
 
     def save_and_close(self):
@@ -427,5 +433,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['sVideoPath'] = self.video_path.path.text()
         self.params[current_signal_index]['sMSignal'] = self.m_signal.currentText()
         self.params[current_signal_index]['fMSignalThreshold'] = self.m_signal_threshold.value()
+        colour_dict = {'Black': (0,0,0), 'White': (255,255,255), 'Green': (0,255,0), 'Red': (255,0,0), 'Blue': (0,0,255)}
+        self.params[current_signal_index]['tFixationCrossColour'] = colour_dict[self.cross_colour.currentText()]
+
         self.parent().reset_items()
         self.close()
