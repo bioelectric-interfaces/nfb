@@ -391,6 +391,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         current_index = self.m_signal.findText(current_protocol['sMSignal'], QtCore.Qt.MatchFixedString)
         self.m_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.m_signal_threshold.setValue(current_protocol['fMSignalThreshold'])
+        print(f"CROSS VAR: {current_protocol['tFixationCrossColour']}")
         self.cross_colour.setCurrentText(current_protocol['tFixationCrossColour'])
         # todo: set the cross colour here (make sure it is set when data is loaded)
         pass
@@ -433,8 +434,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['sVideoPath'] = self.video_path.path.text()
         self.params[current_signal_index]['sMSignal'] = self.m_signal.currentText()
         self.params[current_signal_index]['fMSignalThreshold'] = self.m_signal_threshold.value()
-        colour_dict = {'Black': (0,0,0), 'White': (255,255,255), 'Green': (0,255,0), 'Red': (255,0,0), 'Blue': (0,0,255)}
-        self.params[current_signal_index]['tFixationCrossColour'] = colour_dict[self.cross_colour.currentText()]
+        self.params[current_signal_index]['tFixationCrossColour'] = self.cross_colour.currentText()
 
         self.parent().reset_items()
         self.close()

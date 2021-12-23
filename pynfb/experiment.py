@@ -447,10 +447,12 @@ class Experiment():
                         time_ms=protocol['fBlinkDurationMs'],
                         **kwargs))
             elif protocol['sFb_type'] == 'FixationCross':
+                colour_dict = {'Black': (0, 0, 0), 'White': (255, 255, 255), 'Green': (0, 255, 0), 'Red': (255, 0, 0),
+                               'Blue': (0, 0, 255)}
                 self.protocols.append(
                     FixationCrossProtocol(
                         self.signals,
-                        colour=protocol['tFixationCrossColour'],
+                        colour=colour_dict[protocol['tFixationCrossColour']],
                         **kwargs))
             elif protocol['sFb_type'] == 'Video':
                 self.protocols.append(
