@@ -321,7 +321,8 @@ class Experiment():
 
         # use LSL inlet
         else:
-            stream_names = re.split(r"[,; ]+", self.params['sStreamName'])
+            stream_names = re.split(r"[,;]+", self.params['sStreamName'])
+            print(f'STREAM NAME: {stream_names}')
             streams = [LSLInlet(name=name) for name in stream_names]
             stream = streams[0]
             aux_streams = streams[1:] if len(streams) > 1 else None
