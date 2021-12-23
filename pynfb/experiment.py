@@ -20,7 +20,7 @@ from .serializers.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_prot
 from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
-    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol
+    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -414,9 +414,12 @@ class Experiment():
                 montage=montage
             )
 
-
-            # Randomly set offset between +/- 5 degrees and 0
+            # Randomly set offset between +/- 5 degrees and 0 for Gabor orientation
             rn_offset = r.choice([-5,5,0])
+
+            # Get image file
+            # TODO: make sure all images are shown somehow (according to experiment) and randomised
+            image_path = "/Users/christopherturner/Documents/ExperimentImageSet/sampleMerry_0027_Lasalle.jpeg"
 
             # type specific arguments
             if protocol['sFb_type'] == 'Baseline':
@@ -453,6 +456,12 @@ class Experiment():
                     VideoProtocol(
                         self.signals,
                         video_path=protocol['sVideoPath'],
+                        **kwargs))
+            elif protocol['sFb_type'] == 'Image':
+                self.protocols.append(
+                    ImageProtocol(
+                        self.signals,
+                        image_path=image_path,
                         **kwargs))
             elif protocol['sFb_type'] == 'ParticipantInput':
                 self.protocols.append(

@@ -7,12 +7,11 @@ from PyQt5.QtGui import QPainter, QPen, QBrush, QTransform
 from PyQt5.QtCore import Qt
 
 class ProtocolWidget(pg.PlotWidget):
-    def __init__(self, type=None, **kwargs):
+    def __init__(self, type=None, size=500, **kwargs):
         super(ProtocolWidget, self).__init__(**kwargs)
         width = 5
         self.setYRange(-width, width)
         self.setXRange(-width, width)
-        size = 500
         self.setMaximumWidth(size)
         self.setMaximumHeight(size)
         self.setMinimumWidth(size)
@@ -412,6 +411,52 @@ class VideoProtocolWidgetPainter(Painter):
                 self.img.setImage(self.video.get_data(self.frame_counter))
             pass
 
+
+class ImageProtocolWidgetPainter(Painter):
+    def __init__(self, image_file_path):
+        super(ImageProtocolWidgetPainter, self).__init__()
+        self.widget = None
+        self.image = None
+        self.err_msg = f"Couldn't open image file at {image_file_path} "
+        import os.path
+        if os.path.isfile(image_file_path):
+            try:
+                import imageio as imageio
+                self.image = imageio.imread(image_file_path)
+            except ImportError as e:
+                print(e.msg)
+                self.err_msg += e.msg
+        else:
+            self.err_msg = "No file {}".format(image_file_path)
+
+
+    def prepare_widget(self, widget):
+        super(ImageProtocolWidgetPainter, self).prepare_widget(widget)
+        if self.image is not None:
+            self.img = pg.ImageItem()
+            tr = QTransform()  # prepare ImageItem transformation:
+            size = widget.geometry()
+            scale_factor = self.image.shape[1]/size.height() *20 # TODO: adjust this for lab monitor
+            print(f"H: {size.height()}, scalef: {scale_factor}")
+            tr.rotate(-90)
+            tr.scale(1. / scale_factor, 1. / scale_factor)  # scale horizontal and vertical axes
+            x_off = self.image.shape[0] / (2)
+            y_off = self.image.shape[1] / (2)
+            tr.translate(-x_off, -y_off)
+            self.img.setTransform(tr)
+            self.img.setImage(self.image)
+            widget.addItem(self.img)
+
+        else:
+            text_item = pg.TextItem(html='<center><font size="6" color="#a92f41">{}'
+                                         '</font></center>'.format(self.err_msg),
+                                    anchor=(0.5, 0.5))
+            text_item.setTextWidth(500)
+            widget.addItem(text_item)
+
+    def redraw_state(self, sample, m_sample):
+        if self.image is not None:
+            pass
 
 def GaborPatch(position=None,
                  sigma=25,

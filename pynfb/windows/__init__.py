@@ -6,11 +6,12 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QSizePolicy, QDesktopWidget
 
 from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
 from pynfb.helpers.dc_blocker import DCBlocker
-from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol
+from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, ImageProtocol
 from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
@@ -321,6 +322,34 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         if isinstance(new_protocol, (ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol)):
             print("PAUSING!!!")
             self.pause = True
+        # Adjust the window size for image protocol
+        print(f"NewProtocolType: {type(new_protocol)}")
+        if isinstance(new_protocol, ImageProtocol):
+            screen = QDesktopWidget().screenGeometry()
+            print(f"SCREEN H: {screen.height()}, SCREEN W: {screen.width()}")
+            size = self.geometry()
+            print(f"SIZE H: {size.height()}, SIZE W: {size.width()}")
+            # TODO: fix this for windows, and monitor in lab
+            self.figure.setMaximumWidth(size.width())
+            self.figure.setMinimumWidth(size.width())
+            self.figure.setMaximumHeight(size.height())
+            self.figure.setMinimumHeight(size.height())
+            y_range = size.height()/100
+            x_range = size.width()/100
+            self.figure.setYRange(-y_range, y_range)
+            self.figure.setXRange(-x_range, x_range)
+        else:
+            new_range = 500
+            print(f"SETTING RANGE TO {new_range}")
+            self.figure.setMaximumWidth(new_range)
+            self.figure.setMinimumWidth(new_range)
+            self.figure.setMaximumHeight(new_range)
+            self.figure.setMinimumHeight(new_range)
+            y_range = 5
+            x_range = 5
+            self.figure.setYRange(-y_range, y_range)
+            self.figure.setXRange(-x_range, x_range)
+
 
     def closeEvent(self, event):
         if self.parent().experiment.is_finished or self.parent()._subject_window_want_to_close:
