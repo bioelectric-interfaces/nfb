@@ -186,7 +186,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.type.currentIndexChanged.connect(
             lambda: self.m_signal_threshold.setEnabled(self.type.currentText() == 'Feedback'))
         self.type.currentIndexChanged.connect(
-            lambda: self.video_path.setEnabled(self.type.currentText() == 'Video'))
+            lambda: self.video_path.setEnabled(self.type.currentText() == 'Video' or self.type.currentText() == "Image"))
         # self.type.setCurrentIndex(protocols_types.index(self.params))
         self.form_layout.addRow('&Type:', self.type)
 
@@ -382,7 +382,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.random_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.reverse_mock_previous.setEnabled(self.enable_mock_previous.isChecked())
         self.video_path.path.setText(current_protocol['sVideoPath'])
-        self.video_path.setEnabled(self.type.currentText() == 'Video')
+        self.video_path.setEnabled(self.type.currentText() == 'Video' or self.type.currentText() == 'Image')
         signals = ([d['sSignalName'] for d in self.parent().parent().params['vSignals']['DerivedSignal']] +
                    [d['sSignalName'] for d in self.parent().parent().params['vSignals']['CompositeSignal']])
         self.m_signal.addItems(['None'] + signals)

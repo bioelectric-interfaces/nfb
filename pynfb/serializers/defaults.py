@@ -91,7 +91,7 @@ vectors_defaults = OrderedDict([
             ('bPauseAfter', 0),
             ('bBeepAfter', 0),
             ('iRandomBound', 0),
-            ('sVideoPath', ''),
+            ('sVideoPath', '../defaults/lena.png'),
             ('sMSignal', 'None'),
             ('fMSignalThreshold', 1),
             ('bMockSource', 0),

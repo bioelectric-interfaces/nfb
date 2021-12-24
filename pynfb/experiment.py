@@ -418,10 +418,6 @@ class Experiment():
             # Randomly set offset between +/- 5 degrees and 0 for Gabor orientation
             rn_offset = r.choice([-5,5,0])
 
-            # Get image file
-            # TODO: make sure all images are shown somehow (according to experiment) and randomised
-            image_path = "/Users/christopherturner/Documents/ExperimentImageSet/sampleMerry_0027_Lasalle.jpeg"
-
             # type specific arguments
             if protocol['sFb_type'] == 'Baseline':
                 self.protocols.append(
@@ -464,7 +460,7 @@ class Experiment():
                 self.protocols.append(
                     ImageProtocol(
                         self.signals,
-                        image_path=image_path,
+                        image_path=protocol['sVideoPath'],
                         **kwargs))
             elif protocol['sFb_type'] == 'ParticipantInput':
                 self.protocols.append(
