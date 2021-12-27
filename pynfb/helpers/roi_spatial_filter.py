@@ -1,6 +1,9 @@
+import os
+
 import mne
 import numpy as np
 import pylab as plt
+from mne.datasets import fetch_fsaverage
 from mne.minimum_norm.inverse import _assemble_kernel
 
 def _get_label_flip(labels, label_vertidx, src):
@@ -80,8 +83,25 @@ def get_fwd_solution():
     fwd = mne.convert_forward_solution(fwd, surf_ori=True)
     return fwd
 
+
+def get_fsaverage_fwd(info):
+    """
+    Gets the forward solution for the fsaverage head model
+    """
+    # TODO: save the forward solution, if it doesn't exist then calculate it (this is to speed it up)
+    fs_dir = fetch_fsaverage(verbose=True)
+    # --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
+    trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+    src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+    bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+    fwd = mne.make_forward_solution(info, trans=trans, src=src,
+                                    bem=bem, eeg=True, mindist=5.0, n_jobs=1)
+    # The following is needed if reading forward solutions from disk (see note here: https://mne.tools/stable/generated/mne.write_forward_solution.html)
+    # fwd = mne.convert_forward_solution(fwd, surf_ori=True)
+    return fwd
+
 def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambda2=1):
-    standard_montage = mne.channels.make_standard_montage(kind='standard_1005')
+    standard_montage = mne.channels.make_standard_montage(kind='standard_1020') # TODO: make this setable (and make sure it is the right one)
     standard_montage_names = [name.upper() for name in standard_montage.ch_names]
     for j, channel in enumerate(channels):
         try:
@@ -89,13 +109,20 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
         except ValueError as e:
             print(f"ERROR ENCOUNTERED: {e}")
     info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
+    # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
+    keep_chs = [ elem for elem in info.ch_names if elem not in ['ECG', 'EOG']]
+    info.pick_channels(keep_chs)
     info.set_montage(standard_montage, on_missing='ignore')
+    print(f"2: {info.get('dig')}")
     noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
-    fwd = get_fwd_solution()
+    # fwd = get_fwd_solution()
+    loc = info.get('chs')[0]['loc']
+    print(f"ss: {np.isfinite(loc[:3]).all()}")
+    fwd = get_fsaverage_fwd(info)
     inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, fixed=True)
-    inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2, method=method)
+    inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2, method=method) # TODO: find out exactly what this does and if it is needed (not in the examples on MNE website)
     roi_label = get_roi_by_name(label_name)
-    K, noise_norm, vertno, source_nn = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None)
+    K, noise_norm, vertno, source_nn = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None) # TODO: make sure this is really doing what you want it to
     w = get_filter(K, vertno, inv, roi_label, noise_norm)
     if show:
         mne.viz.plot_topomap(w, info)
