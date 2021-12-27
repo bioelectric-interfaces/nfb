@@ -159,9 +159,6 @@ class SignalDialog(QtWidgets.QDialog):
         roi_label = self.params[current_signal_index]['lROILabel']
         self.spatial_filter.nfb_type.setChecked(self.params[current_signal_index]['bNFBType'])
 
-        # TODO: make it so the checkbox can have elements pre-checked
-        # self.spatial_filter.labels.setCurrentIndex(
-        #     self.spatial_filter.labels.findText(roi_label, QtCore.Qt.MatchFixedString))
         self.spatial_filter.labels.setItemsChecked(roi_label)
 
         self.temporal_settings.set_params(self.params[current_signal_index])
