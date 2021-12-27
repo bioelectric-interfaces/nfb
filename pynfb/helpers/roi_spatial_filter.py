@@ -56,9 +56,15 @@ def get_filter(K, vertno, inv, roi_label, noise_norm):
 
 # setup roi
 def get_roi_by_name(name):
-    labels = mne.read_labels_from_annot('fsaverage', parc='aparc')
-    #print([label.name for label in labels])
-    roi_label = labels[[label.name for label in labels].index(name)]
+    if type(name) == list:
+        roi_label = mne.read_labels_from_annot('fsaverage',regexp=name[0], parc='aparc')[0]
+        del name[0]
+        for elem in name:
+            roi_label = roi_label + mne.read_labels_from_annot('fsaverage',regexp=elem, parc='aparc')[0]
+    else:
+        labels = mne.read_labels_from_annot('fsaverage', parc='aparc')
+        #print([label.name for label in labels])
+        roi_label = labels[[label.name for label in labels].index(name)]
     return roi_label
 
 
@@ -122,11 +128,12 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
     inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, fixed=True)
     inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2, method=method) # TODO: find out exactly what this does and if it is needed (not in the examples on MNE website)
     roi_label = get_roi_by_name(label_name)
+    print(f"ROI: {roi_label}")
     K, noise_norm, vertno, source_nn = _assemble_kernel(inv, label=roi_label, method=method, pick_ori=None) # TODO: make sure this is really doing what you want it to
     w = get_filter(K, vertno, inv, roi_label, noise_norm)
     if show:
         mne.viz.plot_topomap(w, info)
-    common_ref_proj = np.eye(len(w)) - np.ones((len(w), len(w)))/len(w)
+    common_ref_proj = np.eye(len(w)) - np.ones((len(w), len(w)))/len(w) # TODO: this common ref projection - is it needed?
     w = common_ref_proj.dot(w)
     w /= np.linalg.norm(w)
     return w

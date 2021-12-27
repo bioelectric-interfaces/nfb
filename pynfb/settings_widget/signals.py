@@ -1,25 +1,32 @@
+import os
+
+import mne
 from PyQt5 import QtCore, QtGui, QtWidgets
+from mne.datasets import fetch_fsaverage
 
 from pynfb.serializers.defaults import vectors_defaults as defaults
 from pynfb.settings_widget import FileSelectorLine
 
+from pynfb.widgets.checkable_combo_box import CheckableComboBox
+
 default_signal = defaults['vSignals']['DerivedSignal'][0]
-roi_labels = ['CUSTOM', 'bankssts-lh', 'bankssts-rh', 'caudalanteriorcingulate-lh', 'caudalanteriorcingulate-rh',
-              'caudalmiddlefrontal-lh', 'caudalmiddlefrontal-rh', 'cuneus-lh', 'cuneus-rh', 'entorhinal-lh',
-              'entorhinal-rh', 'frontalpole-lh', 'frontalpole-rh', 'fusiform-lh', 'fusiform-rh', 'inferiorparietal-lh',
-              'inferiorparietal-rh', 'inferiortemporal-lh', 'inferiortemporal-rh', 'insula-lh', 'insula-rh',
-              'isthmuscingulate-lh', 'isthmuscingulate-rh', 'lateraloccipital-lh', 'lateraloccipital-rh',
-              'lateralorbitofrontal-lh', 'lateralorbitofrontal-rh', 'lingual-lh', 'lingual-rh',
-              'medialorbitofrontal-lh', 'medialorbitofrontal-rh', 'middletemporal-lh', 'middletemporal-rh',
-              'paracentral-lh', 'paracentral-rh', 'parahippocampal-lh', 'parahippocampal-rh', 'parsopercularis-lh',
-              'parsopercularis-rh', 'parsorbitalis-lh', 'parsorbitalis-rh', 'parstriangularis-lh',
-              'parstriangularis-rh', 'pericalcarine-lh', 'pericalcarine-rh', 'postcentral-lh', 'postcentral-rh',
-              'posteriorcingulate-lh', 'posteriorcingulate-rh', 'precentral-lh', 'precentral-rh', 'precuneus-lh',
-              'precuneus-rh', 'rostralanteriorcingulate-lh', 'rostralanteriorcingulate-rh', 'rostralmiddlefrontal-lh',
-              'rostralmiddlefrontal-rh', 'superiorfrontal-lh', 'superiorfrontal-rh', 'superiorparietal-lh',
-              'superiorparietal-rh', 'superiortemporal-lh', 'superiortemporal-rh', 'supramarginal-lh',
-              'supramarginal-rh', 'temporalpole-lh', 'temporalpole-rh', 'transversetemporal-lh',
-              'transversetemporal-rh', 'unknown-lh']
+
+def get_labels(name=None):
+    """
+    Return a list of Desikan Region Labels
+    name: name of label to return. if None, retun a list of all labels
+    """
+    fs_dir = fetch_fsaverage(verbose=True)
+    subjects_dir = os.path.dirname(fs_dir)
+    subject = 'fsaverage'
+    parc = 'aparc'
+    if name:
+        labels_parc = mne.read_labels_from_annot(
+            subject, regexp=name, subjects_dir=subjects_dir)
+    else:
+        labels_parc = mne.read_labels_from_annot(subject, parc=parc,
+                                                 subjects_dir=subjects_dir)
+    return labels_parc
 
 
 class SpatialFilterROIWidget(QtWidgets.QWidget):
@@ -27,8 +34,14 @@ class SpatialFilterROIWidget(QtWidgets.QWidget):
         super(SpatialFilterROIWidget, self).__init__()
         layout = QtWidgets.QVBoxLayout(self)
 
+        # scalp vs source
+        self.nfb_type = QtWidgets.QCheckBox("Source NFB")
+        layout.addWidget(self.nfb_type)
+
         # labels
-        self.labels = QtWidgets.QComboBox()
+        # self.labels = QtWidgets.QComboBox()
+        self.labels = CheckableComboBox()
+        roi_labels = [x.name for x in get_labels()]
         for label in roi_labels:
             self.labels.addItem(label)
         layout.addWidget(self.labels)
@@ -37,9 +50,11 @@ class SpatialFilterROIWidget(QtWidgets.QWidget):
         self.file = FileSelectorLine(parent=self)
         layout.addWidget(self.file)
 
-        # disable file selection if not CUSTOM
-        self.labels.currentIndexChanged.connect(
-            lambda: self.file.setEnabled(self.labels.currentIndex() == 0))
+        # disable file selection if not Scalp NFB
+        # self.labels.currentIndexChanged.connect(
+        #     lambda: self.file.setEnabled(self.labels.currentIndex() == 0))
+        self.nfb_type.stateChanged.connect(
+            lambda: self.file.setEnabled(not self.nfb_type.isChecked()))
 
 class SignalsSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):
@@ -141,18 +156,22 @@ class SignalDialog(QtWidgets.QDialog):
         current_signal_index = self.parent().list.currentRow()
         self.bci_checkbox.setChecked(self.params[current_signal_index]['bBCIMode'])
         self.spatial_filter.file.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
-        roi_label = self.params[current_signal_index]['sROILabel']
-        roi_label = 'CUSTOM' if roi_label == '' else roi_label
-        self.spatial_filter.labels.setCurrentIndex(
-            self.spatial_filter.labels.findText(roi_label, QtCore.Qt.MatchFixedString))
+        roi_label = self.params[current_signal_index]['lROILabel']
+        self.spatial_filter.nfb_type.setChecked(self.params[current_signal_index]['bNFBType'])
+
+        # TODO: make it so the checkbox can have elements pre-checked
+        # self.spatial_filter.labels.setCurrentIndex(
+        #     self.spatial_filter.labels.findText(roi_label, QtCore.Qt.MatchFixedString))
+
         self.temporal_settings.set_params(self.params[current_signal_index])
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sSignalName'] = self.name.text()
         self.params[current_signal_index]['SpatialFilterMatrix'] = self.spatial_filter.file.path.text()
-        roi_labels = self.spatial_filter.labels.currentText()
-        self.params[current_signal_index]['sROILabel'] = roi_labels if roi_labels != 'CUSTOM' else ''
+        roi_labels = self.spatial_filter.labels.currentData()
+        self.params[current_signal_index]['lROILabel'] = roi_labels
+        self.params[current_signal_index]['bNFBType'] = int(self.spatial_filter.nfb_type.isChecked())
         self.params[current_signal_index]['bBCIMode'] = int(self.bci_checkbox.isChecked())
         for key, val in self.temporal_settings.get_params().items():
             self.params[current_signal_index][key] = val
