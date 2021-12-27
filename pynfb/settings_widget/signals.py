@@ -44,6 +44,7 @@ class SpatialFilterROIWidget(QtWidgets.QWidget):
         roi_labels = [x.name for x in get_labels()]
         for label in roi_labels:
             self.labels.addItem(label)
+        self.labels.setEnabled(False)
         layout.addWidget(self.labels)
 
         # spatial filter file
@@ -55,6 +56,8 @@ class SpatialFilterROIWidget(QtWidgets.QWidget):
         #     lambda: self.file.setEnabled(self.labels.currentIndex() == 0))
         self.nfb_type.stateChanged.connect(
             lambda: self.file.setEnabled(not self.nfb_type.isChecked()))
+        self.nfb_type.stateChanged.connect(
+            lambda: self.labels.setEnabled(self.nfb_type.isChecked()))
 
 class SignalsSettingsWidget(QtWidgets.QWidget):
     def __init__(self, **kwargs):

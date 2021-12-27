@@ -25,7 +25,7 @@ class DerivedSignal:
     @classmethod
     def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None):
         if spatial_filter is None:
-            spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['lROILabel'])
+            spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['lROILabel'], params['bNFBType'])
         return cls(ind=ind,
                    bandpass_high=params['fBandpassHighHz'],
                    bandpass_low=params['fBandpassLowHz'],

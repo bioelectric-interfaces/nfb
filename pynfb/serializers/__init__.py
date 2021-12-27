@@ -2,14 +2,14 @@ from numpy import array
 from ..helpers.roi_spatial_filter import get_roi_filter
 
 
-def read_spatial_filter(filepath_or_str, fs, channel_labels=None, roi_label=[]):
+def read_spatial_filter(filepath_or_str, fs, channel_labels=None, roi_label=[], source_nfb=False):
     """
     Read spatial filter from file or from roi_label
     :param channel_labels: channel labels list
     :param filepath_or_str: path to file
     :return: spatial filter
     """
-    if not roi_label:
+    if not source_nfb:
         if filepath_or_str == '':
             _filter = None
         else:
