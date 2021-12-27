@@ -162,6 +162,7 @@ class SignalDialog(QtWidgets.QDialog):
         # TODO: make it so the checkbox can have elements pre-checked
         # self.spatial_filter.labels.setCurrentIndex(
         #     self.spatial_filter.labels.findText(roi_label, QtCore.Qt.MatchFixedString))
+        self.spatial_filter.labels.setItemsChecked(roi_label)
 
         self.temporal_settings.set_params(self.params[current_signal_index])
 

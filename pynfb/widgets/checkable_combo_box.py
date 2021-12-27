@@ -97,6 +97,15 @@ class CheckableComboBox(QComboBox):
         elidedText = metrics.elidedText(text, Qt.ElideRight, self.lineEdit().width())
         self.lineEdit().setText(elidedText)
 
+    def setItemsChecked(self, item_list=[]):
+        # get the index of the items in the list
+        index_list = []
+        for item in item_list:
+            index_list.append(self.findText(item, Qt.MatchFixedString))
+        # set the index to be checked
+        for i in index_list:
+            self.model().item(i).setData(Qt.Checked, Qt.CheckStateRole)
+
     def addItem(self, text, data=None):
         item = QStandardItem()
         item.setText(text)
