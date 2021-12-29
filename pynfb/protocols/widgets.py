@@ -305,7 +305,7 @@ class ExperimentStartWidgetPainter(Painter):
     def prepare_widget(self, widget):
         super(ExperimentStartWidgetPainter, self).prepare_widget(widget)
         score = widget.reward.toPlainText().split(":")[1]
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">Push SPACE when ready to begin</font></center>')
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">{self.text}</font></center>')
         self.text_item.setAnchor((0.5, 0.5))
         self.text_item.setTextWidth(500)
         widget.addItem(self.text_item)
