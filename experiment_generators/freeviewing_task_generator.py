@@ -11,23 +11,33 @@ TEMPLATE_ENVIRONMENT = Environment(
     loader=FileSystemLoader(os.path.join(PATH, 'templates')),
     trim_blocks=False)
 
+PARTICIPANT_NO = 999
+STREAM_NAME = "eeg_bci_test"
+IMAGE_PATH = '/Users/christopherturner/Documents/ExperimentImageSet'
+BAND_LOW = 8
+BAND_HIGH = 12
+TEMPORAL_FILTER_TYPE = "fft"
+COMPOSITE_SIGNAL = 'AAI'
+
 
 def render_template(template_filename, context):
     return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
 
 
 def create_index_html():
-    participant_no = 999
-    pre_fname = f"pre-task_{participant_no}.xml"
-    post_fname = f"post-task_{participant_no}.xml"
+    pre_fname = f"pre-task_{PARTICIPANT_NO}.xml"
+    post_fname = f"post-task_{PARTICIPANT_NO}.xml"
 
-    ImgGen = ilg.ImageListGenerator('/Users/christopherturner/Documents/ExperimentImageSet')
+    ImgGen = ilg.ImageListGenerator(IMAGE_PATH)
     pre_task_images, post_task_images = ImgGen.get_pre_post_images()
-    # TODO: add signal bit
     pre_context = {
-        'experiment': f"pre-task_{participant_no}",
-        'stream_name': "eeg_bci_test",
-        'image_set': pre_task_images
+        'experiment': f"pre-task_{PARTICIPANT_NO}",
+        'stream_name': STREAM_NAME,
+        'image_set': pre_task_images,
+        'temp_filt_type': TEMPORAL_FILTER_TYPE,
+        'band_low': BAND_LOW,
+        'band_high': BAND_HIGH,
+        'composite_signal': COMPOSITE_SIGNAL
     }
     #
     with open(pre_fname, 'w') as f:
@@ -35,7 +45,7 @@ def create_index_html():
         f.write(html)
 
     post_context = {
-        'experiment': f"pre-task_{participant_no}",
+        'experiment': f"pre-task_{PARTICIPANT_NO}",
         'stream_name': "eeg_bci_test",
         'image_set': post_task_images
     }
