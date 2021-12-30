@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# TODO: make signal and protocol generic blocks for the template
+
 import os
 from jinja2 import Environment, FileSystemLoader
 
@@ -16,7 +18,8 @@ class ParticipantTaskGenerator:
 
     def __init__(self, template_file="freeview_template.xml", experiment_prefix="task", participant_no=999,
                  stream_name="eeg_bci_test",
-                 image_path="", band_low=8, band_high=12, t_filt_type='fft', composite_signal="AAI", free_view_images=None):
+                 image_path="", band_low=8, band_high=12, t_filt_type='fft', composite_signal="AAI", free_view_images=None,
+                 number_nfb_tasks=5, baseline_duration=3):
         self.template_file = template_file
         self.composite_signal = composite_signal
         self.band_high = band_high
@@ -27,6 +30,9 @@ class ParticipantTaskGenerator:
         self.t_filt_type = t_filt_type
         self.experiment_prefix = experiment_prefix
         self.free_view_images = free_view_images
+        self.number_nfb_tasks = number_nfb_tasks
+        self.feedback_display = {}
+        self.baseline_duration = baseline_duration
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -34,6 +40,7 @@ class ParticipantTaskGenerator:
     def create_task(self):
         output_fname = f"{self.experiment_prefix}_{self.participant_no}.xml"
 
+        # Todo make this a class member and init in init
         context = {
             'experiment': f"{self.experiment_prefix}_{self.participant_no}",
             'stream_name': self.stream_name,
@@ -41,7 +48,10 @@ class ParticipantTaskGenerator:
             'temp_filt_type': self.t_filt_type,
             'band_low': self.band_low,
             'band_high': self.band_high,
-            'composite_signal': self.composite_signal
+            'composite_signal': self.composite_signal,
+            'number_nfb_tasks': self.number_nfb_tasks,
+            'fb_display': self.feedback_display,
+            'baseline_duration': self.baseline_duration
         }
         #
         with open(output_fname, 'w') as f:
@@ -51,6 +61,12 @@ class ParticipantTaskGenerator:
 ########################################
 
 if __name__ == "__main__":
+    # TODO:
+    #   [ ] make this runnable from command line
+    #   [ ] make participant number the argument to pass
+    #   [ ] make scalp and source sets (pre/nfb/post tasks)
+    #       [ ]make sure the order is randomised and number the sets _1, _2, _3
+    #   [ ] make sham set as above
     # Common settings
     iamges_path = '/Users/christopherturner/Documents/ExperimentImageSet'
     participant_no = 999
@@ -108,5 +124,5 @@ if __name__ == "__main__":
                                        template_file=nfb_template)
     PreTask.create_task()
     PostTask.create_task()
-    # NFBTask.create_task()
+    NFBTask.create_task()
 
