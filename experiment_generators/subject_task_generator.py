@@ -16,10 +16,12 @@ TEMPLATE_ENVIRONMENT = Environment(
 
 class ParticipantTaskGenerator:
 
+    # TODO: make a config object to simplify this init
     def __init__(self, template_file="freeview_template.xml", experiment_prefix="task", participant_no=999,
                  stream_name="eeg_bci_test",
                  image_path="", band_low=8, band_high=12, t_filt_type='fft', composite_signal="AAI", free_view_images=None,
-                 number_nfb_tasks=5, baseline_duration=3):
+                 number_nfb_tasks=5, baseline_duration=3, left_spatial_filter_scalp="P4=1", right_spatial_filter_scalp="P3=1",
+                 source_fb=False, source_roi_left=(), source_roi_right=()):
         self.template_file = template_file
         self.composite_signal = composite_signal
         self.band_high = band_high
@@ -33,12 +35,26 @@ class ParticipantTaskGenerator:
         self.number_nfb_tasks = number_nfb_tasks
         self.feedback_display = {}
         self.baseline_duration = baseline_duration
+        self.source_fb = source_fb
+        if source_fb:
+            self.left_spatial_filter_scalp = ""
+            self.right_spatial_filter_scalp = ""
+        else:
+            self.left_spatial_filter_scalp = left_spatial_filter_scalp
+            self.right_spatial_filter_scalp = right_spatial_filter_scalp
+        self.source_roi_left = source_roi_left
+        self.source_roi_right = source_roi_right
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
 
     def create_task(self):
         output_fname = f"{self.experiment_prefix}_{self.participant_no}.xml"
+        output_dir = "experiment_config_output"
+        if not os.path.exists(output_dir):
+            # Create a new directory because it does not exist
+            os.makedirs(output_dir)
+        output_fname = os.path.join(output_dir, output_fname)
 
         # Todo make this a class member and init in init
         context = {
@@ -51,7 +67,12 @@ class ParticipantTaskGenerator:
             'composite_signal': self.composite_signal,
             'number_nfb_tasks': self.number_nfb_tasks,
             'fb_display': self.feedback_display,
-            'baseline_duration': self.baseline_duration
+            'baseline_duration': self.baseline_duration,
+            'right_spatial_filter_scalp': self.right_spatial_filter_scalp,
+            'left_spatial_filter_scalp': self.left_spatial_filter_scalp,
+            'source_roi_left': self.source_roi_left,
+            'source_roi_right': self.source_roi_right,
+            'source_fb': int(self.source_fb)
         }
         #
         with open(output_fname, 'w') as f:
@@ -67,8 +88,8 @@ if __name__ == "__main__":
     #   [ ] make scalp and source sets (pre/nfb/post tasks)
     #       [ ]make sure the order is randomised and number the sets _1, _2, _3
     #   [ ] make sham set as above
+    #   [ ] refactor this
     # Common settings
-    iamges_path = '/Users/christopherturner/Documents/ExperimentImageSet'
     participant_no = 999
     stream_name = "eeg_bci_test"
     image_path = ""
@@ -77,23 +98,25 @@ if __name__ == "__main__":
     t_filt_type = 'fft'
     composite_signal = "AAI"
 
-    ImgGen = ilg.ImageListGenerator(iamges_path)
+    # --------FIRST do Scalp -----------------------
+    scalp_iamges_path = '/Users/christopherturner/Documents/ExperimentImageSet'
+    ImgGen = ilg.ImageListGenerator(scalp_iamges_path)
     pre_task_images, post_task_images = ImgGen.get_pre_post_images()
     # pre-task settings
-    pre_task_prefix = "pre-task"
+    pre_task_prefix = "1-pre-task"
     pre_template = "freeview_template.xml"
 
     # post-task settings
-    post_task_prefix = "post-task"
+    post_task_prefix = "1-post-task"
     post_template = pre_template
 
     # NFB task settings
-    nfb_task_prefix = "nfb-task"
+    nfb_task_prefix = "1-nfb-task"
     nfb_template = "nfb_template.xml"
 
     PreTask = ParticipantTaskGenerator(participant_no=participant_no,
                                        stream_name=stream_name,
-                                       image_path=iamges_path,
+                                       image_path=scalp_iamges_path,
                                        band_low=band_low,
                                        band_high=band_high,
                                        t_filt_type=t_filt_type,
@@ -104,7 +127,7 @@ if __name__ == "__main__":
 
     PostTask = ParticipantTaskGenerator(participant_no=participant_no,
                                         stream_name=stream_name,
-                                        image_path=iamges_path,
+                                        image_path=scalp_iamges_path,
                                         band_low=band_low,
                                         band_high=band_high,
                                         t_filt_type=t_filt_type,
@@ -115,7 +138,7 @@ if __name__ == "__main__":
 
     NFBTask = ParticipantTaskGenerator(participant_no=participant_no,
                                        stream_name=stream_name,
-                                       image_path=iamges_path,
+                                       image_path=scalp_iamges_path,
                                        band_low=band_low,
                                        band_high=band_high,
                                        t_filt_type=t_filt_type,
@@ -126,3 +149,66 @@ if __name__ == "__main__":
     PostTask.create_task()
     NFBTask.create_task()
 
+    # --------NOW do Source -----------------------
+    source_iamges_path = '/Users/christopherturner/Documents/ExperimentImageSet'
+    ImgGen = ilg.ImageListGenerator(source_iamges_path)
+    pre_task_images, post_task_images = ImgGen.get_pre_post_images()
+
+    # pre-task settings
+    pre_task_prefix = "2-pre-task"
+    pre_template = "freeview_template.xml"
+
+    # post-task settings
+    post_task_prefix = "2-post-task"
+    post_template = pre_template
+
+    # NFB task settings
+    nfb_task_prefix = "2-nfb-task"
+    nfb_template = "nfb_template.xml"
+    source_fb = True
+    source_roi_left = ("inferiorparietal-rh", "superiorparietal-rh")
+    source_roi_right = ("inferiorparietal-lh", "superiorparietal-lh")
+
+    PreTask = ParticipantTaskGenerator(participant_no=participant_no,
+                                       stream_name=stream_name,
+                                       image_path=scalp_iamges_path,
+                                       band_low=band_low,
+                                       band_high=band_high,
+                                       t_filt_type=t_filt_type,
+                                       composite_signal=composite_signal,
+                                       experiment_prefix=pre_task_prefix,
+                                       template_file=pre_template,
+                                       free_view_images=pre_task_images,
+                                       source_fb=source_fb,
+                                       source_roi_left=source_roi_left,
+                                       source_roi_right=source_roi_right)
+
+    PostTask = ParticipantTaskGenerator(participant_no=participant_no,
+                                        stream_name=stream_name,
+                                        image_path=scalp_iamges_path,
+                                        band_low=band_low,
+                                        band_high=band_high,
+                                        t_filt_type=t_filt_type,
+                                        composite_signal=composite_signal,
+                                        experiment_prefix=post_task_prefix,
+                                        template_file=post_template,
+                                        free_view_images=post_task_images,
+                                       source_fb=source_fb,
+                                       source_roi_left=source_roi_left,
+                                       source_roi_right=source_roi_right)
+
+    NFBTask = ParticipantTaskGenerator(participant_no=participant_no,
+                                       stream_name=stream_name,
+                                       image_path=scalp_iamges_path,
+                                       band_low=band_low,
+                                       band_high=band_high,
+                                       t_filt_type=t_filt_type,
+                                       composite_signal=composite_signal,
+                                       experiment_prefix=nfb_task_prefix,
+                                       template_file=nfb_template,
+                                       source_fb=source_fb,
+                                       source_roi_left=source_roi_left,
+                                       source_roi_right=source_roi_right)
+    PreTask.create_task()
+    PostTask.create_task()
+    NFBTask.create_task()

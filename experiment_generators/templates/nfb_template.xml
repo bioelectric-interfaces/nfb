@@ -21,7 +21,7 @@
 	<vSignals>
 		<DerivedSignal>
 			<sSignalName>Alpha_Left</sSignalName>
-			<SpatialFilterMatrix>P4=1</SpatialFilterMatrix>
+			<SpatialFilterMatrix>{{left_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
 			<fFFTWindowSize>500</fFFTWindowSize>
@@ -30,7 +30,10 @@
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
 			<bBCIMode>0</bBCIMode>
-			<bNFBType>0</bNFBType>
+			{% for roi in source_roi_left %}
+			<lROILabel>{{roi}}</lROILabel>
+			{% endfor %}
+			<bNFBType>{{source_fb}}</bNFBType>
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
@@ -39,7 +42,7 @@
 		</DerivedSignal>
 		<DerivedSignal>
 			<sSignalName>Alpha_Right</sSignalName>
-			<SpatialFilterMatrix>P3=1</SpatialFilterMatrix>
+			<SpatialFilterMatrix>{{right_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
 			<fFFTWindowSize>500</fFFTWindowSize>
@@ -48,7 +51,10 @@
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
 			<bBCIMode>0</bBCIMode>
-			<bNFBType>0</bNFBType>
+			{% for roi in source_roi_right %}
+			<lROILabel>{{roi}}</lROILabel>
+			{% endfor %}
+			<bNFBType>{{source_fb}}</bNFBType>
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
