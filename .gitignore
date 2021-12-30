@@ -157,4 +157,7 @@ fsaverage/
 *.zip
 .surf
 
+# Generated experiment config files
+experiment_config_output/
+
 # End of https://www.toptal.com/developers/gitignore/api/python
