@@ -100,6 +100,7 @@ def get_fsaverage_fwd(info):
     trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
     src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
     bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+    print(info['ch_names'])
     fwd = mne.make_forward_solution(info, trans=trans, src=src,
                                     bem=bem, eeg=True, mindist=5.0, n_jobs=1)
     # The following is needed if reading forward solutions from disk (see note here: https://mne.tools/stable/generated/mne.write_forward_solution.html)
@@ -116,7 +117,7 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
             print(f"ERROR ENCOUNTERED: {e}")
     info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
     # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
-    keep_chs = [ elem for elem in info.ch_names if elem not in ['ECG', 'EOG']]
+    keep_chs = [ elem for elem in info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
     info.pick_channels(keep_chs)
     info.set_montage(standard_montage, on_missing='ignore')
     print(f"2: {info.get('dig')}")
