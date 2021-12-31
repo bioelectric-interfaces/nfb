@@ -1,5 +1,8 @@
 import time
 import warnings
+
+from PyQt5.QtWidgets import QDesktopWidget
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import numpy as np
 import pyqtgraph as pg
@@ -436,7 +439,9 @@ class ImageProtocolWidgetPainter(Painter):
             self.img = pg.ImageItem()
             tr = QTransform()  # prepare ImageItem transformation:
             size = widget.geometry()
-            scale_factor = self.image.shape[1]/size.height() *20 # TODO: adjust this for lab monitor
+            screen = QDesktopWidget().screenGeometry(widget)
+            print(f"SCREEN2 H: {screen.height()}, SCREEN2 W: {screen.width()}")
+            scale_factor = self.image.shape[1]/screen.height() *20 # TODO: adjust this for lab monitor
             print(f"H: {size.height()}, scalef: {scale_factor}")
             tr.rotate(-90)
             tr.scale(1. / scale_factor, 1. / scale_factor)  # scale horizontal and vertical axes

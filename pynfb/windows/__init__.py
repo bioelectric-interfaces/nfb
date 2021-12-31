@@ -325,17 +325,17 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         # Adjust the window size for image protocol
         print(f"NewProtocolType: {type(new_protocol)}")
         if isinstance(new_protocol, ImageProtocol):
-            screen = QDesktopWidget().screenGeometry()
+            screen = QDesktopWidget().screenGeometry(self.figure)
             print(f"SCREEN H: {screen.height()}, SCREEN W: {screen.width()}")
             size = self.geometry()
             print(f"SIZE H: {size.height()}, SIZE W: {size.width()}")
             # TODO: fix this for windows, and monitor in lab
-            self.figure.setMaximumWidth(size.width())
-            self.figure.setMinimumWidth(size.width())
-            self.figure.setMaximumHeight(size.height())
-            self.figure.setMinimumHeight(size.height())
-            y_range = size.height()/100
-            x_range = size.width()/100
+            self.figure.setMaximumWidth(screen.width())
+            self.figure.setMinimumWidth(screen.width())
+            self.figure.setMaximumHeight(screen.height())
+            self.figure.setMinimumHeight(screen.height())
+            y_range = screen.height()/100
+            x_range = screen.width()/100
             self.figure.setYRange(-y_range, y_range)
             self.figure.setXRange(-x_range, x_range)
         else:
