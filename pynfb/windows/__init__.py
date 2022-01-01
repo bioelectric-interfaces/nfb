@@ -300,6 +300,8 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         else:
             self.photo_rect = None
 
+        layout.setContentsMargins(0, 0, 0, 0) # Remove border
+        self.layout = layout
 
         self.figure.show_reward(False)
         self.setCentralWidget(widget)
@@ -328,14 +330,13 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             screen = QDesktopWidget().screenGeometry(self.figure)
             print(f"SCREEN H: {screen.height()}, SCREEN W: {screen.width()}")
             size = self.geometry()
+            margins = self.layout.contentsMargins()
+            print(f"MARGINS2 left: {margins.left()}, right: {margins.right()}, top: {margins.top()}, bottom: {margins.bottom()}")
             print(f"SIZE H: {size.height()}, SIZE W: {size.width()}")
-            # TODO: fix this for windows, and monitor in lab
-            self.figure.setMaximumWidth(screen.width())
-            self.figure.setMinimumWidth(screen.width())
-            self.figure.setMaximumHeight(screen.height())
-            self.figure.setMinimumHeight(screen.height())
-            y_range = screen.height()/100
-            x_range = screen.width()/100
+            self.figure.setMinimumWidth(screen.width()-margins.left()-margins.right())
+            self.figure.setMinimumHeight(screen.height()-margins.top()-margins.bottom())
+            y_range = (screen.height()-margins.top()-margins.bottom())/2
+            x_range = (screen.width()-margins.left()-margins.right())/2
             self.figure.setYRange(-y_range, y_range)
             self.figure.setXRange(-x_range, x_range)
         else:

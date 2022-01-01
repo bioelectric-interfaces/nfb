@@ -440,11 +440,15 @@ class ImageProtocolWidgetPainter(Painter):
             tr = QTransform()  # prepare ImageItem transformation:
             size = widget.geometry()
             screen = QDesktopWidget().screenGeometry(widget)
+            margins = widget.contentsMargins()
+            print(f"MARGINS3 left: {margins.left()}, right: {margins.right()}, top: {margins.top()}, bottom: {margins.bottom()}")
             print(f"SCREEN2 H: {screen.height()}, SCREEN2 W: {screen.width()}")
-            scale_factor = self.image.shape[1]/screen.height() *20 # TODO: adjust this for lab monitor
-            print(f"H: {size.height()}, scalef: {scale_factor}")
+            print(f"IMAGE H: {self.image.shape[0]}, W: {self.image.shape[1]}")
+            scale_factor_h = self.image.shape[0]/(screen.height()+40+40) # THIS FUDGE FACTOR AT THE END GETS THE IMAGE MORE OR LESS TO THE EDGES - HAS TO BE CHECKED - WHERE DO THESE VALUES COME FROM?
+            scale_factor_w = self.image.shape[1]/(screen.width()+40+40)
+            print(f"H: {size.height()}, scalefh: {scale_factor_h}, scalefw: {scale_factor_w}")
             tr.rotate(-90)
-            tr.scale(1. / scale_factor, 1. / scale_factor)  # scale horizontal and vertical axes
+            tr.scale(1. / scale_factor_h, 1. / scale_factor_w)  # scale horizontal and vertical axes
             x_off = self.image.shape[0] / (2)
             y_off = self.image.shape[1] / (2)
             tr.translate(-x_off, -y_off)
