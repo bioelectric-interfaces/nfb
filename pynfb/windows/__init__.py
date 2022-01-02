@@ -365,7 +365,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             self.pause = False
 
         if isinstance(self.current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
-            if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
+            if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_Down:
                 self.pause = False
 
         if e.key() == QtCore.Qt.Key_Escape:

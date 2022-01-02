@@ -285,7 +285,7 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
 
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the image you saw? <br>Y (\u2190), N (\u2192)</p></font></center>')
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the image you saw? <br>Y (\u2191), N (\u2193)</p></font></center>')
         self.text_item.setAnchor((0.5, -1.75))
         self.text_item.setTextWidth(500)
         self.widget.addItem(self.text_item)
