@@ -247,16 +247,21 @@ class Experiment():
             if self.params['bShowSubjectWindow']:
                 self.subject.change_protocol(current_protocol)
             if current_protocol.mock_samples_file_path is not None:
+                print(f"mockpath: {current_protocol.mock_samples_file_path}, mockprotocol: {current_protocol.mock_samples_protocol}, actual_mock_protocol: protocol{self.current_protocol_index}")
                 self.mock_signals_buffer = load_h5py_protocol_signals(
                     current_protocol.mock_samples_file_path,
-                    current_protocol.mock_samples_protocol)
+                    f"protocol{self.current_protocol_index}") # TODO: [ ]fix this - it only works if there are the same number of protocols in sham and real (study must be identical)
+                    # current_protocol.mock_samples_protocol)
             self.main.status.update()
 
             self.reward.threshold = current_protocol.reward_threshold
             reward_signal_id = current_protocol.reward_signal_id
             print(self.signals)
             print(reward_signal_id)
-            self.reward.signal = self.signals[reward_signal_id]  # TODO: REward for MOCK
+            if current_protocol.mock_samples_file_path is not None:
+                self.reward.signal = self.mock_signals_buffer[reward_signal_id]
+            else:
+                self.reward.signal = self.signals[reward_signal_id]  # TODO: REward for MOCK
             self.reward.set_enabled(isinstance(current_protocol, FeedbackProtocol))
 
         else:
