@@ -179,7 +179,7 @@
 			<fDuration>0.1</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
-			<sFb_type>ParticipantInput</sFb_type>
+			<sFb_type>ParticipantChoice</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
 			<bUseExtraMessage>0</bUseExtraMessage>
@@ -203,6 +203,41 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>delay</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>3.0</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>Baseline</sFb_type>
+			<cString>?</cString>
+			<bVoiceover>0</bVoiceover>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath>../defaults/lena.png</sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
         <FeedbackProtocol>
 			<sProtocolName>End</sProtocolName>
@@ -313,8 +348,8 @@
 	<vPGroups>
 		<PGroup>
 			<sName>fb_group</sName>
-			<sList>fc_w fc_b NFB Input</sList>
-			<sNumberList>1 1 1 1</sNumberList>
+			<sList>fc_w fc_b NFB delay Input</sList>
+			<sNumberList>1 1 1 1 1</sNumberList>
 			<bShuffle>0</bShuffle>
 			<sSplitBy></sSplitBy>
 		</PGroup>

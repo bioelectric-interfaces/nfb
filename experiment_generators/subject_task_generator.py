@@ -83,12 +83,14 @@ class ParticipantTaskGenerator:
 
 if __name__ == "__main__":
     # TODO:
+    #   [ ] make sure the tasks are exactly how they should be (having choice, delays, correct text, etc)
     #   [ ] make this runnable from command line
-    #   [ ] make participant number the argument to pass
-    #   [ ] make scalp and source sets (pre/nfb/post tasks)
-    #       [ ]make sure the order is randomised and number the sets _1, _2, _3
+    #       [ ] make participant number the argument to pass
     #   [ ] make sham set as above
-    #   [ ] refactor this
+    #   [ ] make sure the set (scalp, source, sham) order is randomised and number the sets _1, _2, _3
+    #   [ ] put each participant in a separate folder
+    #   [ ] make sure images are only shown once (so separate folder for sham, scalp, source)
+    #   [ ] refactor this file
     # Common settings
     participant_no = 999
     stream_name = "eeg_bci_test"
