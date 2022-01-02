@@ -173,7 +173,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
-        print(f"SAMPLE: {sample}, ANGLE: {sample*180/np.pi}")
+        # print(f"SAMPLE: {sample}, ANGLE: {sample*180/np.pi}")
         #TODO: normalise the value of sample to fit between 0 and 1 for below - this maybe can be done after baseline normalisation
         self.fill.setOpts(update=True, opacity=max(min(sample, 1.0), 0.0))
 
