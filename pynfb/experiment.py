@@ -53,7 +53,6 @@ class Experiment():
         Experiment main update action
         :return: None
         """
-        # if not self.main.subject_window.pause:
         # get next chunk
         # self.stream is a ChannelsSelector instance!
         chunk, other_chunk, timestamp = self.stream.get_next_chunk() if self.stream is not None else (None, None)
@@ -140,7 +139,7 @@ class Experiment():
                     print("WAITING FOR USER INPUT!!!")
                 else:
                     # Reset the hold flag on hold protocols
-                    if isinstance(current_protocol, (ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol)):
+                    if current_protocol.input_protocol:
                         current_protocol.hold = True
                     self.next_protocol()
 

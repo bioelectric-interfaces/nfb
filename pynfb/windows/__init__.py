@@ -280,9 +280,6 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         super().__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
-        self.pause = False
-        if isinstance(current_protocol, ExperimentStartProtocol):
-            self.pause=True
 
         # add central widget
         widget = QtWidgets.QWidget()
@@ -321,9 +318,6 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         self.current_protocol = new_protocol
         self.figure.clear_all()
         self.current_protocol.widget_painter.prepare_widget(self.figure)
-        # if isinstance(new_protocol, (ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol)):
-        #     print("PAUSING!!!")
-        #     self.pause = True
         # Adjust the window size for image protocol
         print(f"NewProtocolType: {type(new_protocol)}")
         if isinstance(new_protocol, ImageProtocol):
@@ -362,13 +356,11 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         # TODO: make it so this can't be pressed when the pre-calcs are happening!!!!
         if e.key() == QtCore.Qt.Key_Space:
         # If the space key is pressed, then start the block
-        #     self.pause = False
             self.current_protocol.hold = False
 
         if isinstance(self.current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
             if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_Down:
                 self.current_protocol.hold = False
-                # self.pause = False
 
         if e.key() == QtCore.Qt.Key_Escape:
         # Toggle fullscreen on the escape key

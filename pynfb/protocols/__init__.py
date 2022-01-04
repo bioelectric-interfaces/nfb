@@ -70,6 +70,7 @@ class Protocol:
         self.as_mock = as_mock
         self.auto_bci_fit = auto_bci_fit
         self.hold = False
+        self.input_protocol = False
         pass
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
@@ -293,6 +294,7 @@ class ParticipantInputProtocol(Protocol):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
         self.hold = True
+        self.input_protocol = True
         self.widget_painter = ParticipantInputWidgetPainter(text=text, show_reward=self.show_reward)
 
 
@@ -301,6 +303,7 @@ class ParticipantChoiceProtocol(Protocol):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
         self.hold = True
+        self.input_protocol = True
         self.widget_painter = ParticipantChoiceWidgetPainter(text=text, gabor_theta=gabor_theta, show_reward=self.show_reward)
 
 
@@ -309,6 +312,7 @@ class ExperimentStartProtocol(Protocol):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
         self.hold = True
+        self.input_protocol = True
         self.widget_painter = ExperimentStartWidgetPainter(text=text, show_reward=self.show_reward)
 
 
