@@ -46,6 +46,7 @@ class Experiment():
         self.main = None
         self.gabor_theta = r.choice(range(0, 360, 30)) # Init the gabor theta with a random angle
         self.rn_offset = r.choice([-5, 5, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
+        self.mean_reward_signal = 0
         self.restart()
 
         pass
@@ -135,6 +136,14 @@ class Experiment():
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
+                # If baseline protocol, calculate average of reward signal
+                if isinstance(current_protocol, BaselineProtocol):
+                    reward_signal_id = current_protocol.reward_signal_id
+                    reward_sig = self.signals_recorder[~np.isnan(self.signals_recorder).any(axis=1)]
+                    reward_sig = reward_sig[:,reward_signal_id]
+                    self.mean_reward_signal = reward_sig.mean()
+                    print(f"len signal: {len(reward_sig)}, mean: {reward_sig.mean()}, signal: {reward_sig}")
+
                 # only change if not a pausing protocol
                 if current_protocol.hold:
                     # don't switch protocols if holding
@@ -232,13 +241,19 @@ class Experiment():
                     self.protocols_sequence[self.current_protocol_index].duration +
                     np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
 
-
             # Update gabor patch angle for next gabor
             # TODO: make this more generic (only dependant on the protocol)
             if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
                 self.gabor_theta = r.choice(range(0, 360, 30))
                 print(f"GABOR THETA: {self.gabor_theta}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta
+
+                # update the threshold for the Gabor feedback protocol with variable percentage
+                # TODO: also make this more generic (for all feedback protocols - not just Gabor)
+                reward_bound = 0.25 # percent to add to the bias # TODO: make this a GUI flag
+                # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
+                print(f"R THRESHOLD: {self.mean_reward_signal + (reward_bound * self.mean_reward_signal)}")
+                current_protocol.widget_painter.r_threshold = self.mean_reward_signal + (reward_bound * self.mean_reward_signal)
 
             # Update the choice gabor angle
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):

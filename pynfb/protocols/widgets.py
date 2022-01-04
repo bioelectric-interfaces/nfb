@@ -131,13 +131,14 @@ class BarFeedbackProtocolWidgetPainter(Painter):
 
 
 class GaborFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, gabor_theta=45, m_threshold=1, show_reward=False):
+    def __init__(self, gabor_theta=45, m_threshold=1, r_threshold=0, show_reward=False):
         super(GaborFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         np.random.seed(42)
         self.x = np.linspace(-0.25, 0.25, 10)
         self.widget = None
         self.gabor_theta = gabor_theta
         self.m_threshold = m_threshold
+        self.r_threshold = r_threshold
         print(f'GABOR_THETA={gabor_theta}')
 
     def prepare_widget(self, widget):
@@ -174,8 +175,15 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         if np.ndim(sample)>0:
             sample = np.sum(sample)
         # print(f"SAMPLE: {sample}, ANGLE: {sample*180/np.pi}")
-        #TODO: normalise the value of sample to fit between 0 and 1 for below - this maybe can be done after baseline normalisation
-        self.fill.setOpts(update=True, opacity=max(min(sample, 1.0), 0.0))
+        # scale the values between the r_threshold and 1 to be between 0 and 1
+        un_scaled_min = self.r_threshold
+        un_scaled_max = 1
+        scaled_min = 0
+        scaled_max = 1
+        un_scaled_range = (un_scaled_max - un_scaled_min)
+        scaled_range = (scaled_max - scaled_min)
+        scaled_sample=(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        self.fill.setOpts(update=True, opacity=max(min(scaled_sample, 1.0), 0))
 
 
 class FixationCrossProtocolWidgetPainter(Painter):

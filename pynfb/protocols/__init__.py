@@ -243,7 +243,8 @@ class FeedbackProtocol(Protocol):
         elif circle_border == 3:
             self.widget_painter = GaborFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                      gabor_theta=gabor_theta,
-                                                                     m_threshold=m_threshold)
+                                                                     m_threshold=m_threshold,
+                                                                     r_threshold=self.reward_threshold)
         else:
             self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                       circle_border=circle_border,
