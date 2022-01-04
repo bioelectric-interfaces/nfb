@@ -69,6 +69,7 @@ class Protocol:
         self.beep_after = beep_after
         self.as_mock = as_mock
         self.auto_bci_fit = auto_bci_fit
+        self.hold = False
         pass
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
@@ -290,24 +291,24 @@ class SSDProtocol(Protocol):
 class ParticipantInputProtocol(Protocol):
     def __init__(self, signals, name="ParticipantInput", text='Relax', **kwargs):
         kwargs['name'] = name
-        self.hold = True
         super().__init__(signals, **kwargs)
+        self.hold = True
         self.widget_painter = ParticipantInputWidgetPainter(text=text, show_reward=self.show_reward)
 
 
 class ParticipantChoiceProtocol(Protocol):
     def __init__(self, signals, name="ParticipantChoice", text='Relax', gabor_theta=45, **kwargs):
         kwargs['name'] = name
-        self.hold = True
         super().__init__(signals, **kwargs)
+        self.hold = True
         self.widget_painter = ParticipantChoiceWidgetPainter(text=text, gabor_theta=gabor_theta, show_reward=self.show_reward)
 
 
 class ExperimentStartProtocol(Protocol):
     def __init__(self, signals, name="ExperimentStart", text='Relax', **kwargs):
         kwargs['name'] = name
-        self.hold = True
         super().__init__(signals, **kwargs)
+        self.hold = True
         self.widget_painter = ExperimentStartWidgetPainter(text=text, show_reward=self.show_reward)
 
 

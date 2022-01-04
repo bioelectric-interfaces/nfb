@@ -53,87 +53,95 @@ class Experiment():
         Experiment main update action
         :return: None
         """
-        if not self.main.subject_window.pause:
-            # get next chunk
-            # self.stream is a ChannelsSelector instance!
-            chunk, other_chunk, timestamp = self.stream.get_next_chunk() if self.stream is not None else (None, None)
-            if chunk is not None and self.main is not None:
+        # if not self.main.subject_window.pause:
+        # get next chunk
+        # self.stream is a ChannelsSelector instance!
+        chunk, other_chunk, timestamp = self.stream.get_next_chunk() if self.stream is not None else (None, None)
+        if chunk is not None and self.main is not None:
 
-                # update and collect current samples
-                for i, signal in enumerate(self.signals):
-                    signal.update(chunk)
-                    # self.current_samples[i] = signal.current_sample
+            # update and collect current samples
+            for i, signal in enumerate(self.signals):
+                signal.update(chunk)
+                # self.current_samples[i] = signal.current_sample
 
-                # push current samples
-                sample = np.vstack([np.array(signal.current_chunk) for signal in self.signals]).T.tolist()
-                self.signals_outlet.push_chunk(sample)
+            # push current samples
+            sample = np.vstack([np.array(signal.current_chunk) for signal in self.signals]).T.tolist()
+            self.signals_outlet.push_chunk(sample)
 
-                # record data
-                if self.main.player_panel.start.isChecked():
-                    if self.params['bShowSubjectWindow']:
-                        self.subject.figure.update_reward(self.reward.get_score())
-                    if self.samples_counter < self.experiment_n_samples:
-                        chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
-                        self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
-                        self.raw_recorder_other[chunk_slice] = other_chunk
-                        self.timestamp_recorder[chunk_slice] = timestamp
-                        # for s, sample in enumerate(self.current_samples):
-                        self.signals_recorder[chunk_slice] = sample
-                        self.samples_counter += chunk.shape[0]
+            # record data
+            if self.main.player_panel.start.isChecked():
+                if self.params['bShowSubjectWindow']:
+                    self.subject.figure.update_reward(self.reward.get_score())
+                if self.samples_counter < self.experiment_n_samples:
+                    chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
+                    self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
+                    self.raw_recorder_other[chunk_slice] = other_chunk
+                    self.timestamp_recorder[chunk_slice] = timestamp
+                    # for s, sample in enumerate(self.current_samples):
+                    self.signals_recorder[chunk_slice] = sample
+                    self.samples_counter += chunk.shape[0]
 
-                        # catch channels trouble
+                    # catch channels trouble
 
-                        if self.activate_trouble_catching:
-                            if self.samples_counter > self.seconds:
-                                self.seconds += 2 * self.freq
-                                raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq):
-                                                                       self.samples_counter], 0)
-                                if self.raw_std is None:
-                                    self.raw_std = raw_std_new
-                                else:
-                                    if self.catch_channels_trouble and any(raw_std_new > 7 * self.raw_std):
-                                        w = ChannelTroubleWarning(parent=self.main)
-                                        w.pause_clicked.connect(self.handle_channels_trouble_pause)
-                                        w.closed.connect(
-                                            lambda: self.enable_trouble_catching(w)
-                                        )
-                                        w.show()
-                                        self.catch_channels_trouble = False
-                                    self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
+                    if self.activate_trouble_catching:
+                        if self.samples_counter > self.seconds:
+                            self.seconds += 2 * self.freq
+                            raw_std_new = np.std(self.raw_recorder[int(self.samples_counter - self.freq):
+                                                                   self.samples_counter], 0)
+                            if self.raw_std is None:
+                                self.raw_std = raw_std_new
+                            else:
+                                if self.catch_channels_trouble and any(raw_std_new > 7 * self.raw_std):
+                                    w = ChannelTroubleWarning(parent=self.main)
+                                    w.pause_clicked.connect(self.handle_channels_trouble_pause)
+                                    w.closed.connect(
+                                        lambda: self.enable_trouble_catching(w)
+                                    )
+                                    w.show()
+                                    self.catch_channels_trouble = False
+                                self.raw_std = 0.5 * raw_std_new + 0.5 * self.raw_std
 
-                # redraw signals and raw data
-                self.main.redraw_signals(sample, chunk, self.samples_counter, self.current_protocol_n_samples)
-                if self.params['bPlotSourceSpace']:
-                    self.source_space_window.update_protocol_state(chunk)
+            # redraw signals and raw data
+            self.main.redraw_signals(sample, chunk, self.samples_counter, self.current_protocol_n_samples)
+            if self.params['bPlotSourceSpace']:
+                self.source_space_window.update_protocol_state(chunk)
 
-                # redraw protocols
-                is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
-                current_protocol = self.protocols_sequence[self.current_protocol_index]
-                if current_protocol.mock_previous > 0:
-                    samples = [signal.current_chunk[-1] for signal in current_protocol.mock]
-                elif current_protocol.mock_samples_file_path is not None:
-                    samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
+            # redraw protocols
+            is_half_time = self.samples_counter >= self.current_protocol_n_samples // 2
+            current_protocol = self.protocols_sequence[self.current_protocol_index]
+            if current_protocol.mock_previous > 0:
+                samples = [signal.current_chunk[-1] for signal in current_protocol.mock]
+            elif current_protocol.mock_samples_file_path is not None:
+                samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
+            else:
+                samples = sample[-1]
+
+            # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
+            if (self.main.player_panel.start.isChecked() and
+                    self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
+                self.reward_recorder[
+                self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
+
+            if self.main.player_panel.start.isChecked():
+                # subject update
+                if self.params['bShowSubjectWindow']:
+                    mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
+                                                              is_half_time=is_half_time)
                 else:
-                    samples = sample[-1]
+                    mark = None
+                self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                self.mark_recorder[self.samples_counter - 1] = int(mark or 0)
 
-                # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
-                if (self.main.player_panel.start.isChecked() and
-                        self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
-                    self.reward_recorder[
-                    self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
-
-                if self.main.player_panel.start.isChecked():
-                    # subject update
-                    if self.params['bShowSubjectWindow']:
-                        mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
-                                                                  is_half_time=is_half_time)
-                    else:
-                        mark = None
-                    self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-                    self.mark_recorder[self.samples_counter - 1] = int(mark or 0)
-
-                # change protocol if current_protocol_n_samples has been reached
-                if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
+            # change protocol if current_protocol_n_samples has been reached
+            if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
+                # only change if not a pausing protocol
+                print(f"CURRENT PROTOCOL: {current_protocol}, HOLD: {current_protocol.hold}")
+                if current_protocol.hold:
+                    print("WAITING FOR USER INPUT!!!")
+                else:
+                    # Reset the hold flag on hold protocols
+                    if isinstance(current_protocol, (ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol)):
+                        current_protocol.hold = True
                     self.next_protocol()
 
     def enable_trouble_catching(self, widget):
