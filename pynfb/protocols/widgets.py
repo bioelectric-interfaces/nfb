@@ -10,7 +10,7 @@ from PyQt5.QtGui import QPainter, QPen, QBrush, QTransform
 from PyQt5.QtCore import Qt
 
 class ProtocolWidget(pg.PlotWidget):
-    def __init__(self, type=None, size=500, **kwargs):
+    def __init__(self, fbtype=None, size=500, **kwargs):
         super(ProtocolWidget, self).__init__(**kwargs)
         width = 5
         self.setYRange(-width, width)

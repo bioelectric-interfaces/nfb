@@ -20,7 +20,8 @@ from .serializers.hdf5 import save_h5py, load_h5py, save_signals, load_h5py_prot
 from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_from_xml
 from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
-    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol
+    ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
+    GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -43,7 +44,8 @@ class Experiment():
         self.mock_signals_buffer = None
         self.activate_trouble_catching = False
         self.main = None
-        self.current_gabor_theta = [r.choice(range(0, 360, 30))] # Init the gabor theta with a random angle
+        self.gabor_theta = r.choice(range(0, 360, 30)) # Init the gabor theta with a random angle
+        self.rn_offset = r.choice([-5, 5, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.restart()
 
         pass
@@ -134,9 +136,9 @@ class Experiment():
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
                 # only change if not a pausing protocol
-                print(f"CURRENT PROTOCOL: {current_protocol}, HOLD: {current_protocol.hold}")
                 if current_protocol.hold:
-                    print("WAITING FOR USER INPUT!!!")
+                    # don't switch protocols if holding
+                    pass
                 else:
                     # Reset the hold flag on hold protocols
                     if current_protocol.input_protocol:
@@ -229,6 +231,20 @@ class Experiment():
             self.current_protocol_n_samples = self.freq * (
                     self.protocols_sequence[self.current_protocol_index].duration +
                     np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
+
+
+            # Update gabor patch angle for next gabor
+            # TODO: make this more generic (only dependant on the protocol)
+            if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
+                self.gabor_theta = r.choice(range(0, 360, 30))
+                print(f"GABOR THETA: {self.gabor_theta}")
+                current_protocol.widget_painter.gabor_theta = self.gabor_theta
+
+            # Update the choice gabor angle
+            if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
+                rn_offset = r.choice([-5, 5, 0])
+                print(f"CHOICE THETA: {self.gabor_theta + rn_offset}")
+                current_protocol.widget_painter.gabor_theta = self.gabor_theta + rn_offset
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
@@ -427,9 +443,6 @@ class Experiment():
                 montage=montage
             )
 
-            # Randomly set offset between +/- 5 degrees and 0 for Gabor orientation
-            rn_offset = r.choice([-5,5,0])
-
             # type specific arguments
             if protocol['sFb_type'] == 'Baseline':
                 self.protocols.append(
@@ -443,7 +456,7 @@ class Experiment():
                 self.protocols.append(
                     FeedbackProtocol(
                         self.signals,
-                        gabor_theta=self.current_gabor_theta[-1] + rn_offset,
+                        gabor_theta=self.gabor_theta,
                         circle_border=protocol['iRandomBound'],
                         m_threshold=protocol['fMSignalThreshold'],
                         **kwargs))
@@ -484,7 +497,7 @@ class Experiment():
                 self.protocols.append(
                     ParticipantChoiceProtocol(
                         self.signals,
-                        gabor_theta=self.current_gabor_theta[-1] + rn_offset,
+                        gabor_theta= self.gabor_theta + self.rn_offset,
                         text=protocol['cString'] if protocol['cString'] != '' else 'Relax',
                         **kwargs))
             elif protocol['sFb_type'] == 'ExperimentStart':
@@ -588,11 +601,6 @@ class Experiment():
         if self.params['sInletType'] == 'lsl_from_file':
             self.main.player_panel.start_clicked.connect(self.restart_lsl_from_file)
 
-        # update the gabor_theta for the next run if the current protocol is a choice protocol
-        current_protocol = self.protocols_sequence[self.current_protocol_index]
-        if isinstance(current_protocol, ParticipantChoiceProtocol):
-            rn = r.choice(range(0, 360, 30))
-            self.current_gabor_theta.append(rn)
 
         # create real fb list
         self.real_fb_number_list = []

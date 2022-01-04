@@ -389,10 +389,10 @@ class PhotoRect(pg.PlotWidget):
 
 class SubjectWindow(SecondaryWindow):
     def create_figure(self):
-        type = None
+        fbtype = None
         if isinstance(self.current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
-            type = "Gabor"
-        return ProtocolWidget(type=type)
+            fbtype = "Gabor"
+        return ProtocolWidget(fbtype=fbtype)
 
     def update_protocol_state(self, samples, reward, chunk_size=1, is_half_time=False):
         self.current_protocol.update_state(samples=samples, reward=reward, chunk_size=chunk_size,
