@@ -354,12 +354,13 @@ class SecondaryWindow(QtWidgets.QMainWindow):
 
     def keyPressEvent(self, e):
         # TODO: make it so this can't be pressed when the pre-calcs are happening!!!!
-        if e.key() == QtCore.Qt.Key_Space:
-        # If the space key is pressed, then start the block
-            self.current_protocol.hold = False
 
         if isinstance(self.current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
             if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_Down:
+                self.current_protocol.hold = False
+        else:
+            if e.key() == QtCore.Qt.Key_Space:
+                # If the space key is pressed, then start the block
                 self.current_protocol.hold = False
 
         if e.key() == QtCore.Qt.Key_Escape:
