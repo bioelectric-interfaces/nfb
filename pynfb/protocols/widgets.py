@@ -1,6 +1,10 @@
 import time
 import warnings
 
+import cv2
+import skimage.io
+import skimage.filters
+
 from PyQt5.QtWidgets import QDesktopWidget
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -148,13 +152,14 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         gabor = GaborPatch(theta=self.gabor_theta)
         self.widget = widget
         self.gabor = gabor
+        blurred = cv2.GaussianBlur(gabor, ksize=(0, 0), sigmaX=50)
         self.fill = pg.ImageItem(gabor)
         tr = QTransform()  # prepare ImageItem transformation:
-        scale_factor = 20
-        x_off = gabor.shape[0]/(2*scale_factor)
-        y_off = gabor.shape[1]/(2*scale_factor)
-        tr.translate(-x_off, -y_off)
-        tr.scale(1./scale_factor, 1./scale_factor)  # scale horizontal and vertical axes
+        self.scale_factor = 20
+        self.x_off = gabor.shape[0]/(2*self.scale_factor)
+        self.y_off = gabor.shape[1]/(2*self.scale_factor)
+        tr.translate(-self.x_off, -self.y_off)
+        tr.scale(1./self.scale_factor, 1./self.scale_factor)  # scale horizontal and vertical axes
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
         # draw cross
@@ -182,8 +187,42 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         scaled_max = 1
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
-        scaled_sample=(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_sample = (((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+
+        # Change visibility based on opacity
         self.fill.setOpts(update=True, opacity=max(min(scaled_sample, 1.0), 0))
+
+        # change visibilty based on blur
+        # sigma (std) of gausiann should be between 100 and 0 where 0 = full visibility
+        un_scaled_min = self.r_threshold
+        un_scaled_max = 1
+        scaled_min = 100
+        scaled_max = 0
+        un_scaled_range = (un_scaled_max - un_scaled_min)
+        scaled_range = (scaled_max - scaled_min)
+        scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        # scaled_sample = max(min(scaled_sample, 1.0), 0)
+
+        # self.x_off = self.gabor.shape[0]/(2*self.scale_factor)
+        # self.y_off = self.gabor.shape[1]/(2*self.scale_factor)
+        # tr = QTransform()
+        # tr.translate(self.x_off, self.y_off)
+        # tr.scale(self.scale_factor, self.scale_factor)  # scale horizontal and vertical axes
+        # self.fill.setTransform(tr)
+
+        # blurred = cv2.blur(self.gabor, ksize=(int(scaled_sample), int(scaled_sample)))
+        # self.fill.setImage(blurred)
+
+        ## Change visibility based on gabor filter
+        # un_scaled_min = self.r_threshold
+        # un_scaled_max = 1
+        # scaled_min = self.gabor_theta-90
+        # scaled_max = self.gabor_theta
+        # un_scaled_range = (un_scaled_max - un_scaled_min)
+        # scaled_range = (scaled_max - scaled_min)
+        # scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        # gabor = GaborPatch(theta=scaled_sample)
+        # blurred = cv2.filter2D(self.gabor, cv2.CV_8UC3, gabor)
 
 
 class FixationCrossProtocolWidgetPainter(Painter):
@@ -267,12 +306,14 @@ class ParticipantChoiceWidgetPainter(Painter):
     Protocol for 2-alternative forced choice task (currently for gabor patch specifically)
     TODO: make this generic, i.e. not only for gabor patch
     """
-    def __init__(self, text='Relax', gabor_theta=45, show_reward=False):
+    def __init__(self, text='Relax', gabor_theta=45, show_reward=False, previous_score=None):
         super(ParticipantChoiceWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
         self.text_item = pg.TextItem()
+        self.rtext_item = pg.TextItem()
         self.gabor_theta = gabor_theta
         print(f'CHOICE_THETA={gabor_theta}')
+        self.previous_score = previous_score
 
 
     def prepare_widget(self, widget):
@@ -296,12 +337,21 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the image you saw? <br>Y (\u2191), N (\u2193)</p></font></center>')
         self.text_item.setAnchor((0.5, -1.75))
         self.text_item.setTextWidth(500)
+
+        self.rtext_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
+        self.rtext_item.setAnchor((0.5, 5))
+        self.rtext_item.setTextWidth(500)
+
         self.widget.addItem(self.text_item)
+        self.widget.addItem(self.rtext_item)
         self.plotItem = self.widget.plotItem
 
 
     def redraw_state(self, sample, m_sample):
-        pass
+        # Display reward
+        if self.previous_score:
+            self.rtext_item.setHtml(
+                f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
 
     def set_message(self, text):
         self.text = text

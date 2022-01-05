@@ -47,6 +47,8 @@ class Experiment():
         self.gabor_theta = r.choice(range(0, 360, 30)) # Init the gabor theta with a random angle
         self.rn_offset = r.choice([-5, 5, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.mean_reward_signal = 0
+        self.fb_score = None
+        self.cum_score = None
         self.restart()
 
         pass
@@ -143,6 +145,16 @@ class Experiment():
                     reward_sig = reward_sig[:,reward_signal_id]
                     self.mean_reward_signal = reward_sig.mean()
                     print(f"len signal: {len(reward_sig)}, mean: {reward_sig.mean()}, signal: {reward_sig}")
+
+                # Record the reward from feedback only for the current protocol
+                if isinstance(current_protocol, FeedbackProtocol):
+                    if self.fb_score:
+                        self.fb_score = self.reward.get_score() - self.cum_score
+                        self.cum_score = self.reward.get_score()
+                    else:
+                        self.cum_score = self.reward.get_score()
+                        self.fb_score = self.reward.get_score()
+                    print(f"fBSCORE: {self.fb_score}, CUMSCORE: {self.reward.get_score()}")
 
                 # only change if not a pausing protocol
                 if current_protocol.hold:
@@ -243,6 +255,7 @@ class Experiment():
 
             # Update gabor patch angle for next gabor
             # TODO: make this more generic (only dependant on the protocol)
+            bc_threshold = None
             if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
                 self.gabor_theta = r.choice(range(0, 360, 30))
                 print(f"GABOR THETA: {self.gabor_theta}")
@@ -252,14 +265,17 @@ class Experiment():
                 # TODO: also make this more generic (for all feedback protocols - not just Gabor)
                 reward_bound = 0.25 # percent to add to the bias # TODO: make this a GUI flag
                 # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
-                print(f"R THRESHOLD: {self.mean_reward_signal + (reward_bound * self.mean_reward_signal)}")
-                current_protocol.widget_painter.r_threshold = self.mean_reward_signal + (reward_bound * self.mean_reward_signal)
+                bc_threshold = self.mean_reward_signal + (reward_bound * self.mean_reward_signal)
+                print(f"R THRESHOLD: {bc_threshold}")
+                current_protocol.widget_painter.r_threshold = bc_threshold
 
-            # Update the choice gabor angle
+            # Update the choice gabor angle and score
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
                 rn_offset = r.choice([-5, 5, 0])
                 print(f"CHOICE THETA: {self.gabor_theta + rn_offset}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + rn_offset
+                current_protocol.widget_painter.previous_score = self.fb_score
+                # current_protocol.widget_painter.redraw_state(0,0)
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
@@ -292,7 +308,11 @@ class Experiment():
                     # current_protocol.mock_samples_protocol)
             self.main.status.update()
 
-            self.reward.threshold = current_protocol.reward_threshold
+            if bc_threshold:
+                # if using a baseline-corrected threshold
+                self.reward.threshold = bc_threshold
+            else:
+                self.reward.threshold = current_protocol.reward_threshold
             reward_signal_id = current_protocol.reward_signal_id
             print(self.signals)
             print(reward_signal_id)
