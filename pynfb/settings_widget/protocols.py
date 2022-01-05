@@ -249,6 +249,11 @@ class ProtocolDialog(QtWidgets.QDialog):
         muscular_layout.addWidget(self.m_signal_threshold)
         self.form_layout.addRow('Muscular signal:', muscular_layout)
 
+        # Probe
+        self.probe = QtWidgets.QCheckBox()
+        self.form_layout.addRow('Show Probe:', self.probe)
+
+
         # message text edit
         self.message = QtWidgets.QTextEdit()
         self.message.setMaximumHeight(50)
@@ -368,6 +373,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.message.setText(current_protocol['cString'])
         self.message2.setText(current_protocol['cString2'])
         self.voiceover.setChecked(current_protocol['bVoiceover'])
+        self.probe.setChecked(current_protocol['bProbe'])
         self.split_checkbox.setChecked(current_protocol['bUseExtraMessage'])
         current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
@@ -421,6 +427,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['cString'] = self.message.toPlainText()
         self.params[current_signal_index]['cString2'] = self.message2.toPlainText()
         self.params[current_signal_index]['bVoiceover'] = int(self.voiceover.isChecked())
+        self.params[current_signal_index]['bProbe'] = int(self.probe.isChecked())
         self.params[current_signal_index]['bUseExtraMessage'] = int(self.split_checkbox.isChecked())
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())

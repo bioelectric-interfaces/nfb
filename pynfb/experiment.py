@@ -132,6 +132,7 @@ class Experiment():
                     mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
                                                               is_half_time=is_half_time)
                     # if no offset, correct answer is YES, otherwise, correct answer is NO
+                    # TODO: make this more generic - i.e. doesn't just depend on rn_offset (gabor theta angle)
                     answer = 1
                     if self.rn_offset:
                         answer = 2
@@ -141,8 +142,6 @@ class Experiment():
                     mark = None
                     choice = None
                     answer = None
-
-                print(f"OFFSET: {self.rn_offset}, ANSWER: {answer}, CHOICE: {choice}")
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.mark_recorder[self.samples_counter - 1] = int(mark or 0)
 
@@ -150,6 +149,12 @@ class Experiment():
                 self.choice_recorder[self.samples_counter - 1] = int(choice or 0)
                 self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
+
+            # If probe, display probe at random time after beginning of delay
+            if current_protocol.show_probe:
+                current_protocol.widget_painter.probe = True
+                current_protocol.widget_painter.probe_loc = r.choice(["RIGHT", "LEFT"]) # TODO: shift this to 'next protocol' section & init - just like the rn_offset
+                pass
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -494,7 +499,8 @@ class Experiment():
                 shuffle_mock_previous=bool(protocol['bRandomMockPrevious']),
                 as_mock=bool(protocol['bMockSource']),
                 auto_bci_fit=bool(protocol['bAutoBCIFit']),
-                montage=montage
+                montage=montage,
+                show_probe=protocol['bProbe']
             )
 
             # type specific arguments

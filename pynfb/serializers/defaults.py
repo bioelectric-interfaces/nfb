@@ -77,6 +77,7 @@ vectors_defaults = OrderedDict([
             # ('dBand', ''),
             ('cString', ''),
             ('bVoiceover', 0),
+            ('bProbe', 0),
             ('bUseExtraMessage', 0),
             ('cString2', ''),
             ('fBlinkDurationMs', 50),

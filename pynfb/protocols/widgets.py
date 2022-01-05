@@ -231,13 +231,25 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.x = np.linspace(-0.25, 0.25, 10)
         self.widget = None
         self.colour = colour
+        self.probe = None
+        self.probe_loc = "LEFT"
+        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)# TODO: set the size to correspond to lab monitor - should be 0.25 degress
 
     def prepare_widget(self, widget):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
 
+        self.widget = widget
+
         # draw cross
         self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=self.colour, width=4)).curve
         self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
+
+        # Draw probe stim
+        self.p1_1 = self.widget.plot(np.sin(self.probe_stim), np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p2_1 = self.widget.plot(np.sin(self.probe_stim), -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        fill = pg.FillBetweenItem(self.p1_1, self.p2_1, brush=(0, 0, 0, 0))
+        self.fill = fill
+        widget.addItem(fill)
 
     def set_red_state(self, flag):
         if flag:
@@ -253,6 +265,19 @@ class FixationCrossProtocolWidgetPainter(Painter):
         if np.ndim(sample)>0:
             sample = np.sum(sample)
 
+        # Draw the probe if requested
+        if self.probe:
+            self.fill.setBrush((0, 0, 0, 100))
+            tr = QTransform()
+            if self.probe_loc == "LEFT":
+                loc = 1
+            else:
+                loc = -1
+            x_off = 25 * loc # TODO: scale these based on lab monitor properties - should correspond to an eccentricity of 6.7deg
+            y_off = -25 # TODO: check that this should be elevated or at 0
+            tr.scale(0.1, 0.1)
+            tr.translate(-x_off, -y_off)
+            self.fill.setTransform(tr)
 
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
