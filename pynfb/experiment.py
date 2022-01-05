@@ -45,7 +45,7 @@ class Experiment():
         self.activate_trouble_catching = False
         self.main = None
         self.gabor_theta = r.choice(range(0, 360, 30)) # Init the gabor theta with a random angle
-        self.rn_offset = r.choice([-5, 5, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
+        self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.mean_reward_signal = 0
         self.fb_score = None
         self.cum_score = None
@@ -131,10 +131,25 @@ class Experiment():
                 if self.params['bShowSubjectWindow']:
                     mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
                                                               is_half_time=is_half_time)
+                    # if no offset, correct answer is YES, otherwise, correct answer is NO
+                    answer = 1
+                    if self.rn_offset:
+                        answer = 2
+                    # 'yes' response = 1, 'no' response = 2, lack of response = 0
+                    choice = current_protocol.response_key
                 else:
                     mark = None
+                    choice = None
+                    answer = None
+
+                print(f"OFFSET: {self.rn_offset}, ANSWER: {answer}, CHOICE: {choice}")
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.mark_recorder[self.samples_counter - 1] = int(mark or 0)
+
+                self.choice_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                self.choice_recorder[self.samples_counter - 1] = int(choice or 0)
+                self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -227,7 +242,9 @@ class Experiment():
                      reward_data=self.reward_recorder[:self.samples_counter],
                      protocol_name=self.protocols_sequence[self.current_protocol_index].name,
                      mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous,
-                     mark_data=self.mark_recorder[:self.samples_counter])
+                     mark_data=self.mark_recorder[:self.samples_counter],
+                     choice_data=self.choice_recorder[:self.samples_counter],
+                     answer_data=self.answer_recorder[:self.samples_counter])
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -253,6 +270,8 @@ class Experiment():
                     self.protocols_sequence[self.current_protocol_index].duration +
                     np.random.uniform(0, self.protocols_sequence[self.current_protocol_index].random_over_time))
 
+            # Reset participant key
+            current_protocol.response_key = None
             # Update gabor patch angle for next gabor
             # TODO: make this more generic (only dependant on the protocol)
             bc_threshold = None
@@ -271,9 +290,9 @@ class Experiment():
 
             # Update the choice gabor angle and score
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
-                rn_offset = r.choice([-5, 5, 0])
-                print(f"CHOICE THETA: {self.gabor_theta + rn_offset}")
-                current_protocol.widget_painter.gabor_theta = self.gabor_theta + rn_offset
+                self.rn_offset = r.choice([-5, 5, 0, 0])
+                print(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
+                current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
                 current_protocol.widget_painter.previous_score = self.fb_score
                 # current_protocol.widget_painter.redraw_state(0,0)
 
@@ -604,6 +623,8 @@ class Experiment():
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
         self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.choice_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,

@@ -58,6 +58,16 @@ def load_data(file_path):
         events_data = [f['protocol{}/mark_data'.format(k + 1)][:] for k in range(len(p_names))]
         df['events'] = np.concatenate(events_data)
 
+        # reward data
+        reward_data = [f['protocol{}/reward_data'.format(k + 1)][:] for k in range(len(p_names))]
+        df['reward'] = np.concatenate(reward_data)
+
+        # participant response data
+        choice_data = [f['protocol{}/choice_data'.format(k + 1)][:] for k in range(len(p_names))]
+        df['choice'] = np.concatenate(choice_data)
+        answer_data = [f['protocol{}/answer_data'.format(k + 1)][:] for k in range(len(p_names))]
+        df['answer'] = np.concatenate(answer_data)
+
         # set block names and numbers
         df['block_name'] = np.concatenate([[p]*len(d) for p, d in zip(p_names, data)])
         df['block_number'] = np.concatenate([[j + 1]*len(d) for j, d in enumerate(data)])

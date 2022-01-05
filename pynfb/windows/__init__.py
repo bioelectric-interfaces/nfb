@@ -358,6 +358,10 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         if isinstance(self.current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
             if e.key() == QtCore.Qt.Key_Up or e.key() == QtCore.Qt.Key_Down:
                 self.current_protocol.hold = False
+                if e.key() == QtCore.Qt.Key_Up:
+                    self.current_protocol.response_key = 1
+                else:
+                    self.current_protocol.response_key = 2
         else:
             if e.key() == QtCore.Qt.Key_Space:
                 # If the space key is pressed, then start the block

@@ -70,6 +70,7 @@ class Protocol:
         self.as_mock = as_mock
         self.auto_bci_fit = auto_bci_fit
         self.hold = False
+        self.response_key = None
         self.input_protocol = False
         pass
 

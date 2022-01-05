@@ -55,7 +55,8 @@ def load_channels_and_fs(file_path):
 
 
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, timestamp_data=None, signals_data=None,
-                 raw_other_data=None, reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None):
+                 raw_other_data=None, reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None,
+                 choice_data=None, answer_data=None):
     print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
@@ -95,6 +96,10 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, time
             main_group.create_dataset('reward_data', data=reward_data, compression="gzip")
         if mark_data is not None:
             main_group.create_dataset('mark_data', data=mark_data, compression="gzip")
+        if choice_data is not None:
+            main_group.create_dataset('choice_data', data=choice_data, compression="gzip")
+        if answer_data is not None:
+            main_group.create_dataset('answer_data', data=answer_data, compression="gzip")
 
     pass
 
