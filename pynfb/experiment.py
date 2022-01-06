@@ -49,7 +49,7 @@ class Experiment():
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
         self.probe_dur = 0.032 # seconds # TODO: make this depend on screen refresh rate
-        self.probe_random_start = 1 + r.uniform(0, 1)
+        self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         self.mean_reward_signal = 0
         self.fb_score = None
         self.cum_score = None
@@ -137,10 +137,12 @@ class Experiment():
                                                               is_half_time=is_half_time)
                     # if no offset, correct answer is YES, otherwise, correct answer is NO
                     # TODO: make this more generic - i.e. doesn't just depend on rn_offset (gabor theta angle)
-                    answer = 1
-                    if self.rn_offset:
-                        answer = 2
-                    # 'yes' response = 1, 'no' response = 2, lack of response = 0
+                    answer = 0
+                    if current_protocol.input_protocol:
+                        answer = 1
+                        if self.rn_offset:
+                            answer = 2
+                        # 'yes' response = 1, 'no' response = 2, lack of response = 0
                     choice = current_protocol.response_key
                 else:
                     mark = None
@@ -162,8 +164,18 @@ class Experiment():
                 probe_dur_start = probe_dur_samp + probe_start_samp
                 probe_end_samp = probe_dur_start + probe_dur_samp
                 if probe_dur_start <= self.samples_counter < probe_end_samp:
+                    # display probe
                     current_protocol.widget_painter.probe = True
                     current_protocol.widget_painter.probe_loc = self.probe_loc
+                    # Add probe to probe recorder - Left probe = 2, RIght probe = 1, no probe = 0 or nan
+                    pl = 0
+                    if self.probe_loc == "RIGHT":
+                        pl = 1
+                    elif self.probe_loc == "LEFT":
+                        pl= 2
+                    print(f"PROBE LOC: {self.probe_loc} = {int(pl)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
+                    self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
+                    self.probe_recorder[self.samples_counter - 1] = int(pl)
                 else:
                     current_protocol.widget_painter.probe = False
 
@@ -261,7 +273,8 @@ class Experiment():
                      mock_previous=self.protocols_sequence[self.current_protocol_index].mock_previous,
                      mark_data=self.mark_recorder[:self.samples_counter],
                      choice_data=self.choice_recorder[:self.samples_counter],
-                     answer_data=self.answer_recorder[:self.samples_counter])
+                     answer_data=self.answer_recorder[:self.samples_counter],
+                     probe_data=self.probe_recorder[:self.samples_counter])
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -650,6 +663,7 @@ class Experiment():
         self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.choice_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,

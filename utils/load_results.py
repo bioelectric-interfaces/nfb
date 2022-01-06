@@ -68,6 +68,10 @@ def load_data(file_path):
         answer_data = [f['protocol{}/answer_data'.format(k + 1)][:] for k in range(len(p_names))]
         df['answer'] = np.concatenate(answer_data)
 
+        # Probe data
+        probe_data = [f['protocol{}/probe_data'.format(k + 1)][:] for k in range(len(p_names))]
+        df['probe'] = np.concatenate(probe_data)
+
         # set block names and numbers
         df['block_name'] = np.concatenate([[p]*len(d) for p, d in zip(p_names, data)])
         df['block_number'] = np.concatenate([[j + 1]*len(d) for j, d in enumerate(data)])
