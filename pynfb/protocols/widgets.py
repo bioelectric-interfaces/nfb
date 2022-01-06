@@ -226,9 +226,11 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
 
 
 class FixationCrossProtocolWidgetPainter(Painter):
-    def __init__(self, colour=(0,0,0)):
+    def __init__(self, text="", colour=(0,0,0)):
         super(FixationCrossProtocolWidgetPainter, self).__init__()
         self.x = np.linspace(-0.25, 0.25, 10)
+        self.text = text
+        self.text_item = pg.TextItem()
         self.widget = None
         self.colour = colour
         self.probe = None
@@ -239,6 +241,10 @@ class FixationCrossProtocolWidgetPainter(Painter):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
 
         self.widget = widget
+        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">{self.text}</font></center>')
+        self.text_item.setAnchor((0.5, 0.5))
+        self.text_item.setTextWidth(500)
+        self.widget.addItem(self.text_item)
 
         # draw cross
         self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=self.colour, width=4)).curve
@@ -278,6 +284,13 @@ class FixationCrossProtocolWidgetPainter(Painter):
             tr.scale(0.1, 0.1)
             tr.translate(-x_off, -y_off)
             self.fill.setTransform(tr)
+        else:
+            self.fill.setBrush((0, 0, 0, 0))
+
+
+    def set_message(self, text):
+        self.text = text
+        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):

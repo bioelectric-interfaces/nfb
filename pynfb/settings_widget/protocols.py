@@ -197,7 +197,7 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         # Fixation Cross settings
         self.cross_colour = QtWidgets.QComboBox()
-        self.cross_colour.addItems(['Black', 'White', 'Red', 'Blue', 'Green'])
+        self.cross_colour.addItems(['Black', 'White', 'Red', 'Blue', 'Green', 'None'])
         self.form_layout.addRow('&Fixation cross colour:', self.cross_colour)
 
         # threshold blink settings

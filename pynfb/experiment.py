@@ -46,6 +46,10 @@ class Experiment():
         self.main = None
         self.gabor_theta = r.choice(range(0, 360, 30)) # Init the gabor theta with a random angle
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
+        self.probe_loc = r.choice(["RIGHT", "LEFT"])
+        self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
+        self.probe_dur = 0.032 # seconds # TODO: make this depend on screen refresh rate
+        self.probe_random_start = 1 + r.uniform(0, 1)
         self.mean_reward_signal = 0
         self.fb_score = None
         self.cum_score = None
@@ -151,10 +155,18 @@ class Experiment():
                 self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
 
             # If probe, display probe at random time after beginning of delay
-            if current_protocol.show_probe:
-                current_protocol.widget_painter.probe = True
-                current_protocol.widget_painter.probe_loc = r.choice(["RIGHT", "LEFT"]) # TODO: shift this to 'next protocol' section & init - just like the rn_offset
-                pass
+            if current_protocol.show_probe and self.probe_vis:
+                #get probe duration in samples
+                probe_dur_samp = self.freq * self.probe_dur
+                probe_start_samp = self.freq * self.probe_random_start
+                probe_dur_start = probe_dur_samp + probe_start_samp
+                probe_end_samp = probe_dur_start + probe_dur_samp
+                if probe_dur_start <= self.samples_counter < probe_end_samp:
+                    current_protocol.widget_painter.probe = True
+                    current_protocol.widget_painter.probe_loc = self.probe_loc
+                else:
+                    current_protocol.widget_painter.probe = False
+
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -300,6 +312,12 @@ class Experiment():
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
                 current_protocol.widget_painter.previous_score = self.fb_score
                 # current_protocol.widget_painter.redraw_state(0,0)
+
+            # Update the probe location, visibility, and start time
+            if current_protocol.show_probe:
+                self.probe_loc = r.choice(["RIGHT", "LEFT"])
+                self.probe_vis = r.choices([1, 0], weights=[0.8, 0.2], k=1)[0]
+                self.probe_random_start = 1 + r.uniform(0, 1)
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
@@ -528,11 +546,12 @@ class Experiment():
                         time_ms=protocol['fBlinkDurationMs'],
                         **kwargs))
             elif protocol['sFb_type'] == 'FixationCross':
-                colour_dict = {'Black': (0, 0, 0), 'White': (255, 255, 255), 'Green': (0, 255, 0), 'Red': (255, 0, 0),
+                colour_dict = {'Black': (0, 0, 0), 'White': (255, 255, 255), 'Green': (0, 255, 0), 'Red': (255, 0, 0), 'None': (0,0,0,0),
                                'Blue': (0, 0, 255)}
                 self.protocols.append(
                     FixationCrossProtocol(
                         self.signals,
+                        text=protocol['cString'],
                         colour=colour_dict[protocol['tFixationCrossColour']],
                         **kwargs))
             elif protocol['sFb_type'] == 'Video':

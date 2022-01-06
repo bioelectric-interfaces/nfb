@@ -263,10 +263,10 @@ class ThresholdBlinkFeedbackProtocol(Protocol):
 
 
 class FixationCrossProtocol(Protocol):
-    def __init__(self, signals, name='FixationCross', colour=(0,0,0), **kwargs):
+    def __init__(self, signals, text="", name='FixationCross', colour=(0,0,0), **kwargs):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
-        self.widget_painter = FixationCrossProtocolWidgetPainter(colour=colour)
+        self.widget_painter = FixationCrossProtocolWidgetPainter(text=text, colour=colour)
 
 
 class VideoProtocol(Protocol):
