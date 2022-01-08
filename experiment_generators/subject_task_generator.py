@@ -90,12 +90,12 @@ if __name__ == "__main__":
     #   [ ] make sure the tasks are exactly how they should be (having choice, delays, correct text, etc)
     #   [ ] make this runnable from command line
     #       [ ] make participant number the argument to pass
-    #   [ ] make sham set as above
+    #   [ ] sham set as above
     #   [ ] make sure images are only shown once (so separate folder for sham, scalp, source)
 
     # Base images path
     base_images_path = "image_stimuli"
-    session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]]
+    session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham
 
     # randomise session order
     random.shuffle(session_images_paths)
@@ -119,6 +119,24 @@ if __name__ == "__main__":
         task_info = {}
         ImgGen = ilg.ImageListGenerator(image_path)
         pre_task_images, post_task_images = ImgGen.get_pre_post_images()
+
+        left_spatial_filter_scalp = ""
+        right_spatial_filter_scalp = ""
+        source_roi_left = ()
+        source_roi_right = ()
+        source_fb = False
+        if session == 0:
+            # scalp
+            left_spatial_filter_scalp = "CP5=1;P5=1;01=1"
+            right_spatial_filter_scalp = "CP6=1;P6=1;02=1"
+        elif session == 1:
+            # source
+            source_roi_left = ("inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh")
+            source_roi_right = ("inferiorparietal-rh", "superiorparietal-rh", "lateraloccipital-rh")
+            source_fb = True
+        elif session == 2:
+            # sham
+            pass
         for task, template in tasks.items():
             free_view_images = None
             if task == "pre_task":
@@ -135,5 +153,10 @@ if __name__ == "__main__":
                                            experiment_prefix=f"{session}-{task}",
                                            template_file=template,
                                            free_view_images=free_view_images,
-                                           baseline_duration=baseline_duration)
+                                           baseline_duration=baseline_duration,
+                                           right_spatial_filter_scalp=right_spatial_filter_scalp,
+                                           left_spatial_filter_scalp=left_spatial_filter_scalp,
+                                           source_roi_left=source_roi_left,
+                                           source_roi_right=source_roi_right,
+                                           source_fb=source_fb)
             Tsk.create_task()
