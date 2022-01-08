@@ -24,7 +24,7 @@
 			<SpatialFilterMatrix>{{left_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
-			<fFFTWindowSize>500</fFFTWindowSize>
+			<fFFTWindowSize>1000</fFFTWindowSize>
 			<fBandpassLowHz>{{ band_low }}</fBandpassLowHz>
 			<fBandpassHighHz>{{ band_high }}</fBandpassHighHz>
 			<fAverage></fAverage>
@@ -37,7 +37,7 @@
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
-			<sTemporalSmootherType>exp</sTemporalSmootherType>
+			<sTemporalSmootherType>savgol</sTemporalSmootherType>
 			<iDelayMs>0</iDelayMs>
 		</DerivedSignal>
 		<DerivedSignal>
@@ -45,7 +45,7 @@
 			<SpatialFilterMatrix>{{right_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
-			<fFFTWindowSize>500</fFFTWindowSize>
+			<fFFTWindowSize>1000</fFFTWindowSize>
 			<fBandpassLowHz>{{ band_low }}</fBandpassLowHz>
 			<fBandpassHighHz>{{ band_high }}</fBandpassHighHz>
 			<fAverage></fAverage>
@@ -58,12 +58,12 @@
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
-			<sTemporalSmootherType>exp</sTemporalSmootherType>
+			<sTemporalSmootherType>savgol</sTemporalSmootherType>
 			<iDelayMs>0</iDelayMs>
 		</DerivedSignal>
 		<CompositeSignal>
 			<sSignalName>{{composite_signal}}</sSignalName>
-			<sExpression>(Alpha_Left-Alpha_Right)/(Alpha_Left+Alpha_Right)</sExpression>
+			<sExpression>(Alpha_Right-Alpha_Left)/(Alpha_Right+Alpha_Left)</sExpression>
 		</CompositeSignal>
 	</vSignals>
 	<vProtocols>
@@ -77,7 +77,9 @@
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>ExperimentStart</sFb_type>
-			<cString></cString>
+			<cString>We will now record your baseline EEG for 2 minutes.
+&lt;br&gt;Please completely relax with your eyes open.
+&lt;br&gt;&lt;br&gt;Press SPACE to start.</cString>
 			<bVoiceover>0</bVoiceover>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
@@ -213,9 +215,10 @@
 			<fDuration>3.0</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
-			<sFb_type>Baseline</sFb_type>
+			<sFb_type>FixationCross</sFb_type>
 			<cString>?</cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>1</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -237,7 +240,7 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
-			<tFixationCrossColour>Black</tFixationCrossColour>
+			<tFixationCrossColour>None</tFixationCrossColour>
 		</FeedbackProtocol>
         <FeedbackProtocol>
 			<sProtocolName>End</sProtocolName>
@@ -344,6 +347,48 @@
 			<bAutoBCIFit>0</bAutoBCIFit>
 			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>NFB_Start</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>0.1</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>ExperimentStart</sFb_type>
+			<cString>You will now begin NFB Training.
+&lt;br&gt;Keep your eyes fixated on the centre cross.
+&lt;br&gt;Try to guess if the 2nd image is correct by making the 1st image visable.
+&lt;br&gt;Your score shows how long you could keep the image visible.
+&lt;br&gt;Try to get a higher score each time.
+&lt;br&gt;&lt;br&gt;
+Press SPACE to start.</cString>
+			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath>../defaults/lena.png</sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
+		</FeedbackProtocol>
 	</vProtocols>
 	<vPGroups>
 		<PGroup>
@@ -357,6 +402,7 @@
 	<vPSequence>
 		<s>Start</s>
 		<s>baseline</s>
+		<s>NFB_Start</s>
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
         {% endfor %}
