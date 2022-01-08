@@ -135,7 +135,10 @@ if __name__ == "__main__":
             imgs = ImageOpsFromScratch(img_path)
             mirror = imgs.mirror_this(with_plot=False)
             file_name = f.split(".")
-            mirror_img_path = f"{mirrored_path}/{file_name[0]}.jpeg"
+            file_ext = file_name[1]
+            if file_ext.lower() in ["gif"]:
+                file_ext = "jpg"
+            mirror_img_path = f"{mirrored_path}/{file_name[0]}.{file_ext}"
             print(f"saved files:{mirror_img_path}")
             cv2.imwrite(mirror_img_path, mirror)
 pass
