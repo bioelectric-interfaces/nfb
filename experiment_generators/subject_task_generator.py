@@ -95,6 +95,7 @@ if __name__ == "__main__":
 
     # Base images path
     base_images_path = "image_stimuli"
+    # base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
     session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham
 
     # randomise session order
@@ -109,6 +110,7 @@ if __name__ == "__main__":
     t_filt_type = 'fft'
     composite_signal = "AAI"
     baseline_duration = 5
+    number_nfb_tasks = 5
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
