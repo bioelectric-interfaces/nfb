@@ -111,16 +111,17 @@ if __name__ == "__main__":
     files = os.listdir(original_path)
 
     # Convert files to jpeg
-    # print('the following files have been converted to .jpeg from .gif:')
-    # for f in files:
-    #     img_path = f"{original_path}/{f}"
-    #     f_name = f.split(".")[0]
-    #     f_ext = f.split(".")[1]
-    #     if f_ext == "gif":
-    #         img = Image.open(img_path).convert('RGB')
-    #         converted_path = f"{original_path}/{f_name}.jpeg"
-    #         img.save(converted_path)
-    #         print(f)
+    print('the following files have been converted to .jpeg from .gif:')
+    for f in files:
+        img_path = f"{original_path}/{f}"
+        f_name = f.split(".")[0]
+        f_ext = f.split(".")[1]
+        if f_ext == "gif":
+            img = Image.open(img_path).convert('RGB')
+            converted_path = f"{original_path}/{f_name}.jpeg"
+            img.save(converted_path)
+            print(f)
+            os.remove(img_path)
 
 
     # Mirror the files and save them in the mirrored directory
