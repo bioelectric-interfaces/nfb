@@ -11,7 +11,8 @@ from PyQt5.QtWidgets import QSizePolicy, QDesktopWidget
 from pynfb.brain import SourceSpaceRecontructor
 from pynfb.brain import SourceSpaceWidget
 from pynfb.helpers.dc_blocker import DCBlocker
-from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, ImageProtocol
+from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, ImageProtocol, \
+    EyeCalibrationProtocol
 from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
@@ -320,7 +321,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         self.current_protocol.widget_painter.prepare_widget(self.figure)
         # Adjust the window size for image protocol
         print(f"NewProtocolType: {type(new_protocol)}")
-        if isinstance(new_protocol, ImageProtocol):
+        if isinstance(new_protocol, (ImageProtocol, EyeCalibrationProtocol)):
             screen = QDesktopWidget().screenGeometry(self.figure)
             print(f"SCREEN H: {screen.height()}, SCREEN W: {screen.width()}")
             size = self.geometry()

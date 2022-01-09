@@ -21,7 +21,8 @@ from .serializers.xml_ import params_to_xml_file, params_to_xml, get_lsl_info_fr
 from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
     ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
-    GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter
+    GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
+    EyeCalibrationProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -179,6 +180,9 @@ class Experiment():
                 else:
                     current_protocol.widget_painter.probe = False
 
+            # Update the probe for the eye calibration stage
+            if isinstance(current_protocol.widget_painter, EyeCalibrationProtocolWidgetPainter):
+                current_protocol.widget_painter.current_sample_idx = self.samples_counter
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -566,6 +570,11 @@ class Experiment():
                         self.signals,
                         text=protocol['cString'],
                         colour=colour_dict[protocol['tFixationCrossColour']],
+                        **kwargs))
+            elif protocol['sFb_type'] == 'EyeCalibration':
+                self.protocols.append(
+                    EyeCalibrationProtocol(
+                        self.signals,
                         **kwargs))
             elif protocol['sFb_type'] == 'Video':
                 self.protocols.append(

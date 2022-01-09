@@ -1,5 +1,6 @@
 import time
 import warnings
+import random
 
 import cv2
 import skimage.io
@@ -416,6 +417,78 @@ class ExperimentStartWidgetPainter(Painter):
     def set_message(self, text):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+
+
+class EyeCalibrationProtocolWidgetPainter(Painter):
+    """
+    Calibration for eye movements for both eye tracking tasks and eye movement rejection
+    """
+    def __init__(self, protocol_duration=0):
+        super(EyeCalibrationProtocolWidgetPainter, self).__init__()
+        self.x = np.linspace(-0.25, 0.25, 10)
+        self.protocol_duration = protocol_duration
+        self.widget = None
+        self.probe_loc = ["LEFT", "RIGHT", "TOP", "BOTTOM"]
+        self.probe_offsets = {"LEFT": (1, 0), "RIGHT": (-1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
+        random.shuffle(self.probe_loc)
+        self.probe_loc.insert(0, "CROSS")
+        self.probe_loc.append("CROSS")
+        self.prob_loc_indx = 0
+        self.position_no = 0
+        self.current_sample_idx = 0
+        self.probe_radius = 10
+        self.position_time = self.protocol_duration/len(self.probe_loc)
+        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)# TODO: set the size to correspond to lab monitor - should be 0.25 degress
+
+    def prepare_widget(self, widget):
+        super(EyeCalibrationProtocolWidgetPainter, self).prepare_widget(widget)
+
+        self.widget = widget
+
+        self.screen = QDesktopWidget().screenGeometry(widget)
+        self.x = np.linspace(-self.screen.width()/75, self.screen.width()/75, 10)
+        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)
+
+        # draw cross
+        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0), width=4)).curve
+        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=(0,0,0), width=4)).curve
+
+        # Draw probe stim
+        self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p2_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        fill = pg.FillBetweenItem(self.p1_1, self.p2_1, brush=(0, 0, 0, 0))
+        self.fill = fill
+        widget.addItem(fill)
+
+    def set_red_state(self, flag):
+        pass
+
+    def redraw_state(self, sample, m_sample):
+        if np.ndim(sample)>0:
+            sample = np.sum(sample)
+
+        if self.probe_loc[self.position_no] != "CROSS":
+            # Hide the cross
+            self.p1.setPen(color=(0,0,0, 0), width=4)
+            self.p2.setPen(color=(0,0,0, 0), width=4)
+            tr = QTransform()
+            self.fill.setBrush((0, 0, 0, 255))
+            offsets = self.probe_offsets[self.probe_loc[self.position_no]]
+            fudge_factor = 50 #TODO CHANGE THIS FUDGE FACTOR FOR THE LAB SCREEN
+            x_off = (self.screen.width() + fudge_factor)/2 * offsets[0]
+            y_off = (self.screen.height() + fudge_factor)/2 * offsets[1]
+            tr.translate(-x_off, -y_off)
+            self.fill.setTransform(tr)
+        else:
+            # Show the cross
+            self.p1.setPen(color=(0,0,0, 255), width=4)
+            self.p2.setPen(color=(0,0,0, 255), width=4)
+            # Hide probe
+            self.fill.setBrush((0, 0, 0, 0))
+
+        # Cycle through probe location. start with only cross at start and end (6 positions total)
+        if self.current_sample_idx > self.position_time * (1+self.position_no) and self.position_no < len(self.probe_loc)-1:
+            self.position_no = self.position_no + 1
 
 
 class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
