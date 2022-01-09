@@ -183,6 +183,12 @@ class Experiment():
             # Update the probe for the eye calibration stage
             if isinstance(current_protocol.widget_painter, EyeCalibrationProtocolWidgetPainter):
                 current_protocol.widget_painter.current_sample_idx = self.samples_counter
+                current_probe_loc = current_protocol.widget_painter.probe_loc[current_protocol.widget_painter.position_no]
+                probe_positions = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CROSS"]
+                # Get the value to save in the data: left=10, right=11, top=12, bottom=13, cross=14
+                pl = probe_positions.index(current_probe_loc) + 10
+                self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
+                self.probe_recorder[self.samples_counter - 1] = int(pl)
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
