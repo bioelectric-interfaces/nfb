@@ -5,7 +5,7 @@ from pynfb.serializers.defaults import vectors_defaults as defaults
 from pynfb.widgets.helpers import ScrollArea
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'Image', 'ParticipantInput', "ParticipantChoice", "ExperimentStart", 'FixationCross']
+protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'Image', 'ParticipantInput', "ParticipantChoice", "ExperimentStart", 'FixationCross', 'EyeCalibration']
 
 
 class ProtocolsSettingsWidget(QtWidgets.QWidget):
@@ -319,6 +319,7 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         current_index = self.source_signal.findText(text, QtCore.Qt.MatchFixedString)
         self.source_signal.setCurrentIndex(current_index if current_index > -1 else 0)
+        self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
