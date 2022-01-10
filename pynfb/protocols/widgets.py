@@ -3,8 +3,6 @@ import warnings
 import random
 
 import cv2
-import skimage.io
-import skimage.filters
 
 from PyQt5.QtWidgets import QDesktopWidget
 
