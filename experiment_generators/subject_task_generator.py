@@ -18,7 +18,7 @@ TEMPLATE_ENVIRONMENT = Environment(
 class ParticipantTaskGenerator:
 
     # TODO: make a config object to simplify this init
-    def __init__(self, template_file="freeview_template.xml", experiment_prefix="task", participant_no=999,
+    def __init__(self, template_file="freeview_template.xml", experiment_prefix="task", participant_no="999",
                  stream_name="eeg_bci_test",
                  image_path="", band_low=8, band_high=12, t_filt_type='fft', composite_signal="AAI",
                  free_view_images=None,
@@ -95,14 +95,14 @@ if __name__ == "__main__":
 
     # Base images path
     base_images_path = "image_stimuli"
-    # base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
+    # base_images_path = "/Users/2354158T/Documents/image_stimuli"
     session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham
 
     # randomise session order
     random.shuffle(session_images_paths)
 
     # Common settings
-    participant_no = 999
+    participant_no = "ct01"
     stream_name = "eeg_bci_test"
     image_path = ""
     band_low = 8
@@ -161,4 +161,4 @@ if __name__ == "__main__":
                                            source_roi_left=source_roi_left,
                                            source_roi_right=source_roi_right,
                                            source_fb=source_fb)
-            Tsk.create_task()
+            Tsk.create_task(participant=participant_no)
