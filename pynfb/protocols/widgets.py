@@ -234,7 +234,8 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.colour = colour
         self.probe = None
         self.probe_loc = "LEFT"
-        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)# TODO: set the size to correspond to lab monitor - should be 0.25 degress
+        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.probe_radius = 0.1
 
     def prepare_widget(self, widget):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
@@ -250,8 +251,8 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
 
         # Draw probe stim
-        self.p1_1 = self.widget.plot(np.sin(self.probe_stim), np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
-        self.p2_1 = self.widget.plot(np.sin(self.probe_stim), -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p2_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
         fill = pg.FillBetweenItem(self.p1_1, self.p2_1, brush=(0, 0, 0, 0))
         self.fill = fill
         widget.addItem(fill)
@@ -272,15 +273,14 @@ class FixationCrossProtocolWidgetPainter(Painter):
 
         # Draw the probe if requested
         if self.probe:
-            self.fill.setBrush((0, 0, 0, 100))
+            self.fill.setBrush((0, 0, 0, 200))
             tr = QTransform()
             if self.probe_loc == "LEFT":
                 loc = 1
             else:
                 loc = -1
-            x_off = 25 * loc # TODO: scale these based on lab monitor properties - should correspond to an eccentricity of 6.7deg
-            y_off = -25 # TODO: check that this should be elevated or at 0
-            tr.scale(0.1, 0.1)
+            x_off = 5 * loc # should correspond to an eccentricity of 6.7deg
+            y_off = -0 # Original paper didn't have y offset
             tr.translate(-x_off, -y_off)
             self.fill.setTransform(tr)
         else:
@@ -436,7 +436,7 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         self.current_sample_idx = 0
         self.probe_radius = 10
         self.position_time = self.protocol_duration/len(self.probe_loc)
-        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)# TODO: set the size to correspond to lab monitor - should be 0.25 degress
+        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)
 
     def prepare_widget(self, widget):
         super(EyeCalibrationProtocolWidgetPainter, self).prepare_widget(widget)
@@ -472,9 +472,10 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
             tr = QTransform()
             self.fill.setBrush((0, 0, 0, 255))
             offsets = self.probe_offsets[self.probe_loc[self.position_no]]
-            fudge_factor = 50 #TODO CHANGE THIS FUDGE FACTOR FOR THE LAB SCREEN
-            x_off = (self.screen.width() + fudge_factor)/2 * offsets[0]
-            y_off = (self.screen.height() + fudge_factor)/2 * offsets[1]
+            fudge_factor_x = 50 #TODO Figure out why this fudge factor is needed (seems similar for all screens)
+            fudge_factor_y = 35
+            x_off = (self.screen.width() + fudge_factor_x)/2 * offsets[0]
+            y_off = (self.screen.height() + fudge_factor_y)/2 * offsets[1]
             tr.translate(-x_off, -y_off)
             self.fill.setTransform(tr)
         else:
