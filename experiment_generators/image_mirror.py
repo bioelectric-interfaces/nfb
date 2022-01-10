@@ -105,7 +105,7 @@ if __name__ == "__main__":
             inputpath = arg
 
     # inputpath = '/Users/christopherturner/Documents/ExperimentImageSet'
-    original_path = f"{inputpath}/original"
+    original_path = os.path.join(inputpath, "original")
 
 
     files = os.listdir(original_path)
@@ -113,33 +113,35 @@ if __name__ == "__main__":
     # Convert files to jpeg
     print('the following files have been converted to .jpeg from .gif:')
     for f in files:
-        img_path = f"{original_path}/{f}"
+        img_path = os.path.join(original_path, f)
         f_name = f.split(".")[0]
         f_ext = f.split(".")[1]
         if f_ext == "gif":
             img = Image.open(img_path).convert('RGB')
-            converted_path = f"{original_path}/{f_name}.jpeg"
+            converted_ext = f"{f_name}.jpeg"
+            converted_path = os.path.join(original_path, converted_ext)
             img.save(converted_path)
             print(f)
             os.remove(img_path)
 
 
     # Mirror the files and save them in the mirrored directory
-    mirrored_path = f"{inputpath}/mirrored"
+    mirrored_path = os.path.join(inputpath, "mirrored")
     if not os.path.exists(mirrored_path):
         os.makedirs(mirrored_path)
 
     files = os.listdir(original_path)
     for f in files:
         if not f.startswith('.'):
-            img_path = f"{original_path}/{f}"
+            img_path = os.path.join(original_path, f)
             imgs = ImageOpsFromScratch(img_path)
             mirror = imgs.mirror_this(with_plot=False)
             file_name = f.split(".")
             file_ext = file_name[1]
             if file_ext.lower() in ["gif"]:
                 file_ext = "jpg"
-            mirror_img_path = f"{mirrored_path}/{file_name[0]}.{file_ext}"
+            mirror_img_ext = f"{file_name[0]}.{file_ext}"
+            mirror_img_path = os.path.join(mirrored_path, mirror_img_ext)
             print(f"saved files:{mirror_img_path}")
             cv2.imwrite(mirror_img_path, mirror)
 pass
