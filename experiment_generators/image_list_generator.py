@@ -11,8 +11,8 @@ class ImageListGenerator:
     def __init__(self, root_path="../defaults"):
         # get the number of images in the directory
         self.root_path = root_path
-        original_path = f"{root_path}/original"
-        mirrored_path = f"{root_path}/mirrored"
+        original_path = os.path.join(root_path, "original")
+        mirrored_path = os.path.join(root_path, "mirrored")
         self.directories = [original_path, mirrored_path]
         self.files = os.listdir(original_path)
 
@@ -35,7 +35,7 @@ class ImageListGenerator:
             print(f"x: {x}, img_idx: {img_idx}, len_imgs: {len_imgs}")
             img = self.files[img_idx]
             del self.files[img_idx]
-            selected_images[img] = {"path": f"{path}/{img}"}
+            selected_images[img] = {"path": os.path.join(path, img)}#f"{path}/{img}"}
 
         # split the now random dictionray in half - one for pre, and one for post
         pre_task_images = {}
