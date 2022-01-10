@@ -94,8 +94,8 @@ if __name__ == "__main__":
     #   [ ] make sure images are only shown once (so separate folder for sham, scalp, source)
 
     # Base images path
-    base_images_path = "image_stimuli"
-    # base_images_path = "/Users/2354158T/Documents/image_stimuli"
+    # base_images_path = "image_stimuli"
+    base_images_path = "/Users/2354158T/Documents/image_stimuli"
     session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham
 
     # randomise session order
@@ -103,14 +103,14 @@ if __name__ == "__main__":
 
     # Common settings
     participant_no = "ct01"
-    stream_name = "eeg_bci_test"
+    stream_name = "BrainVision RDA"
     image_path = ""
     band_low = 8
     band_high = 12
     t_filt_type = 'fft'
     composite_signal = "AAI"
-    baseline_duration = 5
-    number_nfb_tasks = 5
+    baseline_duration = 120
+    number_nfb_tasks = 100
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -160,5 +160,6 @@ if __name__ == "__main__":
                                            left_spatial_filter_scalp=left_spatial_filter_scalp,
                                            source_roi_left=source_roi_left,
                                            source_roi_right=source_roi_right,
-                                           source_fb=source_fb)
+                                           source_fb=source_fb,
+                                           number_nfb_tasks=number_nfb_tasks)
             Tsk.create_task(participant=participant_no)
