@@ -148,11 +148,13 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         super(GaborFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
 
         # Draw and align gabor patch
+        print("PREPARING GABOR!!!!")
         gabor = GaborPatch(theta=self.gabor_theta)
         self.widget = widget
         self.gabor = gabor
         blurred = cv2.GaussianBlur(gabor, ksize=(0, 0), sigmaX=50)
         self.fill = pg.ImageItem(gabor)
+        self.fill.setOpts(update=True, opacity=0)
         tr = QTransform()  # prepare ImageItem transformation:
         self.scale_factor = 20
         self.x_off = gabor.shape[0]/(2*self.scale_factor)
