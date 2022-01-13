@@ -428,8 +428,10 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         self.x = np.linspace(-0.25, 0.25, 10)
         self.protocol_duration = protocol_duration
         self.widget = None
-        self.probe_loc = ["LEFT", "RIGHT", "TOP", "BOTTOM"]
-        self.probe_offsets = {"LEFT": (1, 0), "RIGHT": (-1, 0), "TOP": (0, -1), "BOTTOM": (0, 1)}
+        self.probe_loc = ["LT", "MT", "RT", 'LM', 'MM', 'RM', 'LB', 'MB', 'RB']
+        self.probe_offsets = {"LT": (1, -1), "MT": (0, -1), "RT": (-1, -1),
+                              "LM": (1, 0), "MM": (0, 0), "RM": (-1, 0),
+                              "LB": (1, 1), "MB": (0, 1), "RB": (-1, 1)}
         random.shuffle(self.probe_loc)
         self.probe_loc.insert(0, "CROSS")
         self.probe_loc.append("CROSS")

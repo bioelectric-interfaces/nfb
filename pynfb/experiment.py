@@ -184,7 +184,7 @@ class Experiment():
             if isinstance(current_protocol.widget_painter, EyeCalibrationProtocolWidgetPainter):
                 current_protocol.widget_painter.current_sample_idx = self.samples_counter
                 current_probe_loc = current_protocol.widget_painter.probe_loc[current_protocol.widget_painter.position_no]
-                probe_positions = ["LEFT", "RIGHT", "TOP", "BOTTOM", "CROSS"]
+                probe_positions = ["LT", "MT", "RT", 'LM', 'MM', 'RM', 'LB', 'MB', 'RB', 'CROSS']
                 # Get the value to save in the data: left=10, right=11, top=12, bottom=13, cross=14
                 pl = probe_positions.index(current_probe_loc) + 10
                 self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
@@ -322,9 +322,9 @@ class Experiment():
 
                 # update the threshold for the Gabor feedback protocol with variable percentage
                 # TODO: also make this more generic (for all feedback protocols - not just Gabor)
-                reward_bound = 0.25 # percent to add to the bias # TODO: make this a GUI flag
+                reward_bound = 0.6 # percent to add to the bias # TODO: make this a GUI flag
                 # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
-                bc_threshold = self.mean_reward_signal + (reward_bound * self.mean_reward_signal)
+                bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
                 print(f"R THRESHOLD: {bc_threshold}")
                 current_protocol.widget_painter.r_threshold = bc_threshold
 
