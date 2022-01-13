@@ -96,7 +96,7 @@ for idx in range(len(calibration_samples)):
 
 # TODO: do the above but with MNE (to try get automatic eog events)
 
-
+# Plot the filtered calibration signal and the medians
 fig = px.line(eog_data, x="sample", y=eog_data["data"], color='channel')
 for index, row in calibration_samples.iterrows():
     fig.add_vline(x=row['sample']+calibration_delay, line_dash="dot",
@@ -112,15 +112,42 @@ for type, value in calibration_offsets_eog.items():
 #                       annotation_position="bottom right")
 fig.show()
 
+# Actual signal is the difference between the two electrodes
+eog_right = eog_data.loc[eog_data['channel'] == "EOG_FILTERED"]['data'].reset_index(drop=True)
+eog_left = eog_data.loc[eog_data['channel'] == "ECG_FILTERED"]['data'].reset_index(drop=True)
+eog_signal = pd.DataFrame({"EOG_SIGNAL": eog_left-eog_right})
+
+fig = px.line(eog_signal, y=eog_signal["EOG_SIGNAL"])
+fig.show()
 pass
 
 # Calculate fixation bias for each trial
+trail_offset = 0
+trial_fb = {}
 for protocol, data in protocol_data.items():
-    if "fix_cross" in protocol:
+    if "fix_cross" in protocol.lower():
+        # Recalculate the centre point
+        eog_right = data.loc[data['channel'] == "EOG_FILTERED"]['data'].reset_index(drop=True)
+        eog_left = data.loc[data['channel'] == "ECG_FILTERED"]['data'].reset_index(drop=True)
+        eog_signal = pd.DataFrame({"EOG_SIGNAL": eog_left - eog_right})
+        # just use the last 1 second to remove the initial saccade
+        eog_signal = eog_signal.iloc[1000:-1, :]
+        trail_offset = eog_signal.median()[0]
+        # fig = px.line(eog_signal, y=eog_signal["EOG_SIGNAL"])
+        # fig.show()
+        # (if needed) recalculate the scale to fit the screen (this would be for normalising the fb between 0 and 1)
         pass
-    elif "image" in protocol:
+    elif "image" in protocol.lower():
+        # subtract previous offset (centre point) from data
+        eog_right = data.loc[data['channel'] == "EOG_FILTERED"]['data'].reset_index(drop=True)
+        eog_left = data.loc[data['channel'] == "ECG_FILTERED"]['data'].reset_index(drop=True)
+        eog_signal = pd.DataFrame({"EOG_SIGNAL": eog_left - eog_right}) - trail_offset
+        # fig = px.line(eog_signal, y=eog_signal["EOG_SIGNAL"])
+        # fig.show()
+        trial_fb[protocol] = eog_signal.median()
+        # calculate average of data
         pass
-
+pass
 # Average fixation bias over all trials
 # Get change in fixation bias between pre and post sessions
 # Do permutation test for individual data
