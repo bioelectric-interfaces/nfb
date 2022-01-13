@@ -62,15 +62,17 @@ def get_task_fixation_bias(protocol_data):
             # fig.show()
 
             # Calculate fixation bias - this is the ratio of number of leftward vs rightward eye locations (average is biased by looking to the edges of the screen)
+            fb_data = {}
             right_fx_number = eog_signal.agg(lambda x: sum(x > 0)).sum()  # Right is greater than 0
             left_fx_number = eog_signal.agg(lambda x: sum(x < 0)).sum()
-            trial_fb[protocol] = right_fx_number / 5000  # TODO: figure out if this is ok
-            # trial_fb[protocol] = eog_signal.median()
-            # calculate average of data
+            fb_data['ratio'] = right_fx_number / 5000  # TODO: figure out if this is ok
+            fb_data['median'] = eog_signal.median()[0]
+            trial_fb[protocol] = fb_data
             pass
 
     # Get median FB over all trials
-    return np.median(list(trial_fb.values()))
+    trail_fb = pd.DataFrame(trial_fb).T
+    return trail_fb['ratio'].median(), trail_fb['median'].median()
 
 
 def get_eog_calibration(protocol_data):
@@ -149,3 +151,11 @@ def get_eog_calibration(protocol_data):
     fig = px.line(eog_signal, y=eog_signal["EOG_SIGNAL"])
     fig.show()
     pass
+
+def free_view_analysis():
+    pass
+    # do t-test for all delta_fb for scalp compared to sham
+    # do a t-test for all delta_fb for source compared to sham
+
+    # Get average delta_fb for scalp, source, and sham for all participants (OR T-STATISTIC?)
+    # do permutation test for difference in above averages (or t-stats?) for scalp->sham and source->sham and scalp->source

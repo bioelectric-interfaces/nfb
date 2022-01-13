@@ -29,7 +29,6 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 # ------ Get data files
-# TODO: fix data file structure (when have a solid test setup)
 data_directory = "/Users/christopherturner/Documents/EEG Data/pilot_202201" # This is the directory where all participants are in
 
 # get participants
@@ -38,6 +37,8 @@ participants = next(os.walk(data_directory))[1]
 # Get scalp, sham, source data for each participant
 experiment_dirs = {}
 for p in participants:
+# TODO: fix data file structure (when have a solid test setup) - maybe include 'sc', 'so', 'sh' in the data directory names
+#       and allocate this way - this way don't have to sort into separate folders. - if do 2 tasks per session, then also don't have to copy
     experiment_dirs[p] = {}
     experiment_dirs[p]["scalp"] = next(os.walk(os.path.join(data_directory, p, "scalp")))[1]
     experiment_dirs[p]["source"] = next(os.walk(os.path.join(data_directory, p, "source")))[1]
@@ -50,8 +51,10 @@ for participant, participant_dirs in experiment_dirs.items():
 
         # free viewing vars
         session_data = {"session_name": session}
-        pre_fb = 0
-        post_fb = 0
+        pre_fb_ratio = 0
+        post_fb_ratio = 0
+        pre_fb_median = 0
+        post_fb_median = 0
 
         for task_dir in session_dirs:
             h5file = os.path.join(data_directory, participant, session, task_dir, "experiment_data.h5") #"/Users/christopherturner/Documents/EEG Data/ChrisPilot20220110/0-pre_task_ct01_01-10_16-07-00/experiment_data.h5"
@@ -68,26 +71,26 @@ for participant, participant_dirs in experiment_dirs.items():
 
             protocol_data = af.get_protocol_data(df1, channels=channels, p_names=p_names)
 
-            # Do the free_viewing analysis
+            # Get free view task stats
             if "pre" in task_dir:
                 # get initial fixiation bias
-                pre_fb = af.get_task_fixation_bias(protocol_data)
+                pre_fb_ratio, pre_fb_median = af.get_task_fixation_bias(protocol_data)
             if "post" in task_dir:
-                post_fb = af.get_task_fixation_bias(protocol_data)
+                post_fb_ratio, post_fb_median = af.get_task_fixation_bias(protocol_data)
 
         # Get change in free viewing fixation bias
-        session_data["delta_fb"] = post_fb - pre_fb
+        session_data["delta_fb_ratio"] = post_fb_ratio - pre_fb_ratio
+        session_data["delta_fb_median"] = post_fb_median - pre_fb_median
         participant_data["session_data"].append(session_data)
 
         # Do permutation test for individual data i.e. is this change significant <- NOT SURE IF NEEDED?
 
     experiment_data.append(participant_data)
+    # TODO: save this off so don't have to run the entire script again
 pass
-# do t-test for all delta_fb for scalp compared to sham
-# do a t-test for all delta_fb for source compared to sham
 
-# Get average delta_fb for scalp, source, and sham for all participants (OR T-STATISTIC?)
-# do permutation test for difference in above averages (or t-stats?) for scalp->sham and source->sham and scalp->source
+# Free view analysis
+af.free_view_analysis()
 
 
 pass
