@@ -467,17 +467,17 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
 
         # TODO: turn the scale, motion dot, and calibration dot on and off with config (or use separate protocols)
         # draw calibration scale
-        vline = np.linspace(-self.screen.width()/150, self.screen.width()/150, 10)
-        hline = np.linspace(-self.screen.width()/2 - self.fudge_factor_x/2, self.screen.width()/2 + self.fudge_factor_x/2, 10)
-        calibration_scale_hline = widget.plot(hline,np.zeros_like(hline), pen=pg.mkPen(color=(0,0,255), width=4)).curve
-        alphabet = list(string.ascii_uppercase)
-        digits = [0,1,2,3,4,5,6,7,8,9]
-        alphabet_offsets = list(range(round(-self.screen.width()/2 - self.fudge_factor_x/2), round(self.screen.width()/2 + self.fudge_factor_x/2), round((self.screen.width()+self.fudge_factor_x)/(len(alphabet)-1))))
-        digits_offsets = list(range(round(-self.screen.width()/2 - self.fudge_factor_x/2), round(self.screen.width()/2 + self.fudge_factor_x/2), round((self.screen.width()+self.fudge_factor_x)/(len(digits)-1))))
-        for idx, a in enumerate(alphabet):
-            calibration_scale_vline = widget.plot(np.zeros_like(vline) + alphabet_offsets[idx], vline-11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
-        for idx, a in enumerate(digits):
-            calibration_scale_vline = widget.plot(np.zeros_like(vline) + digits_offsets[idx], vline+11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
+        # vline = np.linspace(-self.screen.width()/150, self.screen.width()/150, 10)
+        # hline = np.linspace(-self.screen.width()/2 - self.fudge_factor_x/2, self.screen.width()/2 + self.fudge_factor_x/2, 10)
+        # calibration_scale_hline = widget.plot(hline,np.zeros_like(hline), pen=pg.mkPen(color=(0,0,255), width=4)).curve
+        # alphabet = list(string.ascii_uppercase)
+        # digits = [0,1,2,3,4,5,6,7,8,9]
+        # alphabet_offsets = list(range(round(-self.screen.width()/2 - self.fudge_factor_x/2), round(self.screen.width()/2 + self.fudge_factor_x/2), round((self.screen.width()+self.fudge_factor_x)/(len(alphabet)))))
+        # digits_offsets = list(range(round(-self.screen.width()/2 - self.fudge_factor_x/2), round(self.screen.width()/2 + self.fudge_factor_x/2), round((self.screen.width()+self.fudge_factor_x)/(len(digits)-1))))
+        # for idx, a in enumerate(alphabet):
+        #     calibration_scale_vline = widget.plot(np.zeros_like(vline) + alphabet_offsets[idx], vline-11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
+        # for idx, a in enumerate(digits):
+        #     calibration_scale_vline = widget.plot(np.zeros_like(vline) + digits_offsets[idx], vline+11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
 
 
     def set_red_state(self, flag):
