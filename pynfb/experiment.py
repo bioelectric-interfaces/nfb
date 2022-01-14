@@ -197,8 +197,8 @@ class Experiment():
                     reward_signal_id = current_protocol.reward_signal_id
                     reward_sig = self.signals_recorder[~np.isnan(self.signals_recorder).any(axis=1)]
                     reward_sig = reward_sig[:,reward_signal_id]
-                    self.mean_reward_signal = reward_sig.mean()
-                    print(f"len signal: {len(reward_sig)}, mean: {reward_sig.mean()}, signal: {reward_sig}")
+                    self.mean_reward_signal = reward_sig.median()
+                    print(f"len signal: {len(reward_sig)}, mean: {reward_sig.median()}, signal: {reward_sig}")
 
                 # Record the reward from feedback only for the current protocol
                 if isinstance(current_protocol, FeedbackProtocol):
