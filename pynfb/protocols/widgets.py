@@ -1,3 +1,4 @@
+import string
 import time
 import warnings
 import random
@@ -441,6 +442,8 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         self.probe_radius = 10
         self.position_time = self.protocol_duration/len(self.probe_loc)
         self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)
+        self.fudge_factor_x = 50 #TODO Figure out why this fudge factor is needed (seems similar for all screens)
+        self.fudge_factor_y = 35
 
     def prepare_widget(self, widget):
         super(EyeCalibrationProtocolWidgetPainter, self).prepare_widget(widget)
@@ -462,6 +465,21 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         self.fill = fill
         widget.addItem(fill)
 
+        # TODO: turn the scale, motion dot, and calibration dot on and off with config (or use separate protocols)
+        # draw calibration scale
+        vline = np.linspace(-self.screen.width()/150, self.screen.width()/150, 10)
+        hline = np.linspace(-self.screen.width()/2 - self.fudge_factor_x/2, self.screen.width()/2 + self.fudge_factor_x/2, 10)
+        calibration_scale_hline = widget.plot(hline,np.zeros_like(hline), pen=pg.mkPen(color=(0,0,255), width=4)).curve
+        alphabet = list(string.ascii_uppercase)
+        digits = [0,1,2,3,4,5,6,7,8,9]
+        alphabet_offsets = list(range(round(-self.screen.width()/2 - self.fudge_factor_x/2), round(self.screen.width()/2 + self.fudge_factor_x/2), round((self.screen.width()+self.fudge_factor_x)/(len(alphabet)-1))))
+        digits_offsets = list(range(round(-self.screen.width()/2 - self.fudge_factor_x/2), round(self.screen.width()/2 + self.fudge_factor_x/2), round((self.screen.width()+self.fudge_factor_x)/(len(digits)-1))))
+        for idx, a in enumerate(alphabet):
+            calibration_scale_vline = widget.plot(np.zeros_like(vline) + alphabet_offsets[idx], vline-11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
+        for idx, a in enumerate(digits):
+            calibration_scale_vline = widget.plot(np.zeros_like(vline) + digits_offsets[idx], vline+11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
+
+
     def set_red_state(self, flag):
         pass
 
@@ -476,10 +494,8 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
             tr = QTransform()
             self.fill.setBrush((0, 0, 0, 255))
             offsets = self.probe_offsets[self.probe_loc[self.position_no]]
-            fudge_factor_x = 50 #TODO Figure out why this fudge factor is needed (seems similar for all screens)
-            fudge_factor_y = 35
-            x_off = (self.screen.width() + fudge_factor_x)/2 * offsets[0]
-            y_off = (self.screen.height() + fudge_factor_y)/2 * offsets[1]
+            x_off = (self.screen.width() + self.fudge_factor_x)/2 * offsets[0]
+            y_off = (self.screen.height() + self.fudge_factor_y)/2 * offsets[1]
             tr.translate(-x_off, -y_off)
             self.fill.setTransform(tr)
         else:
@@ -492,6 +508,7 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         # Cycle through probe location. start with only cross at start and end (6 positions total)
         if self.current_sample_idx > self.position_time * (1+self.position_no) and self.position_no < len(self.probe_loc)-1:
             self.position_no = self.position_no + 1
+
 
 
 class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
