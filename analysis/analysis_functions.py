@@ -9,7 +9,7 @@ import plotly.express as px
 
 # ------Define analysis functions
 
-def get_protocol_data(task_data, channels, p_names):
+def get_protocol_data(task_data, channels, p_names, eog_filt=True):
     """
     return a dictionary containing data for each protocol
     """
@@ -20,8 +20,9 @@ def get_protocol_data(task_data, channels, p_names):
     protocol_names = [f"{a_}{b_}" for a_, b_ in zip(p_names, block_numbers)]
     channels_signal = channels.copy()
     channels_signal.append("signal_AAI")
-    channels_signal.append("EOG_FILTERED")
-    channels_signal.append("ECG_FILTERED")
+    if eog_filt:
+        channels_signal.append("EOG_FILTERED")
+        channels_signal.append("ECG_FILTERED")
     df2 = pd.melt(task_data, id_vars=['block_name', 'block_number', 'sample', 'choice', 'probe', 'answer'],
                   value_vars=channels_signal, var_name="channel", value_name='data')
 
