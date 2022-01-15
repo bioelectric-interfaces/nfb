@@ -34,8 +34,8 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 
 # ------ Get data files
 #
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-41-22/experiment_data.h5" # Horizontal 9 pt calibration
-h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_number_01-14_12-32-27/experiment_data.h5" # horizontal numbers
+h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-41-22/experiment_data.h5" # Horizontal 9 pt calibration
+# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_number_01-14_12-32-27/experiment_data.h5" # horizontal numbers
 # h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_letter_01-14_12-36-24/experiment_data.h5" # horizontal letters
 # h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-43-17/experiment_data.h5" # horizontal lines
 # h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-46-40/experiment_data.h5" # horizontal shapes
@@ -85,6 +85,28 @@ fig.show()
 
 fig = px.line(eog_spatial, x="eog_h", y="eog_v")
 fig.show()
+
+fig = px.line(eog_spatial, x="eog_v", y="eog_v")
+fig.show()
+
+# Remove bias from signal (bias got from centre cross fixation (first 9000 samps)
+centre_cross = eog_spatial.iloc[0:2000, :]
+centre_cross['median'] = centre_cross[['eog_h', 'eog_v']].median(axis=1)
+fig = px.line(centre_cross, x=centre_cross.index, y="eog_h")
+fig.add_scatter(x=centre_cross.index, y=centre_cross["eog_v"])
+fig.add_scatter(x=centre_cross.index, y=centre_cross["median"])
+fig.show()
+
+horizontal_bias = centre_cross["median"].median()
+eog_spatial["eog_h_corrected"] = eog_h - horizontal_bias
+eog_spatial["eog_v_corrected"] = eog_v - horizontal_bias
+fig = px.line(eog_spatial, x=eog_spatial.index, y="eog_h_corrected")
+fig.add_scatter(x=eog_spatial.index, y=eog_spatial["eog_v_corrected"])
+fig.add_scatter(x=eog_spatial.index, y=eog_spatial["eog_h_corrected"]-eog_spatial["eog_v_corrected"])
+fig.show()
+fig = px.line(eog_spatial, x="eog_h_corrected", y="eog_v_corrected")
+fig.show()
+
 
 st = 0
 end = len(eog_spatial)
