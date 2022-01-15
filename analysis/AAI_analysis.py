@@ -34,9 +34,10 @@ experiment_data = []
 for participant, participant_dirs in experiment_dirs.items():
     participant_data = {"participant_id": participant, "session_data": []}
     for session, session_dirs in participant_dirs.items():
-
+        session_data = {}
         for task_dir in session_dirs:
             if "nfb" in task_dir:
+                task_data = {}
                 h5file = os.path.join(data_directory, participant, session, task_dir, "experiment_data.h5") #"/Users/christopherturner/Documents/EEG Data/ChrisPilot20220110/0-pre_task_ct01_01-10_16-07-00/experiment_data.h5"
                 # h5file = "/Users/christopherturner/Documents/EEG Data/ChrisPilot20220110/0-post_task_ct01_01-10_16-55-15/experiment_data.h5"
 
@@ -61,7 +62,11 @@ for participant, participant_dirs in experiment_dirs.items():
 
                 # split AAI into first/second/third blocks for the participant
 
-                aai_first = nfb_aai_medians[0: int(len(nfb_aai_medians)/3)]
-                aai_mid = nfb_aai_medians[int(len(nfb_aai_medians)/3) + 1: int(len(nfb_aai_medians)/3) * 2]
-                aai_last = nfb_aai_medians[(int(len(nfb_aai_medians)/3) * 2) + 1: -1]
+                task_data["aai_first"] = nfb_aai_medians[0: int(len(nfb_aai_medians)/3)]
+                task_data["aai_mid"] = nfb_aai_medians[int(len(nfb_aai_medians)/3) + 1: int(len(nfb_aai_medians)/3) * 2]
+                task_data["aai_last"] = nfb_aai_medians[(int(len(nfb_aai_medians)/3) * 2) + 1: -1]
+                session_data[task_dir] = task_data
                 pass
+        participant_data["session_data"].append(session_data)
+experiment_data.append(participant_data)
+pass
