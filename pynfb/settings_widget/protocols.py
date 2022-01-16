@@ -307,8 +307,10 @@ class ProtocolDialog(QtWidgets.QDialog):
         text = self.source_signal.currentText()
         self.source_signal.clear()
         self.reward_signal.clear()
+        baseline_offset = 0
         if self.type.currentText() == 'Baseline':
             self.source_signal.addItem('All')
+            baseline_offset = 1
         all_signals = self.parent().parent().params['vSignals']
         signals = all_signals['DerivedSignal'].copy()
         if not self.ssd_in_the_end.isChecked():
@@ -319,7 +321,7 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         current_index = self.source_signal.findText(text, QtCore.Qt.MatchFixedString)
         self.source_signal.setCurrentIndex(current_index if current_index > -1 else 0)
-        self.reward_signal.setCurrentIndex(current_index-1 if current_index > -1 else 0)
+        self.reward_signal.setCurrentIndex(current_index-baseline_offset if current_index > -1 else 0)
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
