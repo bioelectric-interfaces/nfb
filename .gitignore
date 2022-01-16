@@ -5,6 +5,10 @@ results/
 .idea
 .vscode
 
+# BrainVision data
+*.vhdr
+*.eeg
+*.vmrk
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
