@@ -63,7 +63,7 @@
 		</DerivedSignal>
 		<CompositeSignal>
 			<sSignalName>{{composite_signal}}</sSignalName>
-			<sExpression>(Alpha_Right-Alpha_Left)/(Alpha_Right+Alpha_Left)</sExpression>
+			<sExpression>(Alpha_Left-Alpha_Right)/(Alpha_Left+Alpha_Right)</sExpression>
 		</CompositeSignal>
 	</vSignals>
 	<vProtocols>
