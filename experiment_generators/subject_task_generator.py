@@ -24,7 +24,7 @@ class ParticipantTaskGenerator:
                  free_view_images=None,
                  number_nfb_tasks=5, baseline_duration=3, left_spatial_filter_scalp="P4=1",
                  right_spatial_filter_scalp="P3=1",
-                 source_fb=False, source_roi_left=(), source_roi_right=()):
+                 source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None):
         self.template_file = template_file
         self.composite_signal = composite_signal
         self.band_high = band_high
@@ -47,6 +47,7 @@ class ParticipantTaskGenerator:
             self.right_spatial_filter_scalp = right_spatial_filter_scalp
         self.source_roi_left = source_roi_left
         self.source_roi_right = source_roi_right
+        self.mock_file = mock_file
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -75,7 +76,8 @@ class ParticipantTaskGenerator:
             'left_spatial_filter_scalp': self.left_spatial_filter_scalp,
             'source_roi_left': self.source_roi_left,
             'source_roi_right': self.source_roi_right,
-            'source_fb': int(self.source_fb)
+            'source_fb': int(self.source_fb),
+            'mock_file': self.mock_file
         }
         #
         with open(output_fname, 'w') as f:
@@ -95,14 +97,15 @@ if __name__ == "__main__":
 
     # Base images path
     # base_images_path = "image_stimuli"
-    base_images_path = "/Users/2354158T/Documents/image_stimuli"
-    session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham
+    # base_images_path = "/Users/2354158T/Documents/image_stimuli"
+    base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
+    session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham # TODO: MAKE SURE THIS IS RANDOMISED
 
     # randomise session order
     random.shuffle(session_images_paths)
 
     # Common settings
-    participant_no = "ct01"
+    participant_no = "tst"
     stream_name = "BrainVision RDA"
     image_path = ""
     band_low = 8
@@ -111,6 +114,7 @@ if __name__ == "__main__":
     composite_signal = "AAI"
     baseline_duration = 120
     number_nfb_tasks = 100
+    mock_file = ''
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -138,7 +142,9 @@ if __name__ == "__main__":
             source_fb = True
         elif session == 2:
             # sham
-            pass
+            left_spatial_filter_scalp = "CP5=1;P5=1;01=1"
+            right_spatial_filter_scalp = "CP6=1;P6=1;02=1"
+            mock_file = '/Users/christopherturner/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
         for task, template in tasks.items():
             free_view_images = None
             if task == "pre_task":
@@ -161,5 +167,6 @@ if __name__ == "__main__":
                                            source_roi_left=source_roi_left,
                                            source_roi_right=source_roi_right,
                                            source_fb=source_fb,
-                                           number_nfb_tasks=number_nfb_tasks)
+                                           number_nfb_tasks=number_nfb_tasks,
+                                           mock_file=mock_file)
             Tsk.create_task(participant=participant_no)
