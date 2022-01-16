@@ -4,22 +4,27 @@ this does:
     A) look at ERP power in left and right side
     B) look at source location for left and right ERPs
 """
+import sys
+import os
+
+from philistine.mne import write_raw_brainvision
+
+sys.path.append(f"{os.getcwd()}")
+
 import matplotlib.pyplot as plt
 import numpy as np
 from mne.channels import make_standard_montage
 from mne.datasets import fetch_fsaverage
 from mne.minimum_norm import make_inverse_operator, apply_inverse_raw
 
-from pynfb.serializers.hdf5 import load_h5py_all_samples, load_h5py_protocol_signals, load_h5py_protocols_raw, load_h5py
 from utils.load_results import load_data
-import os
 import glob
 import pandas as pd
 import plotly.express as px
 from scipy.signal import butter, lfilter, freqz
 import mne
 
-import analysis_functions as af
+mne.viz.set_3d_backend('pyvista')
 
 # ------ Get data files
 data_directory = "/Users/christopherturner/Documents/EEG Data/pilot_202201" # This is the directory where all participants are in
@@ -71,64 +76,72 @@ for participant, participant_dirs in experiment_dirs.items():
                     # probe_events = probe_events.astype(int)
 
                     # ------
-                    # look at the transition to the first choice screen (when the gabor grating is displayed
-                    choice_1 = df1.loc[df1['block_number'] == 10].reset_index(drop=True)
-                    # get samples where event happens of probe (1 = right, 2 = left)
-                    initial_input_sample = choice_1['sample'][0]
-                    # get data 1 second before and after the transition to choice block
-                    choice_1_transition = df1.iloc[df1[df1['sample'] == initial_input_sample - 5000].index[0]:df1[df1['sample'] == initial_input_sample + 5000].index[0]].reset_index(drop=True)
+                    # Get all samples where choice protocol starts
+                    # Put the transition (event) data back in the original dataframe
+                    df1['protocol_change'] = df1['block_number'].diff()
+                    df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "Input" else 0, axis = 1)
+
+                    # Create the events list for the protocol transitions
+                    probe_events = df1[['choice_events']].to_numpy()
                     event_type = 1
                     event_dict = {'choice_transition': event_type}
-                    probe_events = np.array([[1000, 0, event_type]])
-                    probe_events = probe_events.astype(int)
-                    # TODO: Add events as stim channel - look here: https://github.com/mne-tools/mne-python/issues/4208
-                    # make mne info
-                    m_info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
-                    channel_data = choice_1_transition.drop(
+
+                    # Drop non eeg data
+                    eeg_data = df1.drop(
                         columns=['signal_Alpha_Left', 'signal_Alpha_Right', 'signal_AAI', 'events', 'reward', 'choice', 'answer', 'probe', 'block_name',
-                                 'block_number', 'sample'])
-                    # drop channels for source
-                    channel_data = channel_data.drop(columns=['ECG', 'EOG', 'MKIDX'])
+                                 'block_number', 'sample', 'MKIDX', 'protocol_change', 'choice_events'])
+
+                    # create an MNE info
+                    m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs, ch_types=['eeg' for ch in list(eeg_data.columns)])
+
                     # Set the montage (THIS IS FROM roi_spatial_filter.py)
                     standard_montage = mne.channels.make_standard_montage(kind='standard_1020')
                     standard_montage_names = [name.upper() for name in standard_montage.ch_names]
-                    for j, channel in enumerate(channel_data.columns):
+                    for j, channel in enumerate(eeg_data.columns):
                         try:
+                            # make montage names uppercase to match own data
                             standard_montage.ch_names[standard_montage_names.index(channel.upper())] = channel.upper()
                         except ValueError as e:
                             print(f"ERROR ENCOUNTERED: {e}")
-                    keep_chs = [elem for elem in m_info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
-                    m_info.pick_channels(keep_chs)
                     m_info.set_montage(standard_montage, on_missing='ignore')
 
-                    # make the raw
-                    m_raw = mne.io.RawArray(channel_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+                    # Create the mne raw object with eeg data
+                    m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+
+                    # Create the stim channel
+                    info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
+                    stim_raw = mne.io.RawArray(probe_events.T, info)
+                    m_raw.add_channels([stim_raw], force_update_info=True)
+
+                    # Save EEG with stim data as a brainvision file
+                    # brainvision_file = os.path.join(os.getcwd(), f'{p}_{session}_{task_dir}-bv.vhdr')
+                    # write_raw_brainvision(m_raw, brainvision_file, events=True)
 
                     # set the reference to average
                     m_raw.set_eeg_reference(projection=True)
 
                     # # low pass at 40hz
-                    # m_filt = m_raw.copy()
-                    # m_filt.filter(l_freq=0.1, h_freq=40)
-                    # # m_raw.plot(scalings={"eeg":10})
-                    #
+                    m_filt = m_raw.copy()
+                    m_filt.filter(l_freq=8, h_freq=12)
+
                     # # epoch the data
-                    # epochs = mne.Epochs(m_filt, probe_events, event_id=event_dict, tmin=-0.5, tmax=0.5,
-                    #                     preload=True)
-                    # fig = epochs.plot(events=probe_events, scalings={"eeg":10})
-                    #
-                    # # average epochs # TODO: do this over all data?
-                    # choice_transition = epochs['choice_transition'].average()
-                    # fig2 = choice_transition.plot(spatial_colors=True)
-                    # # choice_transition.plot_joint()
+                    events = mne.find_events(m_raw, stim_channel='STI')
+                    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.2, tmax=0.5,
+                                        preload=True)
+                    fig = epochs.plot(events=events, scalings={"eeg":10})
+
+                    # average epochs
+                    choice_transition = epochs['choice_transition'].average()
+                    fig2 = choice_transition.plot(spatial_colors=True)
+                    # choice_transition.plot_joint()
 
 
                     # ---------- SOURCE RECONSTRUCTION
                     # - first do this over the transition to choice
                     # TODO: make sure this is done the same way as the GUI (or compare the two if this one works)
                     # do initial calcs
-                    info = m_raw.info
-                    noise_cov = mne.compute_raw_covariance(m_raw, tmax=0.5) # LOOKS LIKE THIS NEEDS TO BE JUST RAW DATA - i.e. WITH NO EVENTS (OTHERWISE NEED TO DO THE EPOCH ONE AND FIND EVENTS) - PROBABLY GET THIS FROM BASELINE
+                    info = m_filt.info
+                    noise_cov = mne.compute_raw_covariance(m_filt, tmax=0.5) # LOOKS LIKE THIS NEEDS TO BE JUST RAW DATA - i.e. WITH NO EVENTS (OTHERWISE NEED TO DO THE EPOCH ONE AND FIND EVENTS) - PROBABLY GET THIS FROM BASELINE
                     loose = 0.2
                     depth = 0.8
                     label = None # NOTE!!! LABELS ARE ONLY SUPPORTED WHEN DOING THIS IN SURFACE MODE
@@ -152,11 +165,12 @@ for participant, participant_dirs in experiment_dirs.items():
                     lambda2 = 1.0 / snr ** 2
                     method = "sLORETA"  # use sLORETA method (could also be MNE or dSPM)
                     start, stop = m_raw.time_as_index([0, 2])
-                    stc = apply_inverse_raw(m_raw, inv, lambda2, method, label,
+                    stc = apply_inverse_raw(m_filt, inv, lambda2, method, label,
                                             start, stop, pick_ori=None)
 
                     # Save result in stc files
                     # stc.save('mne_%s_raw_inverse_%s' % (method, label_name))
+
 
                     vertno_max, time_max = stc.get_peak(hemi=None)
 
@@ -170,6 +184,12 @@ for participant, participant_dirs in experiment_dirs.items():
                                    scale_factor=0.6, alpha=0.5)
                     brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
                                    font_size=14)
+
+                    # Do a matplotlib to hold the brain plot in place!!
+                    plt.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.show()
                     pass
 
 # Get protocol with ERP
