@@ -319,7 +319,7 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         current_index = self.source_signal.findText(text, QtCore.Qt.MatchFixedString)
         self.source_signal.setCurrentIndex(current_index if current_index > -1 else 0)
-        self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
+        self.reward_signal.setCurrentIndex(current_index-1 if current_index > -1 else 0)
 
     def set_enabled_threshold_blink_settings(self):
         flag = (self.type.currentText() == 'ThresholdBlink')
