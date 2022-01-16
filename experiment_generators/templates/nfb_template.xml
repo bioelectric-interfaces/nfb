@@ -160,7 +160,7 @@
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
 			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFilePath>{{mock_file}}</sMockSignalFilePath>
 			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
 			<iMockPrevious>0</iMockPrevious>
 			<bReverseMockPrevious>0</bReverseMockPrevious>
