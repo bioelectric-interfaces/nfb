@@ -30,9 +30,11 @@
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
 			<bBCIMode>0</bBCIMode>
+			{% if source_roi_left -%}
 			{% for roi in source_roi_left %}
 			<lROILabel>{{roi}}</lROILabel>
 			{% endfor %}
+			{% endif %}
 			<bNFBType>{{source_fb}}</bNFBType>
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
@@ -81,6 +83,7 @@
 &lt;br&gt;Please completely relax with your eyes open.
 &lt;br&gt;&lt;br&gt;Press SPACE to start.</cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -102,6 +105,7 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>baseline</sProtocolName>
@@ -115,6 +119,7 @@
 			<sFb_type>Baseline</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -136,6 +141,7 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>NFB</sProtocolName>
@@ -149,6 +155,7 @@
 			<sFb_type>Feedback</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -184,6 +191,7 @@
 			<sFb_type>ParticipantChoice</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -205,6 +213,7 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>delay</sProtocolName>
@@ -254,6 +263,7 @@
 			<sFb_type>ExperimentStart</sFb_type>
 			<cString>Experiment finished. </cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -362,6 +372,7 @@
 			<sFb_type>FixationCross</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
@@ -397,6 +408,7 @@
 			<sFb_type>FixationCross</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>
