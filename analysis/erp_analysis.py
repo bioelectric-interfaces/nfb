@@ -27,7 +27,7 @@ import mne
 mne.viz.set_3d_backend('pyvista')
 
 # ------ Get data files
-data_directory = "/Users/christopherturner/Documents/EEG Data/pilot_202201" # This is the directory where all participants are in
+data_directory = "/Users/christopherturner/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
 
 # get participants
 participants = next(os.walk(data_directory))[1]
@@ -137,6 +137,7 @@ for participant, participant_dirs in experiment_dirs.items():
 
 
                     # ---------- SOURCE RECONSTRUCTION
+                    # TODO: do this for epoched data (once get the above working)
                     # - first do this over the transition to choice
                     # TODO: make sure this is done the same way as the GUI (or compare the two if this one works)
                     # do initial calcs

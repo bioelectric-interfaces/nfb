@@ -29,7 +29,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 # ------ Get data files
-data_directory = "/Users/christopherturner/Documents/EEG Data/pilot_202201" # This is the directory where all participants are in
+data_directory = "/Users/christopherturner/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
 
 # get participants
 participants = next(os.walk(data_directory))[1]
@@ -57,8 +57,8 @@ for participant, participant_dirs in experiment_dirs.items():
         post_fb_median = 0
 
         for task_dir in session_dirs:
-            h5file = os.path.join(data_directory, participant, session, task_dir, "experiment_data.h5") #"/Users/christopherturner/Documents/EEG Data/ChrisPilot20220110/0-pre_task_ct01_01-10_16-07-00/experiment_data.h5"
-            # h5file = "/Users/christopherturner/Documents/EEG Data/ChrisPilot20220110/0-post_task_ct01_01-10_16-55-15/experiment_data.h5"
+            h5file = os.path.join(data_directory, participant, session, task_dir, "experiment_data.h5") #"/Users/christopherturner/Documents/EEG_Data/ChrisPilot20220110/0-pre_task_ct01_01-10_16-07-00/experiment_data.h5"
+            # h5file = "/Users/christopherturner/Documents/EEG_Data/ChrisPilot20220110/0-post_task_ct01_01-10_16-55-15/experiment_data.h5"
 
             # Put data in pandas data frame
             df1, fs, channels, p_names = load_data(h5file)

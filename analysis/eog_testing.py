@@ -34,18 +34,18 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 
 # ------ Get data files
 #
-h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-41-22/experiment_data.h5" # Horizontal 9 pt calibration
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_number_01-14_12-32-27/experiment_data.h5" # horizontal numbers
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_letter_01-14_12-36-24/experiment_data.h5" # horizontal letters
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-43-17/experiment_data.h5" # horizontal lines
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-46-40/experiment_data.h5" # horizontal shapes
+h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-41-22/experiment_data.h5" # Horizontal 9 pt calibration
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal/eye_calib_number_01-14_12-32-27/experiment_data.h5" # horizontal numbers
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal/eye_calib_letter_01-14_12-36-24/experiment_data.h5" # horizontal letters
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-43-17/experiment_data.h5" # horizontal lines
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-46-40/experiment_data.h5" # horizontal shapes
 
 
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal_vertical/eye_calib_9pt_01-14_12-53-04/experiment_data.h5" # horiz_vert 9 pt calibration
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal_vertical/eye_calib_9pt_01-14_12-55-18/experiment_data.h5" # horiz_vert 9 pt lines
-# h5file = "/Users/christopherturner/Documents/EEG Data/eyecalibtest_20221401/horizontal_vertical/eye_calib_9pt_01-14_12-57-04/experiment_data.h5" # horiz_vert 9 pt shapes
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal_vertical/eye_calib_9pt_01-14_12-53-04/experiment_data.h5" # horiz_vert 9 pt calibration
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal_vertical/eye_calib_9pt_01-14_12-55-18/experiment_data.h5" # horiz_vert 9 pt lines
+# h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal_vertical/eye_calib_9pt_01-14_12-57-04/experiment_data.h5" # horiz_vert 9 pt shapes
 
-# h5file = "/Users/christopherturner/Documents/EEG Data/pilot_202201/ct/scalp/0-post_task_ct01_01-10_16-55-15/experiment_data.h5" #pilotdata
+# h5file = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/ct/scalp/0-post_task_ct01_01-10_16-55-15/experiment_data.h5" #pilotdata
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
