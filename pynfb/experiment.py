@@ -197,8 +197,8 @@ class Experiment():
                     reward_signal_id = current_protocol.reward_signal_id
                     reward_sig = self.signals_recorder[~np.isnan(self.signals_recorder).any(axis=1)]
                     reward_sig = reward_sig[:,reward_signal_id]
-                    self.mean_reward_signal = reward_sig.median()
-                    print(f"len signal: {len(reward_sig)}, mean: {reward_sig.median()}, signal: {reward_sig}")
+                    self.mean_reward_signal = np.median(reward_sig)
+                    print(f"len signal: {len(reward_sig)}, mean: {reward_sig.mean()}, median: {np.median(reward_sig)}, signal: {reward_sig}")
 
                 # Record the reward from feedback only for the current protocol
                 if isinstance(current_protocol, FeedbackProtocol):
@@ -322,7 +322,7 @@ class Experiment():
 
                 # update the threshold for the Gabor feedback protocol with variable percentage
                 # TODO: also make this more generic (for all feedback protocols - not just Gabor)
-                reward_bound = 0.6 # percent to add to the bias # TODO: make this a GUI flag
+                reward_bound = 0.25 # percent to add to the bias # TODO: make this a GUI flag
                 # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
                 bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
                 print(f"R THRESHOLD: {bc_threshold}")
@@ -510,6 +510,7 @@ class Experiment():
             # some general protocol arguments
             source_signal_id = None if protocol['fbSource'] == 'All' else signal_names.index(protocol['fbSource'])
             reward_signal_id = signal_names.index(protocol['sRewardSignal']) if protocol['sRewardSignal'] != '' else 0
+            print(f"PROTOCOL: {protocol['sProtocolName']}, REWARD_SIG: {protocol['sRewardSignal']}, REWARD ID: {reward_signal_id}")
             mock_path = (protocol['sMockSignalFilePath'] if protocol['sMockSignalFilePath'] != '' else None,
                          protocol['sMockSignalFileDataset'])
             m_signal = protocol['sMSignal']
