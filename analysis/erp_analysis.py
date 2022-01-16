@@ -81,33 +81,46 @@ for participant, participant_dirs in experiment_dirs.items():
                     event_dict = {'choice_transition': event_type}
                     probe_events = np.array([[1000, 0, event_type]])
                     probe_events = probe_events.astype(int)
-                    # Put in mne object
-                    m_info = mne.create_info(channels, fs, ch_types='eeg', verbose=None)
+                    # TODO: Add events as stim channel - look here: https://github.com/mne-tools/mne-python/issues/4208
+                    # make mne info
+                    m_info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
                     channel_data = choice_1_transition.drop(
                         columns=['signal_Alpha_Left', 'signal_Alpha_Right', 'signal_AAI', 'events', 'reward', 'choice', 'answer', 'probe', 'block_name',
                                  'block_number', 'sample'])
+                    # drop channels for source
+                    channel_data = channel_data.drop(columns=['ECG', 'EOG', 'MKIDX'])
+                    # Set the montage (THIS IS FROM roi_spatial_filter.py)
+                    standard_montage = mne.channels.make_standard_montage(kind='standard_1020')
+                    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+                    for j, channel in enumerate(channel_data.columns):
+                        try:
+                            standard_montage.ch_names[standard_montage_names.index(channel.upper())] = channel.upper()
+                        except ValueError as e:
+                            print(f"ERROR ENCOUNTERED: {e}")
+                    keep_chs = [elem for elem in m_info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
+                    m_info.pick_channels(keep_chs)
+                    m_info.set_montage(standard_montage, on_missing='ignore')
+
+                    # make the raw
                     m_raw = mne.io.RawArray(channel_data.T, m_info, first_samp=0, copy='auto', verbose=None)
-                    # Set the montage
-                    montage = make_standard_montage('standard_1020')
-                    m_raw.set_montage(montage,on_missing='ignore')
 
                     # set the reference to average
-                    m_raw.set_eeg_reference()
+                    m_raw.set_eeg_reference(projection=True)
 
-                    # low pass at 40hz
-                    m_filt = m_raw.copy()
-                    m_filt.filter(l_freq=0.1, h_freq=40)
-                    # m_raw.plot(scalings={"eeg":10})
-
-                    # epoch the data
-                    epochs = mne.Epochs(m_filt, probe_events, event_id=event_dict, tmin=-0.5, tmax=0.5,
-                                        preload=True)
-                    fig = epochs.plot(events=probe_events, scalings={"eeg":10})
-
-                    # average epochs # TODO: do this over all data?
-                    choice_transition = epochs['choice_transition'].average()
-                    fig2 = choice_transition.plot(spatial_colors=True)
-                    choice_transition.plot_joint()
+                    # # low pass at 40hz
+                    # m_filt = m_raw.copy()
+                    # m_filt.filter(l_freq=0.1, h_freq=40)
+                    # # m_raw.plot(scalings={"eeg":10})
+                    #
+                    # # epoch the data
+                    # epochs = mne.Epochs(m_filt, probe_events, event_id=event_dict, tmin=-0.5, tmax=0.5,
+                    #                     preload=True)
+                    # fig = epochs.plot(events=probe_events, scalings={"eeg":10})
+                    #
+                    # # average epochs # TODO: do this over all data?
+                    # choice_transition = epochs['choice_transition'].average()
+                    # fig2 = choice_transition.plot(spatial_colors=True)
+                    # # choice_transition.plot_joint()
 
 
                     # ---------- SOURCE RECONSTRUCTION
