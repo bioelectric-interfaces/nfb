@@ -28,7 +28,7 @@ class SourceSpaceRecontructor(Protocol):
         data_path = sample.data_path()
         # fname_raw = data_path + '/MEG/sample/sample_audvis_raw.fif'
         # raw = mne.io.read_raw_fif(fname_raw, verbose='ERROR')
-        fname_raw = "/Users/christopherturner/Documents/EEG DATA/ct_102/ct_102_ec.vhdr"
+        fname_raw = "/Users/christopherturner/Documents/EEG_DATA/ct_102/ct_102_ec.vhdr"
         raw = mne.io.read_raw_brainvision(fname_raw)
         info = raw.info
         channel_cnt = info['nchan']
@@ -57,7 +57,7 @@ class SourceSpaceRecontructor(Protocol):
         # filename_inv = data_path + '/MEG/sample/sample_audvis-meg-oct-6-meg-inv.fif'
         # return read_inverse_operator(filename_inv, verbose='ERROR')
 
-        fname_raw = "/Users/christopherturner/Documents/EEG DATA/ct_102/ct_102_ec.vhdr"
+        fname_raw = "/Users/christopherturner/Documents/EEG_DATA/ct_102/ct_102_ec.vhdr"
         raw = mne.io.read_raw_brainvision(fname_raw)
         raw.set_eeg_reference(projection=True)
         raw_twitch = raw.drop_channels(['ECG', 'EOG'])
