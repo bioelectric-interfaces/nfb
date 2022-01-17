@@ -45,7 +45,7 @@ class Experiment():
         self.mock_signals_buffer = None
         self.activate_trouble_catching = False
         self.main = None
-        self.gabor_theta = r.choice(range(0, 360, 30)) # Init the gabor theta with a random angle
+        self.gabor_theta = r.choice(range(20, 180, 20)) # Init the gabor theta with a random angle
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
@@ -318,7 +318,7 @@ class Experiment():
             if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
                 # Only update the threshold if we aren't doing mock/sham
                 if current_protocol.mock_samples_file_path is None:
-                    self.gabor_theta = r.choice(range(0, 360, 30))
+                    self.gabor_theta = r.choice(range(20, 180, 20))
                     print(f"GABOR THETA: {self.gabor_theta}")
                     current_protocol.widget_painter.gabor_theta = self.gabor_theta
 
