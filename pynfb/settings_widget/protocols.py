@@ -402,7 +402,6 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.m_signal_threshold.setValue(current_protocol['fMSignalThreshold'])
         print(f"CROSS VAR: {current_protocol['tFixationCrossColour']}")
         self.cross_colour.setCurrentText(current_protocol['tFixationCrossColour'])
-        # todo: set the cross colour here (make sure it is set when data is loaded)
         pass
 
     def save_and_close(self):
@@ -435,6 +434,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())
         self.params[current_signal_index]['bRewardThreshold'] = self.reward_threshold.value()
+        # self.params[current_signal_index]['bUseBCThreshold'] = int(self.enable_bc_threshold.isChecked())
+        # self.params[current_signal_index]['dBCThresholdAdd'] = self.bc_threshold_add.value()
         self.params[current_signal_index]['iMockPrevious'] = (
             self.mock_previous.value() if self.enable_mock_previous.isChecked() else 0)
         self.params[current_signal_index]['bReverseMockPrevious'] = (

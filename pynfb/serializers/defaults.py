@@ -14,6 +14,8 @@ general_defaults = OrderedDict([
 
 vectors_defaults = OrderedDict([
     ('bDC', 0),
+    ('dBCThresholdAdd', 0.0),
+    ('bUseBCThreshold', 0),
     ('sPrefilterBand', 'None None'),
     ('sExperimentName', 'experiment'),
     ('sInletType', 'lsl'),
@@ -55,7 +57,7 @@ vectors_defaults = OrderedDict([
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Composite'),
             ('sExpression', ''),
-            ('bSmoothingEnabled', False),
+            ('bSmoothingEnabled', 0),
             ('dSmoothingWindow', 100)
         ])])
     ])),

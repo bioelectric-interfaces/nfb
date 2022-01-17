@@ -327,18 +327,19 @@ class Experiment():
             bc_threshold = None
             if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
                 # Only update the threshold if we aren't doing mock/sham
-                if current_protocol.mock_samples_file_path is None:
+                if current_protocol.mock_samples_file_path is None :
                     self.gabor_theta = r.choice(range(20, 180, 20))
                     print(f"GABOR THETA: {self.gabor_theta}")
                     current_protocol.widget_painter.gabor_theta = self.gabor_theta
 
-                    # update the threshold for the Gabor feedback protocol with variable percentage
-                    # TODO: also make this more generic (for all feedback protocols - not just Gabor)
-                    reward_bound = 0.25 # percent to add to the bias # TODO: make this a GUI flag
-                    # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
-                    bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
-                    print(f"R THRESHOLD: {bc_threshold}")
-                    current_protocol.widget_painter.r_threshold = bc_threshold
+                    if self.params['bUseBCThreshold']:
+                        # update the threshold for the Gabor feedback protocol with variable percentage
+                        # TODO: also make this more generic (for all feedback protocols - not just Gabor)
+                        reward_bound = self.params['dBCThresholdAdd'] # percent to add to the bias #
+                        # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
+                        bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
+                        print(f"R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
+                        current_protocol.widget_painter.r_threshold = bc_threshold
 
             # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):

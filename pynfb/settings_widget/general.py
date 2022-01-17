@@ -114,6 +114,16 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.show_photo_rect.clicked.connect(self.show_photo_rect_event)
         self.form_layout.addRow('&Show photo-sensor rect.:', self.show_photo_rect)
 
+        # Baseline correction settings
+        self.enable_bc_threshold = QtWidgets.QCheckBox()
+        self.form_layout.addRow('&Use Baseline Threshold:', self.enable_bc_threshold)
+        self.enable_bc_threshold.stateChanged.connect(self.baseline_threshold_activated)
+        self.bc_threshold_add = QtWidgets.QDoubleSpinBox()
+        self.bc_threshold_add.setRange(0.0, 1.0)
+        self.bc_threshold_add.setEnabled(False)
+        self.bc_threshold_add.valueChanged.connect(self.baseline_threshold_changed_event)
+        self.form_layout.addRow('&Baseline Threshold Addition [%]:', self.bc_threshold_add)
+
         # pre-filtering band:
         self.prefilter_band = BandWidget()
         self.prefilter_band.bandChanged.connect(self.band_changed_event)
@@ -121,6 +131,13 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
 
         self.reset()
         # self.stream
+
+    def baseline_threshold_activated(self):
+        self.bc_threshold_add.setEnabled(self.enable_bc_threshold.isChecked())
+        self.params['bUseBCThreshold'] = int(self.enable_bc_threshold.isChecked())
+
+    def baseline_threshold_changed_event(self):
+        self.params['dBCThresholdAdd'] = self.bc_threshold_add.value()
 
     def name_changed_event(self):
         self.params['sExperimentName'] = self.name.text()
@@ -169,5 +186,7 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.dc_check.setChecked(self.params['bDC'])
         self.show_photo_rect.setChecked(self.params['bShowPhotoRectangle'])
         self.prefilter_band.set_band(self.params['sPrefilterBand'])
+        self.enable_bc_threshold.setChecked(self.params['bUseBCThreshold'])
+        self.bc_threshold_add.setValue(self.params['dBCThresholdAdd'])
         self.inlet.reset()
         self.events_inlet.reset()
