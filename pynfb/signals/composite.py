@@ -43,17 +43,17 @@ class CompositeSignal:
 
     def update(self, chunk):
         self.current_sample = self.expression_lambda(*[signal.current_chunk for signal in self.signals])
-        print(f"CUR SAMP: {self.current_sample}, {type(self.current_sample)}")
+        # print(f"CUR SAMP: {self.current_sample}, {type(self.current_sample)}")
         if self.enable_smoothing:
             if len(self.buffer) < self.avg_window:
-                print(f"ADDING TO BUFFER: {len(self.buffer)}/{self.avg_window}")
+                # print(f"ADDING TO BUFFER: {len(self.buffer)}/{self.avg_window}")
                 self.buffer = np.append(self.buffer, self.current_sample)
             if len(self.buffer) >= self.avg_window:
-                print(f"ROLLING BUFFER")
+                # print(f"ROLLING BUFFER")
                 for i in enumerate(self.current_sample):
                     self.buffer = np.delete(self.buffer, 0)
                 self.buffer = np.append(self.buffer, self.current_sample)
-            print(f"AVGING BUFFER LEN {len(self.buffer)}, AVG: {self.buffer.mean()}")
+            # print(f"AVGING BUFFER LEN {len(self.buffer)}, AVG: {self.buffer.mean()}")
             self.current_sample = self.buffer.mean()
         if self.scaling_flag and self.std>0:
             self.current_sample = (self.current_sample - self.mean) / self.std

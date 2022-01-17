@@ -105,6 +105,8 @@ class CompositeSignalDialog(QtWidgets.QDialog):
     def reset_items(self):
         current_signal_index = self.parent().list.currentRow()
         self.expression.setText(self.params[current_signal_index]['sExpression'])
+        self.enable_smoothing.setChecked(self.params[current_signal_index]['bSmoothingEnabled'])
+        self.smoothng_window.setValue(self.params[current_signal_index]['dSmoothingWindow'])
 
     def save_and_close(self):
         current_signal_index = self.parent().list.currentRow()
