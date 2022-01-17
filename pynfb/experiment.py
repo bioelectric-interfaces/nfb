@@ -177,7 +177,7 @@ class Experiment():
                     elif self.probe_loc == "LEFT":
                         pl= 2
                     print(f"PROBE LOC: {self.probe_loc} = {int(pl)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
-                    self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
+                    # self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
                     self.probe_recorder[self.samples_counter - 1] = int(pl)
                 else:
                     current_protocol.widget_painter.probe = False
