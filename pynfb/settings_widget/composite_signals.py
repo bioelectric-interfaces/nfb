@@ -38,7 +38,7 @@ class CompositeSignalsSettingsWidget(QtWidgets.QWidget):
     def add(self):
         self.params.append(default_signal.copy())
         self.reset_items()
-        self.signals_dialogs[-1].open()
+        # self.signals_dialogs[-1].open()
 
     def remove_current_item(self, item):
         current = self.list.currentRow()
