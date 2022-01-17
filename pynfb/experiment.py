@@ -141,12 +141,21 @@ class Experiment():
                     answer = 0
                     choice = None
                     if current_protocol.input_protocol:
+                        # Make sure choice is only shown for short duration
+                        if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
+                            current_protocol.widget_painter.current_sample_idx = self.samples_counter
                         answer = 1
                         if self.rn_offset:
                             answer = 2
                         # 'yes' response = 1, 'no' response = 2, lack of response = 0
                         choice = current_protocol.response_key
-                        print(f"ANS: {answer}, OFF: {self.rn_offset}, CHOICE: {choice}")
+                        # print(f"ANS: {answer}, OFF: {self.rn_offset}, CHOICE: {choice}")
+
+                        # If there is a response key, change the text to a green tick or red cross
+                        if choice:
+                            message = "YES" if choice == answer else "NO"
+                            color = "#00FF00" if choice == answer else "#FF0000"
+                            current_protocol.widget_painter.set_message(text=message, color=color)
                 else:
                     mark = None
                     choice = None

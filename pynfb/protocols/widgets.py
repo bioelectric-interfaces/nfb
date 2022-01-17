@@ -346,7 +346,7 @@ class ParticipantChoiceWidgetPainter(Painter):
     Protocol for 2-alternative forced choice task (currently for gabor patch specifically)
     TODO: make this generic, i.e. not only for gabor patch
     """
-    def __init__(self, text='Relax', gabor_theta=45, show_reward=False, previous_score=None):
+    def __init__(self, text='Relax', gabor_theta=45, fs = 0, show_reward=False, previous_score=None):
         super(ParticipantChoiceWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
         self.text_item = pg.TextItem()
@@ -354,6 +354,9 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.gabor_theta = gabor_theta
         print(f'CHOICE_THETA={gabor_theta}')
         self.previous_score = previous_score
+        self.fs = fs
+        self.current_sample_idx = 0
+        self.show_duration = 0.5
 
 
     def prepare_widget(self, widget):
@@ -389,13 +392,18 @@ class ParticipantChoiceWidgetPainter(Painter):
 
     def redraw_state(self, sample, m_sample):
         # Display reward
+        print(f"REDRAWING, {sample}, {self.fs}, {sample/self.fs}")
         if self.previous_score:
             self.rtext_item.setHtml(
                 f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
 
-    def set_message(self, text):
+        # turn the gabor patch off after 0.5 seconds
+        if self.current_sample_idx/self.fs > self.show_duration:
+            self.fill.setOpts(update=True, opacity=0)
+
+    def set_message(self, text, color="#e5dfc5"):
         self.text = text
-        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
+        self.text_item.setHtml('<center><font size="7" color="{}">{}</font></center>'.format(color, self.text))
 
 class ExperimentStartWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):

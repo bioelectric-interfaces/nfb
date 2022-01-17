@@ -314,7 +314,7 @@ class ParticipantChoiceProtocol(Protocol):
         super().__init__(signals, **kwargs)
         self.hold = True
         self.input_protocol = True
-        self.widget_painter = ParticipantChoiceWidgetPainter(text=text, gabor_theta=gabor_theta, show_reward=self.show_reward)
+        self.widget_painter = ParticipantChoiceWidgetPainter(text=text, gabor_theta=gabor_theta, fs=self.freq, show_reward=self.show_reward)
 
 
 class ExperimentStartProtocol(Protocol):
