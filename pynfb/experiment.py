@@ -139,12 +139,14 @@ class Experiment():
                     # if no offset, correct answer is YES, otherwise, correct answer is NO
                     # TODO: make this more generic - i.e. doesn't just depend on rn_offset (gabor theta angle)
                     answer = 0
+                    choice = None
                     if current_protocol.input_protocol:
                         answer = 1
                         if self.rn_offset:
                             answer = 2
                         # 'yes' response = 1, 'no' response = 2, lack of response = 0
-                    choice = current_protocol.response_key
+                        choice = current_protocol.response_key
+                        print(f"ANS: {answer}, OFF: {self.rn_offset}, CHOICE: {choice}")
                 else:
                     mark = None
                     choice = None
@@ -154,8 +156,8 @@ class Experiment():
 
                 self.choice_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 self.choice_recorder[self.samples_counter - 1] = int(choice or 0)
-                self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-                self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
+                self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = answer
+                # self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
 
             # If probe, display probe at random time after beginning of delay
             if current_protocol.show_probe and self.probe_vis:
