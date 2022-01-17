@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NeurofeedbackSignalSpecs>
 	<bDC>0</bDC>
+	<dBCThresholdAdd>{{baseline_cor_threshold}}</dBCThresholdAdd>
+	<bUseBCThreshold>{{ use_baseline_correction }}</bUseBCThreshold>
 	<sPrefilterBand>None None</sPrefilterBand>
 	<sExperimentName>{{ experiment }}</sExperimentName>
 	<sInletType>lsl</sInletType>
@@ -24,7 +26,7 @@
 			<SpatialFilterMatrix>{{left_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
-			<fFFTWindowSize>1000</fFFTWindowSize>
+			<fFFTWindowSize>{{fft_window}}</fFFTWindowSize>
 			<fBandpassLowHz>{{ band_low }}</fBandpassLowHz>
 			<fBandpassHighHz>{{ band_high }}</fBandpassHighHz>
 			<fAverage></fAverage>
@@ -47,7 +49,7 @@
 			<SpatialFilterMatrix>{{right_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
 			<fSmoothingFactor>0.3</fSmoothingFactor>
-			<fFFTWindowSize>1000</fFFTWindowSize>
+			<fFFTWindowSize>{{fft_window}}</fFFTWindowSize>
 			<fBandpassLowHz>{{ band_low }}</fBandpassLowHz>
 			<fBandpassHighHz>{{ band_high }}</fBandpassHighHz>
 			<fAverage></fAverage>
@@ -66,6 +68,8 @@
 		<CompositeSignal>
 			<sSignalName>{{composite_signal}}</sSignalName>
 			<sExpression>(Alpha_Left-Alpha_Right)/(Alpha_Left+Alpha_Right)</sExpression>
+			<bSmoothingEnabled>{{enable_smoothing}}</bSmoothingEnabled>
+			<dSmoothingWindow>{{smooth_window}}</dSmoothingWindow>
 		</CompositeSignal>
 	</vSignals>
 	<vProtocols>

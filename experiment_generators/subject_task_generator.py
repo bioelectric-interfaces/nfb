@@ -24,7 +24,10 @@ class ParticipantTaskGenerator:
                  free_view_images=None,
                  number_nfb_tasks=5, baseline_duration=3, left_spatial_filter_scalp="P4=1",
                  right_spatial_filter_scalp="P3=1",
-                 source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None):
+                 source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
+                 baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=1, smooth_window=100,
+                 fft_window=250):
+
         self.template_file = template_file
         self.composite_signal = composite_signal
         self.band_high = band_high
@@ -48,6 +51,11 @@ class ParticipantTaskGenerator:
         self.source_roi_left = source_roi_left
         self.source_roi_right = source_roi_right
         self.mock_file = mock_file
+        self.use_baseline_correction = use_baseline_correction
+        self.baseline_cor_threshold = baseline_cor_threshold
+        self.smooth_window = smooth_window
+        self.enable_smoothing = enable_smoothing
+        self.fft_window = fft_window
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -77,7 +85,12 @@ class ParticipantTaskGenerator:
             'source_roi_left': self.source_roi_left,
             'source_roi_right': self.source_roi_right,
             'source_fb': int(self.source_fb),
-            'mock_file': self.mock_file
+            'mock_file': self.mock_file,
+            'use_baseline_correction': self.use_baseline_correction,
+            'baseline_cor_threshold': self.baseline_cor_threshold,
+            'smooth_window': self.smooth_window,
+            'enable_smoothing': self.enable_smoothing,
+            'fft_window': self.fft_window
         }
         #
         with open(output_fname, 'w') as f:
@@ -114,7 +127,12 @@ if __name__ == "__main__":
     composite_signal = "AAI"
     baseline_duration = 120
     number_nfb_tasks = 100
+    use_baseline_correction = 1
+    baseline_cor_threshold = 0.25
     mock_file = ''
+    smooth_window = 100
+    enable_smoothing = 1
+    fft_window = 500
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -168,5 +186,10 @@ if __name__ == "__main__":
                                            source_roi_right=source_roi_right,
                                            source_fb=source_fb,
                                            number_nfb_tasks=number_nfb_tasks,
-                                           mock_file=mock_file)
+                                           mock_file=mock_file,
+                                           baseline_cor_threshold=baseline_cor_threshold,
+                                           use_baseline_correction=use_baseline_correction,
+                                           smooth_window=smooth_window,
+                                           enable_smoothing=enable_smoothing,
+                                           fft_window=fft_window)
             Tsk.create_task(participant=participant_no)
