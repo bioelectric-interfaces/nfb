@@ -298,11 +298,12 @@ class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
         super(BaselineProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
+        self.text_color = "#e5dfc5"
         self.text_item = pg.TextItem()
 
     def prepare_widget(self, widget):
         super(BaselineProtocolWidgetPainter, self).prepare_widget(widget)
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">{self.text}</font></center>')
+        self.text_item.setHtml(f'<center><font size="7" color="{self.text_color}">{self.text}</font></center>')
         self.text_item.setAnchor((0.5, 0.5))
         self.text_item.setTextWidth(500)
         widget.addItem(self.text_item)
@@ -392,7 +393,6 @@ class ParticipantChoiceWidgetPainter(Painter):
 
     def redraw_state(self, sample, m_sample):
         # Display reward
-        print(f"REDRAWING, {sample}, {self.fs}, {sample/self.fs}")
         if self.previous_score:
             self.rtext_item.setHtml(
                 f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')

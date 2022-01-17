@@ -22,7 +22,7 @@ from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
     ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
-    EyeCalibrationProtocolWidgetPainter
+    EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -54,6 +54,7 @@ class Experiment():
         self.mean_reward_signal = 0
         self.fb_score = None
         self.cum_score = None
+        self.choice_fb = None
         self.restart()
 
         pass
@@ -153,9 +154,7 @@ class Experiment():
 
                         # If there is a response key, change the text to a green tick or red cross
                         if choice:
-                            message = "YES" if choice == answer else "NO"
-                            color = "#00FF00" if choice == answer else "#FF0000"
-                            current_protocol.widget_painter.set_message(text=message, color=color)
+                            self.choice_fb = "✔" if choice == answer else "✖"
                 else:
                     mark = None
                     choice = None
@@ -341,19 +340,29 @@ class Experiment():
                     print(f"R THRESHOLD: {bc_threshold}")
                     current_protocol.widget_painter.r_threshold = bc_threshold
 
-            # Update the choice gabor angle and score
+            # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
                 self.rn_offset = r.choice([-5, 5, 0, 0])
                 print(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
                 current_protocol.widget_painter.previous_score = self.fb_score
                 # current_protocol.widget_painter.redraw_state(0,0)
+                current_protocol.widget_painter.current_sample_idx = 0
 
             # Update the probe location, visibility, and start time
             if current_protocol.show_probe:
                 self.probe_loc = r.choice(["RIGHT", "LEFT"])
                 self.probe_vis = r.choices([1, 0], weights=[0.8, 0.2], k=1)[0]
                 self.probe_random_start = 1 + r.uniform(0, 1)
+
+            # Update participant choice fb (only do this if there is feedback to display
+            if self.choice_fb:
+                if isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
+                    current_protocol.widget_painter.text = self.choice_fb
+                    print(f"PARTICIPANT FB: {self.choice_fb}")
+                    color = "#00FF00" if self.choice_fb == "✔" else "#FF0000"
+                    current_protocol.widget_painter.text_color = color
+                    self.choice_fb = None
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
