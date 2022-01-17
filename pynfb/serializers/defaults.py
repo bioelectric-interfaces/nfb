@@ -54,7 +54,9 @@ vectors_defaults = OrderedDict([
         ])]),
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
             ('sSignalName', 'Composite'),
-            ('sExpression', '')
+            ('sExpression', ''),
+            ('bSmoothingEnabled', False),
+            ('dSmoothingWindow', 100)
         ])])
     ])),
     ('vProtocols', OrderedDict([

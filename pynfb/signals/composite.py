@@ -8,7 +8,7 @@ class CompositeSignal:
     """
     Class for composite signal
     """
-    def __init__(self, signals, expression, name, ind, fs):
+    def __init__(self, signals, expression, name, ind, fs, avg_window=100, enable_smoothing=False):
         """
         Constructor
         :param signals: list of all signals
@@ -37,9 +37,24 @@ class CompositeSignal:
         self.scaling_flag = False
         self.mean = np.nan
         self.std = np.nan
+        self.enable_smoothing = enable_smoothing
+        self.buffer = np.ones(0)
+        self.avg_window = avg_window
 
     def update(self, chunk):
         self.current_sample = self.expression_lambda(*[signal.current_chunk for signal in self.signals])
+        print(f"CUR SAMP: {self.current_sample}, {type(self.current_sample)}")
+        if self.enable_smoothing:
+            if len(self.buffer) < self.avg_window:
+                print(f"ADDING TO BUFFER: {len(self.buffer)}/{self.avg_window}")
+                self.buffer = np.append(self.buffer, self.current_sample)
+            if len(self.buffer) >= self.avg_window:
+                print(f"ROLLING BUFFER")
+                for i in enumerate(self.current_sample):
+                    self.buffer = np.delete(self.buffer, 0)
+                self.buffer = np.append(self.buffer, self.current_sample)
+            print(f"AVGING BUFFER LEN {len(self.buffer)}, AVG: {self.buffer.mean()}")
+            self.current_sample = self.buffer.mean()
         if self.scaling_flag and self.std>0:
             self.current_sample = (self.current_sample - self.mean) / self.std
         self.current_chunk = self.current_sample*np.ones(len(chunk))

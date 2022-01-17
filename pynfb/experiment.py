@@ -509,7 +509,9 @@ class Experiment():
         self.composite_signals = [CompositeSignal([s for s in self.signals],
                                                   signal['sExpression'],
                                                   signal['sSignalName'],
-                                                  ind + len(self.signals), self.freq)
+                                                  ind + len(self.signals), self.freq,
+                                                  avg_window=signal['dSmoothingWindow'],
+                                                  enable_smoothing=signal['bSmoothingEnabled'])
                                   for ind, signal in enumerate(self.params['vSignals']['CompositeSignal'])]
 
         # bci signals

@@ -81,10 +81,22 @@ class CompositeSignalDialog(QtWidgets.QDialog):
         self.expression.setMaximumHeight(50)
         self.form_layout.addRow('&Expression:', self.expression)
 
+        # smoothing
+        self.enable_smoothing = QtWidgets.QCheckBox()
+        self.form_layout.addRow('&Enable Smoothing:', self.enable_smoothing)
+        self.enable_smoothing.stateChanged.connect(self.snoothing_activated)
+        self.smoothng_window = QtWidgets.QSpinBox()
+        self.smoothng_window.setRange(1, 2000)
+        self.smoothng_window.setEnabled(False)
+        self.form_layout.addRow('&Smoothing Window [ms]:', self.smoothng_window)
+
         # ok button
         self.save_button = QtWidgets.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
         self.form_layout.addRow(self.save_button)
+
+    def snoothing_activated(self):
+        self.smoothng_window.setEnabled(self.enable_smoothing.isChecked())
 
     def open(self):
         self.reset_items()
@@ -98,5 +110,7 @@ class CompositeSignalDialog(QtWidgets.QDialog):
         current_signal_index = self.parent().list.currentRow()
         self.params[current_signal_index]['sSignalName'] = self.name.text()
         self.params[current_signal_index]['sExpression'] = self.expression.text()
+        self.params[current_signal_index]['bSmoothingEnabled'] = self.enable_smoothing.isChecked()
+        self.params[current_signal_index]['dSmoothingWindow'] = self.smoothng_window.value()
         self.parent().reset_items()
         self.close()
