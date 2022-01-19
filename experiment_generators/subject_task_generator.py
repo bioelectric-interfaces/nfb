@@ -130,9 +130,9 @@ if __name__ == "__main__":
     use_baseline_correction = 1
     baseline_cor_threshold = 0.25
     mock_file = ''
-    smooth_window = 100
-    enable_smoothing = 1
-    fft_window = 500
+    smooth_window = 75 # THIS IS AAI SMOOTHING
+    enable_smoothing = 1 # THIS IS AAI SMOOTHING
+    fft_window = 1000
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
