@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 import sympy
 
@@ -50,9 +52,14 @@ class CompositeSignal:
                 self.buffer = np.append(self.buffer, self.current_sample)
             if len(self.buffer) >= self.avg_window:
                 # print(f"ROLLING BUFFER")
-                for i in enumerate(self.current_sample):
-                    self.buffer = np.delete(self.buffer, 0)
-                self.buffer = np.append(self.buffer, self.current_sample)
+                try:
+                    for i in enumerate(self.current_sample):
+                        self.buffer = np.delete(self.buffer, 0)
+                    self.buffer = np.append(self.buffer, self.current_sample)
+                except IndexError as e:
+                    print(f"NO BUFFER TO DELETE: {e}")
+                except Exception as e:
+                    print(f"ERROR: {e}")
             # print(f"AVGING BUFFER LEN {len(self.buffer)}, AVG: {self.buffer.mean()}")
             self.current_sample = self.buffer.mean()
         if self.scaling_flag and self.std>0:
