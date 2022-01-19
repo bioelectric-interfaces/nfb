@@ -95,7 +95,7 @@ class DerivedSignal:
         self.current_chunk = None
 
         # averaging buffer
-        self.avg_buffer = np.ones(0)
+        self.avg_buffer = np.empty(n_channels)
         self.avg_window = 500#avg_window
         self.enable_smoothing = True#enable_smoothing
         pass
@@ -155,6 +155,7 @@ class DerivedSignal:
                 except Exception as e:
                     print(f"ERROR: {e}")
             self.current_chunk = self.buffer.mean()
+            self.current_chunk = self.current_chunk * np.ones(len(chunk))
         return current_chunk
 
     def update_statistics(self, raw=None, emulate=False, signals_recorder=None, stats_type='meanstd'):
