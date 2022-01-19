@@ -45,7 +45,7 @@ class DerivedSignal:
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
-                 estimator_type='envdetector', filter_order=2, delay_ms=0):
+                 estimator_type='envdetector', filter_order=2, delay_ms=0, avg_window=100, enable_smoothing=False):
 
         self.n_samples = int(n_samples)
         self.fs = source_freq
@@ -93,6 +93,11 @@ class DerivedSignal:
         # current sample
         self.previous_sample = 0
         self.current_chunk = None
+
+        # averaging buffer
+        self.avg_buffer = np.ones(0)
+        self.avg_window = 500#avg_window
+        self.enable_smoothing = True#enable_smoothing
         pass
 
     def reset_signal_estimator(self):
@@ -136,6 +141,20 @@ class DerivedSignal:
         if self.scaling_flag and self.std > 0:
             current_chunk = (current_chunk - self.mean) / self.std
         self.current_chunk = current_chunk
+
+        if self.enable_smoothing:
+            if len(self.buffer) < self.avg_window:
+                self.buffer = np.append(self.buffer, self.current_chunk)
+            if len(self.buffer) >= self.avg_window:
+                try:
+                    for i in enumerate(self.current_chunk):
+                        self.buffer = np.delete(self.buffer, 0)
+                    self.buffer = np.append(self.buffer, self.current_chunk)
+                except IndexError as e:
+                    print(f"NO BUFFER TO DELETE: {e}")
+                except Exception as e:
+                    print(f"ERROR: {e}")
+            self.current_chunk = self.buffer.mean()
         return current_chunk
 
     def update_statistics(self, raw=None, emulate=False, signals_recorder=None, stats_type='meanstd'):
