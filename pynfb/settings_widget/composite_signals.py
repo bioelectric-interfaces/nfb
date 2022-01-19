@@ -88,7 +88,7 @@ class CompositeSignalDialog(QtWidgets.QDialog):
         self.smoothng_window = QtWidgets.QSpinBox()
         self.smoothng_window.setRange(1, 2000)
         self.smoothng_window.setEnabled(False)
-        self.form_layout.addRow('&Smoothing Window [ms]:', self.smoothng_window)
+        self.form_layout.addRow('&Smoothing Window [samp]:', self.smoothng_window)
 
         # ok button
         self.save_button = QtWidgets.QPushButton('Save')

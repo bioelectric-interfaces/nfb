@@ -23,7 +23,7 @@ ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
 
 class DerivedSignal:
     @classmethod
-    def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None):
+    def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None, avg_window=100, enable_smoothing=False):
         if spatial_filter is None:
             spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['lROILabel'], params['bNFBType'])
         return cls(ind=ind,
@@ -40,7 +40,9 @@ class DerivedSignal:
                    temporal_filter_type=params['sTemporalFilterType'],
                    smoother_type=params['sTemporalSmootherType'],
                    filter_order=params['fTemporalFilterButterOrder'],
-                   delay_ms=params['iDelayMs'])
+                   delay_ms=params['iDelayMs'],
+                   avg_window=avg_window,
+                   enable_smoothing=enable_smoothing)
 
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
@@ -96,8 +98,8 @@ class DerivedSignal:
 
         # averaging buffer
         self.avg_buffer = np.empty(n_channels)
-        self.avg_window = 500#avg_window
-        self.enable_smoothing = True#enable_smoothing
+        self.avg_window = avg_window
+        self.enable_smoothing = enable_smoothing
         pass
 
     def reset_signal_estimator(self):

@@ -261,6 +261,15 @@ class TemporalSettings(QtWidgets.QWidget):
         layout.addRow('&Smoother factor:', self.smoother_factor)
         layout.addRow('&Artif. delay [ms]:', self.art_delay)
 
+        # smoothing
+        self.enable_smoothing = QtWidgets.QCheckBox()
+        layout.addRow('&Enable Smoothing:', self.enable_smoothing)
+        self.enable_smoothing.stateChanged.connect(self.snoothing_activated)
+        self.smoothng_window = QtWidgets.QSpinBox()
+        self.smoothng_window.setRange(1, 2000)
+        self.smoothng_window.setEnabled(False)
+        layout.addRow('&Smoothing Window [samp]:', self.smoothng_window)
+
         # setup disable
         self.smoother_type.currentIndexChanged.connect(self.smoother_type_changed)
         self.filter_type.currentIndexChanged.connect(self.filter_type_changed)
@@ -270,6 +279,8 @@ class TemporalSettings(QtWidgets.QWidget):
         #    self.type.currentText() == 'Identity',
          #   [self.order, self.win_size, self.band, self.smoother_factor, self.smoother_type, self.filter_type]))
 
+    def snoothing_activated(self):
+        self.smoothng_window.setEnabled(self.enable_smoothing.isChecked())
 
     def type_changed(self):
         if self.type.currentText() == 'identity':
@@ -310,6 +321,8 @@ class TemporalSettings(QtWidgets.QWidget):
             self.smoother_type.findText(dict['sTemporalSmootherType'], QtCore.Qt.MatchFixedString))
         self.smoother_factor.setValue(dict['fSmoothingFactor'])
         self.art_delay.setValue(dict['iDelayMs'])
+        self.enable_smoothing.setChecked(dict['bSmoothingEnabled'])
+        self.smoothng_window.setValue(dict['dSmoothingWindow'])
         self.type_changed()
         self.filter_type_changed()
         self.smoother_type_changed()
@@ -327,6 +340,8 @@ class TemporalSettings(QtWidgets.QWidget):
         params['sTemporalSmootherType'] = self.smoother_type.currentText()
         params['fSmoothingFactor'] = self.smoother_factor.value()
         params['iDelayMs'] = self.art_delay.value()
+        params['bSmoothingEnabled'] = int(self.enable_smoothing.isChecked())
+        params['dSmoothingWindow'] = self.smoothng_window.value()
         return params
 
 if __name__ == '__main__':

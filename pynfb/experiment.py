@@ -502,7 +502,9 @@ class Experiment():
         self.raw_std = None
 
         # signals
-        self.signals = [DerivedSignal.from_params(ind, self.freq, self.n_channels, channels_labels, signal)
+        self.signals = [DerivedSignal.from_params(ind, self.freq, self.n_channels, channels_labels, signal,
+                                                  avg_window=signal['dSmoothingWindow'],
+                                                  enable_smoothing=signal['bSmoothingEnabled'])
                         for ind, signal in enumerate(self.params['vSignals']['DerivedSignal']) if
                         not signal['bBCIMode']]
 

@@ -51,7 +51,9 @@ vectors_defaults = OrderedDict([
             ('sTemporalFilterType', 'fft'),
             ('fTemporalFilterButterOrder', 2),
             ('sTemporalSmootherType', 'exp'),
-            ('iDelayMs', 0)
+            ('iDelayMs', 0),
+            ('bSmoothingEnabled', 0),
+            ('dSmoothingWindow', 100)
             # ('sType', 'plain')
         ])]),
         ('CompositeSignal', [OrderedDict([     # DerivedSignal is list!
