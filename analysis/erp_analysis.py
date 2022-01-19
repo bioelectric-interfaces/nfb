@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mne.channels import make_standard_montage
 from mne.datasets import fetch_fsaverage
-from mne.minimum_norm import make_inverse_operator, apply_inverse_raw
+from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inverse
 
 from utils.load_results import load_data
 import glob
@@ -27,7 +27,7 @@ import mne
 mne.viz.set_3d_backend('pyvista')
 
 # ------ Get data files
-data_directory = "/Users/2354158T/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
+data_directory = "/Users/christopherturner/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
 
 # get participants
 participants = next(os.walk(data_directory))[1]
@@ -45,7 +45,7 @@ for p in participants:
 experiment_data = []
 for participant, participant_dirs in experiment_dirs.items():
     participant_data = {"participant_id": participant, "session_data": []}
-    if participant == "sh":
+    if participant == "ct":
         for session, session_dirs in participant_dirs.items():
             session_data = {}
             for task_dir in session_dirs:
@@ -142,6 +142,65 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     pass
                     # ---------- SOURCE RECONSTRUCTION
+                    noise_cov = mne.compute_covariance(
+                        epochs, tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
+
+                    fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, m_raw.info)
+
+                    # Get the forward solution for the specified source localisation type
+                    fs_dir = fetch_fsaverage(verbose=True)
+                    # --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
+                    trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+                    src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+                    bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+
+                    m_filt.drop_channels(['ECG', 'EOG'])
+                    # fwd = mne.make_forward_solution(m_filt.info, trans=trans, src=src,
+                    #                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+                    fwd = mne.make_forward_solution(choice_transition.info, trans=trans, src=src,
+                                                    bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+
+                    # make inverse operator
+                    inverse_operator = make_inverse_operator(
+                        choice_transition.info, fwd, noise_cov, loose=0.2, depth=0.8)
+                    del fwd
+
+                    # compute inverse solution
+                    method = "sLORETA"
+                    snr = 3.
+                    lambda2 = 1. / snr ** 2
+                    stc, residual = apply_inverse(choice_transition, inverse_operator, lambda2,
+                                                  method=method, pick_ori=None,
+                                                  return_residual=True, verbose=True)
+
+                    # look at dipole activations
+                    fig, ax = plt.subplots()
+                    ax.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    ax.set(xlabel='time (ms)', ylabel='%s value' % method)
+
+
+                    # look at the peak
+                    vertno_max, time_max = stc.get_peak(hemi=None)
+
+                    surfer_kwargs = dict(
+                        hemi='both',
+                        clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+                        initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+                        surface='Pial', transparent=True, alpha=0.9, colorbar=True)
+                    brain = stc.plot(**surfer_kwargs)
+                    brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+                                   scale_factor=0.6, alpha=0.5)
+                    brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
+                                   font_size=14)
+
+                    # Do a matplotlib to hold the brain plot in place!!
+                    plt.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.show()
+                    pass
+
+
                     # TODO: do this for epoched data (once get the above working)
                     # - first do this over the transition to choice
                     # TODO: make sure this is done the same way as the GUI (or compare the two if this one works)
