@@ -145,6 +145,10 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         self.r_threshold = r_threshold
         print(f'GABOR_THETA={gabor_theta}')
 
+        self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.fixdot_radius = 0.1
+        self.colour = "black"
+
     def prepare_widget(self, widget):
         super(GaborFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
 
@@ -165,8 +169,16 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
         # draw cross
-        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
-        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
+        # self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
+        # self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
+
+        # Draw fixation dot
+        self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot),
+                                      self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=self.colour)).curve
+        self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot),
+                                      self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=self.colour)).curve
+        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(self.colour))
+        widget.addItem(fill_fd)
 
     def set_red_state(self, flag):
         if flag:
@@ -231,6 +243,8 @@ class FixationCrossProtocolWidgetPainter(Painter):
     def __init__(self, text="", colour=(0,0,0)):
         super(FixationCrossProtocolWidgetPainter, self).__init__()
         self.x = np.linspace(-0.25, 0.25, 10)
+        self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.fixdot_radius = 0.1
         self.text = text
         self.text_item = pg.TextItem()
         self.widget = None
@@ -239,6 +253,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.probe_loc = "LEFT"
         self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 200)
         self.probe_radius = 0.1
+        self.fixation_type = "dot"
 
     def prepare_widget(self, widget):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
@@ -249,9 +264,17 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.text_item.setTextWidth(500)
         self.widget.addItem(self.text_item)
 
-        # draw cross
-        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=self.colour, width=4)).curve
-        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
+        if self.fixation_type == 'cross':
+            # draw cross
+            self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=self.colour, width=4)).curve
+            self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
+        else:
+            # draw fixation dot
+            self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=self.colour)).curve
+            self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=self.colour)).curve
+            fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(self.colour))
+            self.fill = fill_fd
+            widget.addItem(fill_fd)
 
         # Draw probe stim
         self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
