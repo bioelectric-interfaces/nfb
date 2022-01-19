@@ -151,8 +151,8 @@ if __name__ == "__main__":
         source_fb = False
         if session == 0:
             # scalp
-            left_spatial_filter_scalp = "CP5=1;P5=1;01=1"
-            right_spatial_filter_scalp = "CP6=1;P6=1;02=1"
+            left_spatial_filter_scalp = "CP5=1;P5=1;O1=1"
+            right_spatial_filter_scalp = "CP6=1;P6=1;O2=1"
         elif session == 1:
             # source
             source_roi_left = ("inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh")
