@@ -91,6 +91,10 @@ class Experiment():
                     self.signals_recorder[chunk_slice] = sample
                     self.samples_counter += chunk.shape[0]
 
+                    # Save the chunk size for data analysis
+                    self.chunk_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                    self.chunk_recorder[self.samples_counter - 1] = self.samples_counter
+
                     # catch channels trouble
 
                     if self.activate_trouble_catching:
@@ -168,6 +172,7 @@ class Experiment():
                 # self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
 
             # If probe, display probe at random time after beginning of delay
+            probe_val = None
             if current_protocol.show_probe and self.probe_vis:
                 #get probe duration in samples
                 probe_dur_samp = self.freq * self.probe_dur
@@ -179,14 +184,14 @@ class Experiment():
                     current_protocol.widget_painter.probe = True
                     current_protocol.widget_painter.probe_loc = self.probe_loc
                     # Add probe to probe recorder - Left probe = 2, RIght probe = 1, no probe = 0 or nan
-                    pl = 0
+                    probe_val = 0
                     if self.probe_loc == "RIGHT":
-                        pl = 1
+                        probe_val = 1
                     elif self.probe_loc == "LEFT":
-                        pl= 2
-                    print(f"PROBE LOC: {self.probe_loc} = {int(pl)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
-                    # self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
-                    self.probe_recorder[self.samples_counter - 1] = int(pl)
+                        probe_val = 2
+                    print(f"PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
+                    # self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl #TODO: check if needed - is this type of logging/chunking the reason for 'delayed' ERPs?
+                    # self.probe_recorder[self.samples_counter - 1] = int(pl)
                 else:
                     current_protocol.widget_painter.probe = False
 
@@ -196,9 +201,11 @@ class Experiment():
                 current_probe_loc = current_protocol.widget_painter.probe_loc[current_protocol.widget_painter.position_no]
                 probe_positions = ["LT", "MT", "RT", 'LM', 'MM', 'RM', 'LB', 'MB', 'RB', 'CROSS']
                 # Get the value to save in the data: left=10, right=11, top=12, bottom=13, cross=14
-                pl = probe_positions.index(current_probe_loc) + 10
-                self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl
-                self.probe_recorder[self.samples_counter - 1] = int(pl)
+                probe_val = probe_positions.index(current_probe_loc) + 10
+                self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = probe_val
+            else:
+                self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+            self.probe_recorder[self.samples_counter - 1] = int(probe_val or 0)
 
             # change protocol if current_protocol_n_samples has been reached
             if self.samples_counter >= self.current_protocol_n_samples and not self.test_mode:
@@ -294,7 +301,8 @@ class Experiment():
                      mark_data=self.mark_recorder[:self.samples_counter],
                      choice_data=self.choice_recorder[:self.samples_counter],
                      answer_data=self.answer_recorder[:self.samples_counter],
-                     probe_data=self.probe_recorder[:self.samples_counter])
+                     probe_data=self.probe_recorder[:self.samples_counter],
+                     chunk_data=self.chunk_recorder[:self.samples_counter])
 
         # reset samples counter
         previous_counter = self.samples_counter
@@ -706,6 +714,7 @@ class Experiment():
         self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.choice_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.chunk_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
