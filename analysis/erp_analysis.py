@@ -18,11 +18,15 @@ from mne.datasets import fetch_fsaverage
 from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inverse
 
 from utils.load_results import load_data
+from pynfb.helpers import roi_spatial_filter as rsf
 import glob
 import pandas as pd
 import plotly.express as px
 from scipy.signal import butter, lfilter, freqz
 import mne
+
+# TODO: LOOK AT THIS FOR PERMUTATION TESTING OF ERPS
+# https://mne.tools/stable/auto_tutorials/stats-source-space/20_cluster_1samp_spatiotemporal.html#sphx-glr-auto-tutorials-stats-source-space-20-cluster-1samp-spatiotemporal-py
 
 mne.viz.set_3d_backend('pyvista')
 
@@ -45,7 +49,7 @@ for p in participants:
 experiment_data = []
 for participant, participant_dirs in experiment_dirs.items():
     participant_data = {"participant_id": participant, "session_data": []}
-    if participant == "ct":
+    if participant == "sh":
         for session, session_dirs in participant_dirs.items():
             session_data = {}
             for task_dir in session_dirs:
@@ -80,6 +84,9 @@ for participant, participant_dirs in experiment_dirs.items():
                     # Put the transition (event) data back in the original dataframe
                     df1['protocol_change'] = df1['block_number'].diff()
                     df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "Input" else 0, axis = 1)
+
+                    # get the left probe sample times (events)
+                    insp = df1.loc[df1['block_number'] == 24]
 
                     # Create the events list for the protocol transitions
                     probe_events = df1[['choice_events']].to_numpy()
@@ -141,7 +148,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     choice_transition.plot_topomap(times=[-0.2, 0.1, 0.4], average=0.05)
 
                     pass
-                    # ---------- SOURCE RECONSTRUCTION
+                    # ---------- SOURCE RECONSTRUCTION---
                     noise_cov = mne.compute_covariance(
                         epochs, tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
 
@@ -165,7 +172,7 @@ for participant, participant_dirs in experiment_dirs.items():
                         choice_transition.info, fwd, noise_cov, loose=0.2, depth=0.8)
                     del fwd
 
-                    # compute inverse solution
+                    # compute inverse solution of whole brain
                     method = "sLORETA"
                     snr = 3.
                     lambda2 = 1. / snr ** 2
@@ -193,69 +200,69 @@ for participant, participant_dirs in experiment_dirs.items():
                     brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
                                    font_size=14)
 
+                    # Get inverse solution of specific labels (left and right)
+                    label_names_lh = ["inferiorparietal-lh", "lateraloccipital-lh"]
+                    label_lh = rsf.get_roi_by_name(label_names_lh)
+                    label_names_rh = ["inferiorparietal-rh", "lateraloccipital-rh"]
+                    label_rh = rsf.get_roi_by_name(label_names_rh)
+
+                    stc_lh, residual_lh = apply_inverse(choice_transition, inverse_operator, lambda2,
+                                                  method=method, pick_ori=None,
+                                                  return_residual=True, verbose=True, label=label_lh)
+                    stc_rh, residual_rh = apply_inverse(choice_transition, inverse_operator, lambda2,
+                                                  method=method, pick_ori=None,
+                                                  return_residual=True, verbose=True, label=label_rh)
+
+                    vertno_max, time_max = stc_lh.get_peak(hemi=None)
+                    surfer_kwargs = dict(
+                        hemi='both',
+                        clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+                        initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+                        surface='Pial', transparent=True, alpha=0.9, colorbar=True)
+                    brain = stc_lh.plot(**surfer_kwargs)
+                    brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+                                   scale_factor=0.6, alpha=0.5)
+                    brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
+                                   font_size=14)
+                    brain.add_label(label_lh)
+
+                    vertno_max, time_max = stc_rh.get_peak(hemi=None)
+                    surfer_kwargs = dict(
+                        hemi='both',
+                        clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+                        initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+                        surface='Pial', transparent=True, alpha=0.9, colorbar=True)
+                    brain = stc_rh.plot(**surfer_kwargs)
+                    brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+                                   scale_factor=0.6, alpha=0.5)
+                    brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
+                                   font_size=14)
+                    brain.add_label(label_rh)
+
+
+
                     # Do a matplotlib to hold the brain plot in place!!
                     plt.plot(1e3 * stc.times, stc.data[::100, :].T)
                     plt.xlabel('time (ms)')
                     plt.ylabel('%s value' % method)
+                    plt.title('all')
+                    plt.show()
+
+                    plt.plot(1e3 * stc_lh.times, stc_lh.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('left')
+                    plt.show()
+
+                    plt.plot(1e3 * stc_rh.times, stc.rh.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('right')
                     plt.show()
                     pass
 
 
-                    # TODO: do this for epoched data (once get the above working)
-                    # - first do this over the transition to choice
-                    # TODO: make sure this is done the same way as the GUI (or compare the two if this one works)
-                    # do initial calcs
-                    # info = m_filt.info
-                    # noise_cov = mne.compute_raw_covariance(m_filt, tmax=0.5) # LOOKS LIKE THIS NEEDS TO BE JUST RAW DATA - i.e. WITH NO EVENTS (OTHERWISE NEED TO DO THE EPOCH ONE AND FIND EVENTS) - PROBABLY GET THIS FROM BASELINE
-                    # loose = 0.2
-                    # depth = 0.8
-                    # label = None # NOTE!!! LABELS ARE ONLY SUPPORTED WHEN DOING THIS IN SURFACE MODE
-                    #
-                    # # Get the forward solution for the specified source localisation type
-                    # fs_dir = fetch_fsaverage(verbose=True)
-                    # # --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
-                    # trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
-                    # src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
-                    # bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
-                    # fwd = mne.make_forward_solution(info, trans=trans, src=src,
-                    #                                 bem=bem, eeg=True, mindist=5.0, n_jobs=1)
-                    #
-                    # # label_name = surface_labels # TODO: check this - why do i get signal out with the bci test regardless of the label (though the amplitudes do change a little)
-                    # # label = sd.get_labels(label_name)[0]
-                    #
-                    # inv = make_inverse_operator(info, fwd, noise_cov, loose=loose, depth=depth)
-                    # # TODO: do this for epochs
-                    #
-                    # snr = 1.0  # use smaller SNR for raw data
-                    # lambda2 = 1.0 / snr ** 2
-                    # method = "sLORETA"  # use sLORETA method (could also be MNE or dSPM)
-                    # start, stop = m_raw.time_as_index([0, 2])
-                    # stc = apply_inverse_raw(m_filt, inv, lambda2, method, label,
-                    #                         start, stop, pick_ori=None)
-                    #
-                    # # Save result in stc files
-                    # # stc.save('mne_%s_raw_inverse_%s' % (method, label_name))
-                    #
-                    #
-                    # vertno_max, time_max = stc.get_peak(hemi=None)
-                    #
-                    # surfer_kwargs = dict(
-                    #     hemi='both',
-                    #     clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
-                    #     initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
-                    #     surface='Pial', transparent=True, alpha=0.9, colorbar=True)
-                    # brain = stc.plot(**surfer_kwargs)
-                    # brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
-                    #                scale_factor=0.6, alpha=0.5)
-                    # brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
-                    #                font_size=14)
-                    #
-                    # # Do a matplotlib to hold the brain plot in place!!
-                    # plt.plot(1e3 * stc.times, stc.data[::100, :].T)
-                    # plt.xlabel('time (ms)')
-                    # plt.ylabel('%s value' % method)
-                    # plt.show()
-                    pass
+
 
 # Get protocol with ERP
 # make MNE object
