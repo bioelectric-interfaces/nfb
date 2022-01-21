@@ -270,7 +270,7 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     # use NFBLab inverse operator
                     inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(m_filt.info, fwd, noise_cov,
-                                                                              fixed=True)
+                                                                              fixed=True) # NOTE: the difference with the MNE tutorial methods is the fixed oritentations - when applying the inverse in this case the result isn't normed (so you get signed source activity)
                     stc_nfblab, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
                                               method=method, pick_ori=None,
                                               return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
