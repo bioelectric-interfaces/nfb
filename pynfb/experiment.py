@@ -354,7 +354,12 @@ class Experiment():
                 self.rn_offset = r.choice([-5, 5, 0, 0])
                 print(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
-                current_protocol.widget_painter.previous_score = self.fb_score
+
+                nfb_duration = 5000 # TODO: get this from the actual neurofeedback protocol - currently this is specific to my design
+                max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
+                percent_score = self.fb_score/max_reward
+                print(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
+                current_protocol.widget_painter.previous_score = percent_score
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0
 

@@ -418,7 +418,7 @@ class ParticipantChoiceWidgetPainter(Painter):
         # Display reward
         if self.previous_score:
             self.rtext_item.setHtml(
-                f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
+                f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} % </p></font></center>')
 
         # turn the gabor patch off after 0.5 seconds
         if self.current_sample_idx/self.fs > self.show_duration:
