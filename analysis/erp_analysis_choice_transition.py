@@ -9,6 +9,8 @@ import os
 
 from philistine.mne import write_raw_brainvision
 
+from pynfb.helpers.roi_spatial_filter import get_roi_filter
+
 sys.path.append(f"{os.getcwd()}")
 
 import matplotlib.pyplot as plt
@@ -85,8 +87,12 @@ for participant, participant_dirs in experiment_dirs.items():
                     df1['protocol_change'] = df1['block_number'].diff()
                     df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "Input" else 0, axis = 1)
 
-                    # get the left probe sample times (events)
-                    insp = df1.loc[df1['block_number'] == 24]
+
+                    # ----Get just a single epoch (when the screen transitions for the first time)---
+                    first_transition = df1.loc[df1.choice_events == 1].iloc[0].loc['sample']
+                    # df1 = df1.loc[first_transition - 500:first_transition + 500, :]
+                    #--------------
+
 
                     # Create the events list for the protocol transitions
                     probe_events = df1[['choice_events']].to_numpy()
@@ -130,12 +136,13 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     # # low pass at 40hz
                     m_filt = m_raw.copy()
+                    # m_filt.filter(l_freq=0, h_freq=10)
                     m_filt.filter(l_freq=0, h_freq=40)
 
                     # # epoch the data
                     events = mne.find_events(m_raw, stim_channel='STI')
                     picks = [c for c in m_info.ch_names if c not in ['EOG', 'ECG']]
-                    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.2, tmax=0.5,
+                    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.5, tmax=0.5,
                                         preload=True, picks=picks, detrend=1)
                     # fig = epochs.plot(events=events, scalings={"eeg":10})
 
@@ -151,7 +158,6 @@ for participant, participant_dirs in experiment_dirs.items():
                     # ---------- SOURCE RECONSTRUCTION---
                     noise_cov = mne.compute_covariance(
                         epochs, tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
-
                     fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, m_raw.info)
 
                     # Get the forward solution for the specified source localisation type
@@ -170,7 +176,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     # make inverse operator
                     inverse_operator = make_inverse_operator(
                         choice_transition.info, fwd, noise_cov, loose=0.2, depth=0.8)
-                    del fwd
+                    # del fwd
 
                     # compute inverse solution of whole brain
                     method = "sLORETA"
@@ -180,9 +186,10 @@ for participant, participant_dirs in experiment_dirs.items():
                                                   method=method, pick_ori=None,
                                                   return_residual=True, verbose=True)
 
-                    # look at dipole activations
+                    # plot the time course of the peak source
+                    vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
                     fig, ax = plt.subplots()
-                    ax.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
                     ax.set(xlabel='time (ms)', ylabel='%s value' % method)
 
 
@@ -242,23 +249,87 @@ for participant, participant_dirs in experiment_dirs.items():
 
 
                     # Do a matplotlib to hold the brain plot in place!!
+                    # plt.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    # plt.xlabel('time (ms)')
+                    # plt.ylabel('%s value' % method)
+                    # plt.title('all')
+                    # plt.show()
+                    #
+                    # plt.plot(1e3 * stc_lh.times, stc_lh.data[::100, :].T)
+                    # plt.xlabel('time (ms)')
+                    # plt.ylabel('%s value' % method)
+                    # plt.title('left')
+                    # plt.show()
+                    #
+                    # plt.plot(1e3 * stc_rh.times, stc_rh.data[::100, :].T)
+                    # plt.xlabel('time (ms)')
+                    # plt.ylabel('%s value' % method)
+                    # plt.title('right')
+                    # plt.show()
+                    pass
+
+
+
+
+                    # ------Try to replicate the NFBLab method
+                    # info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
+                    # # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
+                    # keep_chs = [elem for elem in info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
+                    # info.pick_channels(keep_chs)
+                    # info.set_montage(standard_montage, on_missing='ignore')
+                    # print(f"2: {info.get('dig')}")
+                    # noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
+
+                    inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(choice_transition.info, fwd, noise_cov,
+                                                                              fixed=True)
+                    stc, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
+                                              method=method, pick_ori=None,
+                                              return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
+
+                    vertno_max, time_max = stc.get_peak(hemi=None)
+                    surfer_kwargs = dict(
+                        hemi='both',
+                        clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+                        initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+                        surface='Pial', transparent=True, alpha=0.9, colorbar=True)
+                    brain = stc.plot(**surfer_kwargs)
+                    brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+                                   scale_factor=0.6, alpha=0.5)
+                    brain.add_text(0.1, 0.9, 'NFBLab method', 'title',
+                                   font_size=14)
+
+
+                    ## -- look at the raw source plot for first transition
+                    # get start and stop time
+                    start_time = (first_transition - 500) / fs
+                    stop_time = (first_transition + 500) / fs
+                    start, stop = m_raw.time_as_index([start_time, stop_time])
+                    # m_raw = m_raw.crop(tmin=start, tmax=stop)
+                    m_raw.drop_channels(['ECG', 'EOG'])
+                    stc = apply_inverse_raw(m_raw, inverse_operator, lambda2, method, label_lh,
+                        start, stop, pick_ori=None)
+                    plt.figure()
                     plt.plot(1e3 * stc.times, stc.data[::100, :].T)
                     plt.xlabel('time (ms)')
                     plt.ylabel('%s value' % method)
-                    plt.title('all')
+                    plt.title('raw stc source')
                     plt.show()
 
-                    plt.plot(1e3 * stc_lh.times, stc_lh.data[::100, :].T)
-                    plt.xlabel('time (ms)')
-                    plt.ylabel('%s value' % method)
-                    plt.title('left')
-                    plt.show()
+                    vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+                    fig, ax = plt.subplots()
+                    ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+                    ax.set(xlabel='time (ms)', ylabel='%s value' % method)
 
-                    plt.plot(1e3 * stc_rh.times, stc.rh.data[::100, :].T)
-                    plt.xlabel('time (ms)')
-                    plt.ylabel('%s value' % method)
-                    plt.title('right')
+                    # Get the source from single epoch using the same method as NFBLab
+                    eeg_data = eeg_data.loc[first_transition - 500:first_transition + 500, :]
+                    eeg_data = eeg_data.drop(columns=['EOG', "ECG"])
+                    w = get_roi_filter(label_names_lh, fs, channels, show=True)
+                    plt.figure()
+                    plt.plot(np.dot(w, eeg_data.T), 'k')
                     plt.show()
+                    # stc = _make_stc(sol, vertno, tmin=tmin, tstep=tstep, subject=subject,
+                    #                 vector=(pick_ori == 'vector'), source_nn=source_nn,
+                    #                 src_type=src_type)
                     pass
 
 
