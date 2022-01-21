@@ -228,7 +228,7 @@
 			<fDuration>1.0</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>All</fbSource>
-			<sFb_type>Baseline</sFb_type>
+			<sFb_type>FixationCross</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
 			<bProbe>0</bProbe>
@@ -253,7 +253,7 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
-			<tFixationCrossColour>Black</tFixationCrossColour>
+			<tFixationCrossColour>None</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>delay</sProtocolName>

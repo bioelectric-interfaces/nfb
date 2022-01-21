@@ -249,6 +249,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.text_item = pg.TextItem()
         self.widget = None
         self.colour = colour
+        self.text_color = "#e5dfc5"
         self.probe = None
         self.probe_loc = "LEFT"
         self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 200)
@@ -259,7 +260,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
 
         self.widget = widget
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">{self.text}</font></center>')
+        self.text_item.setHtml(f'<center><font size="7" color={self.text_color}>{self.text}</font></center>')
         self.text_item.setAnchor((0.5, 0.5))
         self.text_item.setTextWidth(500)
         self.widget.addItem(self.text_item)

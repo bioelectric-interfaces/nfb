@@ -22,7 +22,7 @@ from .serializers import read_spatial_filter
 from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbackProtocol, VideoProtocol, \
     ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
-    EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter
+    EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter, FixationCrossProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -359,7 +359,7 @@ class Experiment():
                 max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
                 percent_score = self.fb_score/max_reward
                 print(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
-                current_protocol.widget_painter.previous_score = percent_score
+                current_protocol.widget_painter.previous_score = percent_score * 100
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0
 
@@ -371,7 +371,7 @@ class Experiment():
 
             # Update participant choice fb (only do this if there is feedback to display
             if self.choice_fb:
-                if isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
+                if isinstance(current_protocol.widget_painter, FixationCrossProtocolWidgetPainter):
                     current_protocol.widget_painter.text = self.choice_fb
                     print(f"PARTICIPANT FB: {self.choice_fb}")
                     color = "#00FF00" if self.choice_fb == "✔" else "#FF0000"
