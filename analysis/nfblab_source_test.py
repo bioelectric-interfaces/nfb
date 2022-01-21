@@ -174,24 +174,26 @@ for participant, participant_dirs in experiment_dirs.items():
 
 
 
-
-
-                    #
                     # # ------Try to replicate the NFBLab method------------------------------------------------------------------
-                    # # info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
-                    # # # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
-                    # # keep_chs = [elem for elem in info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
-                    # # info.pick_channels(keep_chs)
-                    # # info.set_montage(standard_montage, on_missing='ignore')
-                    # # print(f"2: {info.get('dig')}")
-                    # # noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
+                    info_nfb = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
+                    # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
+                    keep_chs = [elem for elem in info_nfb.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
+                    info_nfb.pick_channels(keep_chs)
+                    info_nfb.set_montage(standard_montage, on_missing='ignore')
+                    noise_cov_nfb = mne.make_ad_hoc_cov(info_nfb, verbose=None)
 
-                    # inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(m_filt.info, fwd, noise_cov,
-                    #                                                           fixed=True)
-                    # stc, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
-                    #                           method=method, pick_ori=None,
-                    #                           return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
-                    #
+                    inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(info_nfb, fwd, noise_cov_nfb,
+                                                                              fixed=True)
+                    stc, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
+                                              method=method, pick_ori=None,
+                                              return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
+
+                    vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+                    fig, ax = plt.subplots()
+                    ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+                    ax.set(xlabel='time (ms)', ylabel='%s value' % method)
+
+
                     # vertno_max, time_max = stc.get_peak(hemi=None)
                     # surfer_kwargs = dict(
                     #     hemi='both',
@@ -256,6 +258,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     plt.figure()
                     plt.plot(np.dot(w, evoked_data.T), 'k')
                     plt.show()
+                    pass
 
 
                     # Get the source from single epoch using the same method as NFBLab - raw

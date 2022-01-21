@@ -249,88 +249,51 @@ for participant, participant_dirs in experiment_dirs.items():
 
 
                     # Do a matplotlib to hold the brain plot in place!!
-                    # plt.plot(1e3 * stc.times, stc.data[::100, :].T)
-                    # plt.xlabel('time (ms)')
-                    # plt.ylabel('%s value' % method)
-                    # plt.title('all')
-                    # plt.show()
-                    #
-                    # plt.plot(1e3 * stc_lh.times, stc_lh.data[::100, :].T)
-                    # plt.xlabel('time (ms)')
-                    # plt.ylabel('%s value' % method)
-                    # plt.title('left')
-                    # plt.show()
-                    #
-                    # plt.plot(1e3 * stc_rh.times, stc_rh.data[::100, :].T)
-                    # plt.xlabel('time (ms)')
-                    # plt.ylabel('%s value' % method)
-                    # plt.title('right')
-                    # plt.show()
+                    plt.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('all')
+                    plt.show()
+
+                    plt.plot(1e3 * stc_lh.times, stc_lh.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('left')
+                    plt.show()
+
+                    plt.plot(1e3 * stc_rh.times, stc_rh.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('right')
+                    plt.show()
                     pass
 
-
-
-
-                    # ------Try to replicate the NFBLab method
-                    # info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
-                    # # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
-                    # keep_chs = [elem for elem in info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
-                    # info.pick_channels(keep_chs)
-                    # info.set_montage(standard_montage, on_missing='ignore')
-                    # print(f"2: {info.get('dig')}")
-                    # noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
-
-                    inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(choice_transition.info, fwd, noise_cov,
+                    # use NFBLab inverse operator
+                    inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(m_filt.info, fwd, noise_cov,
                                                                               fixed=True)
-                    stc, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
+                    stc_nfblab, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
                                               method=method, pick_ori=None,
                                               return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
 
-                    vertno_max, time_max = stc.get_peak(hemi=None)
+                    vertno_max, time_max = stc_nfblab.get_peak(hemi=None)
                     surfer_kwargs = dict(
                         hemi='both',
                         clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
                         initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
                         surface='Pial', transparent=True, alpha=0.9, colorbar=True)
-                    brain = stc.plot(**surfer_kwargs)
+                    brain = stc_nfblab.plot(**surfer_kwargs)
                     brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
                                    scale_factor=0.6, alpha=0.5)
                     brain.add_text(0.1, 0.9, 'NFBLab method', 'title',
                                    font_size=14)
 
-
-                    ## -- look at the raw source plot for first transition
-                    # get start and stop time
-                    start_time = (first_transition - 500) / fs
-                    stop_time = (first_transition + 500) / fs
-                    start, stop = m_raw.time_as_index([start_time, stop_time])
-                    # m_raw = m_raw.crop(tmin=start, tmax=stop)
-                    m_raw.drop_channels(['ECG', 'EOG'])
-                    stc = apply_inverse_raw(m_raw, inverse_operator, lambda2, method, label_lh,
-                        start, stop, pick_ori=None)
-                    plt.figure()
-                    plt.plot(1e3 * stc.times, stc.data[::100, :].T)
-                    plt.xlabel('time (ms)')
-                    plt.ylabel('%s value' % method)
-                    plt.title('raw stc source')
-                    plt.show()
-
-                    vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+                    vertno_max_idx, time_max = stc_nfblab.get_peak(hemi=None,vert_as_index=True)
                     fig, ax = plt.subplots()
-                    ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+                    ax.plot(1e3 * stc_nfblab.times, stc_nfblab.data[vertno_max_idx])
                     ax.set(xlabel='time (ms)', ylabel='%s value' % method)
-
-                    # Get the source from single epoch using the same method as NFBLab
-                    eeg_data = eeg_data.loc[first_transition - 500:first_transition + 500, :]
-                    eeg_data = eeg_data.drop(columns=['EOG', "ECG"])
-                    w = get_roi_filter(label_names_lh, fs, channels, show=True)
-                    plt.figure()
-                    plt.plot(np.dot(w, eeg_data.T), 'k')
-                    plt.show()
-                    # stc = _make_stc(sol, vertno, tmin=tmin, tstep=tstep, subject=subject,
-                    #                 vector=(pick_ori == 'vector'), source_nn=source_nn,
-                    #                 src_type=src_type)
                     pass
+
+
 
 
 
