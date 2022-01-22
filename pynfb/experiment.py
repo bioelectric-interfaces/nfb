@@ -93,7 +93,7 @@ class Experiment():
 
                     # Save the chunk size for data analysis
                     self.chunk_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-                    self.chunk_recorder[self.samples_counter - 1] = self.samples_counter
+                    self.chunk_recorder[self.samples_counter - 1] = chunk.shape[0]
 
                     # catch channels trouble
 
@@ -176,10 +176,10 @@ class Experiment():
             if current_protocol.show_probe and self.probe_vis:
                 #get probe duration in samples
                 probe_dur_samp = self.freq * self.probe_dur
-                probe_start_samp = self.freq * self.probe_random_start
-                probe_dur_start = probe_dur_samp + probe_start_samp
-                probe_end_samp = probe_dur_start + probe_dur_samp
-                if probe_dur_start <= self.samples_counter < probe_end_samp:
+                probe_start_samp = round(self.freq * self.probe_random_start)
+                # probe_dur_start = probe_dur_samp + probe_start_samp
+                probe_end_samp = round(probe_start_samp + probe_dur_samp)
+                if probe_start_samp <= self.samples_counter < probe_end_samp:
                     # display probe
                     current_protocol.widget_painter.probe = True
                     current_protocol.widget_painter.probe_loc = self.probe_loc
@@ -189,9 +189,7 @@ class Experiment():
                         probe_val = 1
                     elif self.probe_loc == "LEFT":
                         probe_val = 2
-                    print(f"PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
-                    # self.probe_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = pl #TODO: check if needed - is this type of logging/chunking the reason for 'delayed' ERPs?
-                    # self.probe_recorder[self.samples_counter - 1] = int(pl)
+                    print(f"PROTOCOL: {current_protocol.name}, PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
                 else:
                     current_protocol.widget_painter.probe = False
 
