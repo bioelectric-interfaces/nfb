@@ -57,16 +57,32 @@ for participant, participant_dirs in experiment_dirs.items():
                         median_aai = data.loc[data['channel'] == "signal_AAI"]['data'].median()
                         nfb_aai_medians.append(median_aai)
 
-                fig = px.line(nfb_aai_medians, title=f"{participant}>{session}>{task_dir}")
-                fig.show()
+                # ----- Plot the aai medians-----
+                # fig = px.line(nfb_aai_medians, title=f"{participant}>{session}>{task_dir}")
+                # fig.show()
 
                 # split AAI into first/second/third blocks for the participant
 
-                task_data["aai_first"] = nfb_aai_medians[0: int(len(nfb_aai_medians)/3)]
-                task_data["aai_mid"] = nfb_aai_medians[int(len(nfb_aai_medians)/3) + 1: int(len(nfb_aai_medians)/3) * 2]
-                task_data["aai_last"] = nfb_aai_medians[(int(len(nfb_aai_medians)/3) * 2) + 1: -1]
-                session_data[task_dir] = task_data
+                task_data["aai_1"] = nfb_aai_medians[0: int(len(nfb_aai_medians)/4)]
+                task_data["aai_2"] = nfb_aai_medians[int(len(nfb_aai_medians)/4): int(len(nfb_aai_medians)/4) * 2]
+                task_data["aai_3"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 2): int(len(nfb_aai_medians)/4) * 3]
+                task_data["aai_4"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 3): -1]
+                session_data[task_dir] = pd.DataFrame(task_data)
                 pass
         participant_data["session_data"].append(session_data)
-experiment_data.append(participant_data)
+    experiment_data.append(participant_data)
+
+for experiment in experiment_data:
+    print(f'Participant: {experiment["participant_id"]}')
+    for session in experiment['session_data']:
+        print(2)
+        for s_name, section in session.items():
+            section_data = pd.melt(section, value_vars=['aai_1', 'aai_2', 'aai_3', 'aai_4'], var_name='section_number')
+            title = f'{experiment["participant_id"]}: {s_name}'
+            fig = px.box(section_data, x="section_number", y="value", title=title)
+            fig.show()
+            pass
+
+
+
 pass
