@@ -25,7 +25,7 @@
 			<sSignalName>Alpha_Left</sSignalName>
 			<SpatialFilterMatrix>{{left_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
-			<fSmoothingFactor>0.3</fSmoothingFactor>
+			<fSmoothingFactor>0.7</fSmoothingFactor>
 			<fFFTWindowSize>{{fft_window}}</fFFTWindowSize>
 			<fBandpassLowHz>{{ band_low }}</fBandpassLowHz>
 			<fBandpassHighHz>{{ band_high }}</fBandpassHighHz>
@@ -41,14 +41,14 @@
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
-			<sTemporalSmootherType>savgol</sTemporalSmootherType>
+			<sTemporalSmootherType>exp</sTemporalSmootherType>
 			<iDelayMs>0</iDelayMs>
 		</DerivedSignal>
 		<DerivedSignal>
 			<sSignalName>Alpha_Right</sSignalName>
 			<SpatialFilterMatrix>{{right_spatial_filter_scalp}}</SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
-			<fSmoothingFactor>0.3</fSmoothingFactor>
+			<fSmoothingFactor>0.7</fSmoothingFactor>
 			<fFFTWindowSize>{{fft_window}}</fFFTWindowSize>
 			<fBandpassLowHz>{{ band_low }}</fBandpassLowHz>
 			<fBandpassHighHz>{{ band_high }}</fBandpassHighHz>
@@ -62,7 +62,7 @@
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>{{ temp_filt_type }}</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
-			<sTemporalSmootherType>savgol</sTemporalSmootherType>
+			<sTemporalSmootherType>exp</sTemporalSmootherType>
 			<iDelayMs>0</iDelayMs>
 		</DerivedSignal>
 		<CompositeSignal>

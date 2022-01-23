@@ -130,7 +130,7 @@ if __name__ == "__main__":
     use_baseline_correction = 1
     baseline_cor_threshold = 0.25
     mock_file = ''
-    smooth_window = 75 # THIS IS AAI SMOOTHING
+    smooth_window = 100 # THIS IS AAI SMOOTHING
     enable_smoothing = 1 # THIS IS AAI SMOOTHING
     fft_window = 1000
 
