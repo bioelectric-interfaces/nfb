@@ -151,7 +151,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     m_high = m_raw.copy()
                     # Take out the first 10 secs - TODO: figure out if this is needed for everyone
                     m_high.crop(tmin=10)
-                    m_high.filter(l_freq=1., h_freq=None)
+                    m_high.filter(l_freq=1., h_freq=40)
                     # get baseline data
                     baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
                     baseline_raw_start = baseline_raw_data['sample'].iloc[0] / fs
@@ -171,7 +171,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     ica.plot_sources(m_high, show_scrollbars=False)
                     ica.plot_components()
                     # Set ICA to exclued
-                    ica.exclude = [2]
+                    ica.exclude = [1,11,12,13]#,14]
                     reconst_raw = m_raw.copy()
                     ica.apply(reconst_raw)
 
@@ -203,11 +203,30 @@ for participant, participant_dirs in experiment_dirs.items():
                     probe_right.plot_joint(title="right")
 
                     # Look at left and right evoked
-                    picks = ['P7', 'PO7', 'O1', 'OZ', 'PO8', 'P8', 'PO3', 'POZ', 'PO4', 'PO8']
+                    left_chs = ['O1', 'PO3', 'PO7', 'P1', 'P3', 'P5', 'P7', 'P9', 'PZ', 'P0Z' ]
+                    right_chs = ['O2', 'PO4', 'PO8', 'P2', 'P3', 'P6', 'P7', 'P10', 'PZ', 'P0Z']
+                    picks = left_chs + right_chs
+                    # picks = ['P7', 'PO7', 'O1', 'OZ', 'PO8', 'P8', 'PO3', 'POZ', 'PO4', 'PO8']
                     evokeds = dict(left_probe=list(epochs['left_probe'].iter_evoked()),
                                    right_probe=list(epochs['right_probe'].iter_evoked()))
                     mne.viz.plot_compare_evokeds(evokeds, combine='mean', picks=picks)
                     pass
+
+                    # Look at left side vs right side for left probe
+                    left_ix = mne.pick_channels(probe_left.info['ch_names'], include=right_chs)
+                    right_ix = mne.pick_channels(probe_left.info['ch_names'], include=left_chs)
+                    roi_dict = dict(left_ROI=left_ix, right_ROI=right_ix)
+                    roi_evoked = mne.channels.combine_channels(probe_left, roi_dict, method='mean')
+                    print(roi_evoked.info['ch_names'])
+                    roi_evoked.plot()
+
+                    # Look at left side vs right side for right probe
+                    left_ix = mne.pick_channels(probe_right.info['ch_names'], include=right_chs)
+                    right_ix = mne.pick_channels(probe_right.info['ch_names'], include=left_chs)
+                    roi_dict = dict(left_ROI=left_ix, right_ROI=right_ix)
+                    roi_evoked = mne.channels.combine_channels(probe_right, roi_dict, method='mean')
+                    print(roi_evoked.info['ch_names'])
+                    roi_evoked.plot()
 
 
 
@@ -274,7 +293,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     stc_lh, residual_lh = apply_inverse(probe_left, inverse_operator, lambda2,
                                                         method=method, pick_ori=None,
                                                         return_residual=True, verbose=True, label=label_lh)
-                    stc_rh, residual_rh = apply_inverse(probe_left, inverse_operator, lambda2,
+                    stc_rh, residual_rh = apply_inverse(probe_right, inverse_operator, lambda2,
                                                         method=method, pick_ori=None,
                                                         return_residual=True, verbose=True, label=label_rh)
 
