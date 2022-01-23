@@ -106,7 +106,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     # Drop non eeg data
                     eeg_data = df1.drop(
                         columns=['signal_Alpha_Left', 'signal_Alpha_Right', 'signal_AAI', 'events', 'reward', 'choice', 'answer', 'probe', 'block_name',
-                                 'block_number', 'sample', 'MKIDX', 'probe_events'])
+                                 'block_number', 'sample', 'MKIDX', 'probe_events', 'chunk_n'])
 
 
                     # create an MNE info
@@ -142,10 +142,15 @@ for participant, participant_dirs in experiment_dirs.items():
                     # set the reference to average
                     m_raw.set_eeg_reference(projection=True)
 
+                    # Remove bads manually TODO: do this automatically
+                    m_raw.info['bads'] = ['TP9', 'TP10', 'FT7', 'FT8', 'T7', 'OZ'] # For Ksenia's large dataset
+
 
                     # ----- ICA ON BASELINE RAW DATA
                     # High pass filter
                     m_high = m_raw.copy()
+                    # Take out the first 10 secs - TODO: figure out if this is needed for everyone
+                    m_high.crop(tmin=10)
                     m_high.filter(l_freq=1., h_freq=None)
                     # get baseline data
                     baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
@@ -175,14 +180,14 @@ for participant, participant_dirs in experiment_dirs.items():
                     m_filt = reconst_raw.copy()
                     # m_filt.filter(l_freq=0, h_freq=10)
                     m_filt.filter(l_freq=1., h_freq=40)
-                    m_filt.info['bads'] = ['TP9', 'TP10', 'FT7', 'FT8', 'T7'] # For Ksenia's large dataset
 
                     # # epoch the data
                     events = mne.find_events(reconst_raw, stim_channel='STI')
                     picks = [c for c in m_info.ch_names if c not in ['EOG', 'ECG']]
-                    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.2, tmax=0.6,
+                    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.1, tmax=0.4,
                                         preload=True, picks=picks, detrend=1)
                     fig = epochs.plot(events=events, scalings={"eeg":10})
+                    # epochs.apply_baseline((None, 0))
 
                     # average epochs
                     probe_left = epochs['left_probe'].average()
@@ -192,10 +197,10 @@ for participant, participant_dirs in experiment_dirs.items():
                     # choice_transition.plot_joint()
 
                     # plot topomap
-                    probe_left.plot_topomap(times=[-0.2, 0.1, 0.6], average=0.05)
-                    probe_right.plot_topomap(times=[-0.2, 0.1, 0.6], average=0.05)
-                    probe_left.plot_joint()
-                    probe_right.plot_joint()
+                    probe_left.plot_topomap(times=[-0.1, 0.1, 0.4], average=0.05)
+                    probe_right.plot_topomap(times=[-0.1, 0.1, 0.4], average=0.05)
+                    probe_left.plot_joint(title="left")
+                    probe_right.plot_joint(title="right")
 
                     # Look at left and right evoked
                     picks = ['P7', 'PO7', 'O1', 'OZ', 'PO8', 'P8', 'PO3', 'POZ', 'PO4', 'PO8']
@@ -261,9 +266,9 @@ for participant, participant_dirs in experiment_dirs.items():
                                    font_size=14)
 
                     # Get inverse solution of specific labels (left and right)
-                    label_names_lh = ["inferiorparietal-lh", "lateraloccipital-lh"]
+                    label_names_lh = ["inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh"]
                     label_lh = rsf.get_roi_by_name(label_names_lh)
-                    label_names_rh = ["inferiorparietal-rh", "lateraloccipital-rh"]
+                    label_names_rh = ["inferiorparietal-rh", "superiorparietal-rh", "lateraloccipital-rh"]
                     label_rh = rsf.get_roi_by_name(label_names_rh)
 
                     stc_lh, residual_lh = apply_inverse(probe_left, inverse_operator, lambda2,
@@ -282,7 +287,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     brain = stc_lh.plot(**surfer_kwargs)
                     brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
                                    scale_factor=0.6, alpha=0.5)
-                    brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
+                    brain.add_text(0.1, 0.9, 'left', 'title',
                                    font_size=14)
                     brain.add_label(label_lh)
 
@@ -295,7 +300,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     brain = stc_rh.plot(**surfer_kwargs)
                     brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
                                    scale_factor=0.6, alpha=0.5)
-                    brain.add_text(0.1, 0.9, 'dSPM (plus location of maximal activation)', 'title',
+                    brain.add_text(0.1, 0.9, 'right', 'title',
                                    font_size=14)
                     brain.add_label(label_rh)
 
@@ -324,25 +329,41 @@ for participant, participant_dirs in experiment_dirs.items():
                     # use NFBLab inverse operator
                     inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(m_filt.info, fwd, noise_cov,
                                                                               fixed=True) # NOTE: the difference with the MNE tutorial methods is the fixed oritentations - when applying the inverse in this case the result isn't normed (so you get signed source activity)
-                    stc_nfblab, residual = apply_inverse(probe_left, inverse_operator_nfb, lambda2,
+                    stc_nfblab_left, residual = apply_inverse(probe_left, inverse_operator_nfb, lambda2,
                                                          method=method, pick_ori=None,
                                                          return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
 
-                    vertno_max, time_max = stc_nfblab.get_peak(hemi=None)
+                    vertno_max, time_max = stc_nfblab_left.get_peak(hemi=None)
                     surfer_kwargs = dict(
                         hemi='both',
                         clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
                         initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
                         surface='Pial', transparent=True, alpha=0.9, colorbar=True, show_traces=True)
-                    brain = stc_nfblab.plot(**surfer_kwargs)
+                    brain = stc_nfblab_left.plot(**surfer_kwargs)
                     brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
                                    scale_factor=0.6, alpha=0.5)
-                    brain.add_text(0.1, 0.9, 'NFBLab method', 'title',
+                    brain.add_text(0.1, 0.9, 'NFBLab method left', 'title',
                                    font_size=14)
 
-                    vertno_max_idx, time_max = stc_nfblab.get_peak(hemi=None,vert_as_index=True)
+                    stc_nfblab_right, residual = apply_inverse(probe_right, inverse_operator_nfb, lambda2,
+                                                         method=method, pick_ori=None,
+                                                         return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
+
+                    vertno_max, time_max = stc_nfblab_right.get_peak(hemi=None)
+                    surfer_kwargs = dict(
+                        hemi='both',
+                        clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+                        initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+                        surface='Pial', transparent=True, alpha=0.9, colorbar=True, show_traces=True)
+                    brain = stc_nfblab_right.plot(**surfer_kwargs)
+                    brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+                                   scale_factor=0.6, alpha=0.5)
+                    brain.add_text(0.1, 0.9, 'NFBLab method right', 'title',
+                                   font_size=14)
+
+                    vertno_max_idx, time_max = stc_nfblab_right.get_peak(hemi=None,vert_as_index=True)
                     fig, ax = plt.subplots()
-                    ax.plot(1e3 * stc_nfblab.times, stc_nfblab.data[vertno_max_idx])
+                    ax.plot(1e3 * stc_nfblab_right.times, stc_nfblab_right.data[vertno_max_idx])
                     ax.set(xlabel='time (ms)', ylabel='%s value' % method)
                     pass
 
