@@ -55,6 +55,7 @@ class Experiment():
         self.fb_score = None
         self.cum_score = None
         self.choice_fb = None
+        self.nfb_samps = 0
         self.restart()
 
         pass
@@ -217,13 +218,14 @@ class Experiment():
 
                 # Record the reward from feedback only for the current protocol
                 if isinstance(current_protocol, FeedbackProtocol):
+                    self.nfb_samps = self.current_protocol_n_samples
                     if self.fb_score:
                         self.fb_score = self.reward.get_score() - self.cum_score
                         self.cum_score = self.reward.get_score()
                     else:
                         self.cum_score = self.reward.get_score()
                         self.fb_score = self.reward.get_score()
-                    print(f"fBSCORE: {self.fb_score}, CUMSCORE: {self.reward.get_score()}")
+                    print(f"SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.reward.get_score()}")
 
                 # only change if not a pausing protocol
                 if current_protocol.hold:
@@ -353,10 +355,10 @@ class Experiment():
                 print(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
 
-                nfb_duration = 5000 # TODO: get this from the actual neurofeedback protocol - currently this is specific to my design
+                nfb_duration = self.nfb_samps
                 max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
                 percent_score = self.fb_score/max_reward
-                print(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
+                print(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
                 current_protocol.widget_painter.previous_score = percent_score * 100
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0

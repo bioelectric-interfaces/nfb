@@ -21,6 +21,7 @@ class Reward:
                 current_sample = current_sample[0]
             if current_sample > self.threshold:
                 self.score += chunk_size/self.fs/self.rate_of_increase
+                # print(f"SCORE: {chunk_size/self.fs/self.rate_of_increase}, CHUNK: {chunk_size}, FS: {self.fs}, RATE: {self.rate_of_increase}, cSCORE: {self.score}, TH: {self.threshold}, CUR_SAMP: {current_sample}")
         pass
 
     def set_enabled(self, flag):
