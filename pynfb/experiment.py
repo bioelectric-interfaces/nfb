@@ -1,6 +1,7 @@
 import os
 import re
 from datetime import datetime
+import logging
 import random as r
 import numpy as np
 from PyQt5 import QtCore
@@ -57,7 +58,7 @@ class Experiment():
         self.choice_fb = None
         self.nfb_samps = 0
         self.restart()
-
+        logging.info(f"{__name__}: ")
         pass
 
     def update(self):
@@ -190,7 +191,7 @@ class Experiment():
                         probe_val = 1
                     elif self.probe_loc == "LEFT":
                         probe_val = 2
-                    print(f"PROTOCOL: {current_protocol.name}, PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
+                    logging.info(f"{__name__}: PROTOCOL: {current_protocol.name}, PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
                 else:
                     current_protocol.widget_painter.probe = False
 
