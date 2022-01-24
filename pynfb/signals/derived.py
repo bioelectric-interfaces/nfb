@@ -60,13 +60,14 @@ class DerivedSignal:
                    inv=inv,
                    info=info,
                    roi_label=roi_label,
-                   sourcefb=sourcefb)
+                   sourcefb=sourcefb,
+                   channels=channels)
 
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
                  estimator_type='envdetector', filter_order=2, delay_ms=0, avg_window=100, enable_smoothing=False,
-                 inv=None, info=None, roi_label=None, sourcefb=False):
+                 inv=None, info=None, roi_label=None, sourcefb=False, channels=None):
 
         self.n_samples = int(n_samples)
         self.fs = source_freq
@@ -125,6 +126,7 @@ class DerivedSignal:
         self.inv = inv
         self.info = info
         self.roi_label = roi_label
+        self.channels=channels
 
     def reset_signal_estimator(self):
         if self.estimator_type == 'envdetector':
@@ -164,8 +166,9 @@ class DerivedSignal:
     def update(self, chunk):
         filtered_chunk = np.dot(chunk, self.spatial_matrix)
         # Todo - only do one set of processing (currently we get the filter and the stc - and also apply both
-        if self.sourcefb:
-            filtered_chunk = self.get_max_source_signal(chunk)
+        # This below method of doing source makes the program quite unresponsive
+        # if self.sourcefb:
+        #     filtered_chunk = self.get_max_source_signal(chunk)
         current_chunk = self.signal_estimator.apply(filtered_chunk)
         if self.scaling_flag and self.std > 0:
             current_chunk = (current_chunk - self.mean) / self.std
@@ -250,6 +253,8 @@ class DerivedSignal:
         method = "sLORETA"
         snr = 3.
         lambda2 = 1. / snr ** 2
+        delete_chs = [self.channels.index(x) for x in ['EOG', 'ECG', 'MKIDX']]
+        chunk = np.delete(chunk, delete_chs, axis=1)
         # TODO - should this be baseline corrected?
         raw = mne.io.RawArray(chunk.T, self.info, first_samp=0, copy='auto', verbose=None)
         raw.set_eeg_reference(projection=True)
