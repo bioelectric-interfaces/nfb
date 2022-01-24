@@ -139,6 +139,31 @@ def get_roi_filter(label_name, fs, channels, show=False, method='sLORETA', lambd
     w /= np.linalg.norm(w)
     return w
 
+def get_stc_params(label_name, channels, fs, method='sLORETA', lambda2=1):
+    standard_montage = mne.channels.make_standard_montage(
+        kind='standard_1020')  # TODO: make this setable (and make sure it is the right one)
+    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+    for j, channel in enumerate(channels):
+        try:
+            channels[j] = standard_montage.ch_names[standard_montage_names.index(channel.upper())]
+        except ValueError as e:
+            print(f"ERROR ENCOUNTERED: {e}")
+    info = mne.create_info(ch_names=channels, sfreq=fs, ch_types=['eeg' for ch in channels])
+    # drop the ECG and EOG channels #TODO: make this work for other amplifiers /caps other than brainVision (with ECG and EOG)
+    keep_chs = [elem for elem in info.ch_names if elem not in ['ECG', 'EOG', 'MKIDX']]
+    info.pick_channels(keep_chs)
+    info.set_montage(standard_montage, on_missing='ignore')
+    print(f"2: {info.get('dig')}")
+    noise_cov = mne.make_ad_hoc_cov(info, verbose=None)
+    # fwd = get_fwd_solution()
+    loc = info.get('chs')[0]['loc']
+    print(f"ss: {np.isfinite(loc[:3]).all()}")
+    fwd = get_fsaverage_fwd(info)
+    inv = mne.minimum_norm.make_inverse_operator(info, fwd, noise_cov, fixed=True)
+    inv = mne.minimum_norm.prepare_inverse_operator(inv, nave=1, lambda2=lambda2,
+                                                    method=method)  # TODO: find out exactly what this does and if it is needed (not in the examples on MNE website)
+    roi_label = get_roi_by_name(label_name)
+    return inv, info, roi_label
 
 if __name__ == '__main__':
     from pynfb.protocols.ssd.topomap_selector_ica import ICADialog

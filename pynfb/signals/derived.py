@@ -1,9 +1,14 @@
+import mne
 import numpy as np
+from mne.minimum_norm import apply_inverse_raw
+
 from pynfb.serializers import save_spatial_filter, read_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
     ComplexDemodulationBandEnvelopeDetector, ButterBandEnvelopeDetector, ScalarButterFilter, IdentityFilter, \
     FilterSequence, DelayFilter, CFIRBandEnvelopeDetector
 from pynfb.signals.rejections import Rejections
+
+from ..helpers.roi_spatial_filter import get_stc_params
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
 ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
@@ -24,8 +29,17 @@ ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
 class DerivedSignal:
     @classmethod
     def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None, avg_window=100, enable_smoothing=False):
+        inv = None
+        info = None
+        roi_label = None
+        sourcefb = None
         if spatial_filter is None:
+            sourcefb = bool(params['lROILabel'])
+            labels = params['lROILabel'].copy()
             spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['lROILabel'], params['bNFBType'])
+            print(f"SOURCE: {sourcefb}, {labels}")
+            if sourcefb:
+                inv, info, roi_label = get_stc_params(labels, channels, fs)
         return cls(ind=ind,
                    bandpass_high=params['fBandpassHighHz'],
                    bandpass_low=params['fBandpassLowHz'],
@@ -42,12 +56,17 @@ class DerivedSignal:
                    filter_order=params['fTemporalFilterButterOrder'],
                    delay_ms=params['iDelayMs'],
                    avg_window=avg_window,
-                   enable_smoothing=enable_smoothing)
+                   enable_smoothing=enable_smoothing,
+                   inv=inv,
+                   info=info,
+                   roi_label=roi_label,
+                   sourcefb=sourcefb)
 
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
-                 estimator_type='envdetector', filter_order=2, delay_ms=0, avg_window=100, enable_smoothing=False):
+                 estimator_type='envdetector', filter_order=2, delay_ms=0, avg_window=100, enable_smoothing=False,
+                 inv=None, info=None, roi_label=None, sourcefb=False):
 
         self.n_samples = int(n_samples)
         self.fs = source_freq
@@ -100,7 +119,12 @@ class DerivedSignal:
         self.avg_buffer = np.empty(n_channels)
         self.avg_window = avg_window
         self.enable_smoothing = enable_smoothing
-        pass
+
+        # source stuff
+        self.sourcefb = sourcefb
+        self.inv = inv
+        self.info = info
+        self.roi_label = roi_label
 
     def reset_signal_estimator(self):
         if self.estimator_type == 'envdetector':
@@ -139,6 +163,9 @@ class DerivedSignal:
 
     def update(self, chunk):
         filtered_chunk = np.dot(chunk, self.spatial_matrix)
+        # Todo - only do one set of processing (currently we get the filter and the stc - and also apply both
+        if self.sourcefb:
+            filtered_chunk = self.get_max_source_signal(chunk)
         current_chunk = self.signal_estimator.apply(filtered_chunk)
         if self.scaling_flag and self.std > 0:
             current_chunk = (current_chunk - self.mean) / self.std
@@ -158,6 +185,7 @@ class DerivedSignal:
                     print(f"ERROR: {e}")
             self.current_chunk = self.buffer.mean()
             self.current_chunk = self.current_chunk * np.ones(len(chunk))
+
         return current_chunk
 
     def update_statistics(self, raw=None, emulate=False, signals_recorder=None, stats_type='meanstd'):
@@ -216,3 +244,15 @@ class DerivedSignal:
         :return:
         """
         save_spatial_filter(file_path, self.spatial_matrix, channels_labels=channels_labels)
+
+    def get_max_source_signal(self, chunk):
+        print(f"APPLYING MAX SOURCE")
+        method = "sLORETA"
+        snr = 3.
+        lambda2 = 1. / snr ** 2
+        # TODO - should this be baseline corrected?
+        raw = mne.io.RawArray(chunk.T, self.info, first_samp=0, copy='auto', verbose=None)
+        raw.set_eeg_reference(projection=True)
+        stc = apply_inverse_raw(raw, self.inv, lambda2, method, self.roi_label, pick_ori=None)
+        vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+        return stc.data[vertno_max_idx]
