@@ -220,13 +220,15 @@ class Experiment():
                 # Record the reward from feedback only for the current protocol
                 if isinstance(current_protocol, FeedbackProtocol):
                     self.nfb_samps = self.current_protocol_n_samples
-                    if self.fb_score:
+                    if self.fb_score is not None:
+                        logging.info("fb-cum score")
                         self.fb_score = self.reward.get_score() - self.cum_score
                         self.cum_score = self.reward.get_score()
                     else:
+                        logging.info("fbscore reset")
                         self.cum_score = self.reward.get_score()
                         self.fb_score = self.reward.get_score()
-                    print(f"SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.reward.get_score()}")
+                    logging.info(f"SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
 
                 # only change if not a pausing protocol
                 if current_protocol.hold:
@@ -359,7 +361,7 @@ class Experiment():
                 nfb_duration = self.nfb_samps
                 max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
                 percent_score = self.fb_score/max_reward
-                print(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
+                logging.info(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
                 current_protocol.widget_painter.previous_score = percent_score * 100
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0
