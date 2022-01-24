@@ -338,7 +338,7 @@ class Experiment():
                 # Only update the threshold if we aren't doing mock/sham
                 if current_protocol.mock_samples_file_path is None :
                     self.gabor_theta = r.choice(range(20, 180, 20))
-                    print(f"GABOR THETA: {self.gabor_theta}")
+                    logging.info(f"GABOR THETA: {self.gabor_theta}")
                     current_protocol.widget_painter.gabor_theta = self.gabor_theta
 
                     if self.params['bUseBCThreshold']:
@@ -347,13 +347,13 @@ class Experiment():
                         reward_bound = self.params['dBCThresholdAdd'] # percent to add to the bias #
                         # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
                         bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
-                        print(f"R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
+                        logging.info(f"R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
                         current_protocol.widget_painter.r_threshold = bc_threshold
 
             # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
                 self.rn_offset = r.choice([-5, 5, 0, 0])
-                print(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
+                logging.info(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
 
                 nfb_duration = self.nfb_samps
@@ -445,6 +445,7 @@ class Experiment():
 
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
+        logging.info(f"results_dir: {self.dir_name}")
         os.makedirs(self.dir_name)
 
         wait_bar = WaitMessage(WAIT_BAR_MESSAGES['EXPERIMENT_START']).show_and_return()

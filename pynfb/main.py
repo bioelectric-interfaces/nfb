@@ -167,7 +167,8 @@ def main():
 
 if __name__ == '__main__':
     log_path = "log"
-    os.makedirs(log_path, exist_ok=False)
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
     timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
     log_file = os.path.join(log_path, f'{timestamp_str}.log')
     logging.basicConfig(filename=log_file, level=logging.DEBUG, filemode='w')
