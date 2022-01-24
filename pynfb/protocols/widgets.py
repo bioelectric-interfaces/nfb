@@ -381,7 +381,7 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.previous_score = previous_score
         self.fs = fs
         self.current_sample_idx = 0
-        self.show_duration = 0.5
+        self.show_duration = 1.0
 
 
     def prepare_widget(self, widget):
