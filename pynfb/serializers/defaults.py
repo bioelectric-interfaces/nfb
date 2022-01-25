@@ -45,6 +45,7 @@ vectors_defaults = OrderedDict([
             ('fAverage', ''),
             ('fStdDev', ''),
             ('bBCIMode', 0),
+            ('bSTCMode', 0),
             ('lROILabel', []),
             ('bNFBType', 0),
             ('sTemporalType', 'envdetector'),

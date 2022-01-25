@@ -142,6 +142,11 @@ class SignalDialog(QtWidgets.QDialog):
         self.bci_checkbox.stateChanged.connect(self.bci_mode_changed)
         self.form_layout.addRow('&BCI mode:', self.bci_checkbox)
 
+        # Source estimation mode
+        self.stc_source_checkbock = QtWidgets.QCheckBox('stc source')
+        self.stc_source_checkbock.stateChanged.connect(self.stc_mode_changed)
+        self.form_layout.addRow('&stc source:', self.stc_source_checkbock)
+
         # ok button
         self.save_button = QtWidgets.QPushButton('Save')
         self.save_button.clicked.connect(self.save_and_close)
@@ -155,9 +160,14 @@ class SignalDialog(QtWidgets.QDialog):
         self.spatial_filter.setDisabled(self.bci_checkbox.isChecked())
         self.temporal_settings.setDisabled(self.bci_checkbox.isChecked())
 
+    def stc_mode_changed(self):
+        self.spatial_filter.setDisabled(self.stc_source_checkbock.isChecked())
+        self.temporal_settings.setDisabled(self.stc_source_checkbock.isChecked())
+
     def reset_items(self):
         current_signal_index = self.parent().list.currentRow()
         self.bci_checkbox.setChecked(self.params[current_signal_index]['bBCIMode'])
+        self.stc_source_checkbock.setChecked(self.params[current_signal_index]['bSTCMode'])
         self.spatial_filter.file.path.setText(self.params[current_signal_index]['SpatialFilterMatrix'])
         roi_label = self.params[current_signal_index]['lROILabel']
         self.spatial_filter.nfb_type.setChecked(self.params[current_signal_index]['bNFBType'])
@@ -174,6 +184,7 @@ class SignalDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['lROILabel'] = roi_labels
         self.params[current_signal_index]['bNFBType'] = int(self.spatial_filter.nfb_type.isChecked())
         self.params[current_signal_index]['bBCIMode'] = int(self.bci_checkbox.isChecked())
+        self.params[current_signal_index]['bSTCMode'] = int(self.stc_source_checkbock.isChecked())
         for key, val in self.temporal_settings.get_params().items():
             self.params[current_signal_index][key] = val
         self.parent().reset_items()

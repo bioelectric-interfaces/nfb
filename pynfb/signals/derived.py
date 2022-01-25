@@ -1,6 +1,8 @@
 import mne
 import numpy as np
 from mne.minimum_norm import apply_inverse_raw
+from mne.minimum_norm.inverse import _pick_channels_inverse_operator, _subject_from_inverse
+from mne.source_estimate import _get_src_type, _make_stc
 
 from pynfb.serializers import save_spatial_filter, read_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFTBandEnvelopeDetector, \
@@ -8,7 +10,7 @@ from pynfb.signal_processing.filters import ExponentialSmoother, SGSmoother, FFT
     FilterSequence, DelayFilter, CFIRBandEnvelopeDetector
 from pynfb.signals.rejections import Rejections
 
-from ..helpers.roi_spatial_filter import get_stc_params
+from ..helpers.roi_spatial_filter import get_stc_params, get_kernel_results
 
 ENVELOPE_DETECTOR_TYPE_DEFAULT = 'fft'
 ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
@@ -28,18 +30,23 @@ ENVELOPE_DETECTOR_KWARGS_DEFAULT = {
 
 class DerivedSignal:
     @classmethod
-    def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None, avg_window=100, enable_smoothing=False):
+    def from_params(cls, ind, fs, n_channels, channels, params, spatial_filter=None, avg_window=100, enable_smoothing=False, stc_mode=False):
         inv = None
         info = None
         roi_label = None
         sourcefb = None
+        K = None
+        noise_norm = None
+        vertno = None
+        source_nn = None
         if spatial_filter is None:
             sourcefb = bool(params['lROILabel'])
             labels = params['lROILabel'].copy()
             spatial_filter = read_spatial_filter(params['SpatialFilterMatrix'], fs, channels, params['lROILabel'], params['bNFBType'])
             print(f"SOURCE: {sourcefb}, {labels}")
             if sourcefb:
-                inv, info, roi_label = get_stc_params(labels, channels, fs)
+                # inv, info, roi_label = get_stc_params(labels, channels, fs)
+                K, noise_norm, vertno, source_nn, inv, info = get_kernel_results(labels, fs, channels)
         return cls(ind=ind,
                    bandpass_high=params['fBandpassHighHz'],
                    bandpass_low=params['fBandpassLowHz'],
@@ -57,17 +64,22 @@ class DerivedSignal:
                    delay_ms=params['iDelayMs'],
                    avg_window=avg_window,
                    enable_smoothing=enable_smoothing,
+                   K=K,
+                   noise_norm=noise_norm,
+                   vertno=vertno,
+                   source_nn=source_nn,
                    inv=inv,
                    info=info,
                    roi_label=roi_label,
                    sourcefb=sourcefb,
-                   channels=channels)
+                   channels=channels,
+                   stc_mode=stc_mode)
 
     def __init__(self, ind, source_freq, n_channels=50, n_samples=1000, bandpass_low=None, bandpass_high=None,
                  spatial_filter=None, scale=False, name='Untitled', disable_spectrum_evaluation=False,
                  smoothing_factor=0.1, temporal_filter_type='fft', envelop_detector_kwargs=None, smoother_type='exp',
                  estimator_type='envdetector', filter_order=2, delay_ms=0, avg_window=100, enable_smoothing=False,
-                 inv=None, info=None, roi_label=None, sourcefb=False, channels=None):
+                 inv=None, info=None, roi_label=None, sourcefb=False, channels=None, K=None, noise_norm=None, vertno=None, source_nn=None, stc_mode=False):
 
         self.n_samples = int(n_samples)
         self.fs = source_freq
@@ -127,6 +139,11 @@ class DerivedSignal:
         self.info = info
         self.roi_label = roi_label
         self.channels=channels
+        self.K = K
+        self.noise_norm = noise_norm
+        self.vertno = vertno
+        self.source_nn = source_nn
+        self.stc_mode = stc_mode
 
     def reset_signal_estimator(self):
         if self.estimator_type == 'envdetector':
@@ -167,8 +184,8 @@ class DerivedSignal:
         filtered_chunk = np.dot(chunk, self.spatial_matrix)
         # Todo - only do one set of processing (currently we get the filter and the stc - and also apply both
         # This below method of doing source makes the program quite unresponsive
-        # if self.sourcefb:
-        #     filtered_chunk = self.get_max_source_signal(chunk)
+        if self.stc_mode:
+            filtered_chunk = self.get_max_source_signal(chunk)
         current_chunk = self.signal_estimator.apply(filtered_chunk)
         if self.scaling_flag and self.std > 0:
             current_chunk = (current_chunk - self.mean) / self.std
@@ -250,14 +267,31 @@ class DerivedSignal:
 
     def get_max_source_signal(self, chunk):
         print(f"APPLYING MAX SOURCE")
-        method = "sLORETA"
-        snr = 3.
-        lambda2 = 1. / snr ** 2
+        # method = "sLORETA"
+        # snr = 3.
+        # lambda2 = 1. / snr ** 2
         delete_chs = [self.channels.index(x) for x in ['EOG', 'ECG', 'MKIDX']]
         chunk = np.delete(chunk, delete_chs, axis=1)
-        # TODO - should this be baseline corrected?
+        # # TODO - should this be baseline corrected?
         raw = mne.io.RawArray(chunk.T, self.info, first_samp=0, copy='auto', verbose=None)
-        raw.set_eeg_reference(projection=True)
-        stc = apply_inverse_raw(raw, self.inv, lambda2, method, self.roi_label, pick_ori=None)
-        vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+        # raw.set_eeg_reference(projection=True)
+        # stc = apply_inverse_raw(raw, self.inv, lambda2, method, self.roi_label, pick_ori=None)
+        # vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+        # return stc.data[vertno_max_idx]
+
+
+        sel = _pick_channels_inverse_operator(raw.ch_names, self.inv)
+        data, times = raw[sel, None:None]
+        sol = np.dot(self.K, data)
+        if self.noise_norm is not None:
+            sol *= self.noise_norm
+
+        tmin = float(times[0])
+        tstep = 1.0 / raw.info['sfreq']
+        subject = _subject_from_inverse(self.inv)
+        src_type = _get_src_type(self.inv['src'], self.vertno)
+        stc = _make_stc(sol, self.vertno, tmin=tmin, tstep=tstep, subject=subject,
+                        vector=False, source_nn=self.source_nn,
+                        src_type=src_type)
+        vertno_max_idx, time_max = stc.get_peak(hemi=None, vert_as_index=True)
         return stc.data[vertno_max_idx]
