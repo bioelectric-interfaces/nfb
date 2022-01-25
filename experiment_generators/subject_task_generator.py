@@ -108,6 +108,8 @@ if __name__ == "__main__":
     #   [ ] sham set as above
     #   [ ] make sure images are only shown once (so separate folder for sham, scalp, source)
 
+    # TODO: generate a participant directory with scalp, source, sham subdirs in USERS/HOME/EEG_DATA
+
     # Base images path
     # base_images_path = "image_stimuli"
     # base_images_path = "/Users/2354158T/Documents/image_stimuli"
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     baseline_duration = 120
     number_nfb_tasks = 100
     use_baseline_correction = 1
-    baseline_cor_threshold = 0.25
+    baseline_cor_threshold = 0.2
     mock_file = ''
     smooth_window = 100 # THIS IS AAI SMOOTHING
     enable_smoothing = 1 # THIS IS AAI SMOOTHING
