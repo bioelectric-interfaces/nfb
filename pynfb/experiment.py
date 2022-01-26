@@ -50,7 +50,7 @@ class Experiment():
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
-        self.probe_dur = 0.032 # seconds # TODO: make this depend on screen refresh rate
+        self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         self.mean_reward_signal = 0
         self.fb_score = None

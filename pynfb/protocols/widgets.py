@@ -300,7 +300,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
 
         # Draw the probe if requested
         if self.probe:
-            self.fill.setBrush((0, 0, 0, 200))
+            self.fill.setBrush((0, 0, 0, 255))
             tr = QTransform()
             if self.probe_loc == "LEFT":
                 loc = 1
