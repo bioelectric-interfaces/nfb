@@ -12,7 +12,7 @@
 	<bPlotSignals>1</bPlotSignals>
 	<bPlotSourceSpace>0</bPlotSourceSpace>
 	<bShowSubjectWindow>1</bShowSubjectWindow>
-	<fRewardPeriodS>0.25</fRewardPeriodS>
+	<fRewardPeriodS>0.05</fRewardPeriodS>
 	<sReference></sReference>
 	<sReferenceSub></sReferenceSub>
 	<bUseExpyriment>0</bUseExpyriment>
@@ -106,7 +106,7 @@
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>ExperimentStart</sFb_type>
-			<cString>When ready, press SPACE to begin. </cString>
+			<cString>Explore the images as you would naturally explore a painting or photo. When ready, press SPACE to begin. </cString>
 			<bVoiceover>0</bVoiceover>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>

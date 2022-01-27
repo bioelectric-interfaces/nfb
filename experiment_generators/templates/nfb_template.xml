@@ -14,7 +14,7 @@
 	<bPlotSignals>1</bPlotSignals>
 	<bPlotSourceSpace>0</bPlotSourceSpace>
 	<bShowSubjectWindow>1</bShowSubjectWindow>
-	<fRewardPeriodS>0.25</fRewardPeriodS>
+	<fRewardPeriodS>0.05</fRewardPeriodS>
 	<sReference></sReference>
 	<sReferenceSub></sReferenceSub>
 	<bUseExpyriment>0</bUseExpyriment>
@@ -483,7 +483,7 @@
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>ExperimentStart</sFb_type>
 			<cString>You will now begin NFB Training.
-&lt;br&gt;Keep your eyes fixated on the centre cross.
+&lt;br&gt;Keep your eyes fixated on the centre dot.
 &lt;br&gt;Try to guess if the 2nd image is correct by making the 1st image visable.
 &lt;br&gt;Your score shows how long you could keep the image visible.
 &lt;br&gt;Try to get a higher score each time.
