@@ -78,7 +78,7 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     # ----Get just a single epoch (when the screen transitions for the first time)---
                     first_transition = df1.loc[df1.choice_events == 1].iloc[0].loc['sample']
-                    # df1 = df1.loc[first_transition - 500:first_transition + 500, :]
+                    df_first_transitino = df1.loc[first_transition - 500:first_transition + 500, :]
                     #--------------
 
 
@@ -184,15 +184,39 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     inverse_operator_nfb = mne.minimum_norm.make_inverse_operator(info_nfb, fwd, noise_cov_nfb,
                                                                               fixed=True)
-                    stc, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
+                    stc_nfb, residual = apply_inverse(choice_transition, inverse_operator_nfb, lambda2,
                                               method=method, pick_ori=None,
-                                              return_residual=True, verbose=True) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
+                                              return_residual=True, verbose=True, label=label_lh) # This is the same as the way above except more or less the absolute value - IS THIS WHAT WE NEED???
 
-                    vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+                    vertno_max_idx, time_max = stc_nfb.get_peak(hemi=None,vert_as_index=True)
                     fig, ax = plt.subplots()
-                    ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+                    ax.plot(1e3 * stc_nfb.times, stc_nfb.data[vertno_max_idx])
                     ax.set(xlabel='time (ms)', ylabel='%s value' % method)
 
+                    plt.figure()
+                    plt.plot(1e3 * stc_nfb.times, stc_nfb.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('raw stc source')
+                    plt.show()
+
+                    # ---average the sources in the label
+                    flip = mne.label_sign_flip(label_lh, inverse_operator['src'])
+
+                    label_mean = np.mean(stc_nfb.data, axis=0)
+                    label_mean_flip = np.mean(flip[:, np.newaxis] * stc_nfb.data, axis=0)
+
+                    times = 1e3 * stc_nfb.times  # times in ms
+
+                    plt.figure()
+                    h0 = plt.plot(times, stc_nfb.data.T, 'k')
+                    h1, = plt.plot(times, label_mean, 'r', linewidth=3)
+                    h2, = plt.plot(times, label_mean_flip, 'g', linewidth=3)
+                    plt.legend((h0[0], h1, h2), ('all dipoles in label', 'mean',
+                                                 'mean with sign flip'))
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('dSPM value')
+                    plt.show()
 
                     # vertno_max, time_max = stc.get_peak(hemi=None)
                     # surfer_kwargs = dict(
@@ -211,28 +235,37 @@ for participant, participant_dirs in experiment_dirs.items():
                     # # get start and stop time
                     # start_time = (first_transition - 500) / fs
                     # stop_time = (first_transition + 500) / fs
-                    # start, stop = m_raw.time_as_index([start_time, stop_time])
-                    # # m_raw = m_raw.crop(tmin=start, tmax=stop)
+                    # start, stop = m_filt.time_as_index([start_time, stop_time])
+                    # m_raw = m_raw.crop(tmin=start, tmax=stop)
                     # m_raw.drop_channels(['ECG', 'EOG'])
-                    # stc = apply_inverse_raw(m_raw, inverse_operator_nfb, lambda2, method, label_lh,
-                    #     start, stop, pick_ori=None)
-                    # vertno_max, time_max = stc.get_peak(hemi=None)
-                    # surfer_kwargs = dict(
-                    #     hemi='both',
-                    #     clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
-                    #     initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
-                    #     surface='Pial', transparent=True, alpha=0.9, colorbar=True)
-                    # brain = stc.plot(**surfer_kwargs)
-                    # brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
-                    #                scale_factor=0.6, alpha=0.5)
-                    # brain.add_text(0.1, 0.9, 'NFBLab method raw', 'title',
-                    #                font_size=14)
-                    # plt.figure()
-                    # plt.plot(1e3 * stc.times, stc.data[::100, :].T)
-                    # plt.xlabel('time (ms)')
-                    # plt.ylabel('%s value' % method)
-                    # plt.title('raw stc source')
-                    # plt.show()
+                    # stc = apply_inverse_raw(ft_raw, inverse_operator_nfb, lambda2, method, label_lh,
+                    #                         start, stop, pick_ori=None)
+                    ft_eeg_data = df_first_transitino.drop(
+                        columns=['signal_Alpha_Left', 'signal_Alpha_Right', 'signal_AAI', 'events', 'reward', 'choice', 'answer', 'probe', 'block_name',
+                                 'block_number', 'sample', 'MKIDX', 'protocol_change', 'choice_events'])
+                    ft_raw = mne.io.RawArray(ft_eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+                    ft_raw.set_eeg_reference(projection=True)
+                    ft_raw = ft_raw.filter(l_freq=0, h_freq=40)
+
+                    # TODO - should this be baseline corrected?
+                    stc = apply_inverse_raw(ft_raw, inverse_operator_nfb, lambda2, method, label_lh,pick_ori=None)
+                    vertno_max, time_max = stc.get_peak(hemi=None)
+                    surfer_kwargs = dict(
+                        hemi='both',
+                        clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+                        initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+                        surface='Pial', transparent=True, alpha=0.9, colorbar=True, backend='mayavi')
+                    brain = stc.plot(**surfer_kwargs)
+                    brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+                                   scale_factor=0.6, alpha=0.5)
+                    brain.add_text(0.1, 0.9, 'NFBLab method raw', 'title',
+                                   font_size=14)
+                    plt.figure()
+                    plt.plot(1e3 * stc.times, stc.data[::100, :].T)
+                    plt.xlabel('time (ms)')
+                    plt.ylabel('%s value' % method)
+                    plt.title('raw stc source')
+                    plt.show()
                     #
                     # vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
                     # fig, ax = plt.subplots()
