@@ -33,45 +33,51 @@ for p in participants:
 experiment_data = []
 for participant, participant_dirs in experiment_dirs.items():
     participant_data = {"participant_id": participant, "session_data": []}
-    for session, session_dirs in participant_dirs.items():
-        session_data = {}
-        for task_dir in session_dirs:
-            if "nfb" in task_dir:
-                task_data = {}
-                h5file = os.path.join(data_directory, participant, session, task_dir, "experiment_data.h5") #"/Users/christopherturner/Documents/EEG_Data/ChrisPilot20220110/0-pre_task_ct01_01-10_16-07-00/experiment_data.h5"
-                # h5file = "/Users/christopherturner/Documents/EEG_Data/ChrisPilot20220110/0-post_task_ct01_01-10_16-55-15/experiment_data.h5"
+    print(f"processing...")
+    print(f"participant: {participant}")
+    if participant:#== 'ct02':
+        for session, session_dirs in participant_dirs.items():
+            session_data = {}
+            print(f"session: {session}")
+            for task_dir in session_dirs:
+                if "nfb" in task_dir:
+                    print(f"task: {task_dir}")
+                    task_data = {}
+                    h5file = os.path.join(data_directory, participant, session, task_dir, "experiment_data.h5") #"/Users/christopherturner/Documents/EEG_Data/ChrisPilot20220110/0-pre_task_ct01_01-10_16-07-00/experiment_data.h5"
+                    # h5file = "/Users/christopherturner/Documents/EEG_Data/ChrisPilot20220110/0-post_task_ct01_01-10_16-55-15/experiment_data.h5"
 
-                # Put data in pandas data frame
-                df1, fs, channels, p_names = load_data(h5file)
-                df1['sample'] = df1.index
+                    # Put data in pandas data frame
+                    df1, fs, channels, p_names = load_data(h5file)
+                    df1['sample'] = df1.index
 
-                # Plot AAI of whole experiment
-                # fig = px.line(df1, x="sample", y="signal_AAI")
-                # fig.show()
+                    # Plot AAI of whole experiment
+                    # fig = px.line(df1, x="sample", y="signal_AAI")
+                    # fig.show()
 
-                # get the protocol data and average the AAI for each protocol
-                protocol_data = af.get_protocol_data(df1, channels=channels, p_names=p_names, eog_filt=False)
-                nfb_aai_medians = []
-                for protocol, data in protocol_data.items():
-                    if "nfb" in protocol.lower():
-                        median_aai = data.loc[data['channel'] == "signal_AAI"]['data'].median()
-                        nfb_aai_medians.append(median_aai)
+                    # get the protocol data and average the AAI for each protocol
+                    protocol_data = af.get_protocol_data(df1, channels=channels, p_names=p_names, eog_filt=False)
+                    nfb_aai_medians = []
+                    for protocol, data in protocol_data.items():
+                        if "nfb" in protocol.lower():
+                            median_aai = data.loc[data['channel'] == "signal_AAI"]['data'].median()
+                            nfb_aai_medians.append(median_aai)
 
-                # ----- Plot the aai medians-----
-                # fig = px.line(nfb_aai_medians, title=f"{participant}>{session}>{task_dir}")
-                # fig.show()
+                    # ----- Plot the aai medians-----
+                    fig = px.line(nfb_aai_medians, title=f"{participant}>{session}>{task_dir}")
+                    fig.show()
 
-                # split AAI into first/second/third blocks for the participant
+                    # split AAI into first/second/third blocks for the participant
 
-                task_data["aai_1"] = nfb_aai_medians[0: int(len(nfb_aai_medians)/4)]
-                task_data["aai_2"] = nfb_aai_medians[int(len(nfb_aai_medians)/4): int(len(nfb_aai_medians)/4) * 2]
-                task_data["aai_3"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 2): int(len(nfb_aai_medians)/4) * 3]
-                task_data["aai_4"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 3): -1]
-                session_data[task_dir] = pd.DataFrame(task_data)
-                pass
-        participant_data["session_data"].append(session_data)
-    experiment_data.append(participant_data)
+                    task_data["aai_1"] = nfb_aai_medians[0: int(len(nfb_aai_medians)/4)]
+                    task_data["aai_2"] = nfb_aai_medians[int(len(nfb_aai_medians)/4): int(len(nfb_aai_medians)/4) * 2]
+                    task_data["aai_3"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 2): int(len(nfb_aai_medians)/4) * 3]
+                    task_data["aai_4"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 3): -1]
+                    session_data[task_dir] = pd.DataFrame(task_data)
+                    pass
+            participant_data["session_data"].append(session_data)
+        experiment_data.append(participant_data)
 
+# TODO: save experiment data off here - so can run in group data scripts after
 for experiment in experiment_data:
     print(f'Participant: {experiment["participant_id"]}')
     for session in experiment['session_data']:
@@ -84,5 +90,8 @@ for experiment in experiment_data:
             pass
 
 
+# TODO: group analysis (permutation testing?)
+
+# TODO: calculate brain AAI and do same analysis as above i.e. source power for lateralised source signals over filtered data for whole runs
 
 pass
