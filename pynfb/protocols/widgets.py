@@ -407,7 +407,7 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.text_item.setTextWidth(500)
 
         self.rtext_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
-        self.rtext_item.setAnchor((0.5, -2.5))
+        self.rtext_item.setAnchor((0.5, 4))
         self.rtext_item.setTextWidth(500)
 
         self.widget.addItem(self.text_item)
