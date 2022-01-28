@@ -57,14 +57,34 @@ for participant, participant_dirs in experiment_dirs.items():
                     # get the protocol data and average the AAI for each protocol
                     protocol_data = af.get_protocol_data(df1, channels=channels, p_names=p_names, eog_filt=False)
                     nfb_aai_medians = []
+                    all_aai_medians = []
+                    previous_score = 0
+                    score = []
                     for protocol, data in protocol_data.items():
                         if "nfb" in protocol.lower():
                             median_aai = data.loc[data['channel'] == "signal_AAI"]['data'].median()
                             nfb_aai_medians.append(median_aai)
+                            score.append(data['reward'].iloc[-1] - previous_score)
+                            previous_score = data['reward'].iloc[-1]
+                        all_median_aai = data.loc[data['channel'] == "signal_AAI"]['data'].median()
+                        all_aai_medians.append(all_median_aai)
 
-                    # ----- Plot the aai medians-----
+                    task_data['score'] = score
+                    # ----- Plot the nfb aai medians-----
                     fig = px.line(nfb_aai_medians, title=f"{participant}>{session}>{task_dir}")
                     fig.show()
+
+                    # ----- Plot the aai medians-----
+                    fig = px.line(all_aai_medians, title=f"{participant}>{session}>{task_dir}")
+                    fig.show()
+
+                    # ----- Get the choice and answer results
+                    choice_data = df1.loc[df1['choice'] != 0]
+                    choice_data['choice_results'] = choice_data.apply(lambda row: 1 if row["choice"] == row["answer"] else 0, axis = 1)
+                    fig = px.scatter(choice_data['choice_results'], title=f"{participant}>{session}>{task_dir}")
+                    fig.show()
+                    task_data["percent_correct"] = len(choice_data.loc[choice_data['choice_results'] == 1]) / len(choice_data)
+
 
                     # split AAI into first/second/third blocks for the participant
 

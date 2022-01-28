@@ -23,7 +23,7 @@ def get_protocol_data(task_data, channels, p_names, eog_filt=True):
     if eog_filt:
         channels_signal.append("EOG_FILTERED")
         channels_signal.append("ECG_FILTERED")
-    df2 = pd.melt(task_data, id_vars=['block_name', 'block_number', 'sample', 'choice', 'probe', 'answer'],
+    df2 = pd.melt(task_data, id_vars=['block_name', 'block_number', 'sample', 'choice', 'probe', 'answer', 'reward'],
                   value_vars=channels_signal, var_name="channel", value_name='data')
 
     for protocol_n in block_numbers:
