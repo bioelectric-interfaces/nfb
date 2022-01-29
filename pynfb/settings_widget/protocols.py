@@ -280,6 +280,9 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.form_layout.addRow('&Reward threshold:', self.reward_threshold)
         self.show_reward = QtWidgets.QCheckBox()
         self.form_layout.addRow('&Show reward:', self.show_reward)
+        self.mock_reward_threshold = QtWidgets.QDoubleSpinBox()
+        self.mock_reward_threshold.setRange(-10000, 10000)
+        self.form_layout.addRow('&Mock reward threshold:', self.mock_reward_threshold)
 
         # video path
         self.video_path = FileSelectorLine()
@@ -382,6 +385,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
         self.show_reward.setChecked(current_protocol['bShowReward'])
         self.reward_threshold.setValue(current_protocol['bRewardThreshold'])
+        self.mock_reward_threshold.setValue(current_protocol['bMockRewardThreshold'])
         self.enable_mock_previous.setChecked(current_protocol['iMockPrevious'] > 0)
         self.mock_previous.setValue(current_protocol['iMockPrevious'])
         self.random_mock_previous.setChecked(current_protocol['bRandomMockPrevious'])
@@ -434,6 +438,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())
         self.params[current_signal_index]['bRewardThreshold'] = self.reward_threshold.value()
+        self.params[current_signal_index]['bMockRewardThreshold'] = self.mock_reward_threshold.value()
         # self.params[current_signal_index]['bUseBCThreshold'] = int(self.enable_bc_threshold.isChecked())
         # self.params[current_signal_index]['dBCThresholdAdd'] = self.bc_threshold_add.value()
         self.params[current_signal_index]['iMockPrevious'] = (

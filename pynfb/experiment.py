@@ -353,7 +353,7 @@ class Experiment():
                         current_protocol.widget_painter.r_threshold = bc_threshold
                 else:
                     # TODO: create a mock baseline threshold gui field
-                    bc_threshold = 0.0885
+                    bc_threshold = current_protocol.mock_reward_threshold
                     logging.info(f"MOCK R THRESHOLD: {bc_threshold}")
                     current_protocol.widget_painter.r_threshold = bc_threshold
 
@@ -584,6 +584,7 @@ class Experiment():
                 show_reward=bool(protocol['bShowReward']),
                 reward_signal_id=reward_signal_id,
                 reward_threshold=protocol['bRewardThreshold'],
+                mock_reward_threshold=protocol['bMockRewardThreshold'],
                 ssd_in_the_end=protocol['bSSDInTheEnd'],
                 timer=self.main_timer,
                 freq=self.freq,

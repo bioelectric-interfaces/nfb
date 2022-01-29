@@ -96,6 +96,7 @@ vectors_defaults = OrderedDict([
             ('bRandomMockPrevious', 0),
             ('sRewardSignal', ''),
             ('bRewardThreshold', 0),
+            ('bMockRewardThreshold', 0),
             ('bShowReward', 0),
             ('bPauseAfter', 0),
             ('bBeepAfter', 0),
