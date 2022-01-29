@@ -282,6 +282,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.form_layout.addRow('&Show reward:', self.show_reward)
         self.mock_reward_threshold = QtWidgets.QDoubleSpinBox()
         self.mock_reward_threshold.setRange(-10000, 10000)
+        self.mock_reward_threshold.setDecimals(3)
         self.form_layout.addRow('&Mock reward threshold:', self.mock_reward_threshold)
 
         # video path

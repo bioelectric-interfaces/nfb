@@ -171,6 +171,7 @@
 			<bRandomMockPrevious>0</bRandomMockPrevious>
 			<sRewardSignal>{{composite_signal}}</sRewardSignal>
 			<bRewardThreshold>0.01</bRewardThreshold>
+			<bMockRewardThreshold>{{mock_reward_threshold}}</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>

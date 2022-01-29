@@ -26,7 +26,7 @@ class ParticipantTaskGenerator:
                  right_spatial_filter_scalp="P3=1",
                  source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
                  baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=1, smooth_window=100,
-                 fft_window=250):
+                 fft_window=250, mock_reward_threshold=0.0):
 
         self.template_file = template_file
         self.composite_signal = composite_signal
@@ -56,6 +56,7 @@ class ParticipantTaskGenerator:
         self.smooth_window = smooth_window
         self.enable_smoothing = enable_smoothing
         self.fft_window = fft_window
+        self.mock_reward_threshold = mock_reward_threshold
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -90,7 +91,8 @@ class ParticipantTaskGenerator:
             'baseline_cor_threshold': self.baseline_cor_threshold,
             'smooth_window': self.smooth_window,
             'enable_smoothing': self.enable_smoothing,
-            'fft_window': self.fft_window
+            'fft_window': self.fft_window,
+            'mock_reward_threshold': self.mock_reward_threshold
         }
         #
         with open(output_fname, 'w') as f:
@@ -113,14 +115,15 @@ if __name__ == "__main__":
     # Base images path
     # base_images_path = "image_stimuli"
     # base_images_path = "/Users/2354158T/Documents/image_stimuli"
-    base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
+    base_images_path = "/Users/2354158T/OneDrive - University of Glasgow/Documents/PilotImageSet_forExperiment"
+    # base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
     session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham # TODO: MAKE SURE THIS IS RANDOMISED
 
     # randomise session order
     random.shuffle(session_images_paths)
 
     # Common settings
-    participant_no = "tst"
+    participant_no = "kk"
     stream_name = "BrainVision RDA"
     image_path = ""
     band_low = 8
@@ -135,6 +138,7 @@ if __name__ == "__main__":
     smooth_window = 100 # THIS IS AAI SMOOTHING
     enable_smoothing = 1 # THIS IS AAI SMOOTHING
     fft_window = 1000
+    mock_reward_threshold = 0.089
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -164,7 +168,8 @@ if __name__ == "__main__":
             # sham
             left_spatial_filter_scalp = "CP5=1;P5=1;01=1"
             right_spatial_filter_scalp = "CP6=1;P6=1;02=1"
-            mock_file = '/Users/christopherturner/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
+            # mock_file = '/Users/christopherturner/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
+            mock_file = '/Users/2354158T/Documents/EEG_Data/pilot_202201_sham/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
         for task, template in tasks.items():
             free_view_images = None
             if task == "pre_task":
@@ -193,5 +198,6 @@ if __name__ == "__main__":
                                            use_baseline_correction=use_baseline_correction,
                                            smooth_window=smooth_window,
                                            enable_smoothing=enable_smoothing,
-                                           fft_window=fft_window)
+                                           fft_window=fft_window,
+                                           mock_reward_threshold=mock_reward_threshold)
             Tsk.create_task(participant=participant_no)
