@@ -337,12 +337,12 @@ class Experiment():
             # TODO: make this more generic (only dependant on the protocol)
             bc_threshold = None
             if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter):
-                # Only update the threshold if we aren't doing mock/sham
-                if current_protocol.mock_samples_file_path is None :
-                    self.gabor_theta = r.choice(range(20, 180, 20))
-                    logging.info(f"GABOR THETA: {self.gabor_theta}")
-                    current_protocol.widget_painter.gabor_theta = self.gabor_theta
+                self.gabor_theta = r.choice(range(20, 180, 20))
+                logging.info(f"GABOR THETA: {self.gabor_theta}")
+                current_protocol.widget_painter.gabor_theta = self.gabor_theta
 
+                # Only update the threshold if we aren't doing mock/sham
+                if current_protocol.mock_samples_file_path is None:
                     if self.params['bUseBCThreshold']:
                         # update the threshold for the Gabor feedback protocol with variable percentage
                         # TODO: also make this more generic (for all feedback protocols - not just Gabor)
@@ -351,6 +351,13 @@ class Experiment():
                         bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
                         logging.info(f"R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
                         current_protocol.widget_painter.r_threshold = bc_threshold
+                else:
+                    # TODO: create a mock baseline threshold gui field
+                    bc_threshold = 0.0885
+                    logging.info(f"MOCK R THRESHOLD: {bc_threshold}")
+                    current_protocol.widget_painter.r_threshold = bc_threshold
+
+
 
             # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
@@ -405,10 +412,10 @@ class Experiment():
             if self.params['bShowSubjectWindow']:
                 self.subject.change_protocol(current_protocol)
             if current_protocol.mock_samples_file_path is not None:
-                print(f"mockpath: {current_protocol.mock_samples_file_path}, mockprotocol: {current_protocol.mock_samples_protocol}, actual_mock_protocol: protocol{self.current_protocol_index}")
+                logging.info(f"mockpath: {current_protocol.mock_samples_file_path}, mockprotocol: {current_protocol.mock_samples_protocol}, actual_mock_protocol: protocol{self.current_protocol_index}")
                 self.mock_signals_buffer = load_h5py_protocol_signals(
                     current_protocol.mock_samples_file_path,
-                    f"protocol{self.current_protocol_index}") # TODO: [ ]fix this - it only works if there are the same number of protocols in sham and real (study must be identical)
+                    f"protocol{self.current_protocol_index+1}") # TODO: [ ]fix this - it only works if there are the same number of protocols in sham and real (study must be identical)
                     # current_protocol.mock_samples_protocol)
             self.main.status.update()
 
@@ -417,6 +424,8 @@ class Experiment():
                 self.reward.threshold = bc_threshold
             else:
                 self.reward.threshold = current_protocol.reward_threshold
+
+            logging.info(f"BC THRESHOLD: {bc_threshold}, RW THRESHOLD: {self.reward.threshold}")
             reward_signal_id = current_protocol.reward_signal_id
             print(self.signals)
             print(reward_signal_id)
@@ -447,8 +456,10 @@ class Experiment():
 
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
-        logging.info(f"results_dir: {self.dir_name}")
         os.makedirs(self.dir_name)
+        logging.basicConfig(filename=os.path.join(self.dir_name, f"{timestamp_str}.log"), level=logging.DEBUG, filemode='w')
+        logging.info(f"START OF SCRIPT")
+        logging.info(f"results_dir: {self.dir_name}")
 
         wait_bar = WaitMessage(WAIT_BAR_MESSAGES['EXPERIMENT_START']).show_and_return()
 
