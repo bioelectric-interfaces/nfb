@@ -35,7 +35,7 @@ for participant, participant_dirs in experiment_dirs.items():
     participant_data = {"participant_id": participant, "session_data": []}
     print(f"processing...")
     print(f"participant: {participant}")
-    if participant:#== 'ct02':
+    if participant== 'ct02':
         for session, session_dirs in participant_dirs.items():
             session_data = {}
             print(f"session: {session}")
@@ -69,9 +69,18 @@ for participant, participant_dirs in experiment_dirs.items():
                         all_median_aai = data.loc[data['channel'] == "signal_AAI"]['data'].median()
                         all_aai_medians.append(all_median_aai)
 
-                    task_data['score'] = score
                     # ----- Plot the nfb aai medians-----
                     fig = px.line(nfb_aai_medians, title=f"{participant}>{session}>{task_dir}")
+                    fig.show()
+
+                    nfb_fcb_medians = []
+                    for protocol, data in protocol_data.items():
+                        if "fc_b" in protocol.lower():
+                            median_fcb = data.loc[data['channel'] == "signal_AAI"]['data'].median()
+                            nfb_fcb_medians.append(median_fcb)
+
+                    # ----- Plot the nfb aai medians-----
+                    fig.add_scatter(y=nfb_fcb_medians)
                     fig.show()
 
                     # ----- Plot the aai medians-----
@@ -83,7 +92,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     choice_data['choice_results'] = choice_data.apply(lambda row: 1 if row["choice"] == row["answer"] else 0, axis = 1)
                     fig = px.scatter(choice_data['choice_results'], title=f"{participant}>{session}>{task_dir}")
                     fig.show()
-                    task_data["percent_correct"] = len(choice_data.loc[choice_data['choice_results'] == 1]) / len(choice_data)
+                    percent_correct = len(choice_data.loc[choice_data['choice_results'] == 1]) / len(choice_data)
 
 
                     # split AAI into first/second/third blocks for the participant
@@ -92,7 +101,7 @@ for participant, participant_dirs in experiment_dirs.items():
                     task_data["aai_2"] = nfb_aai_medians[int(len(nfb_aai_medians)/4): int(len(nfb_aai_medians)/4) * 2]
                     task_data["aai_3"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 2): int(len(nfb_aai_medians)/4) * 3]
                     task_data["aai_4"] = nfb_aai_medians[(int(len(nfb_aai_medians)/4) * 3): -1]
-                    session_data[task_dir] = pd.DataFrame(task_data)
+                    session_data[task_dir] = {'aai_medians': pd.DataFrame(task_data), 'score': score, "percent_correct": percent_correct}
                     pass
             participant_data["session_data"].append(session_data)
         experiment_data.append(participant_data)
@@ -102,7 +111,7 @@ for experiment in experiment_data:
     print(f'Participant: {experiment["participant_id"]}')
     for session in experiment['session_data']:
         print(2)
-        for s_name, section in session.items():
+        for s_name, section in session['aai_medians'].items():
             section_data = pd.melt(section, value_vars=['aai_1', 'aai_2', 'aai_3', 'aai_4'], var_name='section_number')
             title = f'{experiment["participant_id"]}: {s_name}'
             fig = px.box(section_data, x="section_number", y="value", title=title)
