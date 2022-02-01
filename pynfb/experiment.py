@@ -349,7 +349,7 @@ class Experiment():
                         reward_bound = self.params['dBCThresholdAdd'] # percent to add to the bias #
                         # TODO: how to handle negative bias (currently it makes the test easier if they have a negative bias)
                         bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
-                        logging.info(f"R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
+                        logging.info(f"MEAN REWARD SIG: {self.mean_reward_signal}, R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
                         current_protocol.widget_painter.r_threshold = bc_threshold
                 else:
                     # TODO: create a mock baseline threshold gui field
