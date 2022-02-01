@@ -1,6 +1,9 @@
 """
 Analysis functions for the free viewing task
 """
+import os
+
+import mne
 import pandas as pd
 import numpy as np
 import plotly.express as px
@@ -8,6 +11,10 @@ import plotly.express as px
 
 
 # ------Define analysis functions
+from philistine.mne import write_raw_brainvision
+
+from utils.load_results import load_data
+
 
 def get_protocol_data(task_data, channels, p_names, eog_filt=True):
     """
@@ -160,3 +167,43 @@ def free_view_analysis():
 
     # Get average delta_fb for scalp, source, and sham for all participants (OR T-STATISTIC?)
     # do permutation test for difference in above averages (or t-stats?) for scalp->sham and source->sham and scalp->source
+
+
+def convert_hdf5_to_bv(h5file, output_file="output-bv.vhdr"):
+
+    # Put data in pandas data frame
+    df1, fs, channels, p_names = load_data(h5file)
+    df1['sample'] = df1.index
+
+    # Drop non eeg data
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
+
+    # create an MNE info
+    m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs,
+                             ch_types=['eeg' for ch in list(eeg_data.columns)])
+    # Set the montage (THIS IS FROM roi_spatial_filter.py)
+    standard_montage = mne.channels.make_standard_montage(kind='standard_1020')
+    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+    for j, channel in enumerate(eeg_data.columns):
+        try:
+            # make montage names uppercase to match own data
+            standard_montage.ch_names[standard_montage_names.index(channel.upper())] = channel.upper()
+        except ValueError as e:
+            print(f"ERROR ENCOUNTERED: {e}")
+    m_info.set_montage(standard_montage, on_missing='ignore')
+
+    # Create the mne raw object with eeg data
+    m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+    brainvision_file = os.path.join(os.getcwd(), output_file)
+    write_raw_brainvision(m_raw, brainvision_file, events=True)
+
+
+if __name__ == "__main__":
+
+    h5file = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/scalp/0-pre_task_kk_01-27_18-27-31/experiment_data.h5"
+    convert_hdf5_to_bv(h5file, "cap60.vhdr")
