@@ -123,7 +123,7 @@ if __name__ == "__main__":
     random.shuffle(session_images_paths)
 
     # Common settings
-    participant_no = "kk"
+    participant_no = "sh"
     stream_name = "BrainVision RDA"
     image_path = ""
     band_low = 8
@@ -157,8 +157,8 @@ if __name__ == "__main__":
         source_fb = False
         if session == 0:
             # scalp
-            left_spatial_filter_scalp = "CP5=1;P5=1;O1=1"
-            right_spatial_filter_scalp = "CP6=1;P6=1;O2=1"
+            left_spatial_filter_scalp = "PO7=1;P5=1;O1=1"
+            right_spatial_filter_scalp = "PO8=1;P6=1;O2=1"
         elif session == 1:
             # source
             source_roi_left = ("inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh")
@@ -166,8 +166,8 @@ if __name__ == "__main__":
             source_fb = True
         elif session == 2:
             # sham
-            left_spatial_filter_scalp = "CP5=1;P5=1;01=1"
-            right_spatial_filter_scalp = "CP6=1;P6=1;02=1"
+            left_spatial_filter_scalp = "PO7=1;P5=1;01=1"
+            right_spatial_filter_scalp = "PO8=1;P6=1;02=1"
             # mock_file = '/Users/christopherturner/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
             mock_file = '/Users/2354158T/Documents/EEG_Data/pilot_202201_sham/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
         for task, template in tasks.items():
