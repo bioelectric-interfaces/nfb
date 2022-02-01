@@ -76,6 +76,9 @@ Can be done automatically but should really be done visually to ensure good resu
 Get a specific frequency band and remove non-relavant frequencies
 """
 #non-causal, Infinite Impulse Response (IIR) Butterworth filter of 2nd order
+m_resting = m_raw.filter(l_freq=1, h_freq=40, iir_params={"order": 2}, method="iir")
+m_alpha = m_raw.filter(l_freq=8, h_freq=12, iir_params={"order": 2}, method="iir")
+
 
 #-----------------------
 # DOWN SAMPLING
