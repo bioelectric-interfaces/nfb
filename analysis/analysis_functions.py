@@ -16,7 +16,7 @@ from philistine.mne import write_raw_brainvision
 from utils.load_results import load_data
 
 
-def get_protocol_data(task_data, channels, p_names, eog_filt=True):
+def get_protocol_data(task_data, channels, p_names, eog_filt=True, out="dict"):
     """
     return a dictionary containing data for each protocol
     """
@@ -32,9 +32,12 @@ def get_protocol_data(task_data, channels, p_names, eog_filt=True):
         channels_signal.append("ECG_FILTERED")
     df2 = pd.melt(task_data, id_vars=['block_name', 'block_number', 'sample', 'choice', 'probe', 'answer', 'reward'],
                   value_vars=channels_signal, var_name="channel", value_name='data')
+    if out == "df":
+        return df2
 
     for protocol_n in block_numbers:
         protocol_data[protocol_names[protocol_n - 1]] = df2.loc[df2['block_number'] == protocol_n]
+
 
     return protocol_data
 

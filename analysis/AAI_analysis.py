@@ -35,7 +35,7 @@ for participant, participant_dirs in experiment_dirs.items():
     participant_data = {"participant_id": participant, "session_data": []}
     print(f"processing...")
     print(f"participant: {participant}")
-    if participant== 'ct02':
+    if participant:# == 'sh':
         for session, session_dirs in participant_dirs.items():
             session_data = {}
             print(f"session: {session}")
@@ -53,6 +53,27 @@ for participant, participant_dirs in experiment_dirs.items():
                     # Plot AAI of whole experiment
                     # fig = px.line(df1, x="sample", y="signal_AAI")
                     # fig.show()
+
+                    df2 = af.get_protocol_data(df1, channels=channels, p_names=p_names, eog_filt=False, out="df")
+                    aai_data = df2.loc[df2['channel'] == "signal_AAI"]
+                    nfb_data = aai_data.loc[aai_data['block_name'] =='NFB'].reset_index(drop=True)
+                    nfb_data_1 = nfb_data[: int(len(nfb_data)/4)].reset_index(drop=True)
+                    nfb_data_2 = nfb_data[int(len(nfb_data)/4): 2*int(len(nfb_data)/4)].reset_index(drop=True)
+                    nfb_data_3 = nfb_data[2*int(len(nfb_data)/4): 3*int(len(nfb_data)/4)].reset_index(drop=True)
+                    nfb_data_4 = nfb_data[3*int(len(nfb_data)/4): -1].reset_index(drop=True)
+                    baseline_data = aai_data.loc[aai_data['block_name'] =='baseline'].reset_index(drop=True)
+                    fig = px.line(baseline_data, x=baseline_data.index, y="data", title=f"{participant}>{session}>{task_dir}: baseline aai")
+                    fig.show()
+                    fig = px.line(nfb_data, x=nfb_data.index, y="data", title=f"{participant}>{session}>{task_dir}: nfb aai")
+                    fig.show()
+                    fig = px.line(nfb_data_1, x=nfb_data_1.index, y="data", title=f"{participant}>{session}>{task_dir}: nfb aai")
+                    fig.add_scatter(y=nfb_data_2['data'], name="2nd")
+                    fig.add_scatter(y=nfb_data_3['data'], name="3rd")
+                    fig.add_scatter(y=nfb_data_4['data'], name="4th")
+                    fig.show()
+
+                    fig = px.box(aai_data, x="block_name", y="data", notched=True,  title=f"{participant}>{session}>{task_dir}: aai data")
+                    fig.show()
 
                     # get the protocol data and average the AAI for each protocol
                     protocol_data = af.get_protocol_data(df1, channels=channels, p_names=p_names, eog_filt=False)
@@ -80,7 +101,7 @@ for participant, participant_dirs in experiment_dirs.items():
                             nfb_fcb_medians.append(median_fcb)
 
                     # ----- Plot the nfb aai medians-----
-                    fig.add_scatter(y=nfb_fcb_medians)
+                    fig.add_scatter(y=nfb_fcb_medians, name="fcb_medians")
                     fig.show()
 
                     # ----- Plot the aai medians-----
@@ -90,9 +111,19 @@ for participant, participant_dirs in experiment_dirs.items():
                     # ----- Get the choice and answer results
                     choice_data = df1.loc[df1['choice'] != 0]
                     choice_data['choice_results'] = choice_data.apply(lambda row: 1 if row["choice"] == row["answer"] else 0, axis = 1)
-                    fig = px.scatter(choice_data['choice_results'], title=f"{participant}>{session}>{task_dir}")
+                    fig = px.scatter(choice_data['choice_results'], title=f"{participant}>{session}>{task_dir}: choice time course")
+                    fig.show()
+                    dfg = choice_data.groupby(["choice_results"]).count().reset_index()
+                    fig = px.bar(dfg,
+                                 y=choice_data.groupby(["choice_results"]).size(),
+                                 x="choice_results",
+                                 color='choice_results',
+                                 title='choices')
                     fig.show()
                     percent_correct = len(choice_data.loc[choice_data['choice_results'] == 1]) / len(choice_data)
+
+                    # ----- Plot the score
+                    px.bar(score, title=f"{participant}>{session}>{task_dir}: percent score")
 
 
                     # split AAI into first/second/third blocks for the participant
@@ -109,14 +140,16 @@ for participant, participant_dirs in experiment_dirs.items():
 # TODO: save experiment data off here - so can run in group data scripts after
 for experiment in experiment_data:
     print(f'Participant: {experiment["participant_id"]}')
-    for session in experiment['session_data']:
-        print(2)
-        for s_name, section in session['aai_medians'].items():
-            section_data = pd.melt(section, value_vars=['aai_1', 'aai_2', 'aai_3', 'aai_4'], var_name='section_number')
-            title = f'{experiment["participant_id"]}: {s_name}'
-            fig = px.box(section_data, x="section_number", y="value", title=title)
-            fig.show()
-            pass
+    for session_data in experiment['session_data']:
+        for s_no, s_data in session_data.items():
+            for s_name, section in s_data.items():
+                print(s_name)
+                if s_name == "aai_medians":
+                    section_data = pd.melt(section, value_vars=['aai_1', 'aai_2', 'aai_3', 'aai_4'], var_name='section_number')
+                    title = f'{experiment["participant_id"]}: {s_name}'
+                    fig = px.box(section_data, x="section_number", y="value", title=title)
+                    fig.show()
+                    pass
 
 
 # TODO: group analysis (permutation testing?)
