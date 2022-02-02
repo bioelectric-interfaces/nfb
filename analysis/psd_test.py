@@ -81,18 +81,18 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     #------- NFB LAB FILTERING
                     #TODO: above but use the NFBLab filtering system on all the data
-                    bandpass = (8, 12)
-                    smoothing_factor = 0.3
-                    smoother = ExponentialSmoother(smoothing_factor)
-                    left_alpha_chs = "PO7=1;P5=1;O1=1"
-                    channel_labels = eeg_data.columns
-                    spatial_matrix = read_spatial_filter(left_alpha_chs, fs, channel_labels=channel_labels)
-                    filtered_chunk = np.dot(eeg_data, spatial_matrix)
-                    n_samples = len(filtered_chunk)
-                    signal_estimator = FFTBandEnvelopeDetector(bandpass, fs, smoother, n_samples)
-                    current_chunk = signal_estimator.apply(filtered_chunk)
-                    fig = px.line(current_chunk[:500], title=f"{participant}>{session}>{task_dir}")
-                    fig.show()
+                    # bandpass = (8, 12)
+                    # smoothing_factor = 0.3
+                    # smoother = ExponentialSmoother(smoothing_factor)
+                    # left_alpha_chs = "PO7=1;P5=1;O1=1"
+                    # channel_labels = eeg_data.columns
+                    # spatial_matrix = read_spatial_filter(left_alpha_chs, fs, channel_labels=channel_labels)
+                    # filtered_chunk = np.dot(eeg_data, spatial_matrix)
+                    # n_samples = len(filtered_chunk)
+                    # signal_estimator = FFTBandEnvelopeDetector(bandpass, fs, smoother, n_samples)
+                    # current_chunk = signal_estimator.apply(filtered_chunk)
+                    # fig = px.line(current_chunk[:500], title=f"{participant}>{session}>{task_dir}")
+                    # fig.show()
 
                     #------- MNE OBJECTS
                     # create an MNE info
