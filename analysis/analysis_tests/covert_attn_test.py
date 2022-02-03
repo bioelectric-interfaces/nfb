@@ -1,9 +1,34 @@
-import mne
+# TODO:
+#   look at the psd of the whole signal & just occipital electrodes to find the peak alpha
+#   make sure you're actually including this in the filter
+#   Run this through the NFB auto - freq detection to see if it detects it
+#   Also run through with CSP to see if it detects left/right attn
+#   look at nfb alpha lateralisation for each block with the different electrode setups
 
+
+
+import mne
+import numpy as np
+
+from pynfb.serializers import read_spatial_filter
+from pynfb.signal_processing.filters import ExponentialSmoother, FFTBandEnvelopeDetector
 from utils.load_results import load_data
 import pandas as pd
 import plotly_express as px
 import analysis.analysis_functions as af
+
+
+def get_nfb_derived_sig(pick_chs, fs, channel_labels):
+    spatial_matrix = read_spatial_filter(pick_chs, fs, channel_labels=channel_labels)
+    chunksize = 20
+    filtered_data = np.empty(0)
+    for k, chunk in eeg_data.groupby(np.arange(len(eeg_data)) // chunksize):
+        filtered_chunk = np.dot(chunk, spatial_matrix)
+        current_chunk = signal_estimator.apply(filtered_chunk)
+        filtered_data = np.append(filtered_data, current_chunk)
+    return filtered_data
+
+
 
 task_data = {}
 h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/attn_right_02-01_15-44-49/experiment_data.h5"
@@ -32,6 +57,36 @@ fig.show()
 fig = px.box(aai_so_data, x='block_name', y="data", title='source aai')
 fig.show()
 pass
+
+# ------- NFB LAB FILTERING
+# Get left attention condition
+eeg_data = df1.loc[df1['block_name'] == 'right']
+drop_cols = [x for x in df1.columns if x not in channels]
+drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI_sc', 'signal_AAI_so'])
+eeg_data = eeg_data.drop(columns=drop_cols)
+
+# Rescale the data (units are microvolts - i.e. x10^-6
+eeg_data = eeg_data * 1e-6
+
+bandpass = (8, 12)
+smoothing_factor = 0.7
+smoother = ExponentialSmoother(smoothing_factor)
+n_samples = 1000
+signal_estimator = FFTBandEnvelopeDetector(bandpass, fs, smoother, n_samples)
+
+left_alpha_chs = "PO7=1"#;P5=1;O1=1"
+right_alpha_chs = "PO8=1"
+channel_labels = eeg_data.columns
+
+left_derived = get_nfb_derived_sig(left_alpha_chs, fs, channel_labels)
+right_derived = get_nfb_derived_sig(right_alpha_chs, fs, channel_labels)
+
+fig = px.line(left_derived[:10000], title=f"...")
+fig.add_scatter(y=right_derived[:10000] , name="right")
+# fig.add_scatter(y=df1['signal_Alpha_Left'][:10000] * 1e-6, name="nfb")
+fig.show()
+
+
 
 
 
