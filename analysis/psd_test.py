@@ -31,6 +31,7 @@ import plotly.express as px
 from scipy.signal import butter, lfilter, freqz
 import mne
 
+
 # TODO: LOOK AT THIS FOR PERMUTATION TESTING OF ERPS
 # https://mne.tools/stable/auto_tutorials/stats-source-space/20_cluster_1samp_spatiotemporal.html#sphx-glr-auto-tutorials-stats-source-space-20-cluster-1samp-spatiotemporal-py
 
@@ -81,18 +82,24 @@ for participant, participant_dirs in experiment_dirs.items():
 
                     #------- NFB LAB FILTERING
                     #TODO: above but use the NFBLab filtering system on all the data
-                    # bandpass = (8, 12)
-                    # smoothing_factor = 0.3
-                    # smoother = ExponentialSmoother(smoothing_factor)
-                    # left_alpha_chs = "PO7=1;P5=1;O1=1"
-                    # channel_labels = eeg_data.columns
-                    # spatial_matrix = read_spatial_filter(left_alpha_chs, fs, channel_labels=channel_labels)
-                    # filtered_chunk = np.dot(eeg_data, spatial_matrix)
-                    # n_samples = len(filtered_chunk)
-                    # signal_estimator = FFTBandEnvelopeDetector(bandpass, fs, smoother, n_samples)
-                    # current_chunk = signal_estimator.apply(filtered_chunk)
-                    # fig = px.line(current_chunk[:500], title=f"{participant}>{session}>{task_dir}")
-                    # fig.show()
+                    bandpass = (8, 12)
+                    smoothing_factor = 0.3
+                    smoother = ExponentialSmoother(smoothing_factor)
+                    left_alpha_chs = "PO7=1;P5=1;O1=1"
+                    channel_labels = eeg_data.columns
+                    spatial_matrix = read_spatial_filter(left_alpha_chs, fs, channel_labels=channel_labels)
+                    n_samples = 1000
+                    signal_estimator = FFTBandEnvelopeDetector(bandpass, fs, smoother, n_samples)
+
+                    chunksize = 20
+                    filtered_data = np.empty(0)
+                    for k, chunk in eeg_data.groupby(np.arange(len(eeg_data)) // chunksize):
+                        filtered_chunk = np.dot(chunk, spatial_matrix)
+                        current_chunk = signal_estimator.apply(filtered_chunk)
+                        filtered_data = np.append(filtered_data, current_chunk)
+                    fig = px.line(filtered_data[:10000], title=f"{participant}>{session}>{task_dir}")
+                    fig.add_scatter(y=df1['signal_Alpha_Left'][:10000] *1e-6, name="nfb")
+                    fig.show()
 
                     #------- MNE OBJECTS
                     # create an MNE info
