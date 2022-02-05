@@ -16,7 +16,8 @@ from utils.load_results import load_data
 import pandas as pd
 import plotly_express as px
 import analysis.analysis_functions as af
-
+from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
+                               corrmap)
 
 def get_nfb_derived_sig(pick_chs, fs, channel_labels):
     spatial_matrix = read_spatial_filter(pick_chs, fs, channel_labels=channel_labels)
@@ -31,44 +32,50 @@ def get_nfb_derived_sig(pick_chs, fs, channel_labels):
 
 
 task_data = {}
-h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/attn_right_02-01_15-44-49/experiment_data.h5"
+# h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/attn_right_02-01_15-44-49/experiment_data.h5" # Simon covert attention 1
+# h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-39-15/experiment_data.h5" # Ksenia cvsa tasks
+h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5" # Ksenia cvsa tasks
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
 
-channels.append("signal_AAI_sc")
-channels.append("signal_AAI_so")
+# channels.append("signal_AAI_sc")
+# channels.append("signal_AAI_so")
+channels.append("signal_AAI")
 
 df2 = pd.melt(df1, id_vars=['block_name', 'block_number', 'sample', 'choice', 'probe', 'answer', 'reward'],
                   value_vars=channels, var_name="channel", value_name='data')
-aai_sc_data = df2.loc[df2['channel'] == "signal_AAI_sc"].reset_index(drop=True)
-aai_so_data = df2.loc[df2['channel'] == "signal_AAI_so"].reset_index(drop=True)
+# aai_sc_data = df2.loc[df2['channel'] == "signal_AAI_sc"].reset_index(drop=True)
+# aai_so_data = df2.loc[df2['channel'] == "signal_AAI_so"].reset_index(drop=True)
+aai_sc_data = df2.loc[df2['channel'] == "signal_AAI"].reset_index(drop=True)
 
-left_electrode = df2.loc[df2['channel'] == "O2"].reset_index(drop=True)
-right_electrode = df2.loc[df2['channel'] == "signal_AAI_so"].reset_index(drop=True)
+left_electrode = df2.loc[df2['channel'] == "PO7"].reset_index(drop=True)
+# right_electrode = df2.loc[df2['channel'] == "signal_AAI_so"].reset_index(drop=True)
+right_electrode = df2.loc[df2['channel'] == "PO8"].reset_index(drop=True)
 
 fig = px.line(aai_sc_data, x=aai_sc_data.index, y="data", color='block_name', title=f"scalp aai")
 fig.show()
-fig = px.line(aai_so_data, x=aai_so_data.index, y="data", color='block_name', title=f"scalp aai")
-fig.show()
+# fig = px.line(aai_so_data, x=aai_so_data.index, y="data", color='block_name', title=f"scalp aai")
+# fig.show()
 fig = px.box(aai_sc_data, x='block_name', y="data", title="scalp aai")
 fig.show()
-fig = px.box(aai_so_data, x='block_name', y="data", title='source aai')
-fig.show()
+# fig = px.box(aai_so_data, x='block_name', y="data", title='source aai')
+# fig.show()
 pass
 
 # ------- NFB LAB FILTERING
 # Get left attention condition
 eeg_data = df1.loc[df1['block_name'] == 'right']
 drop_cols = [x for x in df1.columns if x not in channels]
-drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI_sc', 'signal_AAI_so'])
+# drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI_sc', 'signal_AAI_so'])
+drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
 eeg_data = eeg_data.drop(columns=drop_cols)
 
 # Rescale the data (units are microvolts - i.e. x10^-6
 eeg_data = eeg_data * 1e-6
 
-bandpass = (8, 12)
+bandpass = (10, 15) # TODO - get this right
 smoothing_factor = 0.7
 smoother = ExponentialSmoother(smoothing_factor)
 n_samples = 1000
@@ -94,9 +101,9 @@ fig.show()
 # Get start of blocks as different types of epochs (1=start, 2=right, 3=left, 4=centre)
 df1['protocol_change'] = df1['block_number'].diff()
 df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "start" else
-                                 row.protocol_change * 2 if row.block_name == "right" else
-                                 row.protocol_change * 3 if row.block_name == "left" else
-                                 row.protocol_change * 4 if row.block_name == "centre" else 0, axis=1)
+                                 row.protocol_change * 2 if row.block_name == "probe_right" else
+                                 row.protocol_change * 3 if row.block_name == "probe_left" else
+                                 row.protocol_change * 4 if row.block_name == "probe_centre" else 0, axis=1)
 
 # Create the events list for the protocol transitions
 probe_events = df1[['choice_events']].to_numpy()
@@ -107,7 +114,8 @@ event_dict = {'right_probe': right_probe, 'left_probe': left_probe, 'centre_prob
 
 # Drop non eeg data
 drop_cols = [x for x in df1.columns if x not in channels]
-drop_cols.extend(['MKIDX', 'EOG', 'ECG', "signal_AAI_sc", "signal_AAI_so", 'protocol_change', 'choice_events'])
+# drop_cols.extend(['MKIDX', 'EOG', 'ECG', "signal_AAI_sc", "signal_AAI_so", 'protocol_change', 'choice_events'])
+drop_cols.extend(['MKIDX', 'EOG', 'ECG', "signal_AAI", 'protocol_change', 'choice_events'])
 
 eeg_data = df1.drop(columns=drop_cols)
 
@@ -138,6 +146,45 @@ info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
 stim_raw = mne.io.RawArray(probe_events.T, info)
 m_raw.add_channels([stim_raw], force_update_info=True)
 
+
+
+# ----- ICA ON BASELINE RAW DATA
+# High pass filter
+m_high = m_raw.copy()
+# Take out the first 10 secs - TODO: figure out if this is needed for everyone
+m_high.crop(tmin=10)
+m_high.filter(l_freq=1., h_freq=40)
+# Drop bad channels
+m_high.drop_channels(['TP9', 'TP10'])
+# get baseline data
+# baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
+# baseline_raw_start = baseline_raw_data['sample'].iloc[0] / fs
+# baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / fs
+# baseline = m_high.copy()
+# baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
+# visualise the eog blinks
+# eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
+# eog_evoked.apply_baseline(baseline=(None, -0.2))
+# eog_evoked.plot_joint()
+# do ICA
+# baseline.drop_channels(['EOG', 'ECG'])
+# ica = ICA(n_components=15, max_iter='auto', random_state=97)
+# ica.fit(baseline)
+m_high.drop_channels(['EOG', 'ECG'])
+ica = ICA(n_components=15, max_iter='auto', random_state=97)
+ica.fit(m_high)
+# Visualise
+m_high.load_data()
+ica.plot_sources(m_high, show_scrollbars=False)
+ica.plot_components()
+# Set ICA to exclued
+ica.exclude = [2]  # ,14]
+reconst_raw = m_raw.copy()
+ica.apply(reconst_raw)
+#-------------------------
+
+
+
 # Get alpha
 m_filt = m_raw.copy()
 m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
@@ -148,7 +195,7 @@ m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
 m_filt.drop_channels([ch for ch in m_info.ch_names if ch not in ['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8', 'STI']])
 
 events = mne.find_events(m_raw, stim_channel='STI')
-epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.1, tmax=18,
+epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.1, tmax=7,
                     preload=True, detrend=1)
 fig = epochs.plot(events=events)
 
@@ -165,6 +212,7 @@ probe_left.plot_joint(title="left")
 probe_right.plot_joint(title="right")
 
 # LOOK AT ENVELOPE
+probe_left.drop_channels(x for x in channels if x not in ['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'])
 probe_left.apply_hilbert(picks=['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
 probe_right.apply_hilbert(picks=['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
 fig2 = probe_left.plot(spatial_colors=True)
@@ -173,7 +221,7 @@ fig2 = probe_right.plot(spatial_colors=True)
 # Look at left and right evoked
 left_chs = ['O1', 'P3', 'PO7']#['O1', 'PO3', 'PO7', 'P1', 'P3', 'P5', 'P7', 'P9', 'PZ', 'P0Z']
 right_chs = ['O2', 'P4', 'PO8']#['O2', 'PO4', 'PO8', 'P2', 'P3', 'P6', 'P7', 'P10', 'PZ', 'P0Z']
-picks = left_chs + right_chs
+picks = left_chs# + right_chs
 # picks = ['P7', 'PO7', 'O1', 'OZ', 'PO8', 'P8', 'PO3', 'POZ', 'PO4', 'PO8']
 evokeds = dict(left_probe=list(epochs['left_probe'].iter_evoked()),
                right_probe=list(epochs['right_probe'].iter_evoked()))
@@ -199,3 +247,6 @@ roi_evoked.plot()
 # m_env.drop_channels([ch for ch in m_info.ch_names if ch not in ['O2', 'O1']])
 # m_env.apply_hilbert(picks=['O2', 'O1'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
 pass
+
+# TODO: ICA (to remove blinks etc)
+#   source analysis on epochs
