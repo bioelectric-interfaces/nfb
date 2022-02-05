@@ -35,7 +35,7 @@ class Protocol:
                  ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None,
-                 random_over_time=0, show_probe=False):
+                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND'):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -73,6 +73,8 @@ class Protocol:
         self.hold = False
         self.response_key = None
         self.show_probe = show_probe
+        self.probe_duration = probe_duration
+        self.probe_loc = probe_loc
         self.input_protocol = False
         pass
 

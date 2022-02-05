@@ -251,7 +251,14 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         # Probe
         self.probe = QtWidgets.QCheckBox()
+        self.probe.stateChanged.connect(self.handle_probe_check)
         self.form_layout.addRow('Show Probe:', self.probe)
+        self.probe_dur = QtWidgets.QSpinBox()
+        self.probe_dur.setRange(0, 5000)
+        self.form_layout.addRow('Probe Duration [ms]:', self.probe_dur)
+        self.probe_loc = QtWidgets.QComboBox()
+        self.probe_loc.addItems(['RAND', 'LEFT', 'RIGHT'])
+        self.form_layout.addRow('Probe Location:', self.probe_loc)
 
 
         # message text edit
@@ -295,6 +302,10 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.form_layout.addRow(self.save_button)
 
         self.setMaximumWidth(self.layout().sizeHint().width())
+
+    def handle_probe_check(self):
+        self.probe_dur.setEnabled(self.probe.isChecked())
+        self.probe_loc.setEnabled(self.probe.isChecked())
 
     def handle_enable_mock_previous(self):
         self.mock_previous.setEnabled(self.enable_mock_previous.isChecked())
@@ -381,6 +392,10 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.message2.setText(current_protocol['cString2'])
         self.voiceover.setChecked(current_protocol['bVoiceover'])
         self.probe.setChecked(current_protocol['bProbe'])
+        self.probe_dur.setValue(current_protocol['iProbeDur'])
+        self.probe_dur.setEnabled(self.probe.isChecked())
+        self.probe_loc.setCurrentIndex(['RAND', 'LEFT', 'RIGHT'].index(current_protocol['sProbeLoc']))
+        self.probe_loc.setEnabled(self.probe.isChecked())
         self.split_checkbox.setChecked(current_protocol['bUseExtraMessage'])
         current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
@@ -435,6 +450,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['cString2'] = self.message2.toPlainText()
         self.params[current_signal_index]['bVoiceover'] = int(self.voiceover.isChecked())
         self.params[current_signal_index]['bProbe'] = int(self.probe.isChecked())
+        self.params[current_signal_index]['iProbeDur'] = self.probe_dur.value()
+        self.params[current_signal_index]['sProbeLoc'] = self.probe_loc.currentText()
         self.params[current_signal_index]['bUseExtraMessage'] = int(self.split_checkbox.isChecked())
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())

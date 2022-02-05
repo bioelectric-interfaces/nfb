@@ -269,6 +269,7 @@
 			<cString>?</cString>
 			<bVoiceover>0</bVoiceover>
 			<bProbe>1</bProbe>
+			<iProbeDur>50</iProbeDur>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>

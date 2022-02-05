@@ -50,7 +50,7 @@ class Experiment():
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
-        self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
+        # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         self.mean_reward_signal = 0
         self.fb_score = None
@@ -177,7 +177,10 @@ class Experiment():
             probe_val = None
             if current_protocol.show_probe and self.probe_vis:
                 #get probe duration in samples
-                probe_dur_samp = self.freq * self.probe_dur
+                if current_protocol.probe_duration == 0:
+                    probe_dur_samp = self.current_protocol_n_samples
+                else:
+                    probe_dur_samp = self.freq * (current_protocol.probe_duration * 1e-3)
                 probe_start_samp = round(self.freq * self.probe_random_start)
                 # probe_dur_start = probe_dur_samp + probe_start_samp
                 probe_end_samp = round(probe_start_samp + probe_dur_samp)
@@ -191,7 +194,7 @@ class Experiment():
                         probe_val = 1
                     elif self.probe_loc == "LEFT":
                         probe_val = 2
-                    logging.info(f"{__name__}: PROTOCOL: {current_protocol.name}, PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
+                    logging.info(f"{__name__}: PROTOCOL: {current_protocol.name}, PROBE_DUR[ms]: {current_protocol.probe_duration}, PROBE LOC: {self.probe_loc} = {int(probe_val)}, SAMP = {self.samples_counter}, PROBEST: {probe_start_samp}, PROBEEND: {probe_end_samp}, CHUNK SHAPE: {chunk.shape[0]}")
                 else:
                     current_protocol.widget_painter.probe = False
 
@@ -375,9 +378,14 @@ class Experiment():
 
             # Update the probe location, visibility, and start time
             if current_protocol.show_probe:
-                self.probe_loc = r.choice(["RIGHT", "LEFT"])
-                self.probe_vis = r.choices([1, 0], weights=[0.8, 0.2], k=1)[0]
-                self.probe_random_start = 1 + r.uniform(0, 1)
+                if current_protocol.probe_loc == "RAND":
+                    self.probe_loc = r.choice(["RIGHT", "LEFT"])
+                    self.probe_vis = r.choices([1, 0], weights=[0.8, 0.2], k=1)[0]
+                    self.probe_random_start = 1 + r.uniform(0, 1)
+                else:
+                    self.probe_loc = current_protocol.probe_loc
+                    self.probe_vis = 1
+                    self.probe_random_start = 0
 
             # Update participant choice fb (only do this if there is feedback to display
             if self.choice_fb:
@@ -599,7 +607,9 @@ class Experiment():
                 as_mock=bool(protocol['bMockSource']),
                 auto_bci_fit=bool(protocol['bAutoBCIFit']),
                 montage=montage,
-                show_probe=protocol['bProbe']
+                show_probe=protocol['bProbe'],
+                probe_duration=protocol['iProbeDur'],
+                probe_loc=protocol['sProbeLoc']
             )
 
             # type specific arguments
