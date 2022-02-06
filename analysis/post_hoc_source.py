@@ -42,6 +42,9 @@ drop_cols = [x for x in df1.columns if x not in channels]
 drop_cols.extend(['MKIDX', 'EOG', 'ECG'])
 eeg_data = df1.drop(columns=drop_cols)
 
+# Rescale the data (units are microvolts - i.e. x10^-6
+eeg_data = eeg_data * 1e-6
+
 # create an MNE info
 m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs, ch_types=['eeg' for ch in list(eeg_data.columns)])
 # Set the montage (THIS IS FROM roi_spatial_filter.py)
@@ -79,10 +82,40 @@ Get a specific frequency band and remove non-relavant frequencies
 m_resting = m_raw.filter(l_freq=1, h_freq=40, iir_params={"order": 2}, method="iir")
 m_alpha = m_raw.filter(l_freq=8, h_freq=12, iir_params={"order": 2}, method="iir")
 
+#-----------------------
+# BAD ELECTRODE DETECTION AND INTERPOLATION
+#-----------------------
+"""
+Remove electrodes whose values go above a certain range (from the resting filtered data)
+mne tutorial: https://mne.tools/stable/auto_tutorials/preprocessing/15_handling_bad_channels.html
+"""
+
+#-----------------------
+# ICA
+#-----------------------
+"""
+do ica correction to remove artefacts
+do this on the baseline data and apply to the entire raw dataset
+"""
+
+
+#-----------------------
+# EPOCHING
+#-----------------------
+"""
+epoch the data in terms of events
+for the nfb task - events are the following
+    * onset of nfb protocol (duration - till the end of the nfb task)
+    * visual probe in delay protocol (left and right)
+detect and eliminate bad epochs in this stage
+"""
+
 
 #-----------------------
 # DOWN SAMPLING
 #-----------------------
 """
-
+Down sample the data to 4* highest frequency
+Do this AFTER epoching (as it jitters the timings)
 """
+
