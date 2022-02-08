@@ -10,7 +10,6 @@
 import mne
 import numpy as np
 
-from pynfb.serializers import read_spatial_filter
 from pynfb.signal_processing.filters import ExponentialSmoother, FFTBandEnvelopeDetector
 from utils.load_results import load_data
 import pandas as pd
@@ -19,30 +18,6 @@ import plotly.graph_objs as go
 import analysis.analysis_functions as af
 from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
-
-# TODO: put this function in the analysis helper functions
-def get_nfb_derived_sig(eeg_data, pick_chs, fs, channel_labels, signal_estimator):
-    spatial_matrix = read_spatial_filter(pick_chs, fs, channel_labels=channel_labels)
-    chunksize = 20
-    filtered_data = np.empty(0)
-    for k, chunk in eeg_data.groupby(np.arange(len(eeg_data)) // chunksize):
-        filtered_chunk = np.dot(chunk, spatial_matrix)
-        current_chunk = signal_estimator.apply(filtered_chunk)
-        filtered_data = np.append(filtered_data, current_chunk)
-    return filtered_data
-
-def get_nfb_derived_sig_epoch(epoched_mean, pick_chs, fs, signal_estimator):
-    """
-    Assume that the data is already filtered with appropriate channels?
-    """
-    chunksize = 20
-    filtered_data = np.empty(0)
-    for chunk in np.array_split(epoched_mean,round(len(epoched_mean)/chunksize),axis=0):
-        current_chunk = signal_estimator.apply(chunk)
-        filtered_data = np.append(filtered_data, current_chunk)
-    return filtered_data
-
-
 
 task_data = {}
 # h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/attn_right_02-01_15-44-49/experiment_data.h5" # Simon covert attention 1
@@ -53,42 +28,38 @@ h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
 
-# channels.append("signal_AAI_sc")
-# channels.append("signal_AAI_so")
 channels.append("signal_AAI")
 
 df2 = pd.melt(df1, id_vars=['block_name', 'block_number', 'sample', 'choice', 'probe', 'answer', 'reward'],
                   value_vars=channels, var_name="channel", value_name='data')
-# aai_sc_data = df2.loc[df2['channel'] == "signal_AAI_sc"].reset_index(drop=True)
-# aai_so_data = df2.loc[df2['channel'] == "signal_AAI_so"].reset_index(drop=True)
 aai_sc_data = df2.loc[df2['channel'] == "signal_AAI"].reset_index(drop=True)
 
 left_electrode = df2.loc[df2['channel'] == "PO7"].reset_index(drop=True)
-# right_electrode = df2.loc[df2['channel'] == "signal_AAI_so"].reset_index(drop=True)
 right_electrode = df2.loc[df2['channel'] == "PO8"].reset_index(drop=True)
 
 fig = px.line(aai_sc_data, x=aai_sc_data.index, y="data", color='block_name', title=f"scalp aai")
 fig.show()
-# fig = px.line(aai_so_data, x=aai_so_data.index, y="data", color='block_name', title=f"scalp aai")
-# fig.show()
 fig = px.box(aai_sc_data, x='block_name', y="data", title="scalp aai")
 fig.show()
-# fig = px.box(aai_so_data, x='block_name', y="data", title='source aai')
-# fig.show()
 pass
 
 # ------- NFB LAB FILTERING
 # Get left attention condition
-eeg_data = df1.loc[df1['block_name'] == 'right']
+eeg_data_pl = df1.loc[df1['block_name'] == 'probe_left']
 drop_cols = [x for x in df1.columns if x not in channels]
-# drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI_sc', 'signal_AAI_so'])
 drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
-eeg_data = eeg_data.drop(columns=drop_cols)
+eeg_data_pl = eeg_data_pl.drop(columns=drop_cols)
+# Get right attention condition
+eeg_data_pr = df1.loc[df1['block_name'] == 'probe_right']
+drop_cols = [x for x in df1.columns if x not in channels]
+drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+eeg_data_pr = eeg_data_pr.drop(columns=drop_cols)
 
 # Rescale the data (units are microvolts - i.e. x10^-6
-eeg_data = eeg_data * 1e-6
+eeg_data_pl = eeg_data_pl * 1e-6
+eeg_data_pr = eeg_data_pr * 1e-6
 
-bandpass = (8, 15) # TODO - get this right
+bandpass = (8, 14) # TODO - get this right
 smoothing_factor = 0.7
 smoother = ExponentialSmoother(smoothing_factor)
 n_samples = 1000
@@ -96,21 +67,29 @@ signal_estimator = FFTBandEnvelopeDetector(bandpass, fs, smoother, n_samples)
 
 left_alpha_chs = "PO7=1"#;P5=1;O1=1"
 right_alpha_chs = "PO8=1"
-channel_labels = eeg_data.columns
+channel_labels = eeg_data_pl.columns
 
-left_derived = get_nfb_derived_sig(eeg_data, left_alpha_chs, fs, channel_labels, signal_estimator)
-right_derived = get_nfb_derived_sig(eeg_data, right_alpha_chs, fs, channel_labels, signal_estimator)
+left_derived_pl = af.get_nfb_derived_sig(eeg_data_pl, left_alpha_chs, fs, channel_labels, signal_estimator)
+right_derived_pl = af.get_nfb_derived_sig(eeg_data_pl, right_alpha_chs, fs, channel_labels, signal_estimator)
+left_derived_pr = af.get_nfb_derived_sig(eeg_data_pr, left_alpha_chs, fs, channel_labels, signal_estimator)
+right_derived_pr = af.get_nfb_derived_sig(eeg_data_pr, right_alpha_chs, fs, channel_labels, signal_estimator)
 
-fig = px.line(left_derived[:10000], title=f"...")
-fig.add_scatter(y=right_derived[:10000] , name="right")
+fig = px.line()
+fig.add_scatter(y=left_derived_pl, name=f"left channels, left probe")
+fig.add_scatter(y=right_derived_pl, name="right channels, left probe")
+# fig.add_scatter(y=df1['signal_Alpha_Left'][:10000] * 1e-6, name="nfb")
+fig.show()
+
+fig = px.line()
+fig.add_scatter(y=left_derived_pr, name=f"left channels, right probe")
+fig.add_scatter(y=right_derived_pr, name="right channels, right probe")
 # fig.add_scatter(y=df1['signal_Alpha_Left'][:10000] * 1e-6, name="nfb")
 fig.show()
 
 
 
 
-
-# --- look at just certain electrodes
+# --- Get the probe events and MNE raw objects
 # Get start of blocks as different types of epochs (1=start, 2=right, 3=left, 4=centre)
 df1['protocol_change'] = df1['block_number'].diff()
 df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "start" else
@@ -127,13 +106,12 @@ event_dict = {'right_probe': right_probe, 'left_probe': left_probe, 'centre_prob
 
 # Drop non eeg data
 drop_cols = [x for x in df1.columns if x not in channels]
-# drop_cols.extend(['MKIDX', 'EOG', 'ECG', "signal_AAI_sc", "signal_AAI_so", 'protocol_change', 'choice_events'])
 drop_cols.extend(['MKIDX', 'EOG', 'ECG', "signal_AAI", 'protocol_change', 'choice_events'])
-
 eeg_data = df1.drop(columns=drop_cols)
 
 # Rescale the data (units are microvolts - i.e. x10^-6
 eeg_data = eeg_data * 1e-6
+
 # create an MNE info
 m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs, ch_types=['eeg' for ch in list(eeg_data.columns)])
 
@@ -198,7 +176,7 @@ m_raw.add_channels([stim_raw], force_update_info=True)
 
 
 
-# Get alpha
+# Get the epoch object
 m_filt = m_raw.copy()
 m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
                l_trans_bandwidth=1,  # make sure filter params are the same
@@ -209,27 +187,37 @@ m_filt_chs_l = m_filt.copy().drop_channels([ch for ch in m_info.ch_names if ch n
 m_filt_chs_r = m_filt.copy().drop_channels([ch for ch in m_info.ch_names if ch not in ['O2', 'P4', 'PO8', 'STI']])
 
 events = mne.find_events(m_raw, stim_channel='STI')
-reject_criteria = dict(eeg=10e-6)
+reject_criteria = dict(eeg=100e-6)
+reject_criteria2 = dict(eeg=100e-6)
 
 # TODO: these could probably be combined into one as you look at separating the channels later
 epochs_l = mne.Epochs(m_filt_chs_l, events, event_id=event_dict, tmin=-0.1, tmax=7,
-                    preload=True, detrend=1, reject=reject_criteria,)
+                    preload=True, detrend=1, reject=reject_criteria)
 epochs_r = mne.Epochs(m_filt_chs_r, events, event_id=event_dict, tmin=-0.1, tmax=7,
-                    preload=True, detrend=1, reject=reject_criteria,)
-fig = epochs_l.plot(events=events)
-fig = epochs_r.plot(events=events)
+                    preload=True, detrend=1, reject=reject_criteria)
+epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-0.1, tmax=7,
+                    preload=True, detrend=1, reject=reject_criteria2)
+# fig = epochs_l.plot(events=events)
+# fig = epochs_r.plot(events=events)
+# fig = epochs.plot(events=events)
 
 probe_left_chs_l = epochs_l['left_probe'].average()
 probe_right_chs_l = epochs_l['right_probe'].average()
 probe_centre_chs_l = epochs_l['centre_probe'].average()
-fig2 = probe_left_chs_l.plot(spatial_colors=True)
-fig2 = probe_right_chs_l.plot(spatial_colors=True)
-
-# plot topomap
-probe_left_chs_l.plot_topomap(times=[-0.1, 0.1, 0.4], average=0.05)
-probe_right_chs_l.plot_topomap(times=[-0.1, 0.1, 0.4], average=0.05)
-probe_left_chs_l.plot_joint(title="left")
-probe_right_chs_l.plot_joint(title="right")
+probe_left = epochs['left_probe'].average()
+probe_right = epochs['right_probe'].average()
+# fig2 = probe_left_chs_l.plot(spatial_colors=True)
+# fig2 = probe_right_chs_l.plot(spatial_colors=True)
+# fig2 = probe_left.plot(spatial_colors=True,  picks=['PO7', 'PO8'])
+# fig2 = probe_right.plot(spatial_colors=True,  picks=['PO7', 'PO8'])
+#
+# # plot topomap
+# probe_left_chs_l.plot_topomap(times=[-0.1, 0.1, 0.4], average=0.05)
+# probe_right_chs_l.plot_topomap(times=[-0.1, 0.1, 0.4], average=0.05)
+# probe_left_chs_l.plot_joint(title="left")
+# probe_right_chs_l.plot_joint(title="right")
+#
+# fig2 = probe_left.plot_joint()
 
 # Look at PSD of left and right channels for the left and right probes
 
@@ -248,25 +236,25 @@ right_alpha_chs = "PO8=1"
 epoch_l_pwr_l = np.ndarray(epochs_l['left_probe'].get_data().shape)
 epoch_r_pwr_l = np.ndarray(epochs_r['left_probe'].get_data().shape)
 for idx, epoch in enumerate(epochs_l['left_probe'].get_data()):
-    epoch_l_pwr_l[idx][2] = get_nfb_derived_sig_epoch(epoch[2], left_alpha_chs, fs, signal_estimator)
+    epoch_l_pwr_l[idx][2] = af.get_nfb_derived_sig_epoch(epoch[2], left_alpha_chs, fs, signal_estimator)
 for idx, epoch in enumerate(epochs_r['left_probe'].get_data()):
-    epoch_r_pwr_l[idx][2] = get_nfb_derived_sig_epoch(epoch[2], right_alpha_chs, fs, signal_estimator)
+    epoch_r_pwr_l[idx][2] = af.get_nfb_derived_sig_epoch(epoch[2], right_alpha_chs, fs, signal_estimator)
 
 # This is the alpha power for the left and right channels for the RIGHT probe
 epoch_l_pwr_r = np.ndarray(epochs_l['right_probe'].get_data().shape)
 epoch_r_pwr_r = np.ndarray(epochs_r['right_probe'].get_data().shape)
 for idx, epoch in enumerate(epochs_l['right_probe'].get_data()):
-    epoch_l_pwr_r[idx][2] = get_nfb_derived_sig_epoch(epoch[2], left_alpha_chs, fs, signal_estimator)
+    epoch_l_pwr_r[idx][2] = af.get_nfb_derived_sig_epoch(epoch[2], left_alpha_chs, fs, signal_estimator)
 for idx, epoch in enumerate(epochs_r['right_probe'].get_data()):
-    epoch_r_pwr_r[idx][2] = get_nfb_derived_sig_epoch(epoch[2], right_alpha_chs, fs, signal_estimator)
+    epoch_r_pwr_r[idx][2] = af.get_nfb_derived_sig_epoch(epoch[2], right_alpha_chs, fs, signal_estimator)
 
 # This is for alpha power for left and right channels for ALL probes
 epoch_l_pwr = np.ndarray(epochs_l.get_data().shape)
 epoch_r_pwr = np.ndarray(epochs_r.get_data().shape)
 for idx, epoch in enumerate(epochs_l.get_data()):
-    epoch_l_pwr[idx][2] = get_nfb_derived_sig_epoch(epoch[2], left_alpha_chs, fs, signal_estimator)
+    epoch_l_pwr[idx][2] = af.get_nfb_derived_sig_epoch(epoch[2], left_alpha_chs, fs, signal_estimator)
 for idx, epoch in enumerate(epochs_r.get_data()):
-    epoch_r_pwr[idx][2] = get_nfb_derived_sig_epoch(epoch[2], right_alpha_chs, fs, signal_estimator)
+    epoch_r_pwr[idx][2] = af.get_nfb_derived_sig_epoch(epoch[2], right_alpha_chs, fs, signal_estimator)
 
 
 
@@ -455,6 +443,12 @@ fig.update_layout(
     hovermode="x"
 )
 fig.show()
+
+
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats2(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats2(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1[0], e_std1[0], e_mean2[0], e_std2[0], name1="case1", name2="case2")
+
 
 
 
