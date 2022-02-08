@@ -23,6 +23,7 @@ from mne.datasets import fetch_fsaverage
 from utils.load_results import load_data
 from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
+import analysis.analysis_functions as af
 
 mne.viz.set_3d_backend('pyvista')
 
@@ -66,6 +67,23 @@ m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=N
 
 # set the reference to average
 m_raw.set_eeg_reference(projection=True)
+
+
+#----------------------------------------
+# Get nfb trials as epochs from hdf5 data
+#----------------------------------------
+df1['protocol_change'] = df1['block_number'].diff()
+df1['p_change_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "NFB" else
+                                 row.protocol_change * 2 if row.block_name == "fc_w" else 0, axis=1)
+
+# Create the events list for the protocol transitions
+probe_events = df1[['p_change_events']].to_numpy()
+event_dict = {'nfb': 1, 'fc_w': 2}
+
+# Create the stim channel
+info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
+stim_raw = mne.io.RawArray(probe_events.T, info)
+m_raw.add_channels([stim_raw], force_update_info=True)
 
 #########################
 # PRE-PROCESSING
@@ -141,34 +159,34 @@ This is really only needed if there are some specifically bad sections in the da
 do ica correction to remove artefacts
 do this on the baseline data and apply to the entire raw dataset
 """
-# ----- ICA ON BASELINE RAW DATA
-# High pass filter
-m_high = m_raw.copy()
-# Take out the first 10 secs - TODO: figure out if this is needed for everyone
-m_high.crop(tmin=10)
-m_high.filter(l_freq=1., h_freq=40)
-# get baseline data
-baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
-baseline_raw_start = baseline_raw_data['sample'].iloc[0] / fs
-baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / fs
-baseline = m_high.copy()
-baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
-# visualise the eog blinks
-# eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
-# eog_evoked.apply_baseline(baseline=(None, -0.2))
-# eog_evoked.plot_joint()
-# do ICA
-baseline.drop_channels(['EOG', 'ECG'])
-ica = ICA(n_components=15, max_iter='auto', random_state=97)
-ica.fit(baseline)
-# Visualise
-m_high.load_data()
-ica.plot_sources(m_high, show_scrollbars=False)
-ica.plot_components()
-# Set ICA to exclued
-ica.exclude = [1, 11, 12, 13]  # ,14]
-reconst_raw = m_raw.copy()
-ica.apply(reconst_raw)
+# # ----- ICA ON BASELINE RAW DATA
+# # High pass filter
+# m_high = m_raw.copy()
+# # Take out the first 10 secs - TODO: figure out if this is needed for everyone
+# m_high.crop(tmin=10)
+# m_high.filter(l_freq=1., h_freq=40)
+# # get baseline data
+# baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
+# baseline_raw_start = baseline_raw_data['sample'].iloc[0] / fs
+# baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / fs
+# baseline = m_high.copy()
+# baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
+# # visualise the eog blinks
+# # eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
+# # eog_evoked.apply_baseline(baseline=(None, -0.2))
+# # eog_evoked.plot_joint()
+# # do ICA
+# baseline.drop_channels(['EOG', 'ECG'])
+# ica = ICA(n_components=15, max_iter='auto', random_state=97)
+# ica.fit(baseline)
+# # Visualise
+# m_high.load_data()
+# ica.plot_sources(m_high, show_scrollbars=False)
+# ica.plot_components()
+# # Set ICA to exclued
+# ica.exclude = [1, 11, 12, 13]  # ,14]
+# reconst_raw = m_raw.copy()
+# ica.apply(reconst_raw)
 
 
 #-----------------------
@@ -203,6 +221,22 @@ for the nfb task - events are the following
 detect and eliminate bad epochs in this stage
 """
 ## Epoch and downsample in one go
+events = mne.find_events(m_raw, stim_channel='STI')
+reject_criteria = dict(eeg=1000e-6)
+
+epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, baseline=None,
+                    preload=True, detrend=1, reject=reject_criteria) # TODO: make sure baseline params correct (using white fixation cross as baseline: (None, -1)
+
+# look at the alpha power for the nfb trials (increase left alpha) for left and right channels
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['nfb'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['nfb'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="nfb")
+
+# look at the alpha power for the white fixation dot trials (increase left alpha) for left and right channels
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['fc_w'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['fc_w'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="fc_w")
+
 # events = mne.find_events(raw_filtered)
 # epochs = mne.Epochs(raw_filtered, events, decim=decim)
 #

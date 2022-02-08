@@ -248,6 +248,7 @@ def get_nfb_epoch_power_stats(epochs, fband=(8, 14), fs=1000,channel_labels=None
 
     return epoch_pwr_mean, epoch_pwr_std
 
+# TODO: add capability to plot epoch start time etc
 def plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="case1", name2="case2", title="epoch power"):
     fig = go.Figure([
         go.Scatter(
