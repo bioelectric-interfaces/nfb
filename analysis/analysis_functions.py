@@ -220,18 +220,7 @@ def get_nfb_derived_sig(eeg_data, pick_chs, fs, channel_labels, signal_estimator
     return filtered_data
 
 
-def get_nfb_derived_sig_epoch(epoched_mean, pick_chs, fs, signal_estimator):
-    """
-    Assume that the data is already filtered with appropriate channels?
-    """
-    chunksize = 20
-    filtered_data = np.empty(0)
-    for chunk in np.array_split(epoched_mean,round(len(epoched_mean)/chunksize),axis=0):
-        current_chunk = signal_estimator.apply(chunk)
-        filtered_data = np.append(filtered_data, current_chunk)
-    return filtered_data
-
-def get_nfb_derived_sig_epoch2(epochs, pick_chs, fs, channel_labels, signal_estimator):
+def get_nfb_derived_sig_epoch(epochs, pick_chs, fs, channel_labels, signal_estimator):
     """
     Assume that the data is already filtered with appropriate channels?
     """
@@ -244,20 +233,8 @@ def get_nfb_derived_sig_epoch2(epochs, pick_chs, fs, channel_labels, signal_esti
         filtered_data = np.append(filtered_data, current_chunk)
     return filtered_data
 
-def get_nfb_epoch_power_stats(epochs, fband=(8, 14), fs=1000, chs="PO7=1"):
-    smoothing_factor = 0.7
-    smoother = ExponentialSmoother(smoothing_factor)
-    n_samples = 1000
-    signal_estimator = FFTBandEnvelopeDetector(fband, fs, smoother, n_samples)
-    epoch_pwr = np.ndarray(epochs.get_data().shape)
-    for idx, epoch in enumerate(epochs.get_data()):
-        epoch_pwr[idx][2] = get_nfb_derived_sig_epoch(epoch[2], chs, fs, signal_estimator)
-    epoch_pwr_mean = epoch_pwr.mean(axis=0)[2]
-    epoch_pwr_std = epoch_pwr.std(axis=0)[2]
 
-    return epoch_pwr_mean, epoch_pwr_std
-
-def get_nfb_epoch_power_stats2(epochs, fband=(8, 14), fs=1000,channel_labels=None, chs=None):
+def get_nfb_epoch_power_stats(epochs, fband=(8, 14), fs=1000,channel_labels=None, chs=None):
     smoothing_factor = 0.7
     smoother = ExponentialSmoother(smoothing_factor)
     n_samples = 1000
@@ -265,13 +242,13 @@ def get_nfb_epoch_power_stats2(epochs, fband=(8, 14), fs=1000,channel_labels=Non
     epoch_pwr = np.ndarray((epochs.get_data().shape[0], len(chs), epochs.get_data().shape[2]))
     pick_chs_string = ";".join(chs)
     for idx, epoch in enumerate(epochs.get_data()):
-        epoch_pwr[idx] = get_nfb_derived_sig_epoch2(epoch, pick_chs_string, fs, channel_labels, signal_estimator)
+        epoch_pwr[idx] = get_nfb_derived_sig_epoch(epoch, pick_chs_string, fs, channel_labels, signal_estimator)
     epoch_pwr_mean = epoch_pwr.mean(axis=0)[0]
     epoch_pwr_std = epoch_pwr.std(axis=0)[0]
 
     return epoch_pwr_mean, epoch_pwr_std
 
-def plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="case1", name2="case2"):
+def plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="case1", name2="case2", title="epoch power"):
     fig = go.Figure([
         go.Scatter(
             name=name1,
@@ -324,7 +301,7 @@ def plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="case1", name2=
     ])
     fig.update_layout(
         yaxis_title='epoch mean power',
-        title='epoch power',
+        title=title,
         hovermode="x"
     )
     fig.show()
