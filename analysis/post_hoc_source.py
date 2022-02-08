@@ -73,12 +73,16 @@ m_raw.set_eeg_reference(projection=True)
 # Get nfb trials as epochs from hdf5 data
 #----------------------------------------
 df1['protocol_change'] = df1['block_number'].diff()
-df1['p_change_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "NFB" else
-                                 row.protocol_change * 2 if row.block_name == "fc_w" else 0, axis=1)
+df1['p_change_events'] =  df1.apply(lambda row: row.protocol_change if row.block_name == "NFB" else
+                                 row.protocol_change * 2 if row.block_name == "fc_w" else
+                                 row.protocol_change * 3 if row.block_name == "fc_b" else
+                                 row.protocol_change * 4 if row.block_name == "delay" else
+                                 row.protocol_change * 5 if row.block_name == "Input" else 0, axis=1)
+
 
 # Create the events list for the protocol transitions
 probe_events = df1[['p_change_events']].to_numpy()
-event_dict = {'nfb': 1, 'fc_w': 2}
+event_dict = {'nfb': 1, 'fc_w': 2, 'fc_b': 3, 'delay': 4, 'Input': 5}
 
 # Create the stim channel
 info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
@@ -236,6 +240,18 @@ af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name
 e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['fc_w'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
 e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['fc_w'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
 af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="fc_w")
+
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['fc_b'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['fc_b'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="fc_b")
+
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['delay'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['delay'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="delay")
+
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['Input'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['Input'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="Input")
 
 # events = mne.find_events(raw_filtered)
 # epochs = mne.Epochs(raw_filtered, events, decim=decim)
