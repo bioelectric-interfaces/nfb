@@ -235,6 +235,9 @@ def get_nfb_derived_sig_epoch(epochs, pick_chs, fs, channel_labels, signal_estim
 
 
 def get_nfb_epoch_power_stats(epochs, fband=(8, 14), fs=1000,channel_labels=None, chs=None):
+    """
+    TODO: refactor (seems i'm returning epoch_pwr more than once with mean and std
+    """
     smoothing_factor = 0.7
     smoother = ExponentialSmoother(smoothing_factor)
     n_samples = 1000
@@ -245,68 +248,101 @@ def get_nfb_epoch_power_stats(epochs, fband=(8, 14), fs=1000,channel_labels=None
         epoch_pwr[idx] = get_nfb_derived_sig_epoch(epoch, pick_chs_string, fs, channel_labels, signal_estimator)
     epoch_pwr_mean = epoch_pwr.mean(axis=0)[0]
     epoch_pwr_std = epoch_pwr.std(axis=0)[0]
+    return epoch_pwr_mean, epoch_pwr_std, epoch_pwr
 
-    return epoch_pwr_mean, epoch_pwr_std
 
-# TODO: add capability to plot epoch start time etc
-def plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="case1", name2="case2", title="epoch power"):
-    fig = go.Figure([
+# TODO: add capability to plot epoch start time etc (verticle lines)
+def plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="case1", title="epoch power", color=(255,0,0,1), y_range=None):
+    fig.add_trace(
         go.Scatter(
-            name=name1,
+            name=name,
             y=e_mean1,
             mode='lines',
-            line=dict(color='rgb(31, 119, 180)'),
-        ),
-        go.Scatter(
-            name=name2,
-            y=e_mean2,
-            mode='lines',
-            line=dict(color='red'),
-        ),
-        go.Scatter(
+            line=dict(color=f'rgb({color[0]}, {color[1]}, {color[2]})'),
+        ))
+    fig.add_trace(go.Scatter(
             name='Upper Bound',
             y=e_mean1 + e_std1,
             mode='lines',
             marker=dict(color="#444"),
             line=dict(width=0),
             showlegend=False
-        ),
-        go.Scatter(
+        ))
+    color = list(color)
+    color[3] = 0.3
+    fig.add_trace(go.Scatter(
             name='Lower Bound',
             y=e_mean1 - e_std1,
             marker=dict(color="#444"),
             line=dict(width=0),
             mode='lines',
-            fillcolor='rgba(0, 0, 100, 0.3)',
+            fillcolor=f'rgba({color[0]}, {color[1]}, {color[2]}, {color[3]})',
             fill='tonexty',
             showlegend=False
-        ),
-        go.Scatter(
-            name='Upper Bound r',
-            y=e_mean2 + e_std2,
-            mode='lines',
-            marker=dict(color="#444"),
-            line=dict(width=0),
-            showlegend=False
-        ),
-        go.Scatter(
-            name='Lower Bound r',
-            y=e_mean2 - e_std2,
-            marker=dict(color="#444"),
-            line=dict(width=0),
-            mode='lines',
-            fillcolor='rgba(100, 0, 0, 0.3)',
-            fill='tonexty',
-            showlegend=False
-        )
-    ])
+        ))
     fig.update_layout(
         yaxis_title='epoch mean power',
         title=title,
-        hovermode="x"
+        hovermode="x",
+        yaxis_range=y_range
     )
-    fig.show()
+    return fig
 
+
+def hdf5_to_mne(h5file):
+    # Put data in pandas data frame
+    df1, fs, channels, p_names = load_data(h5file)
+    df1['sample'] = df1.index
+
+    # Drop non eeg data
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
+
+    # create an MNE info - set types appropriately
+    m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs,
+                             ch_types=['eeg' if ch not in ['ECG', 'EOG'] else 'eog' for ch in list(eeg_data.columns)])
+
+    # Set the montage (THIS IS FROM roi_spatial_filter.py)
+    standard_montage = mne.channels.make_standard_montage(kind='standard_1020')
+    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+    for j, channel in enumerate(eeg_data.columns):
+        try:
+            # make montage names uppercase to match own data
+            standard_montage.ch_names[standard_montage_names.index(channel.upper())] = channel.upper()
+        except ValueError as e:
+            print(f"ERROR ENCOUNTERED: {e}")
+    m_info.set_montage(standard_montage, on_missing='ignore')
+
+    # Create the mne raw object with eeg data
+    m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+
+    # set the reference to average
+    m_raw.set_eeg_reference(projection=True)
+    return df1, m_raw
+
+def get_nfb_protocol_change_events(df1, m_raw):
+    # ----------------------------------------
+    # Get nfb trials as epochs from hdf5 data
+    # ----------------------------------------
+    df1['protocol_change'] = df1['block_number'].diff()
+    df1['p_change_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "NFB" else
+    row.protocol_change * 2 if row.block_name == "fc_w" else
+    row.protocol_change * 3 if row.block_name == "fc_b" else
+    row.protocol_change * 4 if row.block_name == "delay" else
+    row.protocol_change * 5 if row.block_name == "Input" else 0, axis=1)
+
+    # Create the events list for the protocol transitions
+    probe_events = df1[['p_change_events']].to_numpy()
+    event_dict = {'nfb': 1, 'fc_w': 2, 'fc_b': 3, 'delay': 4, 'Input': 5}
+
+    # Create the stim channel
+    info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
+    stim_raw = mne.io.RawArray(probe_events.T, info)
+    m_raw.add_channels([stim_raw], force_update_info=True)
 
 if __name__ == "__main__":
 

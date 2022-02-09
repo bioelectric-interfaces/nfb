@@ -12,6 +12,7 @@ import os.path as op
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly_express as px
+import plotly.graph_objs as go
 import pandas as pd
 
 import mne
@@ -36,62 +37,13 @@ mne.viz.set_3d_backend('pyvista')
 """
 Get the data from HDF5 Files to MNE data objects
 """
-h5file = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
+# h5file_scalp = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
 
-# h5file_scalp = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
+h5file_scalp = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
 # h5file_sham = ""
 
-# Put data in pandas data frame
-df1, fs, channels, p_names = load_data(h5file)
-df1['sample'] = df1.index
-
-# Drop non eeg data
-drop_cols = [x for x in df1.columns if x not in channels]
-drop_cols.extend(['MKIDX'])
-eeg_data = df1.drop(columns=drop_cols)
-
-# Rescale the data (units are microvolts - i.e. x10^-6
-eeg_data = eeg_data * 1e-6
-
-# create an MNE info - set types appropriately
-m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs, ch_types=['eeg' if ch not in ['ECG', 'EOG'] else 'eog' for ch in list(eeg_data.columns)])
-
-# Set the montage (THIS IS FROM roi_spatial_filter.py)
-standard_montage = mne.channels.make_standard_montage(kind='standard_1020')
-standard_montage_names = [name.upper() for name in standard_montage.ch_names]
-for j, channel in enumerate(eeg_data.columns):
-    try:
-        # make montage names uppercase to match own data
-        standard_montage.ch_names[standard_montage_names.index(channel.upper())] = channel.upper()
-    except ValueError as e:
-        print(f"ERROR ENCOUNTERED: {e}")
-m_info.set_montage(standard_montage, on_missing='ignore')
-
-# Create the mne raw object with eeg data
-m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
-
-# set the reference to average
-m_raw.set_eeg_reference(projection=True)
-
-
-#----------------------------------------
-# Get nfb trials as epochs from hdf5 data
-#----------------------------------------
-df1['protocol_change'] = df1['block_number'].diff()
-df1['p_change_events'] =  df1.apply(lambda row: row.protocol_change if row.block_name == "NFB" else
-                                 row.protocol_change * 2 if row.block_name == "fc_w" else
-                                 row.protocol_change * 3 if row.block_name == "fc_b" else
-                                 row.protocol_change * 4 if row.block_name == "delay" else
-                                 row.protocol_change * 5 if row.block_name == "Input" else 0, axis=1)
-
-# Create the events list for the protocol transitions
-probe_events = df1[['p_change_events']].to_numpy()
-event_dict = {'nfb': 1, 'fc_w': 2, 'fc_b': 3, 'delay': 4, 'Input': 5}
-
-# Create the stim channel
-info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
-stim_raw = mne.io.RawArray(probe_events.T, info)
-m_raw.add_channels([stim_raw], force_update_info=True)
+df1, m_raw = af.hdf5_to_mne(h5file_scalp)
+af.get_nfb_protocol_change_events(df1, m_raw)
 
 #########################
 # PRE-PROCESSING
@@ -103,18 +55,18 @@ Gets rid of artefacts (various different sources of noise)
 Can be done automatically but should really be done visually to ensure good results
 """
 
-# remove projectors
-ssp_projectors = m_raw.info['projs']
-m_raw.del_proj()
-
-# Look at psd
-m_raw.plot_psd(tmax=np.inf, fmax=250, average=True)
-m_raw.plot_psd(tmax=np.inf, fmax=250, spatial_colors=True)
-
-# Look at eye artefacts
-eog_epochs = mne.preprocessing.create_eog_epochs(m_raw, baseline=(-0.5, -0.2))
-eog_epochs.plot_image(combine='mean')
-eog_epochs.average().plot_joint()
+# # remove projectors
+# ssp_projectors = m_raw.info['projs']
+# m_raw.del_proj()
+#
+# # Look at psd
+# m_raw.plot_psd(tmax=np.inf, fmax=250, average=True)
+# m_raw.plot_psd(tmax=np.inf, fmax=250, spatial_colors=True)
+#
+# # Look at eye artefacts
+# eog_epochs = mne.preprocessing.create_eog_epochs(m_raw, baseline=(-0.5, -0.2))
+# eog_epochs.plot_image(combine='mean')
+# eog_epochs.average().plot_joint()
 
 #-----------------------
 # BAD ELECTRODE DETECTION AND INTERPOLATION
@@ -131,8 +83,8 @@ mne tutorial: https://mne.tools/stable/auto_tutorials/preprocessing/15_handling_
 * Can also interpolate bad channels (for cross subject analysis to have same data dimentionality)
     If need be interpolation can be done automatically - look here: https://autoreject.github.io/stable/index.html
 """
-m_raw.plot() # Use this to inspect and select any bad channels
-m_raw.interpolate_bads() # This automatically interpolates the bad channels - and clears the 'bads' list after
+# m_raw.plot() # Use this to inspect and select any bad channels
+# m_raw.interpolate_bads() # This automatically interpolates the bad channels - and clears the 'bads' list after
 
 #-----------------------
 # TEMPORAL FILTERING
@@ -231,18 +183,27 @@ detect and eliminate bad epochs in this stage
 
 # get baseline length for epoching in equal size
 baseline_len = len(df1.loc[df1['block_name'] == 'baseline'])
-baseline_alpha = m_alpha.copy().crop(tmax=(baseline_len / fs))
+baseline_alpha = m_alpha.copy().crop(tmax=(baseline_len / m_alpha.info['sfreq']))
 
 # Get baseline epochs of same length as other epochs (6 seconds)
 baseline_epochs = epochs = mne.make_fixed_length_epochs(baseline_alpha, duration=6, preload=False)
 
-left_chs = ["PO7=1"]
-right_chs = ["PO8=1"]
+left_chs = ["PO7=1","P5=1","O1=1"]
+right_chs = ["PO8=1","P6=1","O2=1"]
 
 # look at the alpha power for the baseline for left and right channels
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=left_chs)
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=right_chs)
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1=";".join(left_chs), name2=";".join(right_chs), title="nfb")
+e_mean1, e_std1, e_pwr1 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=left_chs)
+e_mean2, e_std2, e_pwr2 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=right_chs)
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title="baesline epoch power", color=(230,20,20,1), y_range=[0, 5e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title="baesline epoch power", color=(20,20,230,1), y_range=[0, 5e-6])
+fig.show()
+
+# get calculated AAI for baseline (left-right/left+right)
+aai_baseline = (e_pwr1-e_pwr2)/(e_pwr1+e_pwr2)
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, aai_baseline.mean(axis=0)[0], aai_baseline.std(axis=0)[0], name="aai", title="epoch power", color=(230,20,20,1), y_range=[0, 5e-6])
+fig.show()
 
 bd = pd.DataFrame(dict(left_mean=e_mean1, right_mean=e_mean2)).melt(var_name="data")
 px.box(bd, y='value', color='data', title="total nfb epochs").show()
@@ -256,11 +217,34 @@ epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, basel
 
 # look at the alpha power for the different sections (increase left alpha) for left and right channels
 for eid, k in epochs.event_id.items():
-    e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs[eid], fband=(8, 14), fs=1000,
+    e_mean1, e_std1, e_pwr1 = af.get_nfb_epoch_power_stats(epochs[eid], fband=(8, 14), fs=1000,
+                                                   channel_labels=epochs.info.ch_names, chs=left_chs)
+    e_mean2, e_std2, e_pwr2 = af.get_nfb_epoch_power_stats(epochs[eid], fband=(8, 14), fs=1000,
                                                    channel_labels=epochs.info.ch_names, chs=right_chs)
-    e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs[eid], fband=(8, 14), fs=1000,
-                                                   channel_labels=epochs.info.ch_names, chs=right_chs)
-    af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1=";".join(left_chs), name2=";".join(right_chs), title=eid)
+    fig = go.Figure()
+    af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=eid, color=(230, 20, 20, 1), y_range=[0, 5e-6])
+    af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=eid, color=(20, 20, 230, 1), y_range=[0, 5e-6])
+    fig.show()
+
+    # get calculated AAI for nfb (left-right/left+right) TODO: check if this is actually what you want....
+    if eid == 'nfb':
+        aai_nfb = (e_pwr1-e_pwr2)/(e_pwr1+e_pwr2)
+        fig = go.Figure()
+        af.plot_nfb_epoch_stats(fig, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"aai", title=f"{eid} aai", color=(230,20,20,1), y_range=[-1, 1])
+        fig.show()
+
+# # compare with online aai TODO: check if this is actually what you want....
+# drop_cols = [x for x in df1.columns if x not in ['signal_AAI', 'block_number', 'block_name', "sample"]]
+# aai_df = df1.drop(columns=drop_cols)
+# aai_df = aai_df[aai_df['block_name'] == "NFB"]
+# aai_df = aai_df.drop(columns='block_name')
+# signal_aai = []
+# for x in aai_df.block_number.unique():
+#     signal_aai.append(aai_df.loc[aai_df.block_number == x].signal_AAI.reset_index(drop=True))
+# fig = go.Figure()
+# af.plot_nfb_epoch_stats(fig, pd.concat(signal_aai, axis=1).mean(axis=1), 0, name=f"aai",
+#                             title=f"aai", color=(230, 20, 20, 1))
+# fig.show()
 
 
 # Look at the nfb epochs in quartered time sections
@@ -268,9 +252,12 @@ step = int(len(epochs['nfb'])/4)
 section_data = {}
 dataframes = []
 for i, x in enumerate(range(0, 100, step)):
-    e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['nfb'][x:x+step], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=left_chs)
-    e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['nfb'][x:x+step], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=right_chs)
-    af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1=";".join(left_chs), name2=";".join(right_chs), title=f"nfb ({x}:{x+step})")
+    e_mean1, e_std1, e_pwr1 = af.get_nfb_epoch_power_stats(epochs['nfb'][x:x+step], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=left_chs)
+    e_mean2, e_std2, e_pwr2 = af.get_nfb_epoch_power_stats(epochs['nfb'][x:x+step], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=right_chs)
+    fig = go.Figure()
+    af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"nfb ({x}:{x+step})", color=(230, 20, 20, 1), y_range=[0, 5e-6])
+    af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"nfb ({x}:{x+step})", color=(20, 20, 230, 1), y_range=[0, 5e-6])
+    fig.show()
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"Q{i+1}"
     dataframes.append(df_i)
@@ -280,6 +267,7 @@ px.box(section_df, x='section', y='data', color='side', title="total nfb epochs"
 
 
 
+# -DECIMATE STUFF>>>>
 # events = mne.find_events(raw_filtered)
 # epochs = mne.Epochs(raw_filtered, events, decim=decim)
 #
@@ -291,5 +279,5 @@ px.box(section_df, x='section', y='data', color='side', title="total nfb epochs"
 
 # USE 'reject' to automatically reject bad epochs (over certain peak-peak amplitudes)
 #    reject_tmin and reject_tmax can also be used to determine the time frame to reject epochs (default whole epoch)
-
+# ->>>>>>>>>>>>>>>>>>>
 
