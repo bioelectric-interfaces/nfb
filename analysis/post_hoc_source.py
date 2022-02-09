@@ -79,7 +79,6 @@ df1['p_change_events'] =  df1.apply(lambda row: row.protocol_change if row.block
                                  row.protocol_change * 4 if row.block_name == "delay" else
                                  row.protocol_change * 5 if row.block_name == "Input" else 0, axis=1)
 
-
 # Create the events list for the protocol transitions
 probe_events = df1[['p_change_events']].to_numpy()
 event_dict = {'nfb': 1, 'fc_w': 2, 'fc_b': 3, 'delay': 4, 'Input': 5}
@@ -224,7 +223,21 @@ for the nfb task - events are the following
     * visual probe in delay protocol (left and right)
 detect and eliminate bad epochs in this stage
 """
-## Epoch and downsample in one go
+
+# get baseline length for epoching in equal size
+baseline_len = len(df1.loc[df1['block_name'] == 'baseline'])
+baseline_alpha = m_alpha.copy().crop(tmax=(baseline_len / fs))
+
+# Get baseline epochs of same length as other epochs (6 seconds)
+baseline_epochs = epochs = mne.make_fixed_length_epochs(baseline_alpha, duration=6, preload=False)
+
+# look at the alpha power for the baseline for left and right channels
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="nfb")
+
+
+## Epoch the other sections
 events = mne.find_events(m_raw, stim_channel='STI')
 reject_criteria = dict(eeg=1000e-6)
 
