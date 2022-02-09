@@ -11,6 +11,8 @@ import os.path as op
 
 import numpy as np
 import matplotlib.pyplot as plt
+import plotly_express as px
+import pandas as pd
 
 import mne
 from mne.datasets import sample
@@ -35,6 +37,9 @@ mne.viz.set_3d_backend('pyvista')
 Get the data from HDF5 Files to MNE data objects
 """
 h5file = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
+
+# h5file_scalp = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
+# h5file_sham = ""
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -231,11 +236,16 @@ baseline_alpha = m_alpha.copy().crop(tmax=(baseline_len / fs))
 # Get baseline epochs of same length as other epochs (6 seconds)
 baseline_epochs = epochs = mne.make_fixed_length_epochs(baseline_alpha, duration=6, preload=False)
 
-# look at the alpha power for the baseline for left and right channels
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="nfb")
+left_chs = ["PO7=1"]
+right_chs = ["PO8=1"]
 
+# look at the alpha power for the baseline for left and right channels
+e_mean1, e_std1 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=left_chs)
+e_mean2, e_std2 = af.get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=right_chs)
+af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1=";".join(left_chs), name2=";".join(right_chs), title="nfb")
+
+bd = pd.DataFrame(dict(left_mean=e_mean1, right_mean=e_mean2)).melt(var_name="data")
+px.box(bd, y='value', color='data', title="total nfb epochs").show()
 
 ## Epoch the other sections
 events = mne.find_events(m_raw, stim_channel='STI')
@@ -244,27 +254,31 @@ reject_criteria = dict(eeg=1000e-6)
 epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, baseline=None,
                     preload=True, detrend=1, reject=reject_criteria) # TODO: make sure baseline params correct (using white fixation cross as baseline: (None, -1)
 
-# look at the alpha power for the nfb trials (increase left alpha) for left and right channels
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['nfb'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['nfb'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="nfb")
+# look at the alpha power for the different sections (increase left alpha) for left and right channels
+for eid, k in epochs.event_id.items():
+    e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs[eid], fband=(8, 14), fs=1000,
+                                                   channel_labels=epochs.info.ch_names, chs=right_chs)
+    e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs[eid], fband=(8, 14), fs=1000,
+                                                   channel_labels=epochs.info.ch_names, chs=right_chs)
+    af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1=";".join(left_chs), name2=";".join(right_chs), title=eid)
 
-# look at the alpha power for the white fixation dot trials (increase left alpha) for left and right channels
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['fc_w'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['fc_w'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="fc_w")
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['fc_b'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['fc_b'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="fc_b")
+# Look at the nfb epochs in quartered time sections
+step = int(len(epochs['nfb'])/4)
+section_data = {}
+dataframes = []
+for i, x in enumerate(range(0, 100, step)):
+    e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['nfb'][x:x+step], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=left_chs)
+    e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['nfb'][x:x+step], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=right_chs)
+    af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1=";".join(left_chs), name2=";".join(right_chs), title=f"nfb ({x}:{x+step})")
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"Q{i+1}"
+    dataframes.append(df_i)
+section_df = pd.concat(dataframes)
+section_df = section_df.melt(id_vars=['section'], var_name='side', value_name='data')
+px.box(section_df, x='section', y='data', color='side', title="total nfb epochs").show()
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['delay'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['delay'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="delay")
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['Input'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['Input'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="Input")
 
 # events = mne.find_events(raw_filtered)
 # epochs = mne.Epochs(raw_filtered, events, decim=decim)
