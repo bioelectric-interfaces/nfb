@@ -343,6 +343,7 @@ def get_nfb_protocol_change_events(df1, m_raw):
     info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
     stim_raw = mne.io.RawArray(probe_events.T, info)
     m_raw.add_channels([stim_raw], force_update_info=True)
+    return m_raw, event_dict
 
 if __name__ == "__main__":
 
