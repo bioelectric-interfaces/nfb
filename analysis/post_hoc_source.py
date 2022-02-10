@@ -58,7 +58,7 @@ Gets rid of artefacts (various different sources of noise)
 Can be done automatically but should really be done visually to ensure good results
 """
 
-# # remove projectors
+# # remove projectors TODO: make sure this is done correctly (and projectors reapplied)
 # ssp_projectors = m_raw.info['projs']
 # m_raw.del_proj()
 #

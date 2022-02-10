@@ -2,7 +2,7 @@
 Analysis functions for the free viewing task
 """
 import os
-
+import math
 import mne
 import pandas as pd
 import numpy as np
@@ -320,7 +320,7 @@ def hdf5_to_mne(h5file):
     # Create the mne raw object with eeg data
     m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
 
-    # set the reference to average
+    # set the reference to average (default) using a projector - this method is especially needed for source modelling
     m_raw.set_eeg_reference(projection=True)
     return df1, m_raw
 
@@ -379,7 +379,8 @@ def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="act
 
 
 def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type="active"):
-    reject_criteria = dict(eeg=1000e-6)
+    # TODO: make more generic (use an event dict to grab events etc)
+    reject_criteria = dict(eeg=18e-6)
     epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, baseline=None,
                         preload=True, detrend=1,
                         reject=reject_criteria)  # TODO: make sure baseline params correct (using white fixation cross as baseline: (None, -1)
@@ -409,11 +410,12 @@ def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type=
 
 def do_quartered_epochs(epochs, left_chs, right_chs, fb_type="active"):
     # Look at the nfb epochs in quartered time sections
-    step = int(len(epochs['nfb']) / 4)
+    # TODO: identify where the sections are (are more dropped from the beginning or the end? - when you drop it might not be evenly distributed across the epohcs)
+    step = math.ceil(len(epochs['nfb']) / 4)
     section_data = {}
     dataframes = []
     dataframes_aai = []
-    for i, x in enumerate(range(0, 100, step)):
+    for i, x in enumerate(range(0, int(len(epochs['nfb'])), step)):
         e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(epochs['nfb'][x:x + step], fband=(8, 14), fs=1000,
                                                                channel_labels=epochs.info.ch_names, chs=left_chs)
         e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(epochs['nfb'][x:x + step], fband=(8, 14), fs=1000,
