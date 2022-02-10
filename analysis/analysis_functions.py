@@ -345,6 +345,138 @@ def get_nfb_protocol_change_events(df1, m_raw):
     m_raw.add_channels([stim_raw], force_update_info=True)
     return m_raw, event_dict
 
+
+def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="active"):
+    # get baseline length for epoching in equal size
+    baseline_start = df1.loc[df1['block_name'] == 'baseline']['sample'].iloc[0] / m_alpha.info[
+        'sfreq']
+    baseline_end = df1.loc[df1['block_name'] == 'baseline']['sample'].iloc[-1] / m_alpha.info[
+        'sfreq']
+    baseline_alpha = m_alpha.copy().crop(tmin=baseline_start, tmax=baseline_end)
+
+    # Get baseline epochs of same length as other epochs (6 seconds)
+    baseline_epochs = mne.make_fixed_length_epochs(baseline_alpha, duration=6, preload=False)
+
+    # look at the alpha power for the baseline for left and right channels
+    e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 12), fs=1000,
+                                                           channel_labels=baseline_epochs.info.ch_names, chs=left_chs)
+    e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(baseline_epochs, fband=(8, 12), fs=1000,
+                                                           channel_labels=baseline_epochs.info.ch_names, chs=right_chs)
+    if fig == None:
+        fig = go.Figure()
+    plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{fb_type} bl epoch power",
+                            color=(230, 20, 20, 1), y_range=[0, 10e-6])
+    plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{fb_type} blepoch power",
+                            color=(20, 20, 230, 1), y_range=[0, 10e-6])
+    fig.show()
+    bd = pd.DataFrame(dict(left_mean=e_mean1, right_mean=e_mean2)).melt(var_name="data")
+    px.box(bd, y='value', color='data', title=f"total {fb_type} epochs", range_y=[0, 6e-6]).show()
+
+    # get calculated AAI for baseline (left-right/left+right)
+    aai_baseline = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
+
+    return fig, aai_baseline
+
+
+def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type="active"):
+    reject_criteria = dict(eeg=1000e-6)
+    epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, baseline=None,
+                        preload=True, detrend=1,
+                        reject=reject_criteria)  # TODO: make sure baseline params correct (using white fixation cross as baseline: (None, -1)
+
+    # look at the alpha power for the different sections (increase left alpha) for left and right channels
+
+    fig1 = go.Figure()
+    for eid, k in epochs.event_id.items():
+        e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(epochs[eid], fband=(8, 12), fs=1000,
+                                                               channel_labels=epochs.info.ch_names, chs=left_chs)
+        e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(epochs[eid], fband=(8, 12), fs=1000,
+                                                               channel_labels=epochs.info.ch_names, chs=right_chs)
+        fig = go.Figure()
+        plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{eid} {fb_type}", color=(230, 20, 20, 1),
+                                y_range=[0, 5e-6])
+        plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{eid} {fb_type}", color=(20, 20, 230, 1),
+                                y_range=[0, 5e-6])
+        fig.show()
+
+        # get calculated AAI for nfb (left-right/left+right)
+        if eid == 'nfb':
+            aai_nfb = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
+            plot_nfb_epoch_stats(fig1, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"{fb_type}aai",
+                                    title=f"{eid} {fb_type} aai", color=(230, 20, 20, 1), y_range=[-1, 1])
+            fig1.show()
+    return epochs, fig1
+
+def do_quartered_epochs(epochs, left_chs, right_chs, fb_type="active"):
+    # Look at the nfb epochs in quartered time sections
+    step = int(len(epochs['nfb']) / 4)
+    section_data = {}
+    dataframes = []
+    dataframes_aai = []
+    for i, x in enumerate(range(0, 100, step)):
+        e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(epochs['nfb'][x:x + step], fband=(8, 14), fs=1000,
+                                                               channel_labels=epochs.info.ch_names, chs=left_chs)
+        e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(epochs['nfb'][x:x + step], fband=(8, 14), fs=1000,
+                                                               channel_labels=epochs.info.ch_names, chs=right_chs)
+        fig = go.Figure()
+        plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{fb_type} nfb ({x}:{x + step})",
+                                color=(230, 20, 20, 1), y_range=[0, 5e-6])
+        plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{fb_type}nfb ({x}:{x + step})",
+                                color=(20, 20, 230, 1), y_range=[0, 5e-6])
+        fig.show()
+        # get the means for box plotting
+        df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+        df_i['section'] = f"Q{i + 1}"
+        dataframes.append(df_i)
+
+        # Get the AAIs of these sections
+        aai_nfb = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
+        fig1 = go.Figure()
+        plot_nfb_epoch_stats(fig1, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"aai",
+                                title=f"{fb_type} nfb ({x}:{x + step}) aai",
+                                color=(230, 20, 20, 1), y_range=[-1, 1])
+        fig1.show()
+        # get the aais for box plotting
+        df_ix = pd.DataFrame(dict(aai=aai_nfb.mean(axis=0)[0]))
+        df_ix['section'] = f"Q{i + 1}"
+        dataframes_aai.append(df_ix)
+    return dataframes, dataframes_aai
+
+def get_online_aai(df1, m_alpha, left_chs, right_chs, fig1=None):
+
+    # compare with online aai - IT LOOKS THE SAME IF THE START OF THE NFB EPOCHS ABOVE IS 0 - this is just smoothed!
+    drop_cols = [x for x in df1.columns if x not in ['signal_AAI', 'block_number', 'block_name', "sample"]]
+    aai_df = df1.drop(columns=drop_cols)
+    aai_df = aai_df[aai_df['block_name'] == "NFB"]
+    aai_df = aai_df.drop(columns='block_name')
+    signal_aai = []
+    for x in aai_df.block_number.unique():
+        signal_aai.append(aai_df.loc[aai_df.block_number == x].signal_AAI.reset_index(drop=True))
+    if fig1 == None:
+        fig1 = go.Figure()
+    plot_nfb_epoch_stats(fig1, pd.concat(signal_aai, axis=1).mean(axis=1), 0, name=f"aai",
+                                title=f"aai", color=(230, 20, 20, 1))
+    fig1.show()
+
+    # double checking the first epoch is what I thnk it is - SEEMS IT IS!!!! (so is the baseline!!)
+    nfb1_start = aai_df.loc[aai_df.block_number == 8]['sample'].iloc[0] / m_alpha.info['sfreq']
+    nfb1_end = aai_df.loc[aai_df.block_number == 8]['sample'].iloc[-1] / m_alpha.info['sfreq']
+    nfb1_alpha = m_alpha.copy().crop(tmin=nfb1_start, tmax=nfb1_end)
+    nfb1_epochs = mne.make_fixed_length_epochs(nfb1_alpha, duration=5, preload=False)
+    e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(nfb1_epochs, fband=(8, 12), fs=1000, channel_labels=nfb1_epochs.info.ch_names, chs=left_chs)
+    e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(nfb1_epochs, fband=(8, 12), fs=1000, channel_labels=nfb1_epochs.info.ch_names,  chs=right_chs)
+    fig = go.Figure()
+    plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title="nfb1 epoch power", color=(230,20,20,1), y_range=[0, 10e-6])
+    plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title="nfb1 epoch power", color=(20,20,230,1), y_range=[0, 10e-6])
+    fig.show()
+
+    # get calculated AAI for baseline (left-right/left+right)
+    aai_nfb1= (e_pwr1-e_pwr2)/(e_pwr1+e_pwr2)
+    fig = go.Figure()
+    plot_nfb_epoch_stats(fig, aai_nfb1.mean(axis=0)[0], aai_nfb1.std(axis=0)[0], name="nfb1 aai", title="epoch power", color=(230,20,20,1), y_range=[-0.7, 0.7])
+    plot_nfb_epoch_stats(fig, signal_aai[0], 0, name="nfb1 aai ol", title="epoch power", color=(30,120,20,1), y_range=[-0.7, 0.7])
+    fig.show()
+
 if __name__ == "__main__":
 
     h5file = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/scalp/0-pre_task_kk_01-27_18-27-31/experiment_data.h5"
