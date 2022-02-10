@@ -6,9 +6,10 @@
 #   look at nfb alpha lateralisation for each block with the different electrode setups
 
 
-
+import os
 import mne
 import numpy as np
+import matplotlib.pyplot as plt
 
 from pynfb.signal_processing.filters import ExponentialSmoother, FFTBandEnvelopeDetector
 from utils.load_results import load_data
@@ -18,6 +19,9 @@ import plotly.graph_objs as go
 import analysis.analysis_functions as af
 from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
+from mne.datasets import fetch_fsaverage
+from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inverse
+
 
 task_data = {}
 # h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-39-15/experiment_data.h5" # Ksenia cvsa tasks 1
@@ -258,28 +262,28 @@ fig.show()
 # - plot the averaged epochs mean + stds
 
 # LOOK AT ENVELOPE
-probe_left.drop_channels(x for x in channels if x not in ['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'])
-probe_left.apply_hilbert(picks=['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
-probe_right.apply_hilbert(picks=['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
-fig2 = probe_left.plot(spatial_colors=True)
-fig2 = probe_right.plot(spatial_colors=True)
-
-# Look at left and right evoked
-left_chs = ['O1', 'P3', 'PO7']#['O1', 'PO3', 'PO7', 'P1', 'P3', 'P5', 'P7', 'P9', 'PZ', 'P0Z']
-right_chs = ['O2', 'P4', 'PO8']#['O2', 'PO4', 'PO8', 'P2', 'P3', 'P6', 'P7', 'P10', 'PZ', 'P0Z']
-picks = left_chs# + right_chs
-# picks = ['P7', 'PO7', 'O1', 'OZ', 'PO8', 'P8', 'PO3', 'POZ', 'PO4', 'PO8']
-evokeds = dict(left_probe=list(epochs_l['left_probe'].iter_evoked()),
-               right_probe=list(epochs_l['right_probe'].iter_evoked()))
-mne.viz.plot_compare_evokeds(evokeds, combine='mean')#, picks=picks)
-
-# Look at left side vs right side for left probe
-left_ix = mne.pick_channels(probe_left.info['ch_names'], include=right_chs)
-right_ix = mne.pick_channels(probe_left.info['ch_names'], include=left_chs)
-roi_dict = dict(left_ROI=left_ix, right_ROI=right_ix)
-roi_evoked = mne.channels.combine_channels(probe_left, roi_dict, method='mean')
-print(roi_evoked.info['ch_names'])
-roi_evoked.plot()
+# probe_left.drop_channels(x for x in channels if x not in ['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'])
+# probe_left.apply_hilbert(picks=['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
+# probe_right.apply_hilbert(picks=['O1', 'O2', 'P3', 'P4', 'PO7', 'PO8'], envelope=True, n_jobs=1, n_fft='auto', verbose=None)
+# fig2 = probe_left.plot(spatial_colors=True)
+# fig2 = probe_right.plot(spatial_colors=True)
+#
+# # Look at left and right evoked
+# left_chs = ['O1', 'P3', 'PO7']#['O1', 'PO3', 'PO7', 'P1', 'P3', 'P5', 'P7', 'P9', 'PZ', 'P0Z']
+# right_chs = ['O2', 'P4', 'PO8']#['O2', 'PO4', 'PO8', 'P2', 'P3', 'P6', 'P7', 'P10', 'PZ', 'P0Z']
+# picks = left_chs# + right_chs
+# # picks = ['P7', 'PO7', 'O1', 'OZ', 'PO8', 'P8', 'PO3', 'POZ', 'PO4', 'PO8']
+# evokeds = dict(left_probe=list(epochs_l['left_probe'].iter_evoked()),
+#                right_probe=list(epochs_l['right_probe'].iter_evoked()))
+# mne.viz.plot_compare_evokeds(evokeds, combine='mean')#, picks=picks)
+#
+# # Look at left side vs right side for left probe
+# left_ix = mne.pick_channels(probe_left.info['ch_names'], include=right_chs)
+# right_ix = mne.pick_channels(probe_left.info['ch_names'], include=left_chs)
+# roi_dict = dict(left_ROI=left_ix, right_ROI=right_ix)
+# roi_evoked = mne.channels.combine_channels(probe_left, roi_dict, method='mean')
+# print(roi_evoked.info['ch_names'])
+# roi_evoked.plot()
 
 
 # # Get signal envelope of left and right chans
@@ -296,3 +300,66 @@ pass
 
 # TODO: ICA (to remove blinks etc)
 #   source analysis on epochs
+
+
+# ---------- SOURCE RECONSTRUCTION---
+noise_cov = mne.compute_covariance(
+    epochs['left_probe'], tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
+fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, epochs['left_probe'].info)
+
+# Get the forward solution for the specified source localisation type
+fs_dir = fetch_fsaverage(verbose=True)
+# --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
+trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+
+# m_filt.drop_channels(['ECG', 'EOG'])
+# fwd = mne.make_forward_solution(m_filt.info, trans=trans, src=src,
+#                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+fwd = mne.make_forward_solution(probe_left.info, trans=trans, src=src,
+                                bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+
+# make inverse operator
+inverse_operator = make_inverse_operator(
+    probe_left.info, fwd, noise_cov, loose=0.2, depth=0.8)
+# del fwd
+
+# compute inverse solution of whole brain
+method = "sLORETA"
+snr = 3.
+lambda2 = 1. / snr ** 2
+stc, residual = apply_inverse(probe_left, inverse_operator, lambda2,
+                              method=method, pick_ori=None,
+                              return_residual=True, verbose=True)
+
+# plot the time course of the peak source
+vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+fig, ax = plt.subplots()
+ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+ax.set(xlabel='time (ms)', ylabel='%s value' % method)
+
+
+# look at the peak
+vertno_max, time_max = stc.get_peak(hemi=None)
+
+surfer_kwargs = dict(
+    hemi='both',
+    clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+    initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+    surface='Pial', transparent=True, alpha=0.9, colorbar=True, show_traces=True)
+brain = stc.plot(**surfer_kwargs)
+brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+               scale_factor=0.6, alpha=0.5)
+brain.add_text(0.1, 0.9, 'left probe', 'title',
+               font_size=14)
+
+stc, residual = apply_inverse(probe_right, inverse_operator, lambda2,
+                              method=method, pick_ori=None,
+                              return_residual=True, verbose=True)
+
+# plot the time course of the peak source
+vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+fig, ax = plt.subplots()
+ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+ax.set(xlabel='time (ms)', ylabel='%s value' % method)
