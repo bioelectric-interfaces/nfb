@@ -202,28 +202,54 @@ probe_right = epochs['right_probe'].average()
 # TODO Look at PSD of left and right channels for the left and right probes
 
 # ----Look at the power for the epochs in the left and right channels for left and right probes
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title="left_probe")
+e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="left_chs", title="left_probe", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="left_probe", color=(22030, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+fig.show()
+aai_nfb = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+fig1 = go.Figure()
+af.plot_nfb_epoch_stats(fig1, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"aai",
+                     title=f"left probe aai",
+                     color=(230, 20, 20, 1), y_range=[-1, 1])
 
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title='right_probe')
+e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="left_chs", title="right_probe", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="right_probe", color=(22030, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+fig.show()
+aai_nfb = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+fig1 = go.Figure()
+af.plot_nfb_epoch_stats(fig1, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"aai",
+                     title=f"right probe aai",
+                     color=(230, 20, 20, 1), y_range=[-1, 1])
+fig1.show()
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="left_chs", name2="right_chs", title='centre_probe')
+
+e_mean1, e_std1, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="left_chs", title="centre_probe", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="centre_probe", color=(22030, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+fig.show()
 
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO7=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="right_probe", name2="left_probe", title='left channels')
+e_mean1, e_std1, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+e_mean2, e_std2, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO7=1"])
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="right_probe", title="left chs", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="left_probe", title="left chs", color=(22030, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+fig.show()
 
-e_mean1, e_std1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO8=1"])
-e_mean2, e_std2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-af.plot_nfb_epoch_stats(e_mean1, e_std1, e_mean2, e_std2, name1="right_probe", name2="left_probe", title='right channels')
-
+e_mean1, e_std1, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO8=1"])
+e_mean2, e_std2, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+fig = go.Figure()
+af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="right_probe", title="right chs", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="left_probe", title="lefrightt chs", color=(22030, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+fig.show()
 
 # - Get the power for each epoch
 

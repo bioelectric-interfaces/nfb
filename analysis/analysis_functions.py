@@ -380,7 +380,7 @@ def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="act
 
 def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type="active"):
     # TODO: make more generic (use an event dict to grab events etc)
-    reject_criteria = dict(eeg=18e-6)
+    reject_criteria = dict(eeg=18e-6) # TODO: tune this - also look at the effects after ICA and other noise reduction techniques etc.
     epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, baseline=None,
                         preload=True, detrend=1,
                         reject=reject_criteria)  # TODO: make sure baseline params correct (using white fixation cross as baseline: (None, -1)
