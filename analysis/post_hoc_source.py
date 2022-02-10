@@ -154,6 +154,13 @@ do this on the baseline data and apply to the entire raw dataset
 # reconst_raw = m_raw.copy()
 # ica.apply(reconst_raw)
 
+#-----------------------
+# Spatial filtering
+#-----------------------
+"""
+This allows the reduction in transient events affecting certain electrodes.
+"""
+# TODO: figure out what this is exactly in MNE python / how to implement it
 
 #-----------------------
 # DOWN SAMPLING
@@ -176,9 +183,10 @@ Do this AFTER epoching (as it jitters the timings)
 #
 # raw_filtered = m_raw.copy().filter(l_freq=None, h_freq=lowpass_freq)
 
-#-----------------------
-# EPOCHING
-#-----------------------
+
+#########################
+# EPOCHING and scalp analysis (inspection)
+#########################
 """
 epoch the data in terms of events
 for the nfb task - events are the following
@@ -242,3 +250,14 @@ px.box(aai_section_df, x='section', y='data', title="sham sectioned aai").show()
 #    reject_tmin and reject_tmax can also be used to determine the time frame to reject epochs (default whole epoch)
 # ->>>>>>>>>>>>>>>>>>>
 
+#########################
+# SOURCE LOCALISATION
+#########################
+
+#-----------------------
+# Head model
+#-----------------------
+"""
+For this, use the subject anatomy if possible
+* Look at the tutorial here to get the BEM: https://mne.tools/stable/auto_tutorials/forward/10_background_freesurfer.html
+"""
