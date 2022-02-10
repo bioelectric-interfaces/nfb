@@ -238,6 +238,8 @@ evokeds = dict(left_probe=list(epochs['left_probe'].iter_evoked()),
 mne.viz.plot_compare_evokeds(evokeds, combine='mean', picks=picks)
 pass
 
+mne.viz.plot_compare_evokeds(evokeds, combine='mean', picks=['O1', 'PO7'])
+
 # Look at left side vs right side for left probe
 left_ix = mne.pick_channels(probe_left.info['ch_names'], include=right_chs)
 right_ix = mne.pick_channels(probe_left.info['ch_names'], include=left_chs)

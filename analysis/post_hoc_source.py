@@ -261,3 +261,16 @@ px.box(aai_section_df, x='section', y='data', title="sham sectioned aai").show()
 For this, use the subject anatomy if possible
 * Look at the tutorial here to get the BEM: https://mne.tools/stable/auto_tutorials/forward/10_background_freesurfer.html
 """
+
+#-----------------------
+# Electrode coregistration
+#-----------------------
+"""
+getting the electrode positions the same as when the data was recorded plays a role in accuracy of source localisation
+a crude way to do this is to make sure the cap is placed correctly and align it with the anatomical model
+a better way is to use a 3d electrode positioning system
+"""
+
+#-----------------------
+#CALCULATING THE LEAD FIELD
+#-----------------------
