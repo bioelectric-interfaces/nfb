@@ -1,6 +1,8 @@
 """
 Script to analyse the alpha asymmetry index
 """
+import platform
+
 import matplotlib.pyplot as plt
 import numpy as np
 from pynfb.serializers.hdf5 import load_h5py_all_samples, load_h5py_protocol_signals, load_h5py_protocols_raw, load_h5py
@@ -14,8 +16,12 @@ import mne
 
 import analysis_functions as af
 
+if platform.system() == "Windows":
+    userdir = "2354158T"
+else:
+    userdir = "christopherturner"
 # ------ Get data files
-data_directory = "/Users/christopherturner/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
+data_directory = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
 
 # get participants
 participants = next(os.walk(data_directory))[1]

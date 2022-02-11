@@ -10,6 +10,7 @@ import os
 import mne
 import numpy as np
 import matplotlib.pyplot as plt
+import platform
 
 from pynfb.signal_processing.filters import ExponentialSmoother, FFTBandEnvelopeDetector
 from utils.load_results import load_data
@@ -23,9 +24,14 @@ from mne.datasets import fetch_fsaverage
 from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inverse
 
 
+if platform.system() == "Windows":
+    userdir = "2354158T"
+else:
+    userdir = "christopherturner"
+
 task_data = {}
-# h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-39-15/experiment_data.h5" # Ksenia cvsa tasks 1
-h5file = "/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5" # Ksenia cvsa tasks 2
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-39-15/experiment_data.h5" # Ksenia cvsa tasks 1
+h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5" # Ksenia cvsa tasks 2
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)

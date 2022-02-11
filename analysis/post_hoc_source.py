@@ -8,7 +8,7 @@ aims:
     4) compare source locations and time courses between scalp, sham, and source conditions for responders and non responders
 """
 import os.path as op
-
+import platform
 import numpy as np
 import matplotlib.pyplot as plt
 import plotly_express as px
@@ -37,10 +37,15 @@ mne.viz.set_3d_backend('pyvista')
 """
 Get the data from HDF5 Files to MNE data objects
 """
-# h5file_scalp = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
+if platform.system() == "Windows":
+    userdir = "2354158T"
+else:
+    userdir = "christopherturner"
+# ------ Get data files
+# h5file_scalp = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
 
-h5file_active = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
-h5file_sham = "/Users/christopherturner/Documents/EEG_Data/pilot_202201/kk/sham/2-nfb_task_kk_02-05_14-41-40/experiment_data.h5"
+h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
+h5file_sham = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/sham/2-nfb_task_kk_02-05_14-41-40/experiment_data.h5"
 
 df1_active, m_raw_active = af.hdf5_to_mne(h5file_active)
 m_raw_active, event_dict_active = af.get_nfb_protocol_change_events(df1_active, m_raw_active)

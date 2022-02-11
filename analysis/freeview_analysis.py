@@ -9,6 +9,7 @@ import numpy as np
 from pynfb.serializers.hdf5 import load_h5py_all_samples, load_h5py_protocol_signals, load_h5py_protocols_raw, load_h5py
 from utils.load_results import load_data
 import os
+import platform
 import glob
 import pandas as pd
 import plotly.express as px
@@ -28,8 +29,12 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
+if platform.system() == "Windows":
+    userdir = "2354158T"
+else:
+    userdir = "christopherturner"
 # ------ Get data files
-data_directory = "/Users/christopherturner/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
+data_directory = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201" # This is the directory where all participants are in
 
 # get participants
 participants = next(os.walk(data_directory))[1]
@@ -91,7 +96,7 @@ pass
 
 # Free view analysis
 af.free_view_analysis()
-
+print('done...')
 
 pass
 
