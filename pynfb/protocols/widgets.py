@@ -5,7 +5,7 @@ import random
 
 import cv2
 
-from PyQt5.QtWidgets import QDesktopWidget
+from PyQt5.QtWidgets import QDesktopWidget, QVBoxLayout
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import numpy as np
@@ -237,6 +237,52 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         # scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
         # gabor = GaborPatch(theta=scaled_sample)
         # blurred = cv2.filter2D(self.gabor, cv2.CV_8UC3, gabor)
+
+
+class PlotFeedbackWidgetPainter(Painter):
+    def __init__(self, m_threshold=1, r_threshold=0, show_reward=False):
+        super(PlotFeedbackWidgetPainter, self).__init__(show_reward=show_reward)
+        self.widget = None
+        self.m_threshold = m_threshold
+        self.r_threshold = r_threshold
+
+    def prepare_widget(self, widget):
+        super(PlotFeedbackWidgetPainter, self).prepare_widget(widget)
+
+        self.widget = widget
+        layout = QVBoxLayout()
+        widget.setLayout(layout)
+        # self.setCentralWidget(widget)
+
+        graphics_widget = pg.GraphicsLayoutWidget()
+        layout.addWidget(graphics_widget)
+        # self.widget.addItem(graphics_widget)
+        self.dat = []  # deque()
+        self.maxLen = 150  # max number of data points to show on graph
+        self.p1 = graphics_widget.addPlot(colspan=2)
+        self.curve1 = self.p1.plot()
+
+    def set_red_state(self, flag):
+        if flag:
+            # TODO: figure out what needs to go here
+            pass
+        else:
+            # TODO: figure out what needs to go here
+            pass
+
+    def redraw_state(self, sample, m_sample):
+        if m_sample is not None:
+            self.set_red_state(m_sample > self.m_threshold)
+        if np.ndim(sample)>0:
+            sample = np.sum(sample)
+
+        if len(self.dat) > self.maxLen:
+            self.dat = self.dat[1:]
+        self.dat = self.dat + [sample]
+
+        self.curve1.setData(self.dat)
+
+
 
 
 class FixationCrossProtocolWidgetPainter(Painter):

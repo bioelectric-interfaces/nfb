@@ -21,7 +21,8 @@ from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbac
                                  BaselineProtocolWidgetPainter, ThresholdBlinkFeedbackProtocolWidgetPainter,
                                  VideoProtocolWidgetPainter, ParticipantChoiceWidgetPainter,
                                  ExperimentStartWidgetPainter, FixationCrossProtocolWidgetPainter,
-                                 ImageProtocolWidgetPainter, EyeCalibrationProtocolWidgetPainter)
+                                 ImageProtocolWidgetPainter, EyeCalibrationProtocolWidgetPainter,
+                                 PlotFeedbackWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
@@ -250,6 +251,9 @@ class FeedbackProtocol(Protocol):
                                                                      gabor_theta=gabor_theta,
                                                                      m_threshold=m_threshold,
                                                                      r_threshold=self.reward_threshold)
+        elif circle_border == 4:
+            self.widget_painter = PlotFeedbackWidgetPainter(show_reward=self.show_reward,
+                                                                      m_threshold=m_threshold)
         else:
             self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                       circle_border=circle_border,
