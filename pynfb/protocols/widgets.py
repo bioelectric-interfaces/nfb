@@ -245,6 +245,7 @@ class PlotFeedbackWidgetPainter(Painter):
         self.widget = None
         self.m_threshold = m_threshold
         self.r_threshold = r_threshold
+        self.gabor_theta=0
 
     def prepare_widget(self, widget):
         super(PlotFeedbackWidgetPainter, self).prepare_widget(widget)
@@ -255,12 +256,18 @@ class PlotFeedbackWidgetPainter(Painter):
         # self.setCentralWidget(widget)
 
         graphics_widget = pg.GraphicsLayoutWidget()
+        graphics_widget.setBackgroundBrush(pg.mkBrush(126, 126, 126))
         layout.addWidget(graphics_widget)
-        # self.widget.addItem(graphics_widget)
+
         self.dat = []  # deque()
         self.maxLen = 150  # max number of data points to show on graph
-        self.p1 = graphics_widget.addPlot(colspan=2)
+        self.p1 = graphics_widget.addPlot()
+        self.p1.hideAxis('bottom')
+        self.p1.hideAxis('left')
+        self.p1.setYRange(-1, 1, padding=0)
+
         self.curve1 = self.p1.plot()
+        self.curve2 = self.p1.plot()
 
     def set_red_state(self, flag):
         if flag:
@@ -271,6 +278,7 @@ class PlotFeedbackWidgetPainter(Painter):
             pass
 
     def redraw_state(self, sample, m_sample):
+        self.curve2.setData(np.ones(self.maxLen)*self.r_threshold)
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
@@ -280,7 +288,10 @@ class PlotFeedbackWidgetPainter(Painter):
             self.dat = self.dat[1:]
         self.dat = self.dat + [sample]
 
-        self.curve1.setData(self.dat)
+        pen = pg.mkPen(229, 25, 25)
+        if sample > self.r_threshold:
+            pen = pg.mkPen(25, 229, 25)
+        self.curve1.setData(self.dat, pen=pen)
 
 
 
