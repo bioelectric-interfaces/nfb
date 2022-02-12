@@ -444,12 +444,29 @@ def do_quartered_epochs(epochs, left_chs, right_chs, fb_type="active"):
         dataframes_aai.append(df_ix)
     return dataframes, dataframes_aai
 
-def get_online_aai(df1, m_alpha, left_chs, right_chs, fig1=None):
+def get_online_aai(df1, block_name="NFB"):
+    drop_cols = [x for x in df1.columns if x not in ['signal_AAI', 'block_number', 'block_name', "sample"]]
+    aai_df = df1.drop(columns=drop_cols)
+    aai_df = aai_df[aai_df['block_name'] == block_name]
+    aai_df = aai_df.drop(columns='block_name')
+    signal_aai = []
+    for x in aai_df.block_number.unique():
+        signal_aai.append(aai_df.loc[aai_df.block_number == x].signal_AAI.reset_index(drop=True))
+
+    online_aai = pd.DataFrame()
+    online_aai['mean'] = pd.concat(signal_aai, axis=1).mean(axis=1)
+    online_aai['median'] = pd.concat(signal_aai, axis=1).median(axis=1)
+    online_aai['std'] = pd.concat(signal_aai, axis=1).std(axis=1)
+
+    return online_aai
+
+
+def check_online_aai(df1, m_alpha, left_chs, right_chs, fig1=None, block_name="NFB"):
 
     # compare with online aai - IT LOOKS THE SAME IF THE START OF THE NFB EPOCHS ABOVE IS 0 - this is just smoothed!
     drop_cols = [x for x in df1.columns if x not in ['signal_AAI', 'block_number', 'block_name', "sample"]]
     aai_df = df1.drop(columns=drop_cols)
-    aai_df = aai_df[aai_df['block_name'] == "NFB"]
+    aai_df = aai_df[aai_df['block_name'] == block_name]
     aai_df = aai_df.drop(columns='block_name')
     signal_aai = []
     for x in aai_df.block_number.unique():
@@ -468,7 +485,7 @@ def get_online_aai(df1, m_alpha, left_chs, right_chs, fig1=None):
     e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(nfb1_epochs, fband=(8, 12), fs=1000, channel_labels=nfb1_epochs.info.ch_names, chs=left_chs)
     e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(nfb1_epochs, fband=(8, 12), fs=1000, channel_labels=nfb1_epochs.info.ch_names,  chs=right_chs)
     fig = go.Figure()
-    plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title="nfb1 epoch power", color=(230,20,20,1), y_range=[0, 10e-6])
+    plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"nfb1 epoch power", color=(230,20,20,1), y_range=[0, 10e-6])
     plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title="nfb1 epoch power", color=(20,20,230,1), y_range=[0, 10e-6])
     fig.show()
 

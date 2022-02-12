@@ -219,7 +219,7 @@ epochs_active, fig1 = af.do_section_epochs(events, m_alpha_active, event_dict_ac
 epochs_sham, _ = af.do_section_epochs(events, m_alpha_sham, event_dict_sham, left_chs, right_chs, fb_type="sham")
 
 # Check with the online AAI
-af.get_online_aai(df1_active, m_alpha_active, left_chs, right_chs, fig1=fig1)
+af.check_online_aai(df1_active, m_alpha_active, left_chs, right_chs, fig1=fig1)
 
 # Look at epochs in time quarters
 dataframes_active, dataframes_aai_active = af.do_quartered_epochs(epochs_active, left_chs, right_chs, fb_type="active")
