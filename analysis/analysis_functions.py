@@ -369,18 +369,20 @@ def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="act
     plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{fb_type} blepoch power",
                             color=(20, 20, 230, 1), y_range=[0, 10e-6])
     fig.show()
-    bd = pd.DataFrame(dict(left_mean=e_mean1, right_mean=e_mean2)).melt(var_name="data")
-    px.box(bd, y='value', color='data', title=f"total {fb_type} epochs", range_y=[0, 6e-6]).show()
+    bl_dataframe = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    bl_dataframe['section'] = 'bl'
+    # bd = pd.DataFrame(dict(left_mean=e_mean1, right_mean=e_mean2)).melt(var_name="data")
+    # px.box(bd, y='value', color='data', title=f"total {fb_type} epochs", range_y=[0, 6e-6]).show()
 
     # get calculated AAI for baseline (left-right/left+right)
     aai_baseline = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
 
-    return fig, aai_baseline
+    return fig, aai_baseline, bl_dataframe
 
 
-def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type="active"):
+def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type="active", reject_criteria=dict(eeg=18e-6), show_plot=False):
     # TODO: make more generic (use an event dict to grab events etc)
-    reject_criteria = dict(eeg=18e-6) # TODO: tune this - also look at the effects after ICA and other noise reduction techniques etc.
+    # reject_criteria = dict(eeg=18e-6) # TODO: tune this - also look at the effects after ICA and other noise reduction techniques etc.
     epochs = mne.Epochs(m_alpha, events, event_id=event_dict, tmin=-1, tmax=5, baseline=None,
                         preload=True, detrend=1,
                         reject=reject_criteria)  # TODO: make sure baseline params correct (using white fixation cross as baseline: (None, -1)
@@ -388,27 +390,28 @@ def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type=
     # look at the alpha power for the different sections (increase left alpha) for left and right channels
 
     fig1 = go.Figure()
-    for eid, k in epochs.event_id.items():
-        e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(epochs[eid], fband=(8, 12), fs=1000,
-                                                               channel_labels=epochs.info.ch_names, chs=left_chs)
-        e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(epochs[eid], fband=(8, 12), fs=1000,
-                                                               channel_labels=epochs.info.ch_names, chs=right_chs)
-        fig = go.Figure()
-        plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{eid} {fb_type}", color=(230, 20, 20, 1),
-                                y_range=[0, 5e-6])
-        plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{eid} {fb_type}", color=(20, 20, 230, 1),
-                                y_range=[0, 5e-6])
-        fig.show()
+    if show_plot:
+        for eid, k in epochs.event_id.items():
+            e_mean1, e_std1, e_pwr1 = get_nfb_epoch_power_stats(epochs[eid], fband=(8, 12), fs=1000,
+                                                                   channel_labels=epochs.info.ch_names, chs=left_chs)
+            e_mean2, e_std2, e_pwr2 = get_nfb_epoch_power_stats(epochs[eid], fband=(8, 12), fs=1000,
+                                                                   channel_labels=epochs.info.ch_names, chs=right_chs)
+            fig = go.Figure()
+            plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{eid} {fb_type}", color=(230, 20, 20, 1),
+                                    y_range=[0, 5e-6])
+            plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{eid} {fb_type}", color=(20, 20, 230, 1),
+                                    y_range=[0, 5e-6])
+            fig.show()
 
-        # get calculated AAI for nfb (left-right/left+right)
-        if eid == 'nfb':
-            aai_nfb = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
-            plot_nfb_epoch_stats(fig1, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"{fb_type}aai",
-                                    title=f"{eid} {fb_type} aai", color=(230, 20, 20, 1), y_range=[-1, 1])
-            fig1.show()
+            # get calculated AAI for nfb (left-right/left+right)
+            if eid == 'nfb':
+                aai_nfb = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
+                plot_nfb_epoch_stats(fig1, aai_nfb.mean(axis=0)[0], aai_nfb.std(axis=0)[0], name=f"{fb_type}aai",
+                                        title=f"{eid} {fb_type} aai", color=(230, 20, 20, 1), y_range=[-1, 1])
+                fig1.show()
     return epochs, fig1
 
-def do_quartered_epochs(epochs, left_chs, right_chs, fb_type="active"):
+def do_quartered_epochs(epochs, left_chs, right_chs, fb_type="active", show_plot=False):
     # Look at the nfb epochs in quartered time sections
     # TODO: identify where the sections are (are more dropped from the beginning or the end? - when you drop it might not be evenly distributed across the epohcs)
     step = math.ceil(len(epochs['nfb']) / 4)

@@ -42,10 +42,12 @@ if platform.system() == "Windows":
 else:
     userdir = "christopherturner"
 # ------ Get data files
-# h5file_scalp = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
-
-h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
+# h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
+#
+# h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
 h5file_sham = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/sham/2-nfb_task_kk_02-05_14-41-40/experiment_data.h5"
+
+h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/source/1-nfb_task_sh_02-01_14-50-58/experiment_data.h5"
 
 df1_active, m_raw_active = af.hdf5_to_mne(h5file_active)
 m_raw_active, event_dict_active = af.get_nfb_protocol_change_events(df1_active, m_raw_active)
@@ -200,12 +202,12 @@ for the nfb task - events are the following
 detect and eliminate bad epochs in this stage
 """
 
-left_chs = ["CP5=1", "P5=1", "O1=1"]
-right_chs = ["CP6=1", "P6=1", "O2=1"]
+left_chs = ["PO7=1"]#["CP5=1", "P5=1", "O1=1"]
+right_chs = ["PO8=1"]#["CP6=1", "P6=1", "O2=1"]
 
 # DO BASELINE STUFF
-fig, aai_baseline_active = af.do_baseline_epochs(df1_active, m_alpha_active, left_chs, right_chs, fig=None, fb_type="active")
-fig, aai_baseline_sham = af.do_baseline_epochs(df1_sham, m_alpha_sham, left_chs, right_chs, fig=None, fb_type="sham")
+fig, aai_baseline_active, bl_dataframe_active = af.do_baseline_epochs(df1_active, m_alpha_active, left_chs, right_chs, fig=None, fb_type="active")
+fig, aai_baseline_sham, bl_dataframe_sham = af.do_baseline_epochs(df1_sham, m_alpha_sham, left_chs, right_chs, fig=None, fb_type="sham")
 
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, aai_baseline_active.mean(axis=0)[0], aai_baseline_active.std(axis=0)[0], name="aai_active", title="aai_active", color=(230, 20, 20, 1), y_range=[-0.7, 0.7])
@@ -214,9 +216,10 @@ fig.show()
 
 ## Epoch the other sections
 events = mne.find_events(m_raw_active, stim_channel='STI')
+reject_criteria = dict(eeg=25e-6)
 
-epochs_active, fig1 = af.do_section_epochs(events, m_alpha_active, event_dict_active, left_chs, right_chs, fb_type="active")
-epochs_sham, _ = af.do_section_epochs(events, m_alpha_sham, event_dict_sham, left_chs, right_chs, fb_type="sham")
+epochs_active, fig1 = af.do_section_epochs(events, m_alpha_active, event_dict_active, left_chs, right_chs, fb_type="active", reject_criteria=reject_criteria)
+epochs_sham, _ = af.do_section_epochs(events, m_alpha_sham, event_dict_sham, left_chs, right_chs, fb_type="sham", reject_criteria=reject_criteria)
 
 # Check with the online AAI
 af.check_online_aai(df1_active, m_alpha_active, left_chs, right_chs, fig1=fig1)
@@ -225,13 +228,56 @@ af.check_online_aai(df1_active, m_alpha_active, left_chs, right_chs, fig1=fig1)
 dataframes_active, dataframes_aai_active = af.do_quartered_epochs(epochs_active, left_chs, right_chs, fb_type="active")
 dataframes_sham, dataframes_aai_sham = af.do_quartered_epochs(epochs_sham, left_chs, right_chs, fb_type="sham")
 
-# Plot the boxes of the left and right powers
-section_df = pd.concat(dataframes_active)
-section_df = section_df.melt(id_vars=['section'], var_name='side', value_name='data')
-px.box(section_df, x='section', y='data', color='side', title="active sectioned nfb epochs").show()
-section_df = pd.concat(dataframes_sham)
-section_df = section_df.melt(id_vars=['section'], var_name='side', value_name='data')
-px.box(section_df, x='section', y='data', color='side', title="sham sectioned nfb epochs").show()
+# # Plot the boxes of the left and right powers and include the baseline
+# section_df = pd.concat(dataframes_active)
+# section_df = section_df.melt(id_vars=['section'], var_name='side', value_name='data')
+# px.box(section_df, x='section', y='data', color='side', title="active sectioned nfb epochs").show()
+# section_df = pd.concat(dataframes_sham)
+# section_df = section_df.melt(id_vars=['section'], var_name='side', value_name='data')
+# px.box(section_df, x='section', y='data', color='side', title="sham sectioned nfb epochs").show()
+
+
+# only look at the nfb section (not the cue or anything before) - ACTIVE
+dataframes_active_nfb = []
+colors = ['blue', 'red']
+for s in dataframes_active:
+    dataframes_active_nfb.append(s[-5000:])
+section_df_nfb_active = pd.concat(dataframes_active_nfb)
+section_df_nfb_active = section_df_nfb_active.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_bl_active = bl_dataframe_active.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_active = pd.concat([section_df_bl_active, section_df_nfb_active], ignore_index=True)
+fig=go.Figure()
+for i, side in enumerate(section_df_active['side'].unique()):
+    df_plot = section_df_active[section_df_active['side'] == side]
+    fig.add_trace(go.Box(x=df_plot['section'], y=df_plot['data'],
+                         notched=True,
+                         line=dict(color=colors[i]),
+                         name='side=' + side))
+# Append the baseline and plot
+fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.6e-6,2e-6], title='Active')
+fig.show()
+
+# only look at the nfb section (not the cue or anything before) - SHAM
+dataframes_sham_nfb = []
+colors = ['blue', 'red']
+for s in dataframes_sham:
+    dataframes_sham_nfb.append(s[-5000:])
+section_df_nfb_sham = pd.concat(dataframes_sham_nfb)
+section_df_nfb_sham = section_df_nfb_sham.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_bl_sham = bl_dataframe_sham.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_sham = pd.concat([section_df_bl_sham, section_df_nfb_sham], ignore_index=True)
+fig=go.Figure()
+for i, side in enumerate(section_df_sham['side'].unique()):
+    df_plot = section_df_sham[section_df_sham['side'] == side]
+    fig.add_trace(go.Box(x=df_plot['section'], y=df_plot['data'],
+                         notched=True,
+                         line=dict(color=colors[i]),
+                         name='side=' + side))
+# Append the baseline and plot
+fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.6e-6,2e-6], title='Sham')
+fig.show()
+
+
 
 # plot the boxes of the aais
 aai_section_df = pd.concat(dataframes_aai_active)
