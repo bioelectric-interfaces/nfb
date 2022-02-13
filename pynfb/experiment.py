@@ -340,7 +340,7 @@ class Experiment():
             # Update gabor patch angle for next gabor
             # TODO: make this more generic (only dependant on the protocol)
             bc_threshold = None
-            if isinstance(current_protocol.widget_painter, GaborFeedbackProtocolWidgetPainter) or isinstance(current_protocol.widget_painter, PlotFeedbackWidgetPainter):
+            if isinstance(current_protocol.widget_painter, (GaborFeedbackProtocolWidgetPainter, PlotFeedbackWidgetPainter)):
                 self.gabor_theta = r.choice(range(20, 180, 20))
                 logging.info(f"GABOR THETA: {self.gabor_theta}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta

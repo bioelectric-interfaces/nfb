@@ -246,36 +246,29 @@ class PlotFeedbackWidgetPainter(Painter):
         self.m_threshold = m_threshold
         self.r_threshold = r_threshold
         self.gabor_theta=0
-        self.x = np.linspace(-0.05, 0.05, 10)
+        self.maxLen = 150  # max number of data points to show on graph
+        self.x = np.linspace(-self.maxLen*2, self.maxLen*2, 10)
         self.fixdot = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.02
+        self.maxLen = 150  # max number of data points to show on graph
 
     def prepare_widget(self, widget):
         super(PlotFeedbackWidgetPainter, self).prepare_widget(widget)
 
         self.widget = widget
-        layout = QVBoxLayout()
-        widget.setLayout(layout)
-        # self.setCentralWidget(widget)
-
-        graphics_widget = pg.GraphicsLayoutWidget()
-        graphics_widget.setBackgroundBrush(pg.mkBrush(126, 126, 126))
-        layout.addWidget(graphics_widget)
-
         self.dat1 = []
-        self.maxLen = 150  # max number of data points to show on graph
-        self.p1 = graphics_widget.addPlot()
+        self.p1 = widget
+
         self.p1.hideAxis('bottom')
         self.p1.hideAxis('left')
         self.p1.setYRange(-1, 1, padding=0)
 
         self.curve1 = self.p1.plot()
         self.threshold_line = self.p1.plot()
-        # self.fix_line = self.p1.plot(np.zeros_like(self.x)+self.maxLen/2, self.x)#, pen=pg.mkPen(color=self.colour, width=4)).curve
         r_ratio = self.maxLen/2
-        self.p1_fd = self.p1.plot(self.maxLen/2 + self.fixdot_radius*r_ratio * np.sin(self.fixdot),
+        self.p1_fd = self.p1.plot(self.fixdot_radius*r_ratio * np.sin(self.fixdot),
                                       self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0)))
-        self.p2_fd = self.p1.plot(self.maxLen/2 + self.fixdot_radius *r_ratio* np.sin(self.fixdot),
+        self.p2_fd = self.p1.plot(self.fixdot_radius *r_ratio* np.sin(self.fixdot),
                                       self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0)))
 
 
@@ -293,7 +286,7 @@ class PlotFeedbackWidgetPainter(Painter):
             pass
 
     def redraw_state(self, sample, m_sample):
-        self.threshold_line.setData(np.ones(self.maxLen) * self.r_threshold)
+        self.threshold_line.setData(self.x * self.r_threshold, np.zeros_like(self.x))
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
@@ -304,9 +297,7 @@ class PlotFeedbackWidgetPainter(Painter):
 
         pen1 = pg.mkPen(180, 180, 25)
         self.dat1 = self.dat1 + [sample]
-        self.curve1.setData(self.dat1, pen=pen1)
-
-
+        self.curve1.setData(np.arange(self.maxLen/2 - len(self.dat1), self.maxLen/2), self.dat1, pen=pen1)
 
 
 class FixationCrossProtocolWidgetPainter(Painter):
