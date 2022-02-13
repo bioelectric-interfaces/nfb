@@ -5,6 +5,7 @@
 import os
 import random
 from jinja2 import Environment, FileSystemLoader
+import platform
 
 import image_list_generator as ilg
 
@@ -25,7 +26,7 @@ class ParticipantTaskGenerator:
                  number_nfb_tasks=5, baseline_duration=3, left_spatial_filter_scalp="P4=1",
                  right_spatial_filter_scalp="P3=1",
                  source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
-                 baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=1, smooth_window=100,
+                 baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=0, smooth_window=100,
                  fft_window=250, mock_reward_threshold=0.0):
 
         self.template_file = template_file
@@ -112,31 +113,36 @@ if __name__ == "__main__":
 
     # TODO: generate a participant directory with scalp, source, sham subdirs in USERS/HOME/EEG_DATA
 
+    if platform.system() == "Windows":
+        userdir = "2354158T"
+        base_images_path = "/Users/2354158T/OneDrive - University of Glasgow/Documents/PilotImageSet_forExperiment"
+    else:
+        userdir = "christopherturner"
+        base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
     # Base images path
     # base_images_path = "image_stimuli"
     # base_images_path = "/Users/2354158T/Documents/image_stimuli"
-    base_images_path = "/Users/2354158T/OneDrive - University of Glasgow/Documents/PilotImageSet_forExperiment"
-    # base_images_path = "/Users/christopherturner/Documents/ExperimentImageSet/bagherzadeh/image_stimuli"
+
     session_images_paths = [os.path.join(base_images_path, x) for x in ["0", "1", "2"]] # 0 = scalp, 1 = source, 2 = sham # TODO: MAKE SURE THIS IS RANDOMISED
 
     # randomise session order
     random.shuffle(session_images_paths)
 
     # Common settings
-    participant_no = "sh"
+    participant_no = "tst"
     stream_name = "BrainVision RDA"
     image_path = ""
     band_low = 8
     band_high = 12
     t_filt_type = 'fft'
     composite_signal = "AAI"
-    baseline_duration = 120
+    baseline_duration = 90
     number_nfb_tasks = 100
     use_baseline_correction = 1
     baseline_cor_threshold = 0.2
     mock_file = ''
     smooth_window = 100 # THIS IS AAI SMOOTHING
-    enable_smoothing = 1 # THIS IS AAI SMOOTHING
+    enable_smoothing = 0 # THIS IS AAI SMOOTHING
     fft_window = 1000
     mock_reward_threshold = 0.089
 

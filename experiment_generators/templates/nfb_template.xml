@@ -74,7 +74,7 @@
 	</vSignals>
 	<vProtocols>
 		<FeedbackProtocol>
-			<sProtocolName>Start</sProtocolName>
+			<sProtocolName>baseline_eo_start</sProtocolName>
 			<bUpdateStatistics>0</bUpdateStatistics>
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
@@ -83,7 +83,7 @@
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>ExperimentStart</sFb_type>
-			<cString>We will now record your baseline EEG for 2 minutes.
+			<cString>We will now record your eyes open baseline EEG for 1.5 minutes.
 &lt;br&gt;Please completely relax with your eyes open.
 &lt;br&gt;&lt;br&gt;Press SPACE to start.</cString>
 			<bVoiceover>0</bVoiceover>
@@ -112,7 +112,81 @@
 			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
-			<sProtocolName>baseline</sProtocolName>
+			<sProtocolName>baseline_ec_start</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>0.1</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>ExperimentStart</sFb_type>
+			<cString>We will now record your eyes closed baseline EEG for 1.5 minutes.
+&lt;br&gt;Please completely relax with your eyes closed.
+&lt;br&gt;&lt;br&gt;Press SPACE to start.</cString>
+			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath></sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>baseline_eo</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>{{baseline_duration}}</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>Baseline</sFb_type>
+			<cString></cString>
+			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>-1.0</bRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath></sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>baseline_ec</sProtocolName>
 			<bUpdateStatistics>0</bUpdateStatistics>
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
@@ -529,12 +603,18 @@ Press SPACE to start.</cString>
 	<vPSequence>
 		<s>EyeCalib_Start</s>
 		<s>EyeCalib</s>
-		<s>Start</s>
-		<s>baseline</s>
+		<s>baseline_eo_start</s>
+		<s>baseline_eo</s>
+		<s>baseline_ec_start</s>
+		<s>baseline_ec</s>
 		<s>NFB_Start</s>
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
         {% endfor %}
+		<s>baseline_eo_start</s>
+		<s>baseline_eo</s>
+		<s>baseline_ec_start</s>
+		<s>baseline_ec</s>
         <s>End</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>
