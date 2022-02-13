@@ -138,6 +138,7 @@ if __name__ == "__main__":
     composite_signal = "AAI"
     baseline_duration = 90
     number_nfb_tasks = 100
+    nfb_template = "nfb_template_graph.xml" #"nfb_template_gabor.xml"
     use_baseline_correction = 1
     baseline_cor_threshold = 0.2
     mock_file = ''
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
     tasks = {"pre_task": "freeview_template.xml", "post_task": "freeview_template.xml",
-             "nfb_task": "nfb_template.xml"}
+             "nfb_task": nfb_template}
 
     for session, image_path in enumerate(session_images_paths):
         task_info = {}
