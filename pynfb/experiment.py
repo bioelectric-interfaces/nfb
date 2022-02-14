@@ -24,7 +24,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
     ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
     EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter, FixationCrossProtocolWidgetPainter, \
-    PlotFeedbackWidgetPainter
+    PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -341,7 +341,7 @@ class Experiment():
             # Update gabor patch angle for next gabor
             # TODO: make this more generic (only dependant on the protocol)
             bc_threshold = None
-            if isinstance(current_protocol.widget_painter, (GaborFeedbackProtocolWidgetPainter, PlotFeedbackWidgetPainter)):
+            if isinstance(current_protocol.widget_painter, (GaborFeedbackProtocolWidgetPainter, PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter)):
                 self.gabor_theta = r.choice(range(20, 180, 20))
                 logging.info(f"GABOR THETA: {self.gabor_theta}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta

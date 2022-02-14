@@ -100,11 +100,12 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
 
 
 class BarFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1):
+    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1, r_threshold=0):
         super(BarFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.x = np.linspace(-1, 1, 100)
         self.widget = None
         self.m_threshold = m_threshold
+        self.r_threshold = r_threshold
 
     def prepare_widget(self, widget):
         super(BarFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -112,6 +113,7 @@ class BarFeedbackProtocolWidgetPainter(Painter):
         self.p2 = widget.plot(self.x, np.zeros_like(self.x)-5, pen=pg.mkPen(229, 223, 213)).curve
         fill = pg.FillBetweenItem(self.p1, self.p2, brush=(229, 223, 213, 25))
         self.fill = fill
+        self.threshold_line = widget.plot()
         widget.addItem(fill)
 
     def set_red_state(self, flag):
@@ -125,12 +127,18 @@ class BarFeedbackProtocolWidgetPainter(Painter):
             self.fill.setBrush(229, 223, 213, 25)
 
     def redraw_state(self, sample, m_sample):
+        self.threshold_line.setData(self.x, np.ones_like(self.x) * self.r_threshold)
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
         self.p1.setData(self.x, np.zeros_like(self.x)+max(min(sample, 5), -5))
         self.p2.setData(self.x, np.zeros_like(self.x)-5)
+
+        if sample > self.r_threshold:
+            self.fill.setBrush(176, 176, 48, 25)
+        else:
+            self.fill.setBrush(35, 45, 176, 25)
         pass
 
 
