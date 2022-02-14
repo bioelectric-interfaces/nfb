@@ -227,7 +227,7 @@
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
 			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>5.0</fDuration>
+			<fDuration>10.0</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>Feedback</sFb_type>
@@ -249,7 +249,7 @@
 			<bShowReward>0</bShowReward>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
-			<iRandomBound>4</iRandomBound>
+			<iRandomBound>{{nfb_type}}</iRandomBound>
 			<sVideoPath></sVideoPath>
 			<sMSignal>None</sMSignal>
 			<fMSignalThreshold>0.95</fMSignalThreshold>
@@ -257,78 +257,6 @@
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
 			<tFixationCrossColour>Black</tFixationCrossColour>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>Input</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<sStatisticsType>meanstd</sStatisticsType>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>0.1</fDuration>
-			<fRandomOverTime>0.0</fRandomOverTime>
-			<fbSource>{{composite_signal}}</fbSource>
-			<sFb_type>ParticipantChoice</sFb_type>
-			<cString></cString>
-			<bVoiceover>0</bVoiceover>
-			<bProbe>0</bProbe>
-			<bUseExtraMessage>0</bUseExtraMessage>
-			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
-			<sRewardSignal>{{composite_signal}}</sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<bBeepAfter>0</bBeepAfter>
-			<iRandomBound>0</iRandomBound>
-			<sVideoPath></sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-			<bMockSource>0</bMockSource>
-			<bEnableDetectionTask>0</bEnableDetectionTask>
-			<bAutoBCIFit>0</bAutoBCIFit>
-			<tFixationCrossColour>Black</tFixationCrossColour>
-		</FeedbackProtocol>
-		<FeedbackProtocol>
-			<sProtocolName>choice_fb</sProtocolName>
-			<bUpdateStatistics>0</bUpdateStatistics>
-			<sStatisticsType>meanstd</sStatisticsType>
-			<iDropOutliers>0</iDropOutliers>
-			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>1.0</fDuration>
-			<fRandomOverTime>0.0</fRandomOverTime>
-			<fbSource>All</fbSource>
-			<sFb_type>FixationCross</sFb_type>
-			<cString></cString>
-			<bVoiceover>0</bVoiceover>
-			<bProbe>0</bProbe>
-			<bUseExtraMessage>0</bUseExtraMessage>
-			<cString2></cString2>
-			<fBlinkDurationMs>50</fBlinkDurationMs>
-			<fBlinkThreshold>0.0</fBlinkThreshold>
-			<sMockSignalFilePath></sMockSignalFilePath>
-			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
-			<iMockPrevious>0</iMockPrevious>
-			<bReverseMockPrevious>0</bReverseMockPrevious>
-			<bRandomMockPrevious>0</bRandomMockPrevious>
-			<sRewardSignal></sRewardSignal>
-			<bRewardThreshold>0.0</bRewardThreshold>
-			<bShowReward>0</bShowReward>
-			<bPauseAfter>0</bPauseAfter>
-			<bBeepAfter>0</bBeepAfter>
-			<iRandomBound>0</iRandomBound>
-			<sVideoPath>../defaults/lena.png</sVideoPath>
-			<sMSignal>None</sMSignal>
-			<fMSignalThreshold>1.0</fMSignalThreshold>
-			<bMockSource>0</bMockSource>
-			<bEnableDetectionTask>0</bEnableDetectionTask>
-			<bAutoBCIFit>0</bAutoBCIFit>
-			<tFixationCrossColour>None</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
 			<sProtocolName>delay</sProtocolName>
@@ -340,7 +268,7 @@
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>FixationCross</sFb_type>
-			<cString>?</cString>
+			<cString></cString>
 			<bVoiceover>0</bVoiceover>
 			<bProbe>1</bProbe>
 			<iProbeDur>50</iProbeDur>
@@ -365,7 +293,7 @@
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
 			<bAutoBCIFit>0</bAutoBCIFit>
-			<tFixationCrossColour>None</tFixationCrossColour>
+			<tFixationCrossColour>White</tFixationCrossColour>
 		</FeedbackProtocol>
         <FeedbackProtocol>
 			<sProtocolName>End</sProtocolName>
@@ -560,8 +488,8 @@
 			<sFb_type>ExperimentStart</sFb_type>
 			<cString>You will now begin NFB Training.
 &lt;br&gt;Keep your eyes fixated on the centre dot.
-&lt;br&gt;Try to guess if the 2nd image is correct by making the 1st image visable.
-&lt;br&gt;Your score shows how long you could keep the image visible.
+&lt;br&gt;Try to keep your brain activity above the white horizontal line
+&lt;br&gt;Your score shows how long you could keep this up.
 &lt;br&gt;Try to get a higher score each time.
 &lt;br&gt;&lt;br&gt;
 Press SPACE to start.</cString>
@@ -590,12 +518,92 @@ Press SPACE to start.</cString>
 			<bAutoBCIFit>0</bAutoBCIFit>
 			<tFixationCrossColour>Black</tFixationCrossColour>
 		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>score</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>1.0</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>FixationCross</sFb_type>
+			<cString></cString>
+			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
+			<iProbeDur>0</iProbeDur>
+			<sProbeLoc>RAND</sProbeLoc>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bMockRewardThreshold>0.0</bMockRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>1</bShowPcScoreAfter>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath>../defaults/lena.png</sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>None</tFixationCrossColour>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
+			<sProtocolName>break</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>0.1</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>ExperimentStart</sFb_type>
+			<cString>Have a break. Press space when ready to continue.</cString>
+			<bVoiceover>0</bVoiceover>
+			<bProbe>0</bProbe>
+			<iProbeDur>0</iProbeDur>
+			<sProbeLoc>RAND</sProbeLoc>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bMockRewardThreshold>0.0</bMockRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath>../defaults/lena.png</sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
+		</FeedbackProtocol>
 	</vProtocols>
 	<vPGroups>
 		<PGroup>
 			<sName>fb_group</sName>
-			<sList>fc_w fc_b NFB delay Input choice_fb</sList>
-			<sNumberList>1 1 1 1 1 1</sNumberList>
+			<sList>fc_w fc_b NFB delay score</sList>
+			<sNumberList>1 1 1 1 1</sNumberList>
 			<bShuffle>0</bShuffle>
 			<sSplitBy></sSplitBy>
 		</PGroup>
@@ -608,6 +616,18 @@ Press SPACE to start.</cString>
 		<s>baseline_ec_start</s>
 		<s>baseline_ec</s>
 		<s>NFB_Start</s>
+        {% for i in range(0, number_nfb_tasks) %}{{ i }}
+		<s>fb_group</s>
+        {% endfor %}
+		<s>break</s>
+        {% for i in range(0, number_nfb_tasks) %}{{ i }}
+		<s>fb_group</s>
+        {% endfor %}
+		<s>break</s>
+        {% for i in range(0, number_nfb_tasks) %}{{ i }}
+		<s>fb_group</s>
+        {% endfor %}
+		<s>break</s>
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
         {% endfor %}

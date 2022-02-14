@@ -27,7 +27,7 @@ class ParticipantTaskGenerator:
                  right_spatial_filter_scalp="P3=1",
                  source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
                  baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=0, smooth_window=100,
-                 fft_window=250, mock_reward_threshold=0.0):
+                 fft_window=250, mock_reward_threshold=0.0, nfb_type=2):
 
         self.template_file = template_file
         self.composite_signal = composite_signal
@@ -43,6 +43,7 @@ class ParticipantTaskGenerator:
         self.feedback_display = {}
         self.baseline_duration = baseline_duration
         self.source_fb = source_fb
+        self.nfb_type = nfb_type
         if source_fb:
             self.left_spatial_filter_scalp = ""
             self.right_spatial_filter_scalp = ""
@@ -93,7 +94,8 @@ class ParticipantTaskGenerator:
             'smooth_window': self.smooth_window,
             'enable_smoothing': self.enable_smoothing,
             'fft_window': self.fft_window,
-            'mock_reward_threshold': self.mock_reward_threshold
+            'mock_reward_threshold': self.mock_reward_threshold,
+            'nfb_type': self.nfb_type,
         }
         #
         with open(output_fname, 'w') as f:
@@ -113,6 +115,7 @@ if __name__ == "__main__":
 
     # TODO: generate a participant directory with scalp, source, sham subdirs in USERS/HOME/EEG_DATA
 
+    nfb_types = {"circle": 1, "bar": 2, "gabor": 3, "plot": 4}
     if platform.system() == "Windows":
         userdir = "2354158T"
         base_images_path = "/Users/2354158T/OneDrive - University of Glasgow/Documents/PilotImageSet_forExperiment"
@@ -136,14 +139,15 @@ if __name__ == "__main__":
     band_high = 12
     t_filt_type = 'fft'
     composite_signal = "AAI"
-    baseline_duration = 90
-    number_nfb_tasks = 100
+    baseline_duration = 1
+    number_nfb_tasks = 2
+    nfb_type = nfb_types['bar']
     nfb_template = "nfb_template_graph.xml" #"nfb_template_gabor.xml"
     use_baseline_correction = 1
     baseline_cor_threshold = 0.2
     mock_file = ''
     smooth_window = 100 # THIS IS AAI SMOOTHING
-    enable_smoothing = 0 # THIS IS AAI SMOOTHING
+    enable_smoothing = 1 # THIS IS AAI SMOOTHING
     fft_window = 1000
     mock_reward_threshold = 0.089
 
@@ -206,5 +210,6 @@ if __name__ == "__main__":
                                            smooth_window=smooth_window,
                                            enable_smoothing=enable_smoothing,
                                            fft_window=fft_window,
-                                           mock_reward_threshold=mock_reward_threshold)
+                                           mock_reward_threshold=mock_reward_threshold,
+                                           nfb_type=nfb_type)
             Tsk.create_task(participant=participant_no)
