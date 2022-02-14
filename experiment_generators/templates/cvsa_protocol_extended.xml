@@ -5,7 +5,7 @@
 	<bUseBCThreshold>0</bUseBCThreshold>
 	<sPrefilterBand>None None</sPrefilterBand>
 	<sExperimentName>cvsa</sExperimentName>
-	<sInletType>lsl_from_file</sInletType>
+	<sInletType>lsl</sInletType>
 	<sStreamName>BrainVision RDA</sStreamName>
 	<sEventsStreamName></sEventsStreamName>
 	<sRawDataFilePath>/Users/christopherturner/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5</sRawDataFilePath>
@@ -149,6 +149,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -188,6 +189,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -227,6 +229,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -266,6 +269,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -305,6 +309,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -344,6 +349,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -383,6 +389,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -422,6 +429,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -461,6 +469,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -500,6 +509,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -539,6 +549,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
@@ -578,6 +589,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
