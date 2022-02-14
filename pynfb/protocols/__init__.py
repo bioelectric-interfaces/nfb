@@ -36,7 +36,7 @@ class Protocol:
                  ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None,
-                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND'):
+                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND', show_pc_score_after=0):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -45,6 +45,7 @@ class Protocol:
         :param update_statistics_in_the_end: if true update mean and std scaling parameters of signals
         """
         self.show_reward = show_reward
+        self.show_pc_score_after = show_pc_score_after
         self.reward_signal_id = reward_signal_id
         self.reward_threshold = reward_threshold
         self.mock_reward_threshold = mock_reward_threshold

@@ -286,7 +286,7 @@ class PlotFeedbackWidgetPainter(Painter):
             pass
 
     def redraw_state(self, sample, m_sample):
-        self.threshold_line.setData(self.x * self.r_threshold, np.zeros_like(self.x))
+        self.threshold_line.setData(self.x, np.ones_like(self.x) * self.r_threshold)
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
@@ -295,7 +295,7 @@ class PlotFeedbackWidgetPainter(Painter):
         if len(self.dat1) > self.maxLen:
             self.dat1 = self.dat1[1:]
 
-        pen1 = pg.mkPen(180, 180, 25)
+        pen1 = pg.mkPen(255,233,0)
         self.dat1 = self.dat1 + [sample]
         self.curve1.setData(np.arange(self.maxLen/2 - len(self.dat1), self.maxLen/2), self.dat1, pen=pen1)
 

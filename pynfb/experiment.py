@@ -58,6 +58,7 @@ class Experiment():
         self.cum_score = None
         self.choice_fb = None
         self.nfb_samps = 0
+        self.percent_score = 0
         self.restart()
         logging.info(f"{__name__}: ")
         pass
@@ -362,18 +363,20 @@ class Experiment():
                     current_protocol.widget_painter.r_threshold = bc_threshold
 
 
+            if self.nfb_samps and self.fb_score:
+                nfb_duration = self.nfb_samps
+                max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
+                self.percent_score = round((self.fb_score/max_reward )* 100)
+                logging.info(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
+            if current_protocol.widget_painter.show_reward and isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
+                current_protocol.widget_painter.set_message( f'{self.percent_score} %')
 
             # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
                 self.rn_offset = r.choice([-5, 5, 0, 0])
                 logging.info(f"CHOICE THETA: {self.gabor_theta + self.rn_offset}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta + self.rn_offset
-
-                nfb_duration = self.nfb_samps
-                max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
-                percent_score = self.fb_score/max_reward
-                logging.info(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {percent_score}")
-                current_protocol.widget_painter.previous_score = percent_score * 100
+                current_protocol.widget_painter.previous_score = self.percent_score
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0
 
@@ -396,6 +399,12 @@ class Experiment():
                     color = "#00FF00" if self.choice_fb == "✔" else "#FF0000"
                     current_protocol.widget_painter.text_color = color
                     self.choice_fb = None
+
+            if current_protocol.show_pc_score_after:
+                # display the previous percent score if fixation cross protocol
+                if isinstance(current_protocol.widget_painter, FixationCrossProtocolWidgetPainter):
+                    current_protocol.widget_painter.text = f"{self.percent_score} % "
+
 
             # prepare mock from raw if necessary
             if current_protocol.mock_previous:
@@ -591,6 +600,7 @@ class Experiment():
                 stats_type=protocol['sStatisticsType'],
                 mock_samples_path=mock_path,
                 show_reward=bool(protocol['bShowReward']),
+                show_pc_score_after=bool(protocol['bShowPcScoreAfter']),
                 reward_signal_id=reward_signal_id,
                 reward_threshold=protocol['bRewardThreshold'],
                 mock_reward_threshold=protocol['bMockRewardThreshold'],
