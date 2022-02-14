@@ -363,7 +363,7 @@ class Experiment():
                     current_protocol.widget_painter.r_threshold = bc_threshold
 
 
-            if self.nfb_samps and self.fb_score:
+            if self.nfb_samps and self.fb_score !=None:
                 nfb_duration = self.nfb_samps
                 max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
                 self.percent_score = round((self.fb_score/max_reward )* 100)
