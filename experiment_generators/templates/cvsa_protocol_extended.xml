@@ -67,15 +67,16 @@
 			<sSignalName>left_src</sSignalName>
 			<SpatialFilterMatrix></SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
-			<fSmoothingFactor>0.3</fSmoothingFactor>
+			<fSmoothingFactor>0.7</fSmoothingFactor>
 			<fFFTWindowSize>1000</fFFTWindowSize>
 			<fBandpassLowHz>8</fBandpassLowHz>
 			<fBandpassHighHz>14</fBandpassHighHz>
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
 			<bBCIMode>0</bBCIMode>
-			<bSTCMode>0</bSTCMode>
+			<lROILabel>inferiorparietal-lh</lROILabel>
 			<lROILabel>superiorparietal-lh</lROILabel>
+			<lROILabel>lateraloccipital-lh</lROILabel>
 			<bNFBType>1</bNFBType>
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>fft</sTemporalFilterType>
@@ -89,23 +90,22 @@
 			<sSignalName>right_src</sSignalName>
 			<SpatialFilterMatrix></SpatialFilterMatrix>
 			<bDisableSpectrumEvaluation>0</bDisableSpectrumEvaluation>
-			<fSmoothingFactor>0.3</fSmoothingFactor>
+			<fSmoothingFactor>0.7</fSmoothingFactor>
 			<fFFTWindowSize>1000</fFFTWindowSize>
 			<fBandpassLowHz>8</fBandpassLowHz>
 			<fBandpassHighHz>14</fBandpassHighHz>
 			<fAverage></fAverage>
 			<fStdDev></fStdDev>
 			<bBCIMode>0</bBCIMode>
-			<bSTCMode>0</bSTCMode>
+			<lROILabel>inferiorparietal-rh</lROILabel>
 			<lROILabel>superiorparietal-rh</lROILabel>
+			<lROILabel>lateraloccipital-rh</lROILabel>
 			<bNFBType>1</bNFBType>
 			<sTemporalType>envdetector</sTemporalType>
 			<sTemporalFilterType>fft</sTemporalFilterType>
 			<fTemporalFilterButterOrder>2</fTemporalFilterButterOrder>
 			<sTemporalSmootherType>exp</sTemporalSmootherType>
 			<iDelayMs>0</iDelayMs>
-			<bSmoothingEnabled>0</bSmoothingEnabled>
-			<dSmoothingWindow>100</dSmoothingWindow>
 		</DerivedSignal>
 		<CompositeSignal>
 			<sSignalName>AAI</sSignalName>
@@ -567,10 +567,10 @@
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
 			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>90.0</fDuration>
+			<fDuration>0.1</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>All</fbSource>
-			<sFb_type>Baseline</sFb_type>
+			<sFb_type>ExperimentStart</sFb_type>
 			<cString>Now, relax with eyes closed. press space to start.</cString>
 			<bVoiceover>0</bVoiceover>
 			<bProbe>0</bProbe>
