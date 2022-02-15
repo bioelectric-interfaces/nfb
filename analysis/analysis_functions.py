@@ -346,11 +346,12 @@ def get_nfb_protocol_change_events(df1, m_raw):
     return m_raw, event_dict
 
 
-def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="active"):
+def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="active", baseline_name='baseline_eo', block_number=0):
     # get baseline length for epoching in equal size
-    baseline_start = df1.loc[df1['block_name'] == 'baseline']['sample'].iloc[0] / m_alpha.info[
+    # TODO - make this work on baseline names AND numbers so don't have to know the number before
+    baseline_start = df1.loc[df1['block_number'] == block_number]['sample'].iloc[0] / m_alpha.info[
         'sfreq']
-    baseline_end = df1.loc[df1['block_name'] == 'baseline']['sample'].iloc[-1] / m_alpha.info[
+    baseline_end = df1.loc[df1['block_number'] == block_number]['sample'].iloc[-1] / m_alpha.info[
         'sfreq']
     baseline_alpha = m_alpha.copy().crop(tmin=baseline_start, tmax=baseline_end)
 
@@ -364,13 +365,13 @@ def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="act
                                                            channel_labels=baseline_epochs.info.ch_names, chs=right_chs)
     if fig == None:
         fig = go.Figure()
-    plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{fb_type} bl epoch power",
+    plot_nfb_epoch_stats(fig, e_mean1, e_std1, name=";".join(left_chs), title=f"{fb_type} {baseline_name} power",
                             color=(230, 20, 20, 1), y_range=[0, 10e-6])
-    plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{fb_type} blepoch power",
+    plot_nfb_epoch_stats(fig, e_mean2, e_std2, name=";".join(right_chs), title=f"{fb_type} {baseline_name} power",
                             color=(20, 20, 230, 1), y_range=[0, 10e-6])
     fig.show()
     bl_dataframe = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
-    bl_dataframe['section'] = 'bl'
+    bl_dataframe['section'] = baseline_name
     # bd = pd.DataFrame(dict(left_mean=e_mean1, right_mean=e_mean2)).melt(var_name="data")
     # px.box(bd, y='value', color='data', title=f"total {fb_type} epochs", range_y=[0, 6e-6]).show()
 

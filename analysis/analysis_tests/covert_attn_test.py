@@ -31,7 +31,9 @@ else:
 
 task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-39-15/experiment_data.h5" # Ksenia cvsa tasks 1
-h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5" # Ksenia cvsa tasks 2
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5" # Ksenia cvsa tasks 2
+
+h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/ctcvsa_02-14_20-13-40/experiment_data.h5" # Chris cvsa 1 (with baselines)
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -197,9 +199,9 @@ reject_criteria = dict(eeg=100e-6)
 # epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=7, baseline=(-1.5, -0.5),
 #                     preload=True, detrend=1, reject=reject_criteria)
 epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=7, baseline=None,
-                    preload=True, detrend=1, reject=reject_criteria)
-# epochs.drop([19,22,27,32]) # Drop bads for 1st dataset
-epochs.drop([7,17,27,28,29]) # Drop bads for 2nd dataset
+                    preload=True, detrend=1)#, reject=reject_criteria)
+# epochs.drop([19,22,27,32]) # Drop bads for K's 1st dataset
+# epochs.drop([7,17,27,28,29]) # Drop bads for K's 2nd dataset
 
 fig = epochs.plot(events=events)
 
@@ -212,6 +214,7 @@ probe_right = epochs['right_probe'].average()
 # fig2 = probe_left.plot_joint()
 
 # TODO Look at PSD of left and right channels for the left and right probes
+# TODO compare online AAI (1st run eg) with calculated - these online AAIs aren't smoothed
 
 # ----Look at the power for the epochs in the left and right channels for left and right probes
 e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
@@ -269,6 +272,7 @@ aai_section_df = pd.concat(dataframes_aai)
 aai_section_df = aai_section_df.melt(id_vars=['probe'], var_name='side', value_name='data')
 px.box(aai_section_df, x='probe', y='data', title="post aai task").show()
 figb = go.Figure()
+# TODO - NOTE - NEED TO TAKE OUT BEGINNING OF EPOCHS HERE BECAUSE THEY SHOULDN"T COUNT TO THE MEANS ETC
 figb.add_trace(go.Box(y=aai_section_df.loc[aai_section_df['probe'] == 'left']['data'],name='left task') )
 figb.add_trace(go.Box(y=aai_section_df.loc[aai_section_df['probe'] == 'right']['data'],name='right task') )
 figb.add_trace(go.Box(y=aai_section_df.loc[aai_section_df['probe'] == 'centre']['data'],name='centre task') )
