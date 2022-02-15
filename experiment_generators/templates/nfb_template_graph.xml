@@ -611,10 +611,10 @@ Press SPACE to start.</cString>
 	<vPSequence>
 		<s>EyeCalib_Start</s>
 		<s>EyeCalib</s>
-		<s>baseline_eo_start</s>
-		<s>baseline_eo</s>
 		<s>baseline_ec_start</s>
 		<s>baseline_ec</s>
+		<s>baseline_eo_start</s>
+		<s>baseline_eo</s>
 		<s>NFB_Start</s>
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
@@ -631,10 +631,10 @@ Press SPACE to start.</cString>
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
         {% endfor %}
-		<s>baseline_eo_start</s>
-		<s>baseline_eo</s>
 		<s>baseline_ec_start</s>
 		<s>baseline_ec</s>
+		<s>baseline_eo_start</s>
+		<s>baseline_eo</s>
         <s>End</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>
