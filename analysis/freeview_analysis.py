@@ -13,6 +13,7 @@ import platform
 import glob
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objs as go
 from scipy.signal import butter, lfilter, freqz
 import mne
 
@@ -79,13 +80,13 @@ for participant, participant_dirs in experiment_dirs.items():
             # Get free view task stats
             if "pre" in task_dir:
                 # get initial fixiation bias
-                pre_fb_ratio, pre_fb_median = af.get_task_fixation_bias(protocol_data)
+                pre_fb = af.get_task_fixation_bias(protocol_data)
+                session_data["pre_fb"] = pre_fb
             if "post" in task_dir:
-                post_fb_ratio, post_fb_median = af.get_task_fixation_bias(protocol_data)
+                post_fb = af.get_task_fixation_bias(protocol_data)
+                session_data["post_fb"] = post_fb
 
-        # Get change in free viewing fixation bias
-        session_data["delta_fb_ratio"] = post_fb_ratio - pre_fb_ratio
-        session_data["delta_fb_median"] = post_fb_median - pre_fb_median
+            # Get change in free viewing fixation bias
         participant_data["session_data"].append(session_data)
 
         # Do permutation test for individual data i.e. is this change significant <- NOT SURE IF NEEDED?
@@ -94,8 +95,52 @@ for participant, participant_dirs in experiment_dirs.items():
     # TODO: save this off so don't have to run the entire script again
 pass
 
+# Plot the free view results
+freeview_data = []
+for ex in experiment_data:
+    for i, session in enumerate(ex['session_data']):
+        ss = session
+        if 'pre_fb' and 'post_fb' in session:
+            pre_fb = session['pre_fb']
+            pre_fb['time'] = 'pre'
+            post_fb = session['post_fb']
+            post_fb['time'] = 'post'
+            fb_df = pd.concat([pre_fb, post_fb])
+            fb_df['participant'] = ex['participant_id']
+            fb_df['session'] = session['session_name']
+            freeview_data.append(pd.DataFrame(fb_df))
+
+freeview_df = pd.concat(freeview_data)
+colors = ['red', 'blue']
+for participant in freeview_df['participant'].unique():
+    df = freeview_df.loc[freeview_df['participant'] == participant]
+    fig = go.Figure()
+    for i, time in enumerate(df['time'].unique()):
+        df_plot = df[df['time'] == time]
+        fig.add_trace(go.Box(x=df_plot['session'], y=df_plot['ratio_l'],
+                             line=dict(color=colors[i]),
+                             name='time=' + time))
+    # Append the baseline and plot
+    fig.update_layout(boxmode='group', title=f"{participant} left fb ratio", yaxis_range=[0,1])
+    fig.show()
+
+for participant in freeview_df['participant'].unique():
+    df = freeview_df.loc[freeview_df['participant'] == participant]
+    fig = go.Figure()
+    for i, time in enumerate(df['time'].unique()):
+        df_plot = df[df['time'] == time]
+        fig.add_trace(go.Box(x=df_plot['session'], y=df_plot['median'],
+                             line=dict(color=colors[i]),
+                             name='time=' + time))
+    # Append the baseline and plot
+    fig.update_layout(boxmode='group', title=f"{participant}")
+    fig.show()
+
+
 # Free view analysis
 af.free_view_analysis()
+
+
 print('done...')
 
 pass

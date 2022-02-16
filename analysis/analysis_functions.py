@@ -74,19 +74,20 @@ def get_task_fixation_bias(protocol_data):
             eog_signal = pd.DataFrame({"EOG_SIGNAL": eog_left - eog_right}) - trail_offset
             # fig = px.line(eog_signal, y=eog_signal["EOG_SIGNAL"])
             # fig.show()
-
+            protocol_length = len(protocol_data[protocol].loc[protocol_data[protocol]["channel"] == 'FP1'])
             # Calculate fixation bias - this is the ratio of number of leftward vs rightward eye locations (average is biased by looking to the edges of the screen)
             fb_data = {}
             right_fx_number = eog_signal.agg(lambda x: sum(x > 0)).sum()  # Right is greater than 0
             left_fx_number = eog_signal.agg(lambda x: sum(x < 0)).sum()
-            fb_data['ratio'] = right_fx_number / 5000  # TODO: figure out if this is ok
+            fb_data['ratio_r'] = right_fx_number / protocol_length  # TODO: figure out if this is ok
+            fb_data['ratio_l'] = left_fx_number / protocol_length  # TODO: figure out if this is ok
             fb_data['median'] = eog_signal.median()[0]
             trial_fb[protocol] = fb_data
             pass
 
     # Get median FB over all trials
     trail_fb = pd.DataFrame(trial_fb).T
-    return trail_fb['ratio'].median(), trail_fb['median'].median()
+    return trail_fb
 
 
 def get_eog_calibration(protocol_data):
@@ -448,14 +449,14 @@ def do_quartered_epochs(epochs, left_chs, right_chs, fb_type="active", show_plot
         dataframes_aai.append(df_ix)
     return dataframes, dataframes_aai
 
-def get_online_aai(df1, block_name="NFB"):
-    drop_cols = [x for x in df1.columns if x not in ['signal_AAI', 'block_number', 'block_name', "sample"]]
+def get_online_aai(df1, block_name="NFB", aai_signal_name='signal_AAI'):
+    drop_cols = [x for x in df1.columns if x not in [aai_signal_name, 'block_number', 'block_name', "sample"]]
     aai_df = df1.drop(columns=drop_cols)
     aai_df = aai_df[aai_df['block_name'] == block_name]
     aai_df = aai_df.drop(columns='block_name')
     signal_aai = []
     for x in aai_df.block_number.unique():
-        signal_aai.append(aai_df.loc[aai_df.block_number == x].signal_AAI.reset_index(drop=True))
+        signal_aai.append(aai_df.loc[aai_df.block_number == x][aai_signal_name].reset_index(drop=True))
 
     online_aai = pd.DataFrame()
     online_aai['mean'] = pd.concat(signal_aai, axis=1).mean(axis=1)
