@@ -33,7 +33,10 @@ task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-39-15/experiment_data.h5" # Ksenia cvsa tasks 1
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-05_15-47-03/experiment_data.h5" # Ksenia cvsa tasks 2
 
-h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/ctcvsa_02-14_20-13-40/experiment_data.h5" # Chris cvsa 1 (with baselines)
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/ctcvsa_02-14_20-13-40/experiment_data.h5" # Chris cvsa 1 (with baselines)
+#
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-21-37/experiment_data.h5" # Ksenia cvsa 3 **
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-37-24/experiment_data.h5" # Ksenia cvsa 4
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -196,6 +199,16 @@ m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
 events = mne.find_events(m_raw, stim_channel='STI')
 reject_criteria = dict(eeg=100e-6)
 
+left_chs = ['PO7=1']
+right_chs = ['PO8=1']
+
+# - - DO baseline epochs
+fig_bl_eo1, aai_baseline_eo1, bl_dataframe_eo1 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_eo1', block_number=2)
+fig_bl_ec1, aai_baseline_ec1, bl_dataframe_ec1 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_ec1', block_number=4)
+fig_bl_eo2, aai_baseline_eo2, bl_dataframe_eo2 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_eo2', block_number=83)
+fig_bl_ec2, aai_baseline_ec2, bl_dataframe_ec2 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_ec2', block_number=85)
+
+
 # epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=7, baseline=(-1.5, -0.5),
 #                     preload=True, detrend=1, reject=reject_criteria)
 epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=7, baseline=None,
@@ -216,12 +229,18 @@ probe_right = epochs['right_probe'].average()
 # TODO Look at PSD of left and right channels for the left and right probes
 # TODO compare online AAI (1st run eg) with calculated - these online AAIs aren't smoothed
 
+dataframes = []
 # ----Look at the power for the epochs in the left and right channels for left and right probes
 e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
 e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+df_i['section'] = f"left_probe"
+dataframes.append(df_i)
+
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="left_chs", title="left_probe", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
-af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="left_probe", color=(20, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="left_probe", color=(20, 20, 220, 1), y_range=[-0.2e-6, 4e-6])
 fig.show()
 dataframes_aai_cue = []
 dataframes_aai = []
@@ -238,9 +257,14 @@ af.plot_nfb_epoch_stats(fig1, aai_nfb_left.mean(axis=0)[0], aai_nfb_left.std(axi
 
 e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
 e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+df_i['section'] = f"right_probe"
+dataframes.append(df_i)
+
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="left_chs", title="right_probe", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
-af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="right_probe", color=(20, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="right_probe", color=(20, 20, 220, 1), y_range=[-0.2e-6, 4e-6])
 fig.show()
 aai_nfb_right = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
 df_ix = pd.DataFrame(dict(aai=aai_nfb_right.mean(axis=0)[0]))
@@ -248,15 +272,20 @@ df_ix['probe'] = f"right"
 dataframes_aai.append(df_ix[2000:9000])
 dataframes_aai_cue.append(df_ix[0:2000])
 af.plot_nfb_epoch_stats(fig1, aai_nfb_right.mean(axis=0)[0], aai_nfb_right.std(axis=0)[0], name=f"right probe aai",
-                     title=f"right probe aai",
-                     color=(20, 230, 20, 1), y_range=[-1, 1])
+                     title=f"mean aai time course",
+                     color=(20, 20, 230, 1), y_range=[-1, 1])
 
 
 e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
 e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+df_i['section'] = f"centre_probe"
+dataframes.append(df_i)
+
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="left_chs", title="centre_probe", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
-af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="centre_probe", color=(20, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="right_chs", title="centre_probe", color=(20, 20, 220, 1), y_range=[-0.2e-6, 4e-6])
 fig.show()
 aai_nfb_centre = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
 df_ix = pd.DataFrame(dict(aai=aai_nfb_centre.mean(axis=0)[0]))
@@ -264,14 +293,26 @@ df_ix['probe'] = f"centre"
 dataframes_aai.append(df_ix[2000:9000])
 dataframes_aai_cue.append(df_ix[0:2000])
 af.plot_nfb_epoch_stats(fig1, aai_nfb_centre.mean(axis=0)[0], aai_nfb_centre.std(axis=0)[0], name=f"centre probe aai",
-                     title=f"centre probe aai",
-                     color=(20, 20, 230, 1), y_range=[-1, 1])
+                     title=f"mean aai time course",
+                     color=(20, 230, 20, 1), y_range=[-1, 1])
+fig1.add_vline(x=2000, annotation_text="cvsa start")
 fig1.show()
 
 aai_section_df = pd.concat(dataframes_aai)
 aai_section_df = aai_section_df.melt(id_vars=['probe'], var_name='side', value_name='data')
 px.box(aai_section_df, x='probe', y='data', title="post aai task").show()
+
+
+# Plot the AAI Boxes
 figb = go.Figure()
+bl_aai_df1 = pd.DataFrame(dict(bl_eo1=aai_baseline_eo1.mean(axis=0)[0],
+                              bl_ec1=aai_baseline_ec1.mean(axis=0)[0]))
+bl_aai_df1 = bl_aai_df1.melt(var_name='baseline_type', value_name='data')
+figb.add_trace(go.Box(x=bl_aai_df1['baseline_type'], y=bl_aai_df1['data'],
+                      notched=True,
+                      line=dict(color='blue')))
+
+
 # TODO - NOTE - NEED TO TAKE OUT BEGINNING OF EPOCHS HERE BECAUSE THEY SHOULDN"T COUNT TO THE MEANS ETC
 figb.add_trace(go.Box(y=aai_section_df.loc[aai_section_df['probe'] == 'left']['data'],name='left task') )
 figb.add_trace(go.Box(y=aai_section_df.loc[aai_section_df['probe'] == 'right']['data'],name='right task') )
@@ -286,13 +327,13 @@ figb.add_trace(go.Box(y=aai_section_df_cue.loc[aai_section_df_cue['probe'] == 'l
 figb.add_trace(go.Box(y=aai_section_df_cue.loc[aai_section_df_cue['probe'] == 'right']['data'],name='right cue') )
 figb.add_trace(go.Box(y=aai_section_df_cue.loc[aai_section_df_cue['probe'] == 'centre']['data'],name='centre cue') )
 figb.update_layout(
-    title="calculated aai",
+    title="section aai",
     hovermode="x",
 )
 figb.show()
 
 
-# look at online AAI
+# look at online AAI - scalp
 left_online_aai = af.get_online_aai(df1, block_name="probe_left")
 right_online_aai = af.get_online_aai(df1, block_name="probe_right")
 centre_online_aai = af.get_online_aai(df1, block_name="probe_centre")
@@ -300,13 +341,31 @@ centre_online_aai = af.get_online_aai(df1, block_name="probe_centre")
 af.plot_nfb_epoch_stats(fig1, left_online_aai['mean'], left_online_aai['std'], name="left_probe online", title="online_aai", color=(220, 20, 20, 1), y_range=[-1, 1])
 af.plot_nfb_epoch_stats(fig1, right_online_aai['mean'], right_online_aai['std'], name="right_probe online", title="online_aai", color=(20, 220, 20, 1), y_range=[-1, 1])
 af.plot_nfb_epoch_stats(fig1, centre_online_aai['mean'], centre_online_aai['std'], name="centre_probe online", title="online_aai", color=(20, 20, 220, 1), y_range=[-1, 1])
-fig1.show()
+
 
 figb.add_trace(go.Box(y=left_online_aai['mean'],name='left online task') )
 figb.add_trace(go.Box(y=right_online_aai['mean'],name='right online task') )
 figb.add_trace(go.Box(y=centre_online_aai['mean'],name='centre online task') )
 figb.update_layout(
-    title="calculated aai",
+    title="online section aai",
+    hovermode="x",
+)
+figb.show()
+
+# look at online AAI - src
+left_online_aai = af.get_online_aai(df1, block_name="probe_left", aai_signal_name='signal_AAI_src')
+right_online_aai = af.get_online_aai(df1, block_name="probe_right", aai_signal_name='signal_AAI_src')
+centre_online_aai = af.get_online_aai(df1, block_name="probe_centre", aai_signal_name='signal_AAI_src')
+# fig = go.Figure()
+af.plot_nfb_epoch_stats(fig1, left_online_aai['mean'], left_online_aai['std'], name="left_probe online", title="online_aai", color=(220, 20, 20, 1), y_range=[-1, 1])
+af.plot_nfb_epoch_stats(fig1, right_online_aai['mean'], right_online_aai['std'], name="right_probe online", title="online_aai", color=(20, 220, 20, 1), y_range=[-1, 1])
+af.plot_nfb_epoch_stats(fig1, centre_online_aai['mean'], centre_online_aai['std'], name="centre_probe online", title="online_aai", color=(20, 20, 220, 1), y_range=[-1, 1])
+
+figb.add_trace(go.Box(y=left_online_aai['mean'],name='left online task src') )
+figb.add_trace(go.Box(y=right_online_aai['mean'],name='right online task src') )
+figb.add_trace(go.Box(y=centre_online_aai['mean'],name='centre online task src') )
+figb.update_layout(
+    title="section aai",
     hovermode="x",
 )
 figb.show()
@@ -319,16 +378,53 @@ e_mean1, e_std1, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['right_probe'],
 e_mean2, e_std2, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO7=1"])
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="right_probe", title="left chs", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
-af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="left_probe", title="left chs", color=(20, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="left_probe", title="left chs", color=(20, 20, 220, 1), y_range=[-0.2e-6, 4e-6])
 fig.show()
 
 e_mean1, e_std1, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names, chs=["PO8=1"])
 e_mean2, e_std2, epoch_pwr = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="right_probe", title="right chs", color=(230, 20, 20, 1), y_range=[-0.2e-6, 4e-6])
-af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="left_probe", title="lefrightt chs", color=(20, 220, 20, 1), y_range=[-0.2e-6, 4e-6])
+af.plot_nfb_epoch_stats(fig, e_mean2, e_std2, name="left_probe", title="lefrightt chs", color=(20, 20, 220, 1), y_range=[-0.2e-6, 4e-6])
 fig.show()
 
+
+
+
+bl_aai_df2 = pd.DataFrame(dict(bl_eo2=aai_baseline_eo2.mean(axis=0)[0],
+                              bl_ec2=aai_baseline_ec2.mean(axis=0)[0]))
+bl_aai_df2 = bl_aai_df2.melt(var_name='baseline_type', value_name='data')
+figb.add_trace(go.Box(x=bl_aai_df2['baseline_type'], y=bl_aai_df2['data'],
+                      notched=True,
+                      line=dict(color='blue')))
+figb.show()
+
+
+
+# -- LOOk at the left and right channels separately
+dataframes_nfb = []
+colors = ['blue', 'red']
+for s in dataframes:
+    dataframes_nfb.append(s[-5000:])
+section_df_nfb = pd.concat(dataframes_nfb)
+section_df_nfb = section_df_nfb.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_bl_eo_1 = bl_dataframe_eo1.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_bl_ec_1 = bl_dataframe_ec1.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_bl_eo_2 = bl_dataframe_eo2.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_bl_ec_2 = bl_dataframe_ec2.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df = pd.concat([section_df_bl_eo_1,section_df_bl_ec_1, section_df_nfb, section_df_bl_eo_2,section_df_bl_ec_2], ignore_index=True)
+fig=go.Figure()
+for i, side in enumerate(section_df['side'].unique()):
+    df_plot = section_df[section_df['side'] == side]
+    fig.add_trace(go.Box(x=df_plot['section'], y=df_plot['data'],
+                         notched=True,
+                         line=dict(color=colors[i]),
+                         name='side=' + side))
+# Append the baseline and plot
+fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.7e-6,6.1e-6], title=f"KK bar NFB1 - {','.join(left_chs + right_chs)}")
+fig.show()
+
+# TODO: look at channels instead of AAI
 
 # Look at the AAIs of the left, right, and centre plots over the top of eachother
 
