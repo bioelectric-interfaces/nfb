@@ -8,6 +8,7 @@ aims:
     4) compare source locations and time courses between scalp, sham, and source conditions for responders and non responders
 """
 import os.path as op
+import os
 import platform
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +20,7 @@ import mne
 from mne.datasets import sample
 from mne.channels import make_standard_montage
 from mne.viz import plot_sparse_source_estimates
-from mne.minimum_norm import make_inverse_operator, apply_inverse, apply_inverse_raw
+from mne.minimum_norm import make_inverse_operator, apply_inverse, apply_inverse_raw, apply_inverse_epochs
 from mne.datasets import eegbci
 from mne.io import concatenate_raws, read_raw_edf
 from mne.datasets import fetch_fsaverage
@@ -27,6 +28,7 @@ from utils.load_results import load_data
 from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
 import analysis.analysis_functions as af
+from pynfb.helpers import roi_spatial_filter as rsf
 
 mne.viz.set_3d_backend('pyvista')
 
@@ -201,17 +203,19 @@ for the nfb task - events are the following
     * visual probe in delay protocol (left and right)
 detect and eliminate bad epochs in this stage
 """
-
-left_chs = ["PO7=1"]#["CP5=1", "P5=1", "O1=1"]
-right_chs = ["PO8=1"]#["CP6=1", "P6=1", "O2=1"]
+# left_chs = ['PO7=1']
+# right_chs = ['PO8=1']
+left_chs = ["CP5=1", "P5=1", "O1=1"]
+right_chs = ["CP6=1", "P6=1", "O2=1"]
 
 # DO BASELINE STUFF
-fig, aai_baseline_active, bl_dataframe_active = af.do_baseline_epochs(df1_active, m_alpha_active, left_chs, right_chs, fig=None, fb_type="active")
-fig, aai_baseline_sham, bl_dataframe_sham = af.do_baseline_epochs(df1_sham, m_alpha_sham, left_chs, right_chs, fig=None, fb_type="sham")
+fig, aai_baseline_active, bl_dataframe_active = af.do_baseline_epochs(df1_active, m_alpha_active, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_active', block_number=4)
+fig, aai_baseline_sham, bl_dataframe_sham = af.do_baseline_epochs(df1_sham, m_alpha_sham, left_chs, right_chs, fig=None, fb_type="sham", baseline_name='bl_sham', block_number=4)
 
 fig = go.Figure()
-af.plot_nfb_epoch_stats(fig, aai_baseline_active.mean(axis=0)[0], aai_baseline_active.std(axis=0)[0], name="aai_active", title="aai_active", color=(230, 20, 20, 1), y_range=[-0.7, 0.7])
-af.plot_nfb_epoch_stats(fig, aai_baseline_sham.mean(axis=0)[0], aai_baseline_sham.std(axis=0)[0], name="aai_sham", title="aai_sham", color=(22030, 220, 20, 1), y_range=[-0.7, 0.7])
+af.plot_nfb_epoch_stats(fig, aai_baseline_active.mean(axis=0)[0], aai_baseline_active.std(axis=0)[0], name="aai_active", title=f"CT02: {','.join(left_chs + right_chs)}", color=(230, 20, 20, 1), y_range=[-0.7, 0.7])
+af.plot_nfb_epoch_stats(fig, aai_baseline_sham.mean(axis=0)[0], aai_baseline_sham.std(axis=0)[0], name="aai_sham", title=f"CT02: {','.join(left_chs + right_chs)}", color=(22030, 220, 20, 1), y_range=[-0.7, 0.7])
+fig.add_vline(x=1000, annotation_text="nfb start")
 fig.show()
 
 ## Epoch the other sections
@@ -254,7 +258,7 @@ for i, side in enumerate(section_df_active['side'].unique()):
                          line=dict(color=colors[i]),
                          name='side=' + side))
 # Append the baseline and plot
-fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.6e-6,2e-6], title='Active')
+fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.6e-6,2e-6], title=f"CT02 Scalp {','.join(left_chs + right_chs)}")
 fig.show()
 
 # only look at the nfb section (not the cue or anything before) - SHAM
@@ -325,3 +329,82 @@ a better way is to use a 3d electrode positioning system
 #-----------------------
 #CALCULATING THE LEAD FIELD
 #-----------------------
+
+
+
+# ----- QUICK SOURCE STUFF ----------------l
+
+
+# ---------- SOURCE RECONSTRUCTION---
+noise_cov = mne.compute_covariance(
+    epochs_active['nfb'], tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
+fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, epochs_active['nfb'].info)
+
+# Get the forward solution for the specified source localisation type
+fs_dir = fetch_fsaverage(verbose=True)
+# --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
+trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+
+# m_filt.drop_channels(['ECG', 'EOG'])
+# fwd = mne.make_forward_solution(m_filt.info, trans=trans, src=src,
+#                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+fwd = mne.make_forward_solution(epochs_active['nfb'].info, trans=trans, src=src,
+                                bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+
+# make inverse operator
+inverse_operator = make_inverse_operator(
+    epochs_active['nfb'].info, fwd, noise_cov, loose=0.2, depth=0.8)
+# del fwd
+
+# Get the labels
+label_names_lh = ["inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh"]
+label_lh = rsf.get_roi_by_name(label_names_lh)
+label_names_rh = ["inferiorparietal-rh", "superiorparietal-rh", "lateraloccipital-rh"]
+label_rh = rsf.get_roi_by_name(label_names_rh)
+
+
+# compute inverse solution  for the LEFT SIDE
+method = "sLORETA"
+snr = 3.
+lambda2 = 1. / snr ** 2
+stc, residual = apply_inverse_epochs(epochs_active['nfb'], inverse_operator, lambda2,
+                              method=method, pick_ori=None,
+                              return_residual=True, verbose=True, label=label_lh)
+
+# TODO: apply the inverse to the right side
+
+# plot the time course of the peak source
+vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+fig, ax = plt.subplots()
+ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+ax.set(xlabel='time (ms)', ylabel='%s value' % method)
+
+# TODO Get the average and std time course of all sources in left and right labels in each section
+
+# TODO: plot the box plots of the above time courses
+
+# TODO: repeat above for the baseline
+
+
+# look at the peak
+vertno_max, time_max = stc.get_peak(hemi=None)
+
+surfer_kwargs = dict(
+    hemi='both',
+    clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
+    initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
+    surface='Pial', transparent=True, alpha=0.9, colorbar=True, show_traces=True)
+brain = stc.plot(**surfer_kwargs)
+brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
+               scale_factor=0.6, alpha=0.5)
+brain.add_text(0.1, 0.9, 'left probe', 'title',
+               font_size=14)
+
+
+# plot the time course of the peak source
+vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+fig, ax = plt.subplots()
+ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+ax.set(xlabel='time (ms)', ylabel='%s value' % method)
