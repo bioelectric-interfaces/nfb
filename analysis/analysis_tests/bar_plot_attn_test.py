@@ -24,8 +24,12 @@ else:
     userdir = "christopherturner"
 
 task_data = {}
-# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/0-nfb_task_ct_bartest_02-14_19-22-01/experiment_data.h5" # Bar test (left, left, right, right) light on
-h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/0-nfb_task_ct_plottest_02-14_19-47-43/experiment_data.h5" # plot test (left, right, left, right) light off
+h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/0-nfb_task_ct_bartest_02-14_19-22-01/experiment_data.h5" # Bar test (left, left, right, right) light on
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/0-nfb_task_ct_plottest_02-14_19-47-43/experiment_data.h5" # plot test (left, right, left, right) light off
+
+
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/source/1-nfb_task_kk_02-15_14-22-12/experiment_data.h5" #Ksenia bar neurofeedback1
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/source/1-nfb_task_kk_02-15_14-48-45/experiment_data.h5" #Ksenia bar neurofeedback2
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -97,8 +101,10 @@ epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=0, tmax=10, baseli
 
 # fig = epochs.plot(events=events)
 
-left_chs = ["PO7=1"]#["CP5=1", "P5=1", "O1=1"]
-right_chs = ["PO8=1"]#["CP6=1", "P6=1", "O2=1"]
+left_chs = ['PO7=1']
+right_chs = ['PO8=1']
+# left_chs = ["CP5=1", "P5=1", "O1=1"]
+# right_chs = ["CP6=1", "P6=1", "O2=1"]
 
 
 # DO BASELINE STUFF
@@ -143,14 +149,9 @@ for i, side in enumerate(section_df['side'].unique()):
                          line=dict(color=colors[i]),
                          name='side=' + side))
 # Append the baseline and plot
-fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.6e-6,2e-6], title='Active')
+fig.update_layout(boxmode='group', xaxis_tickangle=1,yaxis_range=[0.7e-6,6.1e-6], title=f"KK bar NFB1 - {','.join(left_chs + right_chs)}")
 fig.show()
-
-# plot the boxes of the aais
-aai_section_df = pd.concat(dataframes_aai)
-aai_section_df = aai_section_df.melt(id_vars=['section'], var_name='side', value_name='data')
-px.box(aai_section_df, x='section', y='data', title="active sectioned aai").show()
-
+# TODO: add baseline AAIs
 
 # TODO:
 #     [ ] look at online AAI and do box plots comparing to calculated
