@@ -8,7 +8,10 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objs as go
+from mne.datasets import fetch_fsaverage
+from mne.minimum_norm import make_inverse_operator, apply_inverse_epochs
 
+from pynfb.helpers import roi_spatial_filter as rsf
 from pynfb.serializers import read_spatial_filter
 
 
@@ -379,7 +382,7 @@ def do_baseline_epochs(df1, m_alpha, left_chs, right_chs, fig=None, fb_type="act
     # get calculated AAI for baseline (left-right/left+right)
     aai_baseline = (e_pwr1 - e_pwr2) / (e_pwr1 + e_pwr2)
 
-    return fig, aai_baseline, bl_dataframe
+    return fig, aai_baseline, bl_dataframe, baseline_epochs
 
 
 def do_section_epochs(events, m_alpha, event_dict, left_chs, right_chs, fb_type="active", reject_criteria=dict(eeg=18e-6), show_plot=False):
@@ -500,6 +503,106 @@ def check_online_aai(df1, m_alpha, left_chs, right_chs, fig1=None, block_name="N
     plot_nfb_epoch_stats(fig, aai_nfb1.mean(axis=0)[0], aai_nfb1.std(axis=0)[0], name="nfb1 aai", title="epoch power", color=(230,20,20,1), y_range=[-0.7, 0.7])
     plot_nfb_epoch_stats(fig, signal_aai[0], 0, name="nfb1 aai ol", title="epoch power", color=(30,120,20,1), y_range=[-0.7, 0.7])
     fig.show()
+
+def get_left_right_source_estimates(epochs):
+    noise_cov = mne.compute_covariance(
+        epochs, tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
+    fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, epochs.info)
+
+    # Get the forward solution for the specified source localisation type
+    fs_dir = fetch_fsaverage(verbose=True)
+    # --I think this 'trans' is like the COORDS2TRANSFORMATIONMATRIX
+    trans = 'fsaverage'  # MNE has a built-in fsaverage transformation
+    src = os.path.join(fs_dir, 'bem', 'fsaverage-ico-5-src.fif')
+    bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
+
+    # m_filt.drop_channels(['ECG', 'EOG'])
+    # fwd = mne.make_forward_solution(m_filt.info, trans=trans, src=src,
+    #                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+    fwd = mne.make_forward_solution(epochs.info, trans=trans, src=src,
+                                    bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
+
+    # make inverse operator
+    inverse_operator = make_inverse_operator(
+        epochs.info, fwd, noise_cov, loose=0.2, depth=0.8)
+    # del fwd
+
+    # Get the labels
+    label_names_lh = ["inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh"]
+    label_lh = rsf.get_roi_by_name(label_names_lh)
+    label_names_rh = ["inferiorparietal-rh", "superiorparietal-rh", "lateraloccipital-rh"]
+    label_rh = rsf.get_roi_by_name(label_names_rh)
+
+    # compute inverse solution  for the LEFT SIDE
+    method = "sLORETA"
+    snr = 3.
+    lambda2 = 1. / snr ** 2
+    stc_lh = apply_inverse_epochs(epochs, inverse_operator, lambda2,
+                                  method=method, pick_ori=None, verbose=True, label=label_lh)
+    print("LEFT DONE")
+    stc_rh = apply_inverse_epochs(epochs, inverse_operator, lambda2,
+                                  method=method, pick_ori=None, verbose=True, label=label_rh)
+    print("RIGHT DONE")
+
+    return stc_lh, stc_rh
+
+def get_source_nfb_quarters(stc_lh, stc_rh):
+    source_max_lh = []
+    source_max_lh_mean = []
+    source_max_lh_std = []
+    dataframes_max_lh_source = []
+    source_max_rh = []
+    source_max_rh_mean = []
+    source_max_rh_std = []
+    dataframes_max_source = []
+    for x in stc_lh:
+        vertno_max_idx, time_max = x.get_peak(hemi='lh', vert_as_index=True)
+        source_max_lh.append(x.data[vertno_max_idx])
+
+    for x in stc_rh:
+        vertno_max_idx, time_max = x.get_peak(hemi='rh', vert_as_index=True)
+        source_max_rh.append(x.data[vertno_max_idx])
+
+    for x in range(4):
+        l = len(source_max_lh)
+        source_max_lh_mean.append(np.vstack(source_max_lh)[(x * int(l / 4)): (x + 1) * int(l / 4)].mean(axis=0))
+        source_max_lh_std.append(np.vstack(source_max_lh)[(x * int(l / 4)): (x + 1) * int(l / 4)].std(axis=0))
+        r = len(source_max_rh)
+        source_max_rh_mean.append(np.vstack(source_max_rh)[(x * int(r / 4)): (x + 1) * int(r / 4)].mean(axis=0))
+        source_max_rh_std.append(np.vstack(source_max_rh)[(x * int(r / 4)): (x + 1) * int(r / 4)].std(axis=0))
+
+        df_ix = pd.DataFrame(dict(left=source_max_lh_mean[-1], right=source_max_rh_mean[-1]))
+        df_ix['section'] = f"Q{x + 1}"
+        dataframes_max_source.append(df_ix)
+    return dataframes_max_source
+
+def get_source_nfb_bl(stc_lh, stc_rh, baseline_type = "EO"):
+    source_max_lh = []
+    source_max_lh_mean = []
+    source_max_lh_std = []
+    dataframes_max_lh_source = []
+    source_max_rh = []
+    source_max_rh_mean = []
+    source_max_rh_std = []
+    dataframes_max_source = []
+    for x in stc_lh:
+        vertno_max_idx, time_max = x.get_peak(hemi='lh', vert_as_index=True)
+        source_max_lh.append(x.data[vertno_max_idx])
+
+    for x in stc_rh:
+        vertno_max_idx, time_max = x.get_peak(hemi='rh', vert_as_index=True)
+        source_max_rh.append(x.data[vertno_max_idx])
+
+    source_max_lh_mean.append(np.vstack(source_max_lh).mean(axis=0))
+    source_max_lh_std.append(np.vstack(source_max_lh).std(axis=0))
+
+    source_max_rh_mean.append(np.vstack(source_max_rh).mean(axis=0))
+    source_max_rh_std.append(np.vstack(source_max_rh).std(axis=0))
+
+    df_ix = pd.DataFrame(dict(left=source_max_lh_mean[-1], right=source_max_rh_mean[-1]))
+    df_ix['section'] = f"BL{baseline_type}"
+    dataframes_max_source.append(df_ix)
+    return dataframes_max_source
 
 if __name__ == "__main__":
 

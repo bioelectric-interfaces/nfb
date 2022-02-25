@@ -45,11 +45,11 @@ else:
     userdir = "christopherturner"
 # ------ Get data files
 # h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5"
-#
-# h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
+
+h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/scalp/0-nfb_task_kk_01-27_18-34-12/experiment_data.h5"
 h5file_sham = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/kk/sham/2-nfb_task_kk_02-05_14-41-40/experiment_data.h5"
 
-h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/source/1-nfb_task_sh_02-01_14-50-58/experiment_data.h5"
+# h5file_active = f"/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/source/1-nfb_task_sh_02-01_14-50-58/experiment_data.h5"
 
 df1_active, m_raw_active = af.hdf5_to_mne(h5file_active)
 m_raw_active, event_dict_active = af.get_nfb_protocol_change_events(df1_active, m_raw_active)
@@ -108,15 +108,19 @@ Get a specific frequency band and remove non-relavant frequencies
 * Use non-causal to not introduce delays
 """
 # Remove low frequency drift
-m_raw_active = m_raw_active.filter(l_freq=0.1, h_freq=None) # Use 0.1 for evoked data
-m_raw_sham = m_raw_sham.filter(l_freq=0.1, h_freq=None) # Use 0.1 for evoked data
+# m_raw_active = m_raw_active.filter(l_freq=0.1, h_freq=None) # Use 0.1 for evoked data
+# m_raw_sham = m_raw_sham.filter(l_freq=0.1, h_freq=None) # Use 0.1 for evoked data
+
+# remove low freq and high freqency noise
+m_filtered_active = m_raw_active.copy().filter(l_freq=0.1, h_freq=40) # Use 1hz for non evoked data
 
 #non-causal, Infinite Impulse Response (IIR) Butterworth filter of 2nd order
-m_filtered = m_raw_active.copy().filter(l_freq=0.1, h_freq=40) # Use 1hz for non evoked data
-alpha_band = (8, 12)# Not sure if we really need both of these - TODO: make sure only relevant things are kept (also do we do a band pass filter like this?)
-m_alpha_active = m_raw_active.copy().filter(l_freq=alpha_band[0], h_freq=alpha_band[1])
 
-m_alpha_sham = m_raw_sham.copy().filter(l_freq=alpha_band[0], h_freq=alpha_band[1])
+# # Filter in alpha frequency
+# alpha_band = (8, 12)# Not sure if we really need both of these - TODO: make sure only relevant things are kept (also do we do a band pass filter like this?)
+# m_alpha_active = m_raw_active.copy().filter(l_freq=alpha_band[0], h_freq=alpha_band[1])
+#
+# m_alpha_sham = m_raw_sham.copy().filter(l_freq=alpha_band[0], h_freq=alpha_band[1])
 
 
 #-----------------------
@@ -135,33 +139,40 @@ do ica correction to remove artefacts
 do this on the baseline data and apply to the entire raw dataset
 """
 # # ----- ICA ON BASELINE RAW DATA
-# # High pass filter
-# m_high = m_raw.copy()
-# # Take out the first 10 secs - TODO: figure out if this is needed for everyone
-# m_high.crop(tmin=10)
-# m_high.filter(l_freq=1., h_freq=40)
-# # get baseline data
-# baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
-# baseline_raw_start = baseline_raw_data['sample'].iloc[0] / fs
-# baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / fs
-# baseline = m_high.copy()
-# baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
-# # visualise the eog blinks
-# # eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
-# # eog_evoked.apply_baseline(baseline=(None, -0.2))
-# # eog_evoked.plot_joint()
-# # do ICA
-# baseline.drop_channels(['EOG', 'ECG'])
-# ica = ICA(n_components=15, max_iter='auto', random_state=97)
-# ica.fit(baseline)
-# # Visualise
-# m_high.load_data()
-# ica.plot_sources(m_high, show_scrollbars=False)
-# ica.plot_components()
-# # Set ICA to exclued
-# ica.exclude = [1, 11, 12, 13]  # ,14]
-# reconst_raw = m_raw.copy()
-# ica.apply(reconst_raw)
+# TODO: refactor this, and do for both active and sham
+# High pass filter
+m_high = m_filtered_active.copy()
+m_high.filter(l_freq=1., h_freq=40)
+# get baseline data
+baseline_raw_data = df1_active.loc[df1_active['block_name'] == 'baseline']
+baseline_raw_start = baseline_raw_data['sample'].iloc[0] / m_high.info['sfreq']
+baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / m_high.info['sfreq']
+baseline = m_high.copy()
+baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
+# Take out the first 10 secs - TODO: figure out if this is needed for everyone
+baseline.crop(tmin=10)
+# visualise the eog blinks
+# eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
+# eog_evoked.apply_baseline(baseline=(None, -0.2))
+# eog_evoked.plot_joint()
+# do ICA
+baseline.drop_channels(['EOG', 'ECG'])
+ica = ICA(n_components=15, max_iter='auto', random_state=97)
+ica.fit(baseline)
+# Visualise
+m_high.load_data()
+ica.plot_sources(m_high, show_scrollbars=False)
+ica.plot_components()
+# Set ICA to exclued
+ica.exclude = [1]#, 11, 12, 13]  # ,14]
+reconst_raw_active = m_filtered_active.copy()
+ica.apply(reconst_raw_active)
+
+# Filter in alpha frequency
+alpha_band = (8, 12)# Not sure if we really need both of these - TODO: make sure only relevant things are kept (also do we do a band pass filter like this?)
+m_alpha_active = reconst_raw_active.copy().filter(l_freq=alpha_band[0], h_freq=alpha_band[1])
+
+m_alpha_sham = m_raw_sham.copy().filter(l_freq=alpha_band[0], h_freq=alpha_band[1])
 
 #-----------------------
 # Spatial filtering
@@ -209,8 +220,8 @@ left_chs = ["CP5=1", "P5=1", "O1=1"]
 right_chs = ["CP6=1", "P6=1", "O2=1"]
 
 # DO BASELINE STUFF
-fig, aai_baseline_active, bl_dataframe_active = af.do_baseline_epochs(df1_active, m_alpha_active, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_active', block_number=4)
-fig, aai_baseline_sham, bl_dataframe_sham = af.do_baseline_epochs(df1_sham, m_alpha_sham, left_chs, right_chs, fig=None, fb_type="sham", baseline_name='bl_sham', block_number=4)
+fig, aai_baseline_active, bl_dataframe_active, baseline_epochs_active = af.do_baseline_epochs(df1_active, m_alpha_active, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_active', block_number=4)
+fig, aai_baseline_sham, bl_dataframe_sham, baseline_epochs_sham = af.do_baseline_epochs(df1_sham, m_alpha_sham, left_chs, right_chs, fig=None, fb_type="sham", baseline_name='bl_sham', block_number=4)
 
 fig = go.Figure()
 af.plot_nfb_epoch_stats(fig, aai_baseline_active.mean(axis=0)[0], aai_baseline_active.std(axis=0)[0], name="aai_active", title=f"CT02: {','.join(left_chs + right_chs)}", color=(230, 20, 20, 1), y_range=[-0.7, 0.7])
@@ -336,9 +347,10 @@ a better way is to use a 3d electrode positioning system
 
 
 # ---------- SOURCE RECONSTRUCTION---
+# Create noise covariance, fwd solution, and inverse operator from baseline epochs
 noise_cov = mne.compute_covariance(
-    epochs_active['nfb'], tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
-fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, epochs_active['nfb'].info)
+    baseline_epochs_active, tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
+fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, baseline_epochs_active.info)
 
 # Get the forward solution for the specified source localisation type
 fs_dir = fetch_fsaverage(verbose=True)
@@ -350,12 +362,12 @@ bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
 # m_filt.drop_channels(['ECG', 'EOG'])
 # fwd = mne.make_forward_solution(m_filt.info, trans=trans, src=src,
 #                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
-fwd = mne.make_forward_solution(epochs_active['nfb'].info, trans=trans, src=src,
+fwd = mne.make_forward_solution(baseline_epochs_active.info, trans=trans, src=src,
                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
 
 # make inverse operator
 inverse_operator = make_inverse_operator(
-    epochs_active['nfb'].info, fwd, noise_cov, loose=0.2, depth=0.8)
+    baseline_epochs_active.info, fwd, noise_cov, loose=0.2, depth=0.8)
 # del fwd
 
 # Get the labels
@@ -369,34 +381,52 @@ label_rh = rsf.get_roi_by_name(label_names_rh)
 method = "sLORETA"
 snr = 3.
 lambda2 = 1. / snr ** 2
-stc, residual = apply_inverse_epochs(epochs_active['nfb'], inverse_operator, lambda2,
-                              method=method, pick_ori=None,
-                              return_residual=True, verbose=True, label=label_lh)
+stc_lh = apply_inverse_epochs(epochs_active['nfb'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rh = apply_inverse_epochs(epochs_active['nfb'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
 
-# TODO: apply the inverse to the right side
-
-# plot the time course of the peak source
-vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
-fig, ax = plt.subplots()
-ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
-ax.set(xlabel='time (ms)', ylabel='%s value' % method)
-
-# TODO Get the average and std time course of all sources in left and right labels in each section
-
-# TODO: plot the box plots of the above time courses
+# stc_rh, stc_lh = af.get_left_right_source_estimates(epochs_active['nfb'])
 
 # TODO: repeat above for the baseline
+stc_lh_eo = apply_inverse_epochs(baseline_epochs_active, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rh_eo = apply_inverse_epochs(baseline_epochs_active, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
+
+dataframes_max_source = af.get_source_nfb_quarters(stc_lh, stc_rh)
+dataframes_max_source_bl = af.get_source_nfb_bl(stc_lh_eo, stc_rh_eo, baseline_type="EO")
+
+dataframes_max_source_nfb = []
+colors = ['blue', 'red']
+for s in dataframes_max_source:
+    dataframes_max_source_nfb.append(s[-5000:])
+section_df_nfb = pd.concat(dataframes_max_source_nfb)
+section_df_nfb = section_df_nfb.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_nfb_bl = dataframes_max_source_bl[0].melt(id_vars=['section'], var_name='side', value_name='data')
+section_df = pd.concat([section_df_nfb_bl, section_df_nfb], ignore_index=True)
+fig=go.Figure()
+for i, side in enumerate(section_df['side'].unique()):
+    df_plot = section_df[section_df['side'] == side]
+    fig.add_trace(go.Box(x=df_plot['section'], y=df_plot['data'],
+                         line=dict(color=colors[i]),
+                         name='side=' + side))
+# Append the baseline and plot
+fig.update_layout(boxmode='group', xaxis_tickangle=1, title='max_source')
+fig.show()
+
+
 
 
 # look at the peak
-vertno_max, time_max = stc.get_peak(hemi=None)
+vertno_max, time_max = stc_lh.get_peak(hemi=None)
 
 surfer_kwargs = dict(
     hemi='both',
     clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
     initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
     surface='Pial', transparent=True, alpha=0.9, colorbar=True, show_traces=True)
-brain = stc.plot(**surfer_kwargs)
+brain = stc_lh.plot(**surfer_kwargs)
 brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
                scale_factor=0.6, alpha=0.5)
 brain.add_text(0.1, 0.9, 'left probe', 'title',
@@ -404,7 +434,7 @@ brain.add_text(0.1, 0.9, 'left probe', 'title',
 
 
 # plot the time course of the peak source
-vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
+vertno_max_idx, time_max = stc_lh.get_peak(hemi=None, vert_as_index=True)
 fig, ax = plt.subplots()
-ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
+ax.plot(1e3 * stc_lh.times, stc_lh.data[vertno_max_idx])
 ax.set(xlabel='time (ms)', ylabel='%s value' % method)
