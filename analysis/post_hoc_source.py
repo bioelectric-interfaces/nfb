@@ -395,7 +395,7 @@ stc_rh_eo = apply_inverse_epochs(baseline_epochs_active, inverse_operator, lambd
                               method=method, pick_ori=None, verbose=True, label=label_rh)
 
 dataframes_max_source = af.get_source_nfb_quarters(stc_lh, stc_rh)
-dataframes_max_source_bl = af.get_source_nfb_bl(stc_lh_eo, stc_rh_eo, baseline_type="EO")
+dataframes_max_source_bl = af.get_source_nfb_section(stc_lh_eo, stc_rh_eo, section_name="BL_EO")
 
 dataframes_max_source_nfb = []
 colors = ['blue', 'red']

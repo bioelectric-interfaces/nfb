@@ -21,8 +21,10 @@ import analysis.analysis_functions as af
 from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs,
                                corrmap)
 from mne.datasets import fetch_fsaverage
-from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inverse
+from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inverse, apply_inverse_epochs
 
+from pynfb.helpers import roi_spatial_filter as rsf
+from philistine.mne import savgol_iaf
 
 if platform.system() == "Windows":
     userdir = "2354158T"
@@ -35,7 +37,7 @@ task_data = {}
 
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/bar_plot_attn/ctcvsa_02-14_20-13-40/experiment_data.h5" # Chris cvsa 1 (with baselines)
 #
-# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-21-37/experiment_data.h5" # Ksenia cvsa 3 **
+h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-21-37/experiment_data.h5" # Ksenia cvsa 3 **
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-37-24/experiment_data.h5" # Ksenia cvsa 4
 
 # Put data in pandas data frame
@@ -152,46 +154,48 @@ stim_raw = mne.io.RawArray(probe_events.T, info)
 m_raw.add_channels([stim_raw], force_update_info=True)
 
 
-
 # ----- ICA ON BASELINE RAW DATA
-# # High pass filter
-# m_high = m_raw.copy()
-# # Take out the first 10 secs - TODO: figure out if this is needed for everyone
-# m_high.crop(tmin=10)
-# m_high.filter(l_freq=1., h_freq=40)
-# # Drop bad channels
+# High pass filter
+m_high = m_raw.copy()
+# Take out the first 10 secs - TODO: figure out if this is needed for everyone
+m_high.crop(tmin=10)
+m_high.filter(l_freq=1., h_freq=40)
+# Drop bad channels
 # m_high.drop_channels(['TP9', 'TP10'])
-# # get baseline data
-# # baseline_raw_data = df1.loc[df1['block_name'] == 'baseline']
-# # baseline_raw_start = baseline_raw_data['sample'].iloc[0] / fs
-# # baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / fs
-# # baseline = m_high.copy()
-# # baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
-# # visualise the eog blinks
-# # eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
-# # eog_evoked.apply_baseline(baseline=(None, -0.2))
-# # eog_evoked.plot_joint()
-# # do ICA
-# # baseline.drop_channels(['EOG', 'ECG'])
-# # ica = ICA(n_components=15, max_iter='auto', random_state=97)
-# # ica.fit(baseline)
+# get baseline data
+baseline_raw_data = df1.loc[df1['block_number'] == 2]
+baseline_raw_start = baseline_raw_data['sample'].iloc[0] / m_high.info['sfreq']
+baseline_raw_end = baseline_raw_data['sample'].iloc[-1] / m_high.info['sfreq']
+baseline = m_high.copy()
+baseline.crop(tmin=baseline_raw_start, tmax=baseline_raw_end)
+# visualise the eog blinks
+# eog_evoked = create_eog_epochs(baseline, ch_name=['EOG', 'ECG']).average()
+# eog_evoked.apply_baseline(baseline=(None, -0.2))
+# eog_evoked.plot_joint()
+# do ICA
+# baseline.drop_channels(['EOG', 'ECG'])
+ica = ICA(n_components=15, max_iter='auto', random_state=97)
+ica.fit(baseline)
 # m_high.drop_channels(['EOG', 'ECG'])
 # ica = ICA(n_components=15, max_iter='auto', random_state=97)
 # ica.fit(m_high)
-# # Visualise
-# m_high.load_data()
-# ica.plot_sources(m_high, show_scrollbars=False)
-# ica.plot_components()
-# # Set ICA to exclued
-# ica.exclude = [2]  # ,14]
-# reconst_raw = m_raw.copy()
-# ica.apply(reconst_raw)
+# Visualise
+m_high.load_data()
+ica.plot_sources(m_high, show_scrollbars=False)
+ica.plot_components()
+# Set ICA to exclued
+ica.exclude = [1]  # ,14]
+reconst_raw = m_raw.copy()
+ica.apply(reconst_raw)
 #-------------------------
 
-
+#----------get individual peak alpha
+iaf_raw = savgol_iaf(m_raw).PeakAlphaFrequency
+iaf_bl = savgol_iaf(baseline).PeakAlphaFrequency
+#_____------____----____--_-_-_-____-
 
 # Get the epoch object
-m_filt = m_raw.copy()
+m_filt = reconst_raw.copy()
 m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
                l_trans_bandwidth=1,  # make sure filter params are the same
                h_trans_bandwidth=1)  # in each band and skip "auto" option.
@@ -203,10 +207,10 @@ left_chs = ['PO7=1']
 right_chs = ['PO8=1']
 
 # - - DO baseline epochs
-fig_bl_eo1, aai_baseline_eo1, bl_dataframe_eo1 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_eo1', block_number=2)
-fig_bl_ec1, aai_baseline_ec1, bl_dataframe_ec1 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_ec1', block_number=4)
-fig_bl_eo2, aai_baseline_eo2, bl_dataframe_eo2 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_eo2', block_number=83)
-fig_bl_ec2, aai_baseline_ec2, bl_dataframe_ec2 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_ec2', block_number=85)
+fig_bl_eo1, aai_baseline_eo1, bl_dataframe_eo1, bl_epochs_eo1 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_eo1', block_number=2)
+fig_bl_ec1, aai_baseline_ec1, bl_dataframe_ec1, bl_epochs_ec1 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_ec1', block_number=4)
+fig_bl_eo2, aai_baseline_eo2, bl_dataframe_eo2, bl_epochs_eo2 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_eo2', block_number=83)
+fig_bl_ec2, aai_baseline_ec2, bl_dataframe_ec2, bl_epochs_ec2 = af.do_baseline_epochs(df1, m_filt, left_chs, right_chs, fig=None, fb_type="active", baseline_name='bl_ec2', block_number=85)
 
 
 # epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=7, baseline=(-1.5, -0.5),
@@ -477,9 +481,10 @@ pass
 
 
 # ---------- SOURCE RECONSTRUCTION---
+# Create noise covariance, fwd solution, and inverse operator from first eyes open baseline epochs
 noise_cov = mne.compute_covariance(
-    epochs['left_probe'], tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
-fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, epochs['left_probe'].info)
+    bl_epochs_eo1, tmax=0., method=['shrunk', 'empirical'], rank=None, verbose=True)
+fig_cov, fig_spectra = mne.viz.plot_cov(noise_cov, bl_epochs_eo1.info)
 
 # Get the forward solution for the specified source localisation type
 fs_dir = fetch_fsaverage(verbose=True)
@@ -491,49 +496,93 @@ bem = os.path.join(fs_dir, 'bem', 'fsaverage-5120-5120-5120-bem-sol.fif')
 # m_filt.drop_channels(['ECG', 'EOG'])
 # fwd = mne.make_forward_solution(m_filt.info, trans=trans, src=src,
 #                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
-fwd = mne.make_forward_solution(probe_left.info, trans=trans, src=src,
+fwd = mne.make_forward_solution(bl_epochs_eo1.info, trans=trans, src=src,
                                 bem=bem, eeg=True, meg=False, mindist=5.0, n_jobs=1)
 
 # make inverse operator
 inverse_operator = make_inverse_operator(
-    probe_left.info, fwd, noise_cov, loose=0.2, depth=0.8)
+    bl_epochs_eo1.info, fwd, noise_cov, loose=0.2, depth=0.8)
 # del fwd
 
-# compute inverse solution of whole brain
+# Get the labels
+label_names_lh = ["inferiorparietal-lh", "superiorparietal-lh", "lateraloccipital-lh"]
+label_lh = rsf.get_roi_by_name(label_names_lh)
+label_names_rh = ["inferiorparietal-rh", "superiorparietal-rh", "lateraloccipital-rh"]
+label_rh = rsf.get_roi_by_name(label_names_rh)
+
+
+# compute inverse solution  for the LEFT SIDE
 method = "sLORETA"
 snr = 3.
 lambda2 = 1. / snr ** 2
-stc, residual = apply_inverse(probe_left, inverse_operator, lambda2,
-                              method=method, pick_ori=None,
-                              return_residual=True, verbose=True)
+stc_lp_lh = apply_inverse_epochs(epochs['left_probe'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_lp_rh = apply_inverse_epochs(epochs['left_probe'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
 
-# plot the time course of the peak source
-vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
-fig, ax = plt.subplots()
-ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
-ax.set(xlabel='time (ms)', ylabel='%s value' % method)
+stc_rp_lh = apply_inverse_epochs(epochs['right_probe'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rp_rh = apply_inverse_epochs(epochs['right_probe'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
 
+stc_cp_lh = apply_inverse_epochs(epochs['centre_probe'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_cp_rh = apply_inverse_epochs(epochs['centre_probe'], inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
 
-# look at the peak
-vertno_max, time_max = stc.get_peak(hemi=None)
+# stc_rh, stc_lh = af.get_left_right_source_estimates(epochs_active['nfb'])
 
-surfer_kwargs = dict(
-    hemi='both',
-    clim='auto', views='lateral',  # clim=dict(kind='value', lims=[8, 12, 15])
-    initial_time=time_max, time_unit='s', size=(800, 800), smoothing_steps=10,
-    surface='Pial', transparent=True, alpha=0.9, colorbar=True, show_traces=True)
-brain = stc.plot(**surfer_kwargs)
-brain.add_foci(vertno_max, coords_as_verts=True, hemi='rh', color='blue',
-               scale_factor=0.6, alpha=0.5)
-brain.add_text(0.1, 0.9, 'left probe', 'title',
-               font_size=14)
+# repeat above for the baseline
+stc_lh_eo1 = apply_inverse_epochs(bl_epochs_eo1, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rh_eo1 = apply_inverse_epochs(bl_epochs_eo1, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
 
-stc, residual = apply_inverse(probe_right, inverse_operator, lambda2,
-                              method=method, pick_ori=None,
-                              return_residual=True, verbose=True)
+stc_lh_ec1 = apply_inverse_epochs(bl_epochs_ec1, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rh_ec1 = apply_inverse_epochs(bl_epochs_ec1, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
 
-# plot the time course of the peak source
-vertno_max_idx, time_max = stc.get_peak(hemi=None,vert_as_index=True)
-fig, ax = plt.subplots()
-ax.plot(1e3 * stc.times, stc.data[vertno_max_idx])
-ax.set(xlabel='time (ms)', ylabel='%s value' % method)
+stc_lh_eo2 = apply_inverse_epochs(bl_epochs_eo2, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rh_eo2 = apply_inverse_epochs(bl_epochs_eo2, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
+
+stc_lh_ec2 = apply_inverse_epochs(bl_epochs_ec2, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_lh)
+stc_rh_ec2 = apply_inverse_epochs(bl_epochs_ec2, inverse_operator, lambda2,
+                              method=method, pick_ori=None, verbose=True, label=label_rh)
+
+dataframes_max_source_lp = af.get_source_nfb_section(stc_lp_lh, stc_lp_rh, section_name="left_probe")
+dataframes_max_source_rp = af.get_source_nfb_section(stc_rp_lh, stc_rp_rh, section_name="right_probe")
+dataframes_max_source_cp = af.get_source_nfb_section(stc_cp_lh, stc_cp_rh, section_name="centre_probe")
+
+dataframes_max_source_bl_eo1 = af.get_source_nfb_section(stc_lh_eo1, stc_rh_eo1, section_name="BL_EO1")
+dataframes_max_source_bl_ec1 = af.get_source_nfb_section(stc_lh_ec1, stc_rh_ec1, section_name="BL_EC1")
+dataframes_max_source_bl_eo2 = af.get_source_nfb_section(stc_lh_eo2, stc_rh_eo2, section_name="BL_EO2")
+dataframes_max_source_bl_ec2 = af.get_source_nfb_section(stc_lh_ec2, stc_rh_ec2, section_name="BL_EC2")
+
+dataframes_max_source_nfb = []
+colors = ['blue', 'red']
+for s in dataframes_max_source_lp:
+    dataframes_max_source_nfb.append(s[2000:9000])
+for s in dataframes_max_source_rp:
+    dataframes_max_source_nfb.append(s[2000:9000])
+for s in dataframes_max_source_cp:
+    dataframes_max_source_nfb.append(s[2000:9000])
+section_df_nfb_lp = pd.concat(dataframes_max_source_nfb)
+section_df_nfb_lp = section_df_nfb_lp.melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_nfb_bl_eo1 = dataframes_max_source_bl_eo1[0].melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_nfb_bl_ec1 = dataframes_max_source_bl_ec1[0].melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_nfb_bl_eo2 = dataframes_max_source_bl_eo2[0].melt(id_vars=['section'], var_name='side', value_name='data')
+section_df_nfb_bl_ec2 = dataframes_max_source_bl_ec2[0].melt(id_vars=['section'], var_name='side', value_name='data')
+section_df = pd.concat([section_df_nfb_bl_eo1,section_df_nfb_bl_ec1, section_df_nfb_lp, section_df_nfb_bl_eo2, section_df_nfb_bl_ec2,], ignore_index=True)
+fig=go.Figure()
+for i, side in enumerate(section_df['side'].unique()):
+    df_plot = section_df[section_df['side'] == side]
+    fig.add_trace(go.Box(x=df_plot['section'], y=df_plot['data'],
+                         line=dict(color=colors[i]),
+                         name='side=' + side))
+# Append the baseline and plot
+fig.update_layout(boxmode='group', xaxis_tickangle=1, title='max_source')
+fig.show()

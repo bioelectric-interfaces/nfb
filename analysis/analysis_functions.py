@@ -576,7 +576,7 @@ def get_source_nfb_quarters(stc_lh, stc_rh):
         dataframes_max_source.append(df_ix)
     return dataframes_max_source
 
-def get_source_nfb_bl(stc_lh, stc_rh, baseline_type = "EO"):
+def get_source_nfb_section(stc_lh, stc_rh, section_name = "BL_EO"):
     source_max_lh = []
     source_max_lh_mean = []
     source_max_lh_std = []
@@ -600,7 +600,7 @@ def get_source_nfb_bl(stc_lh, stc_rh, baseline_type = "EO"):
     source_max_rh_std.append(np.vstack(source_max_rh).std(axis=0))
 
     df_ix = pd.DataFrame(dict(left=source_max_lh_mean[-1], right=source_max_rh_mean[-1]))
-    df_ix['section'] = f"BL{baseline_type}"
+    df_ix['section'] = f"{section_name}"
     dataframes_max_source.append(df_ix)
     return dataframes_max_source
 
