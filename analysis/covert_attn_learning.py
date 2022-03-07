@@ -35,6 +35,7 @@ task_data[
 task_data[
     "s4"] = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-37-24/experiment_data.h5"  # Ksenia cvsa 4
 
+session_dataframes = []
 for session, data_file in task_data.items():
     session_data = {}
     # Put data in pandas data frame
@@ -130,28 +131,77 @@ for session, data_file in task_data.items():
                         preload=True, detrend=1)
 
     # Get AAI (using NFB method) on epochs
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000,
-                                                               channel_labels=epochs.info.ch_names, chs=["PO7=1"], fft_samps=1000)
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000,
-                                                               channel_labels=epochs.info.ch_names, chs=["PO8=1"], fft_samps=1000)
-    aai_nfb_left = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
-
-    dataframes_aai_cue = []
-    dataframes_aai = []
-    aai_nfb_left = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
-
+    fft_samps = 1000
+    e_mean1, e_std1, epoch_pwr1_l = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000,
+                                                                 channel_labels=epochs.info.ch_names, chs=["PO7=1"], fft_samps=fft_samps)
+    e_mean2, e_std2, epoch_pwr2_l = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000,
+                                                                 channel_labels=epochs.info.ch_names, chs=["PO8=1"], fft_samps=fft_samps)
+    e_mean1, e_std1, epoch_pwr1_r = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000,
+                                                                 channel_labels=epochs.info.ch_names, chs=["PO7=1"], fft_samps=fft_samps)
+    e_mean2, e_std2, epoch_pwr2_r = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000,
+                                                                 channel_labels=epochs.info.ch_names, chs=["PO8=1"], fft_samps=fft_samps)
+    aai_nfb_left = (epoch_pwr1_l - epoch_pwr2_l) / (epoch_pwr1_l + epoch_pwr2_l)
     aai_bl = 0
     aai_threshold = aai_bl + 0.2
     epoch_rat_abv_th = []
     aai_total = []
+    aai_med = []
     for ep in aai_nfb_left:
         epoch_rat_abv_th.append(np.count_nonzero(ep > aai_threshold) / ep.size)
-        aai_total = aai_total + ep.tolist()[0]
+        aai_total.append(aai_total + ep.tolist()[0])
+        aai_med.append(np.median(ep))
 
-    session_data['epoch_rat_abv_th_left'] = epoch_rat_abv_th
-    session_data['total_med_aai_left'] = aai_total
+    session_data['dur_ratio_left'] = epoch_rat_abv_th
+    session_data['med_aai_left'] = aai_med
 
-    pass
-    # TODO:
-    #   get median of AAI for each quarter over all sessions (Q1, 2, 3, 4, 5, 6, 7...)
-    #   Get median AAI over all sessions
+
+    aai_nfb_right = (epoch_pwr1_r - epoch_pwr2_r) / (epoch_pwr1_r + epoch_pwr2_r)
+    epoch_rat_abv_th = []
+    aai_total = []
+    aai_med = []
+    for ep in aai_nfb_right:
+        if len(session_data['med_aai_left']) > len(aai_med):
+            epoch_rat_abv_th.append(np.count_nonzero(ep > aai_threshold) / ep.size)
+            aai_total.append(aai_total + ep.tolist()[0])
+            aai_med.append(np.median(ep))
+
+
+    session_data['dur_ratio_right'] = epoch_rat_abv_th
+    session_data['med_aai_right'] = aai_med
+    df = pd.DataFrame(session_data)
+    df['session'] = session
+
+    session_dataframes.append(df)
+
+experiment_data = pd.concat(session_dataframes)
+experiment_dur_ratios = experiment_data.drop(columns=['med_aai_right','med_aai_left'])
+experiment_dur_meds = experiment_data.drop(columns=['dur_ratio_right','dur_ratio_left'])
+
+px.box(experiment_dur_ratios, color="session")
+
+sessions = list(task_data.keys())
+means = []
+stds = []
+for s in sessions:
+    means.append(experiment_data.loc[experiment_data["session"] == s].mean())
+    stds.append(experiment_data.loc[experiment_data["session"] == s].std())
+
+means_df = pd.concat(means)
+std_df = pd.concat(stds)
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+    y=means_df['dur_ratio_right'],
+    error_y=dict(
+        type='data',  # value of error bar given in data coordinates
+        array=std_df['dur_ratio_right'],
+        visible=True)
+))
+fig.add_trace(go.Scatter(
+    y=means_df['dur_ratio_left'],
+    error_y=dict(
+        type='data',  # value of error bar given in data coordinates
+        array=std_df['dur_ratio_left'],
+        visible=True)
+))
+fig.show()
+pass
