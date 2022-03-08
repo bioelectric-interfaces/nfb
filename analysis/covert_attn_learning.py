@@ -105,33 +105,19 @@ for session, data_file in task_data.items():
     left_chs = ['PO7=1']
     right_chs = ['PO8=1']
 
+    aai_bl = 0
+    # Get Eyes Open baseline AAI (median level over whole baseline period) - this doesn't exist for s1 and s2 so just see how it affects s3 and s4
     # - - DO baseline epochs
-    # fig_bl_eo1, aai_baseline_eo1, bl_dataframe_eo1, bl_epochs_eo1 = af.do_baseline_epochs(df1, m_filt, left_chs,
-    #                                                                                       right_chs, fig=None,
-    #                                                                                       fb_type="active",
-    #                                                                                       baseline_name='bl_eo1',
-    #                                                                                       block_number=2)
-    # fig_bl_ec1, aai_baseline_ec1, bl_dataframe_ec1, bl_epochs_ec1 = af.do_baseline_epochs(df1, m_filt, left_chs,
-    #                                                                                       right_chs, fig=None,
-    #                                                                                       fb_type="active",
-    #                                                                                       baseline_name='bl_ec1',
-    #                                                                                       block_number=4)
-    # fig_bl_eo2, aai_baseline_eo2, bl_dataframe_eo2, bl_epochs_eo2 = af.do_baseline_epochs(df1, m_filt, left_chs,
-    #                                                                                       right_chs, fig=None,
-    #                                                                                       fb_type="active",
-    #                                                                                       baseline_name='bl_eo2',
-    #                                                                                       block_number=83)
-    # fig_bl_ec2, aai_baseline_ec2, bl_dataframe_ec2, bl_epochs_ec2 = af.do_baseline_epochs(df1, m_filt, left_chs,
-    #                                                                                       right_chs, fig=None,
-    #                                                                                       fb_type="active",
-    #                                                                                       baseline_name='bl_ec2',
-    #                                                                                       block_number=85)
+    # if session in ["s3", "s4"]:
+    #     aai_bl = df1.loc[df1['block_number'] == 2]['signal_AAI'].median()
+
+
     # get task epochs
     epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=0, tmax=7, baseline=None,
                         preload=True, detrend=1)
 
     # Get AAI (using NFB method) on epochs
-    fft_samps = 1000
+    fft_samps = 1000 #increasing this to 2000 seems to increase variance on duration
     e_mean1, e_std1, epoch_pwr1_l = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000,
                                                                  channel_labels=epochs.info.ch_names, chs=["PO7=1"], fft_samps=fft_samps)
     e_mean2, e_std2, epoch_pwr2_l = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=(8, 14), fs=1000,
@@ -141,7 +127,6 @@ for session, data_file in task_data.items():
     e_mean2, e_std2, epoch_pwr2_r = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=(8, 14), fs=1000,
                                                                  channel_labels=epochs.info.ch_names, chs=["PO8=1"], fft_samps=fft_samps)
     aai_nfb_left = (epoch_pwr1_l - epoch_pwr2_l) / (epoch_pwr1_l + epoch_pwr2_l)
-    aai_bl = 0
     aai_threshold = aai_bl + 0.2
     epoch_rat_abv_th = []
     aai_total = []
@@ -177,7 +162,7 @@ experiment_data = pd.concat(session_dataframes)
 experiment_dur_ratios = experiment_data.drop(columns=['med_aai_right','med_aai_left'])
 experiment_dur_meds = experiment_data.drop(columns=['dur_ratio_right','dur_ratio_left'])
 
-px.box(experiment_dur_ratios, color="session")
+px.box(experiment_dur_ratios, color="session", title=f"th: {aai_threshold}, fft_n: {fft_samps}").show()
 
 sessions = list(task_data.keys())
 means = []
@@ -203,5 +188,12 @@ fig.add_trace(go.Scatter(
         array=std_df['dur_ratio_left'],
         visible=True)
 ))
+fig.update_layout(
+    title=f"th: {aai_threshold}, fft_n: {fft_samps}",
+    hovermode="x",
+)
 fig.show()
 pass
+
+# TODO:
+#   check the previous papers to get the same or similar learning indicies

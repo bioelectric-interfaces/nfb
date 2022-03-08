@@ -238,18 +238,24 @@ def get_nfb_derived_sig_epoch(epochs, pick_chs, fs, channel_labels, signal_estim
     return filtered_data
 
 
-def get_nfb_epoch_power_stats(epochs, fband=(8, 14), fs=1000,channel_labels=None, chs=None):
+def get_nfb_epoch_power_stats(data, fband=(8, 14), fs=1000, channel_labels=None, chs=None, fft_samps=1000):
     """
     TODO: refactor (seems i'm returning epoch_pwr more than once with mean and std
     """
     smoothing_factor = 0.7
     smoother = ExponentialSmoother(smoothing_factor)
-    n_samples = 1000
+    n_samples = fft_samps
     signal_estimator = FFTBandEnvelopeDetector(fband, fs, smoother, n_samples)
-    epoch_pwr = np.ndarray((epochs.get_data().shape[0], len(chs), epochs.get_data().shape[2]))
+    if isinstance(data, mne.Epochs):
+        epoch_pwr = np.ndarray((data.get_data().shape[0], len(chs), data.get_data().shape[2]))
+    else:
+        epoch_pwr = data.get_data()
     pick_chs_string = ";".join(chs)
-    for idx, epoch in enumerate(epochs.get_data()):
-        epoch_pwr[idx] = get_nfb_derived_sig_epoch(epoch, pick_chs_string, fs, channel_labels, signal_estimator)
+    for idx, epoch in enumerate(data.get_data()):
+        if isinstance(data, mne.Epochs):
+            epoch_pwr[idx] = get_nfb_derived_sig_epoch(epoch, pick_chs_string, fs, channel_labels, signal_estimator)
+        else:
+            epoch_pwr[idx] = get_nfb_derived_sig(epoch, pick_chs_string, fs, channel_labels, signal_estimator)
     epoch_pwr_mean = epoch_pwr.mean(axis=0)[0]
     epoch_pwr_std = epoch_pwr.std(axis=0)[0]
     return epoch_pwr_mean, epoch_pwr_std, epoch_pwr
