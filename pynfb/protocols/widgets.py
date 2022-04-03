@@ -387,6 +387,64 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
+
+class PosnerCueProtocolWidgetPainter(Painter):
+    def __init__(self, cond=None):
+        """
+        cond = side to draw cue. 0=left, 1=right, 2=center
+        """
+        super(PosnerCueProtocolWidgetPainter, self).__init__()
+        self.s1 = np.linspace(-0.25, 0, 10)
+        self.s2 = np.linspace(0, 0.25, 10)
+        self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.fixdot_radius = 0.1
+        self.cond = cond
+        self.widget = None
+        self.colour = (0, 0, 0)
+
+    def prepare_widget(self, widget):
+        super(PosnerCueProtocolWidgetPainter, self).prepare_widget(widget)
+
+        self.widget = widget
+
+        # Draw the cue outline
+        self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=self.colour, width=4)).curve
+
+    def redraw_state(self, sample, m_sample):
+        pass
+
+    def left_cue(self):
+        self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+
+    def right_cue(self):
+        self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=(0, 255, 0), width=4)).curve
+        self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=(0, 255, 0), width=4)).curve
+
+    def center_cue(self):
+        self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+
+    def reset_cue(self):
+        self.p1.clear()
+        self.p2.clear()
+        self.p3.clear()
+        self.p4.clear()
+        self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
+        self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=self.colour, width=4)).curve
+
+    def set_message(self, text):
+        self.cond = text
+        self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.cond))
+
+
 class BaselineProtocolWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
         super(BaselineProtocolWidgetPainter, self).__init__(show_reward=show_reward)

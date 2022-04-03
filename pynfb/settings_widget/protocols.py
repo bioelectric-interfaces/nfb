@@ -5,7 +5,7 @@ from pynfb.serializers.defaults import vectors_defaults as defaults
 from pynfb.widgets.helpers import ScrollArea
 
 protocol_default = defaults['vProtocols']['FeedbackProtocol'][0]
-protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'Image', 'ParticipantInput', "ParticipantChoice", "ExperimentStart", 'FixationCross', 'EyeCalibration']
+protocols_types = ['Baseline', 'Feedback', 'ThresholdBlink', 'Video', 'Image', 'ParticipantInput', "ParticipantChoice", "ExperimentStart", 'FixationCross', 'EyeCalibration', 'Posner']
 
 
 class ProtocolsSettingsWidget(QtWidgets.QWidget):

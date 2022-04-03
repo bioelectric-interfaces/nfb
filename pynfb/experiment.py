@@ -24,7 +24,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
     ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
     EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter, FixationCrossProtocolWidgetPainter, \
-    PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter
+    PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter, PosnerCueProtocol, PosnerCueProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -51,6 +51,8 @@ class Experiment():
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
+        self.cue_cond = r.choice([0, 1, 2]) # Even choice of left, right, centre cue
+        self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         self.mean_reward_signal = 0
@@ -174,6 +176,25 @@ class Experiment():
                 self.choice_recorder[self.samples_counter - 1] = int(choice or 0)
                 self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = answer
                 # self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
+
+            # If posner cue, update the cue after random delay
+            if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
+                cue_dur_samp = self.freq * (100 * 1e-3) # Cue duration is 100ms
+                cue_start_samp = round(self.freq * self.cue_random_start)
+                cue_end_samp = round(cue_start_samp + cue_dur_samp)
+                self.current_protocol_n_samples = cue_end_samp # End the cue after the cue is displayed
+                if cue_start_samp <= self.samples_counter < cue_end_samp:
+                    if self.cue_cond == 0:
+                        print("CUE LEFT")
+                        current_protocol.widget_painter.left_cue()
+                    if self.cue_cond == 1:
+                        print("CUE RIGHT")
+                        current_protocol.widget_painter.right_cue()
+                    if self.cue_cond == 2:
+                        print("CUE CENTER")
+                        current_protocol.widget_painter.center_cue()
+                # TODO: log cue cond in data
+                logging.info(f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}")
 
             # If probe, display probe at random time after beginning of delay
             probe_val = None
@@ -362,7 +383,6 @@ class Experiment():
                     logging.info(f"MOCK R THRESHOLD: {bc_threshold}")
                     current_protocol.widget_painter.r_threshold = bc_threshold
 
-
             if self.nfb_samps and self.fb_score !=None:
                 nfb_duration = self.nfb_samps
                 max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
@@ -379,6 +399,13 @@ class Experiment():
                 current_protocol.widget_painter.previous_score = self.percent_score
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0
+
+            # Update the posner cue side
+            if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
+                self.cue_cond = r.choice([0, 1, 2])
+                self.cue_random_start = 1 + r.uniform(0, 1)  # random start between 1 and 2 seconds
+                cue_dict = {0:"LEFT", 1:"RIGHT", 2:"CENTER"}
+                logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
 
             # Update the probe location, visibility, and start time
             if current_protocol.show_probe:
@@ -463,6 +490,7 @@ class Experiment():
                 self.subject.close()
             if self.params['bPlotSourceSpace']:
                 self.source_space_window.close()
+            print("FINISHED!!")
             # plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
             # np.save('results/raw', self.main.raw_recorder)
             # np.save('results/signals', self.main.signals_recorder)
@@ -655,6 +683,11 @@ class Experiment():
                         self.signals,
                         text=protocol['cString'],
                         colour=colour_dict[protocol['tFixationCrossColour']],
+                        **kwargs))
+            elif protocol['sFb_type'] == 'Posner':
+                  self.protocols.append(
+                    PosnerCueProtocol(
+                        self.signals,
                         **kwargs))
             elif protocol['sFb_type'] == 'EyeCalibration':
                 self.protocols.append(

@@ -22,7 +22,7 @@ from ..protocols.widgets import (CircleFeedbackProtocolWidgetPainter, BarFeedbac
                                  VideoProtocolWidgetPainter, ParticipantChoiceWidgetPainter,
                                  ExperimentStartWidgetPainter, FixationCrossProtocolWidgetPainter,
                                  ImageProtocolWidgetPainter, EyeCalibrationProtocolWidgetPainter,
-                                 PlotFeedbackWidgetPainter)
+                                 PlotFeedbackWidgetPainter, PosnerCueProtocolWidgetPainter)
 from ..signals import CompositeSignal, DerivedSignal, BCISignal
 from ..widgets.helpers import ch_names_to_2d_pos
 from ..widgets.update_signals_dialog import SignalsSSDManager
@@ -275,6 +275,13 @@ class FixationCrossProtocol(Protocol):
         kwargs['name'] = name
         super().__init__(signals, **kwargs)
         self.widget_painter = FixationCrossProtocolWidgetPainter(text=text, colour=colour)
+
+
+class PosnerCueProtocol(Protocol):
+    def __init__(self, signals, name='Posner', **kwargs):
+        kwargs['name'] = name
+        super().__init__(signals, **kwargs)
+        self.widget_painter = PosnerCueProtocolWidgetPainter()
 
 
 class EyeCalibrationProtocol(Protocol):
