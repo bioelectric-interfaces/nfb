@@ -308,6 +308,127 @@ class PlotFeedbackWidgetPainter(Painter):
         self.curve1.setData(np.arange(self.maxLen/2 - len(self.dat1), self.maxLen/2), self.dat1, pen=pen1)
 
 
+class PosnerFeedbackProtocolWidgetPainter(Painter):
+    def __init__(self, show_reward=False, m_threshold=1, r_threshold=0):
+        super(PosnerFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
+        self.widget = None
+        self.m_threshold = m_threshold
+        self.r_threshold = r_threshold
+        self.circle = np.linspace(-np.pi / 2, np.pi / 2, 200)
+        self.fixdot_radius = 0.1
+        self.stim_radius = 0.5
+        self.x = np.linspace(-self.stim_radius, self.stim_radius, 100)
+        self.stim_cond = None
+
+    def prepare_widget(self, widget):
+        super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
+
+        self.widget = widget
+        # Draw fixation dot
+        self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
+                                      self.fixdot_radius * np.cos(self.circle), pen=pg.mkPen(color='black')).curve
+        self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
+                                      self.fixdot_radius * -np.cos(self.circle), pen=pg.mkPen(color='black')).curve
+        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=('black'))
+        self.fill = fill_fd
+        widget.addItem(fill_fd)
+
+        # draw Left and right stim
+        left_off_x = -2
+        left_off_y = -1
+        self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
+                                     left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
+        self.st_l2 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
+                                     left_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
+        self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color='black', width=5)).curve
+        self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color='black', width=5)).curve
+
+        right_off_x = 2
+        right_off_y = -1
+        self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
+                                     right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
+        self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
+                                     right_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
+        self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x), pen=pg.mkPen(color='black', width=5)).curve
+        self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x, pen=pg.mkPen(color='black', width=5)).curve
+
+
+    def set_red_state(self, flag):
+        # TODO: make something alert the participant to eyes wandering
+        if flag:
+            self.p1.setPen(pg.mkPen(176, 35, 48))
+            self.p2.setPen(pg.mkPen(176, 35, 48))
+            self.fill.setBrush(176, 35, 48, 25)
+        else:
+            self.p1.setPen(pg.mkPen(229, 223, 213))
+            self.p2.setPen(pg.mkPen(229, 223, 213))
+            self.fill.setBrush(229, 223, 213, 25)
+
+    def redraw_state(self, sample, m_sample):
+        if m_sample is not None:
+            self.set_red_state(m_sample > self.m_threshold)
+        if np.ndim(sample)>0:
+            sample = np.sum(sample)
+
+        # Scale the sample to the target colour range
+        un_scaled_min = self.r_threshold
+        un_scaled_max = 1
+        scaled_min = 255
+        scaled_max = 0
+        un_scaled_range = (un_scaled_max - un_scaled_min)
+        scaled_range = (scaled_max - scaled_min)
+        scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+
+        print(f"SAMP: {sample}, SCALED SAMP: {scaled_sample},  THRESH: {self.r_threshold}")
+        if sample < self.r_threshold:
+            # un_scaled_min = -1
+            # un_scaled_max = self.r_threshold
+            # scaled_min = 0
+            # scaled_max = 255
+            un_scaled_range = (un_scaled_max - un_scaled_min)
+            scaled_range = -(scaled_max - scaled_min)
+            scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+
+            # Distractor is being focussed on more - colour target red
+            target_brush = (255, scaled_sample, scaled_sample)
+            distractor_brush = (0, 0, 0)
+        else:
+            # Target is being focussed on more - colour target green
+            target_brush = (scaled_sample, 255, scaled_sample)
+            distractor_brush = (0, 0, 0)
+
+        if self.stim_cond == 0:
+            left_brush = target_brush
+            right_brush = distractor_brush
+        elif self.stim_cond == 1:
+            right_brush = target_brush
+            left_brush = distractor_brush
+        else:
+            right_brush = distractor_brush
+            left_brush = distractor_brush
+
+        self.st_l1.setPen(pg.mkPen(color=left_brush, width=5))
+        self.st_l2.setPen(pg.mkPen(color=left_brush, width=5))
+        self.cr_l1.setPen(pg.mkPen(color=left_brush, width=5))
+        self.cr_l2.setPen(pg.mkPen(color=left_brush, width=5))
+
+        self.st_r1.setPen(pg.mkPen(color=right_brush, width=5))
+        self.st_r2.setPen(pg.mkPen(color=right_brush, width=5))
+        self.cr_r1.setPen(pg.mkPen(color=right_brush, width=5))
+        self.cr_r2.setPen(pg.mkPen(color=right_brush, width=5))
+
+
+
+        # self.p1.setData(self.x, np.zeros_like(self.x)+max(min(sample, 5), -5))
+        # self.p2.setData(self.x, np.zeros_like(self.x)-5)
+        #
+        # if sample > self.r_threshold:
+        #     self.fill.setBrush(176, 176, 48, 25)
+        # else:
+        #     self.fill.setBrush(35, 45, 176, 25)
+        # pass
+
+
 class FixationCrossProtocolWidgetPainter(Painter):
     def __init__(self, text="", colour=(0,0,0)):
         super(FixationCrossProtocolWidgetPainter, self).__init__()

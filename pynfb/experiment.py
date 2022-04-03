@@ -24,7 +24,8 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
     ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, FixationCrossProtocol, ImageProtocol, \
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
     EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter, FixationCrossProtocolWidgetPainter, \
-    PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter, PosnerCueProtocol, PosnerCueProtocolWidgetPainter
+    PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter, PosnerCueProtocol, PosnerCueProtocolWidgetPainter, \
+    PosnerFeedbackProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -195,6 +196,10 @@ class Experiment():
                         current_protocol.widget_painter.center_cue()
                 # TODO: log cue cond in data
                 logging.info(f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}")
+
+            # Update the posner feedback task based on the previous cue
+            if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
+                current_protocol.widget_painter.stim_cond = self.cue_cond
 
             # If probe, display probe at random time after beginning of delay
             probe_val = None
