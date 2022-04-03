@@ -52,8 +52,10 @@ class Experiment():
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
-        self.cue_cond = r.choice([0, 1, 2]) # Even choice of left, right, centre cue
+        self.cue_cond = r.choice([0, 1, 2]) # Even choice of 0=left, 1=right, 2=centre cue
         self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
+        self.posner_stim = r.choice([0, 1]) # 0=left, 1=right
+        self.posner_stim_time = 6 + r.uniform(0, 2) # timing of posner stim
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         self.mean_reward_signal = 0
@@ -199,7 +201,14 @@ class Experiment():
 
             # Update the posner feedback task based on the previous cue
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
-                current_protocol.widget_painter.stim_cond = self.cue_cond
+                current_protocol.widget_painter.train_side = self.cue_cond
+                # Remove the stim cross on either the valid or invalid side
+                stim_samp = round(self.freq * self.posner_stim_time)
+                self.current_protocol_n_samples = stim_samp # Allow the protocol to end after the cue is displayed
+                if self.samples_counter >= stim_samp:
+                    current_protocol.widget_painter.stim = True
+                    current_protocol.widget_painter.stim_side = self.posner_stim
+                    # TODO: log stim side
 
             # If probe, display probe at random time after beginning of delay
             probe_val = None
@@ -411,6 +420,13 @@ class Experiment():
                 self.cue_random_start = 1 + r.uniform(0, 1)  # random start between 1 and 2 seconds
                 cue_dict = {0:"LEFT", 1:"RIGHT", 2:"CENTER"}
                 logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
+
+            # Update the next stim (left or right)
+            if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
+                current_protocol.widget_painter.stim = False
+                self.posner_stim = r.choice([0, 1])
+                self.posner_stim_time = 6 + r.uniform(0, 2)
+                current_protocol.hold = True
 
             # Update the probe location, visibility, and start time
             if current_protocol.show_probe:

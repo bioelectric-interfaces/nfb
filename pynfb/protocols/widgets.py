@@ -318,7 +318,9 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.fixdot_radius = 0.1
         self.stim_radius = 0.5
         self.x = np.linspace(-self.stim_radius, self.stim_radius, 100)
-        self.stim_cond = None
+        self.train_side = None
+        self.stim_side = None
+        self.stim = False # when true, remove the cross
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -379,7 +381,6 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         scaled_range = (scaled_max - scaled_min)
         scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
 
-        print(f"SAMP: {sample}, SCALED SAMP: {scaled_sample},  THRESH: {self.r_threshold}")
         if sample < self.r_threshold:
             # un_scaled_min = -1
             # un_scaled_max = self.r_threshold
@@ -397,10 +398,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             target_brush = (scaled_sample, 255, scaled_sample)
             distractor_brush = (0, 0, 0)
 
-        if self.stim_cond == 0:
+        if self.train_side == 0:
             left_brush = target_brush
             right_brush = distractor_brush
-        elif self.stim_cond == 1:
+        elif self.train_side == 1:
             right_brush = target_brush
             left_brush = distractor_brush
         else:
@@ -409,13 +410,21 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=5))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=5))
-        self.cr_l1.setPen(pg.mkPen(color=left_brush, width=5))
-        self.cr_l2.setPen(pg.mkPen(color=left_brush, width=5))
+        if self.stim and self.stim_side == 0:
+            self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
+            self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
+        else:
+            self.cr_l1.setPen(pg.mkPen(color=left_brush, width=5))
+            self.cr_l2.setPen(pg.mkPen(color=left_brush, width=5))
 
         self.st_r1.setPen(pg.mkPen(color=right_brush, width=5))
         self.st_r2.setPen(pg.mkPen(color=right_brush, width=5))
-        self.cr_r1.setPen(pg.mkPen(color=right_brush, width=5))
-        self.cr_r2.setPen(pg.mkPen(color=right_brush, width=5))
+        if self.stim and self.stim_side == 1:
+            self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
+            self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
+        else:
+            self.cr_r1.setPen(pg.mkPen(color=right_brush, width=5))
+            self.cr_r2.setPen(pg.mkPen(color=right_brush, width=5))
 
 
 

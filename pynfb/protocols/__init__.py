@@ -259,6 +259,7 @@ class FeedbackProtocol(Protocol):
         elif circle_border == 5:
             self.widget_painter = PosnerFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                       m_threshold=m_threshold)
+            self.input_protocol = True
         else:
             self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
                                                                       circle_border=circle_border,
