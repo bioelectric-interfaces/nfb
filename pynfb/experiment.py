@@ -207,6 +207,7 @@ class Experiment():
 
             # Update the posner feedback task based on the previous cue
             posner_stim = None
+            response = None
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.train_side = self.cue_cond
                 # Remove the stim cross on either the valid or invalid side
@@ -216,10 +217,12 @@ class Experiment():
                     posner_stim = self.posner_stim
                     current_protocol.widget_painter.stim = True
                     current_protocol.widget_painter.stim_side = self.posner_stim
-                    # self.answer_recorder[self.samples_counter - 1] = self.posner_stim
                     logging.info(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
-                # else:
-                #     self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+                    if current_protocol.hold == False:
+                        response = 1
+                        self.response_recorder[self.samples_counter - 1] = int(response or 0)
+                else:
+                    current_protocol.hold = True
             self.posnerstim_recorder[self.samples_counter - 1] = int(posner_stim or 0)
 
             # If probe, display probe at random time after beginning of delay
@@ -357,6 +360,7 @@ class Experiment():
                      choice_data=self.choice_recorder[:self.samples_counter],
                      answer_data=self.answer_recorder[:self.samples_counter],
                      posner_stim_data = self.posnerstim_recorder[:self.samples_counter],
+                     response_data = self.response_recorder[:self.samples_counter],
                      cue_data=self.cue_recorder[:self.samples_counter],
                      probe_data=self.probe_recorder[:self.samples_counter],
                      chunk_data=self.chunk_recorder[:self.samples_counter])
@@ -826,6 +830,7 @@ class Experiment():
         self.choice_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.posnerstim_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.response_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.chunk_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.cue_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan

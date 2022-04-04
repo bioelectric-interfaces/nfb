@@ -84,6 +84,10 @@ def load_data(file_path):
         posner_stim_data = [f['protocol{}/posner_stim_data'.format(k + 1)][:] for k in range(len(p_names))]
         df['posner_stim'] = np.concatenate(posner_stim_data)
 
+        # response data
+        response_data = [f['protocol{}/response_data'.format(k + 1)][:] for k in range(len(p_names))]
+        df['response_data'] = np.concatenate(response_data)
+
         # set block names and numbers
         df['block_name'] = np.concatenate([[p]*len(d) for p, d in zip(p_names, data)])
         df['block_number'] = np.concatenate([[j + 1]*len(d) for j, d in enumerate(data)])
