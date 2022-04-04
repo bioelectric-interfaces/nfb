@@ -64,6 +64,7 @@ class Experiment():
         self.mean_reward_signal = 0
         self.fb_score = None
         self.cum_score = None
+        self.calc_score = True
         self.choice_fb = None
         self.nfb_samps = 0
         self.percent_score = 0
@@ -257,12 +258,12 @@ class Experiment():
                 test_samp_idx = int((self.test_start + self.samples_counter))
                 current_test_samp = self.test_signal[test_samp_idx]
                 current_protocol.widget_painter.test_signal_sample = current_test_samp
-                self.current_protocol_n_samples = stim_samp # Allow the protocol to end after the cue is displayed
                 if self.samples_counter >= stim_samp:
                     posner_stim = self.posner_stim
                     current_protocol.widget_painter.stim = True
                     current_protocol.widget_painter.stim_side = self.posner_stim
-                    logging.info(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
+                    logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
+                    self.current_protocol_n_samples = self.samples_counter # Allow the protocol to end after the cue is displayed
                     if current_protocol.hold == False:
                         response = 1
                         self.response_recorder[self.samples_counter - 1] = int(response or 0)
@@ -319,16 +320,19 @@ class Experiment():
 
                 # Record the reward from feedback only for the current protocol
                 if isinstance(current_protocol, FeedbackProtocol):
-                    self.nfb_samps = self.current_protocol_n_samples
-                    if self.fb_score is not None:
-                        logging.info("fb-cum score")
-                        self.fb_score = self.reward.get_score() - self.cum_score
-                        self.cum_score = self.reward.get_score()
-                    else:
-                        logging.info("fbscore reset")
-                        self.cum_score = self.reward.get_score()
-                        self.fb_score = self.reward.get_score()
-                    logging.info(f"SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
+                    if self.calc_score:
+                        self.calc_score = False # Only calculate the score once, just after the feedback protocol finishes
+                        self.nfb_samps = self.current_protocol_n_samples
+                        print(f"SCORE CALC - SAMP: {self.samples_counter}")
+                        if self.fb_score is not None:
+                            logging.info("fb-cum score")
+                            self.fb_score = self.reward.get_score() - self.cum_score
+                            self.cum_score = self.reward.get_score()
+                        else:
+                            logging.info("fbscore reset")
+                            self.cum_score = self.reward.get_score()
+                            self.fb_score = self.reward.get_score()
+                        logging.debug(f"SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
 
                 # only change if not a pausing protocol
                 if current_protocol.hold:
@@ -338,6 +342,12 @@ class Experiment():
                     # Reset the hold flag on hold protocols
                     if current_protocol.input_protocol:
                         current_protocol.hold = True
+                    # reset the flag to calculate the score at end of FB protocol
+                    self.calc_score = True
+                    # Take into account any extra accumulated score due to holding
+                    self.cum_score = self.reward.get_score()
+                    logging.debug(
+                        f"!! END !! - SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
                     self.next_protocol()
 
     def enable_trouble_catching(self, widget):
@@ -462,7 +472,7 @@ class Experiment():
 
             if self.nfb_samps and self.fb_score !=None:
                 nfb_duration = self.nfb_samps
-                max_reward = nfb_duration / self.freq / self.reward.rate_of_increase
+                max_reward = round(nfb_duration / self.freq / self.reward.rate_of_increase)
                 self.percent_score = round((self.fb_score/max_reward )* 100)
                 logging.info(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
             if current_protocol.widget_painter.show_reward and isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
