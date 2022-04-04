@@ -54,7 +54,7 @@ class Experiment():
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
         self.cue_cond = r.choice([1, 2, 3]) # Even choice of 1=left, 2=right, 3=centre cue
         self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
-        self.posner_stim = r.choice([0, 1]) # 0=left, 1=right
+        self.posner_stim = r.choice([1, 2]) # 1=left, 2=right
         self.posner_stim_time = 6 + r.uniform(0, 2) # timing of posner stim
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
@@ -151,7 +151,7 @@ class Experiment():
                     mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
                                                               is_half_time=is_half_time)
                     # if no offset, correct answer is YES, otherwise, correct answer is NO
-                    # TODO: make this more generic - i.e. doesn't just depend on rn_offset (gabor theta angle)
+                    # TODO: make this more generic - i.e. doesn't just depend on rn_offset (gabor theta angle) - combine with other similar recorders like posner one
                     answer = 0
                     choice = None
                     if current_protocol.input_protocol:
@@ -181,37 +181,46 @@ class Experiment():
                 # self.answer_recorder[self.samples_counter - 1] = int(answer or 0)
 
             # If posner cue, update the cue after random delay
+            cue_cond = None
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
                 cue_dur_samp = self.freq * (100 * 1e-3) # Cue duration is 100ms
                 cue_start_samp = round(self.freq * self.cue_random_start)
                 cue_end_samp = round(cue_start_samp + cue_dur_samp)
                 self.current_protocol_n_samples = cue_end_samp # End the cue after the cue is displayed
                 if cue_start_samp <= self.samples_counter < cue_end_samp:
+                    cue_cond = 0
                     if self.cue_cond == 1:
+                        cue_cond = 1
                         print("CUE LEFT")
                         current_protocol.widget_painter.left_cue()
                     if self.cue_cond == 2:
+                        cue_cond = 2
                         print("CUE RIGHT")
                         current_protocol.widget_painter.right_cue()
                     if self.cue_cond == 3:
+                        cue_cond = 3
                         print("CUE CENTER")
                         current_protocol.widget_painter.center_cue()
-                    # TODO: log cue cond in data
-                    self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = self.cue_cond
-                else:
-                    self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-                logging.info(f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}")
+                    logging.info(
+                        f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}, CUE ACTUAL SAMP START: {self.samples_counter}")
+            self.cue_recorder[self.samples_counter - 1] = int(cue_cond or 0)
 
             # Update the posner feedback task based on the previous cue
+            posner_stim = None
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.train_side = self.cue_cond
                 # Remove the stim cross on either the valid or invalid side
                 stim_samp = round(self.freq * self.posner_stim_time)
                 self.current_protocol_n_samples = stim_samp # Allow the protocol to end after the cue is displayed
                 if self.samples_counter >= stim_samp:
+                    posner_stim = self.posner_stim
                     current_protocol.widget_painter.stim = True
                     current_protocol.widget_painter.stim_side = self.posner_stim
-                    # TODO: log stim side
+                    # self.answer_recorder[self.samples_counter - 1] = self.posner_stim
+                    logging.info(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
+                # else:
+                #     self.answer_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+            self.posnerstim_recorder[self.samples_counter - 1] = int(posner_stim or 0)
 
             # If probe, display probe at random time after beginning of delay
             probe_val = None
@@ -347,6 +356,7 @@ class Experiment():
                      mark_data=self.mark_recorder[:self.samples_counter],
                      choice_data=self.choice_recorder[:self.samples_counter],
                      answer_data=self.answer_recorder[:self.samples_counter],
+                     posner_stim_data = self.posnerstim_recorder[:self.samples_counter],
                      cue_data=self.cue_recorder[:self.samples_counter],
                      probe_data=self.probe_recorder[:self.samples_counter],
                      chunk_data=self.chunk_recorder[:self.samples_counter])
@@ -428,7 +438,7 @@ class Experiment():
             # Update the next stim (left or right)
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.stim = False
-                self.posner_stim = r.choice([0, 1])
+                self.posner_stim = r.choice([1, 2])
                 self.posner_stim_time = 6 + r.uniform(0, 2)
                 current_protocol.hold = True
 
@@ -815,6 +825,7 @@ class Experiment():
         self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.choice_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.posnerstim_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.chunk_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.cue_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan

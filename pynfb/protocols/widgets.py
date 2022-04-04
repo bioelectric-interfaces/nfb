@@ -410,7 +410,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=5))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=5))
-        if self.stim and self.stim_side == 0:
+        if self.stim and self.stim_side == 1:
             self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
             self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
         else:
@@ -419,7 +419,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
         self.st_r1.setPen(pg.mkPen(color=right_brush, width=5))
         self.st_r2.setPen(pg.mkPen(color=right_brush, width=5))
-        if self.stim and self.stim_side == 1:
+        if self.stim and self.stim_side == 2:
             self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
             self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
         else:
