@@ -58,6 +58,9 @@ class Experiment():
         self.posner_stim_time = 6 + r.uniform(0, 2) # timing of posner stim
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
+        # self.test_signal = (np.sin(2*np.pi*np.arange(1000*100)*0.5/1000)).astype(np.float32) #Test signal to be used for posner distractor colour
+        self.test_signal = self.Randomwalk1D(100000)[1]
+        self.test_start = 0 # randomly start somewhere in the test signal
         self.mean_reward_signal = 0
         self.fb_score = None
         self.cum_score = None
@@ -67,6 +70,45 @@ class Experiment():
         self.restart()
         logging.info(f"{__name__}: ")
         pass
+
+    def Randomwalk1D(self, n):  # n here is the no. of steps that we require
+        # ADAPTED FROM: https://www.geeksforgeeks.org/random-walk-implementation-python/
+        # TODO: put this in a more appropriate place
+        x = 0
+        y = 0
+        step_size = 0.025
+        avg_chunk_size = 20
+        xposition = [0]  # starting from origin (0,0)
+        yposition = [0]
+        upp = 0.5
+        for i in range(1, n + 1):
+            step = np.random.uniform(0, 1)
+            if step <= upp:  # if step is less than 0.5 we move up
+                y += step_size  # moving up in u direction
+            else:  # if step > upp:  # if step is greater than 0.5 we move down
+                y += -step_size  # moving down in y direction
+            x += 1
+
+            xposition.append(x)
+            # yposition.append(y)
+            yposition += [y * l for l in list(np.ones(avg_chunk_size))]
+            if 0.5 > yposition[-1] > 0.0:
+                upp = 0.5
+            elif -0.5 < yposition[-1] < 0.0:
+                upp = 0.5
+            elif 0.75 > yposition[-1] > 0.5:
+                upp = 0.4
+            elif -0.75 < yposition[-1] < -0.5:
+                upp = 0.6
+            elif 0.9 > yposition[-1] > 0.75:
+                upp = 0.1
+            elif -0.9 < yposition[-1] < -0.75:
+                upp = 0.9
+            elif yposition[-1] > 0.9:
+                upp = 0.0
+            elif yposition[-1] < -0.9:
+                upp = 1
+        return [xposition, yposition]
 
     def update(self):
         """
@@ -212,6 +254,9 @@ class Experiment():
                 current_protocol.widget_painter.train_side = self.cue_cond
                 # Remove the stim cross on either the valid or invalid side
                 stim_samp = round(self.freq * self.posner_stim_time)
+                test_samp_idx = int((self.test_start + self.samples_counter))
+                current_test_samp = self.test_signal[test_samp_idx]
+                current_protocol.widget_painter.test_signal_sample = current_test_samp
                 self.current_protocol_n_samples = stim_samp # Allow the protocol to end after the cue is displayed
                 if self.samples_counter >= stim_samp:
                     posner_stim = self.posner_stim
@@ -431,6 +476,9 @@ class Experiment():
                 current_protocol.widget_painter.previous_score = self.percent_score
                 # current_protocol.widget_painter.redraw_state(0,0)
                 current_protocol.widget_painter.current_sample_idx = 0
+
+            # Get the start of the test signal (random value between 0 and 100000-cur protocol length - buffer(1000)
+            self.test_start = r.choice([0, 100000-self.current_protocol_n_samples-1000])
 
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):

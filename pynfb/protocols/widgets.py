@@ -321,6 +321,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.train_side = None
         self.stim_side = None
         self.stim = False # when true, remove the cross
+        self.test_signal_sample = 0
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -380,6 +381,14 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
         scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_test_sample =(((self.test_signal_sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+
+        if self.test_signal_sample < 0:
+            scaled_range = -(scaled_max - scaled_min)
+            scaled_test_sample = (((self.test_signal_sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+            distractor_brush = (255, scaled_test_sample, scaled_test_sample)
+        else:
+            distractor_brush = (scaled_test_sample, 255, scaled_test_sample)
 
         if sample < self.r_threshold:
             # un_scaled_min = -1
@@ -392,11 +401,9 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
             # Distractor is being focussed on more - colour target red
             target_brush = (255, scaled_sample, scaled_sample)
-            distractor_brush = (0, 0, 0)
         else:
             # Target is being focussed on more - colour target green
             target_brush = (scaled_sample, 255, scaled_sample)
-            distractor_brush = (0, 0, 0)
 
         if self.train_side == 1:
             left_brush = target_brush
@@ -405,8 +412,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             right_brush = target_brush
             left_brush = distractor_brush
         else:
-            right_brush = distractor_brush
-            left_brush = distractor_brush
+            right_brush = target_brush
+            left_brush = target_brush
 
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=5))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=5))
