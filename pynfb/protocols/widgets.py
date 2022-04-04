@@ -398,10 +398,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             target_brush = (scaled_sample, 255, scaled_sample)
             distractor_brush = (0, 0, 0)
 
-        if self.train_side == 0:
+        if self.train_side == 1:
             left_brush = target_brush
             right_brush = distractor_brush
-        elif self.train_side == 1:
+        elif self.train_side == 2:
             right_brush = target_brush
             left_brush = distractor_brush
         else:
@@ -425,17 +425,6 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         else:
             self.cr_r1.setPen(pg.mkPen(color=right_brush, width=5))
             self.cr_r2.setPen(pg.mkPen(color=right_brush, width=5))
-
-
-
-        # self.p1.setData(self.x, np.zeros_like(self.x)+max(min(sample, 5), -5))
-        # self.p2.setData(self.x, np.zeros_like(self.x)-5)
-        #
-        # if sample > self.r_threshold:
-        #     self.fill.setBrush(176, 176, 48, 25)
-        # else:
-        #     self.fill.setBrush(35, 45, 176, 25)
-        # pass
 
 
 class FixationCrossProtocolWidgetPainter(Painter):

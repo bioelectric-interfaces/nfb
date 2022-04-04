@@ -52,7 +52,7 @@ class Experiment():
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
-        self.cue_cond = r.choice([0, 1, 2]) # Even choice of 0=left, 1=right, 2=centre cue
+        self.cue_cond = r.choice([1, 2, 3]) # Even choice of 1=left, 2=right, 3=centre cue
         self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
         self.posner_stim = r.choice([0, 1]) # 0=left, 1=right
         self.posner_stim_time = 6 + r.uniform(0, 2) # timing of posner stim
@@ -187,16 +187,19 @@ class Experiment():
                 cue_end_samp = round(cue_start_samp + cue_dur_samp)
                 self.current_protocol_n_samples = cue_end_samp # End the cue after the cue is displayed
                 if cue_start_samp <= self.samples_counter < cue_end_samp:
-                    if self.cue_cond == 0:
+                    if self.cue_cond == 1:
                         print("CUE LEFT")
                         current_protocol.widget_painter.left_cue()
-                    if self.cue_cond == 1:
+                    if self.cue_cond == 2:
                         print("CUE RIGHT")
                         current_protocol.widget_painter.right_cue()
-                    if self.cue_cond == 2:
+                    if self.cue_cond == 3:
                         print("CUE CENTER")
                         current_protocol.widget_painter.center_cue()
-                # TODO: log cue cond in data
+                    # TODO: log cue cond in data
+                    self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = self.cue_cond
+                else:
+                    self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 logging.info(f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}")
 
             # Update the posner feedback task based on the previous cue
@@ -344,6 +347,7 @@ class Experiment():
                      mark_data=self.mark_recorder[:self.samples_counter],
                      choice_data=self.choice_recorder[:self.samples_counter],
                      answer_data=self.answer_recorder[:self.samples_counter],
+                     cue_data=self.cue_recorder[:self.samples_counter],
                      probe_data=self.probe_recorder[:self.samples_counter],
                      chunk_data=self.chunk_recorder[:self.samples_counter])
 
@@ -416,9 +420,9 @@ class Experiment():
 
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
-                self.cue_cond = r.choice([0, 1, 2])
+                self.cue_cond = r.choice([1, 2, 3])
                 self.cue_random_start = 1 + r.uniform(0, 1)  # random start between 1 and 2 seconds
-                cue_dict = {0:"LEFT", 1:"RIGHT", 2:"CENTER"}
+                cue_dict = {1:"LEFT", 2:"RIGHT", 3:"CENTER"}
                 logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
 
             # Update the next stim (left or right)
@@ -813,6 +817,7 @@ class Experiment():
         self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.chunk_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.cue_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
 
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,
