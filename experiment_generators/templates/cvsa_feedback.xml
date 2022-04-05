@@ -236,6 +236,47 @@
 			<tFixationCrossColour>None</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
+			<sProtocolName>fc</sProtocolName>
+			<bUpdateStatistics>0</bUpdateStatistics>
+			<sStatisticsType>meanstd</sStatisticsType>
+			<iDropOutliers>0</iDropOutliers>
+			<bSSDInTheEnd>0</bSSDInTheEnd>
+			<fDuration>2.0</fDuration>
+			<fRandomOverTime>0.0</fRandomOverTime>
+			<fbSource>{{composite_signal}}</fbSource>
+			<sFb_type>FixationCross</sFb_type>
+			<cString></cString>
+			<bVoiceover>0</bVoiceover>
+			<bProbe>1</bProbe>
+			<iProbeDur>50</iProbeDur>
+			<sProbeLoc>RAND</sProbeLoc>
+			<bPosnerTest>0</bPosnerTest>
+			<bUseExtraMessage>0</bUseExtraMessage>
+			<cString2></cString2>
+			<fBlinkDurationMs>50</fBlinkDurationMs>
+			<fBlinkThreshold>0.0</fBlinkThreshold>
+			<sMockSignalFilePath></sMockSignalFilePath>
+			<sMockSignalFileDataset>protocol1</sMockSignalFileDataset>
+			<iMockPrevious>0</iMockPrevious>
+			<bReverseMockPrevious>0</bReverseMockPrevious>
+			<bRandomMockPrevious>0</bRandomMockPrevious>
+			<sRewardSignal>{{composite_signal}}</sRewardSignal>
+			<bRewardThreshold>0.0</bRewardThreshold>
+			<bMockRewardThreshold>0.0</bMockRewardThreshold>
+			<bShowReward>0</bShowReward>
+			<bShowPcScoreAfter>0</bShowPcScoreAfter>
+			<bPauseAfter>0</bPauseAfter>
+			<bBeepAfter>0</bBeepAfter>
+			<iRandomBound>0</iRandomBound>
+			<sVideoPath>../defaults/lena.png</sVideoPath>
+			<sMSignal>None</sMSignal>
+			<fMSignalThreshold>1.0</fMSignalThreshold>
+			<bMockSource>0</bMockSource>
+			<bEnableDetectionTask>0</bEnableDetectionTask>
+			<bAutoBCIFit>0</bAutoBCIFit>
+			<tFixationCrossColour>Black</tFixationCrossColour>
+		</FeedbackProtocol>
+		<FeedbackProtocol>
 			<sProtocolName>end</sProtocolName>
 			<bUpdateStatistics>0</bUpdateStatistics>
 			<sStatisticsType>meanstd</sStatisticsType>
@@ -280,8 +321,8 @@
 	<vPGroups>
 		<PGroup>
 			<sName>fb_group</sName>
-			<sList>cue nfb score</sList>
-			<sNumberList>1 1 1</sNumberList>
+			<sList>fc cue nfb score</sList>
+			<sNumberList>1 1 1 1</sNumberList>
 			<bShuffle>0</bShuffle>
 			<sSplitBy></sSplitBy>
 		</PGroup>
