@@ -375,8 +375,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             sample = np.sum(sample)
 
         # Scale the sample to the target colour range
-        un_scaled_min = self.r_threshold
-        un_scaled_max = 1
+        un_scaled_min = self.r_threshold # TODO: make this the mean of the normal distribution of test AAIs
+        un_scaled_max = 1 # TODO: make this 2sigma of the normal distribution of test AAIs
         scaled_min = 255
         scaled_max = 0
         un_scaled_range = (un_scaled_max - un_scaled_min)
@@ -413,8 +413,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             right_brush = target_brush
             left_brush = distractor_brush
         else:
-            right_brush = target_brush
-            left_brush = target_brush
+            right_brush = distractor_brush
+            left_brush = distractor_brush
 
         if self.no_nfb:
             right_brush = distractor_brush
