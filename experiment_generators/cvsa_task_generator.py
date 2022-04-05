@@ -7,10 +7,10 @@ if __name__ == "__main__":
 
     if platform.system() == "Windows":
         userdir = "2354158T"
-        mock_file = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201_sham/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
+        mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201_sham/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
     else:
         userdir = "christopherturner"
-        mock_file = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
+        mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
     nfb_types = {"circle": 1, "bar": 2, "gabor": 3, "plot": 4, "posner":5}
 
     # Common settings
@@ -27,7 +27,6 @@ if __name__ == "__main__":
     nfb_template = "cvsa_feedback.xml"
     use_baseline_correction = 0
     baseline_cor_threshold = 0.2
-    mock_file = ''
     smooth_window = 100 # THIS IS AAI SMOOTHING
     enable_smoothing = 1 # THIS IS AAI SMOOTHING
     fft_window = 1000
@@ -49,11 +48,12 @@ if __name__ == "__main__":
             # scalp
             left_spatial_filter_scalp = "PO7=1"#"PO7=1;P5=1;O1=1"
             right_spatial_filter_scalp = "PO8=1"#"PO8=1;P6=1;O2=1"
+            mock_file = ''
         elif session == 1:
             # sham
             left_spatial_filter_scalp = "PO7=1"#;P5=1;01=1"
             right_spatial_filter_scalp = "PO8=1"#;P6=1;02=1"
-            mock_file = mock_file
+            mock_file = mock_file_path
         for task, template in tasks.items():
             if task == "test_task":
                 number_nfb_tasks = 10
