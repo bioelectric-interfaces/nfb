@@ -87,6 +87,7 @@ vectors_defaults = OrderedDict([
             ('bProbe', 0),
             ('iProbeDur', 0),
             ('sProbeLoc', 'RAND'),
+            ('bPosnerTest', 0),
             ('bUseExtraMessage', 0),
             ('cString2', ''),
             ('fBlinkDurationMs', 50),

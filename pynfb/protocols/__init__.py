@@ -37,7 +37,7 @@ class Protocol:
                  ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None,
-                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND', show_pc_score_after=0):
+                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND', show_pc_score_after=0, posner_test=False):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -79,6 +79,7 @@ class Protocol:
         self.probe_duration = probe_duration
         self.probe_loc = probe_loc
         self.input_protocol = False
+        self.posner_test = posner_test
         pass
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):
@@ -258,7 +259,8 @@ class FeedbackProtocol(Protocol):
                                                                       m_threshold=m_threshold)
         elif circle_border == 5:
             self.widget_painter = PosnerFeedbackProtocolWidgetPainter(show_reward=self.show_reward,
-                                                                      m_threshold=m_threshold)
+                                                                      m_threshold=m_threshold,
+                                                                      no_nfb=self.posner_test)
             self.input_protocol = True
         else:
             self.widget_painter = CircleFeedbackProtocolWidgetPainter(show_reward=self.show_reward,

@@ -309,7 +309,7 @@ class PlotFeedbackWidgetPainter(Painter):
 
 
 class PosnerFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, show_reward=False, m_threshold=1, r_threshold=0):
+    def __init__(self, show_reward=False, m_threshold=1, r_threshold=0, no_nfb=False):
         super(PosnerFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.widget = None
         self.m_threshold = m_threshold
@@ -322,6 +322,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.stim_side = None
         self.stim = False # when true, remove the cross
         self.test_signal_sample = 0
+        self.no_nfb = no_nfb
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -414,6 +415,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         else:
             right_brush = target_brush
             left_brush = target_brush
+
+        if self.no_nfb:
+            right_brush = distractor_brush
+            left_brush = distractor_brush
 
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=5))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=5))

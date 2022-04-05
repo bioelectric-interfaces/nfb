@@ -745,7 +745,8 @@ class Experiment():
                 montage=montage,
                 show_probe=protocol['bProbe'],
                 probe_duration=protocol['iProbeDur'],
-                probe_loc=protocol['sProbeLoc']
+                probe_loc=protocol['sProbeLoc'],
+                posner_test=protocol['bPosnerTest']
             )
 
             # type specific arguments
