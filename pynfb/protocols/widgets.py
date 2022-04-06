@@ -339,7 +339,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         widget.addItem(fill_fd)
 
         # draw Left and right stim
-        left_off_x = -4
+        left_off_x = -4.5
         left_off_y = -1
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                      left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
@@ -348,7 +348,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color='black', width=5)).curve
         self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color='black', width=5)).curve
 
-        right_off_x = 4
+        right_off_x = 4.5
         right_off_y = -1
         self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                      right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
@@ -384,10 +384,12 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         scaled_range = (scaled_max - scaled_min)
         scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
         scaled_test_sample =(((self.test_signal_sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
 
         if self.test_signal_sample < 0:
             scaled_range = -(scaled_max - scaled_min)
             scaled_test_sample = (((self.test_signal_sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+            scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
             distractor_brush = (255, scaled_test_sample, scaled_test_sample)
         else:
             distractor_brush = (scaled_test_sample, 255, scaled_test_sample)
