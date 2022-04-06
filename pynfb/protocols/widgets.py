@@ -383,6 +383,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
         scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_sample = np.clip(scaled_sample, 0, 255)
         scaled_test_sample =(((self.test_signal_sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
         scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
 
@@ -402,6 +403,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             un_scaled_range = (un_scaled_max - un_scaled_min)
             scaled_range = -(scaled_max - scaled_min)
             scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+            scaled_sample = np.clip(scaled_sample, 0, 255)
 
             # Distractor is being focussed on more - colour target red
             target_brush = (255, scaled_sample, scaled_sample)
