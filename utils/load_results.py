@@ -59,34 +59,43 @@ def load_data(file_path):
         df['events'] = np.concatenate(events_data)
 
         # reward data
-        reward_data = [f['protocol{}/reward_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['reward'] = np.concatenate(reward_data)
+        if 'reward' in df:
+            reward_data = [f['protocol{}/reward_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['reward'] = np.concatenate(reward_data)
 
         # participant response data
-        choice_data = [f['protocol{}/choice_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['choice'] = np.concatenate(choice_data)
-        answer_data = [f['protocol{}/answer_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['answer'] = np.concatenate(answer_data)
+        if 'choice' in df:
+            choice_data = [f['protocol{}/choice_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['choice'] = np.concatenate(choice_data)
+
+        if 'answer' in df:
+            answer_data = [f['protocol{}/answer_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['answer'] = np.concatenate(answer_data)
 
         # Probe data
-        probe_data = [f['protocol{}/probe_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['probe'] = np.concatenate(probe_data)
+        if 'probe' in df:
+            probe_data = [f['protocol{}/probe_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['probe'] = np.concatenate(probe_data)
 
         # Chunk data
-        chunk_data = [f['protocol{}/chunk_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['chunk_n'] = np.concatenate(chunk_data)
+        if 'chunk_n' in df:
+            chunk_data = [f['protocol{}/chunk_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['chunk_n'] = np.concatenate(chunk_data)
 
         # Posner Cue data
-        cue_data = [f['protocol{}/cue_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['cue'] = np.concatenate(cue_data)
+        if 'cue' in df:
+            cue_data = [f['protocol{}/cue_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['cue'] = np.concatenate(cue_data)
 
         # Posner stim data
-        posner_stim_data = [f['protocol{}/posner_stim_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['posner_stim'] = np.concatenate(posner_stim_data)
+        if 'posner_stim' in df:
+            posner_stim_data = [f['protocol{}/posner_stim_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['posner_stim'] = np.concatenate(posner_stim_data)
 
         # response data
-        response_data = [f['protocol{}/response_data'.format(k + 1)][:] for k in range(len(p_names))]
-        df['response_data'] = np.concatenate(response_data)
+        if 'response_data' in df:
+            response_data = [f['protocol{}/response_data'.format(k + 1)][:] for k in range(len(p_names))]
+            df['response_data'] = np.concatenate(response_data)
 
         # set block names and numbers
         df['block_name'] = np.concatenate([[p]*len(d) for p, d in zip(p_names, data)])
