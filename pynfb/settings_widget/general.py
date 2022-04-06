@@ -116,13 +116,29 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
 
         # Baseline correction settings
         self.enable_bc_threshold = QtWidgets.QCheckBox()
-        self.form_layout.addRow('&Use Baseline Threshold:', self.enable_bc_threshold)
+        self.form_layout.addRow('&Auto calculate Baseline Threshold:', self.enable_bc_threshold)
         self.enable_bc_threshold.stateChanged.connect(self.baseline_threshold_activated)
         self.bc_threshold_add = QtWidgets.QDoubleSpinBox()
         self.bc_threshold_add.setRange(0.0, 1.0)
         self.bc_threshold_add.setEnabled(False)
         self.bc_threshold_add.valueChanged.connect(self.baseline_threshold_changed_event)
         self.form_layout.addRow('&Baseline Threshold Addition [%]:', self.bc_threshold_add)
+
+        # AAI settings (for posner task)
+        self.enable_aai_threshold = QtWidgets.QCheckBox()
+        self.form_layout.addRow('&Use AAI Thresholds:', self.enable_aai_threshold)
+        self.enable_aai_threshold.stateChanged.connect(self.aai_threshold_activated)
+        self.aai_threshold_mean = QtWidgets.QDoubleSpinBox()
+        self.aai_threshold_mean.setRange(0.0, 1.0)
+        self.aai_threshold_mean.setEnabled(False)
+        self.aai_threshold_mean.valueChanged.connect(self.aai_mean_changed_event)
+        self.form_layout.addRow('&AAI mean:', self.aai_threshold_mean)
+        self.aai_threshold_max = QtWidgets.QDoubleSpinBox()
+        self.aai_threshold_max.setRange(0.0, 1.0)
+        self.aai_threshold_max.setEnabled(False)
+        self.aai_threshold_max.valueChanged.connect(self.aai_max_changed_event)
+        self.form_layout.addRow('&AAI max:', self.aai_threshold_max)
+
 
         # pre-filtering band:
         self.prefilter_band = BandWidget()
@@ -138,6 +154,17 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
 
     def baseline_threshold_changed_event(self):
         self.params['dBCThresholdAdd'] = self.bc_threshold_add.value()
+
+    def aai_threshold_activated(self):
+        self.aai_threshold_mean.setEnabled(self.enable_aai_threshold.isChecked())
+        self.aai_threshold_max.setEnabled(self.enable_aai_threshold.isChecked())
+        self.params['bUseAAIThreshold'] = int(self.enable_aai_threshold.isChecked())
+
+    def aai_mean_changed_event(self):
+        self.params['dAAIThresholdMean'] = self.aai_threshold_mean.value()
+
+    def aai_max_changed_event(self):
+        self.params['dAAIThresholdMax'] = self.aai_threshold_max.value()
 
     def name_changed_event(self):
         self.params['sExperimentName'] = self.name.text()
@@ -188,5 +215,9 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.prefilter_band.set_band(self.params['sPrefilterBand'])
         self.enable_bc_threshold.setChecked(self.params['bUseBCThreshold'])
         self.bc_threshold_add.setValue(self.params['dBCThresholdAdd'])
+        self.enable_aai_threshold.setChecked(self.params['bUseAAIThreshold'])
+        self.aai_threshold_max.setValue(self.params['dAAIThresholdMax'])
+        self.aai_threshold_mean.setValue(self.params['dAAIThresholdMean'])
         self.inlet.reset()
         self.events_inlet.reset()
+

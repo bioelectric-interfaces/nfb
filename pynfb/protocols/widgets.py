@@ -309,7 +309,7 @@ class PlotFeedbackWidgetPainter(Painter):
 
 
 class PosnerFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, show_reward=False, m_threshold=1, r_threshold=0, no_nfb=False):
+    def __init__(self, show_reward=False, m_threshold=1, r_threshold=0, no_nfb=False, max_th=1):
         super(PosnerFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.widget = None
         self.m_threshold = m_threshold
@@ -323,6 +323,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.stim = False # when true, remove the cross
         self.test_signal_sample = 0
         self.no_nfb = no_nfb
+        self.max_th = max_th
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -338,7 +339,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         widget.addItem(fill_fd)
 
         # draw Left and right stim
-        left_off_x = -2
+        left_off_x = -4
         left_off_y = -1
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                      left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
@@ -347,7 +348,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color='black', width=5)).curve
         self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color='black', width=5)).curve
 
-        right_off_x = 2
+        right_off_x = 4
         right_off_y = -1
         self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                      right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
@@ -376,7 +377,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
         # Scale the sample to the target colour range
         un_scaled_min = self.r_threshold # TODO: make this the mean of the normal distribution of test AAIs
-        un_scaled_max = 1 # TODO: make this 2sigma of the normal distribution of test AAIs
+        un_scaled_max = self.max_th # TODO: make this 2sigma of the normal distribution of test AAIs
         scaled_min = 255
         scaled_max = 0
         un_scaled_range = (un_scaled_max - un_scaled_min)

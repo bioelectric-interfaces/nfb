@@ -449,7 +449,7 @@ class Experiment():
             # Update gabor patch angle for next gabor
             # TODO: make this more generic (only dependant on the protocol)
             bc_threshold = None
-            if isinstance(current_protocol.widget_painter, (GaborFeedbackProtocolWidgetPainter, PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter)):
+            if isinstance(current_protocol.widget_painter, (GaborFeedbackProtocolWidgetPainter, PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter, PosnerFeedbackProtocolWidgetPainter)):
                 self.gabor_theta = r.choice(range(20, 180, 20))
                 logging.info(f"GABOR THETA: {self.gabor_theta}")
                 current_protocol.widget_painter.gabor_theta = self.gabor_theta
@@ -464,6 +464,10 @@ class Experiment():
                         bc_threshold = self.mean_reward_signal + (reward_bound)# * self.mean_reward_signal)
                         logging.info(f"MEAN REWARD SIG: {self.mean_reward_signal}, R THRESHOLD: {bc_threshold}, BC ADD: {reward_bound}")
                         current_protocol.widget_painter.r_threshold = bc_threshold
+                    elif self.params['bUseAAIThreshold'] and isinstance(current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter)):
+                        # Update the AAI mean and max threshold settings
+                        current_protocol.widget_painter.r_threshold = self.params['dAAIThresholdMean']
+                        current_protocol.widget_painter.max_th = self.params['dAAIThresholdMax']
                 else:
                     # TODO: create a mock baseline threshold gui field
                     bc_threshold = current_protocol.mock_reward_threshold
