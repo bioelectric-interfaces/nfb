@@ -59,41 +59,41 @@ def load_data(file_path):
         df['events'] = np.concatenate(events_data)
 
         # reward data
-        if 'reward' in df:
+        if 'protocol1/reward_data' in f:
             reward_data = [f['protocol{}/reward_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['reward'] = np.concatenate(reward_data)
 
         # participant response data
-        if 'choice' in df:
+        if 'protocol1/choice_data' in f:
             choice_data = [f['protocol{}/choice_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['choice'] = np.concatenate(choice_data)
 
-        if 'answer' in df:
+        if 'protocol1/answer_data' in f:
             answer_data = [f['protocol{}/answer_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['answer'] = np.concatenate(answer_data)
 
         # Probe data
-        if 'probe' in df:
+        if 'protocol1/probe_data' in f:
             probe_data = [f['protocol{}/probe_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['probe'] = np.concatenate(probe_data)
 
         # Chunk data
-        if 'chunk_n' in df:
+        if 'protocol1/chunk_data' in f:
             chunk_data = [f['protocol{}/chunk_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['chunk_n'] = np.concatenate(chunk_data)
 
         # Posner Cue data
-        if 'cue' in df:
+        if 'protocol1/cue_data' in f:
             cue_data = [f['protocol{}/cue_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['cue'] = np.concatenate(cue_data)
 
         # Posner stim data
-        if 'posner_stim' in df:
+        if 'protocol1/posner_stim_data' in f:
             posner_stim_data = [f['protocol{}/posner_stim_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['posner_stim'] = np.concatenate(posner_stim_data)
 
         # response data
-        if 'response_data' in df:
+        if 'protocol1/response_data' in f:
             response_data = [f['protocol{}/response_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['response_data'] = np.concatenate(response_data)
 
