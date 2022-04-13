@@ -19,6 +19,7 @@ from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
 from ..widgets.signal_viewers import RawSignalViewer, DerivedSignalViewer
+import logging
 
 pg.setConfigOptions(antialias=True)
 
@@ -282,6 +283,8 @@ class SecondaryWindow(QtWidgets.QMainWindow):
         super().__init__(parent, **kwargs)
         self.resize(500, 500)
         self.current_protocol = current_protocol
+        self.key_press_time = None
+        logging.info(f"{__name__}: ")
 
         # add central widget
         widget = QtWidgets.QWidget()
@@ -379,6 +382,10 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             if e.key() == QtCore.Qt.Key_Space:
                 # If the space key is pressed, then start the block
                 self.current_protocol.hold = False
+                # Get the timestamp the key was pressed
+                # timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
+                self.key_press_time = int(time.time() * 1000)
+                logging.debug(f" SPACE PRESSED AT: {self.key_press_time}")
 
         if e.key() == QtCore.Qt.Key_Escape:
         # Toggle fullscreen on the escape key

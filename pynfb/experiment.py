@@ -6,6 +6,7 @@ import random as r
 import numpy as np
 from PyQt5 import QtCore
 from itertools import zip_longest, chain
+import time
 
 from pynfb.inlets.montage import Montage
 from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
@@ -146,6 +147,7 @@ class Experiment():
                     # Save the chunk size for data analysis
                     self.chunk_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                     self.chunk_recorder[self.samples_counter - 1] = chunk.shape[0]
+                    # logging.debug(f"SAMPLE COUNTER: {self.samples_counter}, CHUNK SIZE: {chunk.shape[0]}, TIME: {time.time()*1000}")
 
                     # catch channels trouble
 
@@ -251,6 +253,7 @@ class Experiment():
             # Update the posner feedback task based on the previous cue
             posner_stim = None
             response = None
+            key_press_time = None
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.train_side = self.cue_cond
                 # Remove the stim cross on either the valid or invalid side
@@ -262,13 +265,23 @@ class Experiment():
                     posner_stim = self.posner_stim
                     current_protocol.widget_painter.stim = True
                     current_protocol.widget_painter.stim_side = self.posner_stim
-                    logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
+                    # logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
                     self.current_protocol_n_samples = self.samples_counter # Allow the protocol to end after the cue is displayed
                     if current_protocol.hold == False:
+                        logging.debug(f"HOLD DISABLED AT {time.time()*1000}")
+                        logging.debug(f"KEY PRESS TIME: {self.subject.key_press_time}")
                         response = 1
-                        self.response_recorder[self.samples_counter - 1] = int(response or 0)
+                        key_press_time = self.subject.key_press_time
+                        self.response_recorder[self.samples_counter - 1] = int(key_press_time or 0)
+                    else:
+                        self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 else:
                     current_protocol.hold = True
+                    self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+            else:
+                # MAKE SURE TO FILL THE RECORDERS WITH 0 WHEN NOT NEEDED
+                self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+
             self.posnerstim_recorder[self.samples_counter - 1] = int(posner_stim or 0)
 
             # If probe, display probe at random time after beginning of delay
@@ -416,7 +429,7 @@ class Experiment():
                      answer_data=self.answer_recorder[:self.samples_counter],
                      posner_stim_data = self.posnerstim_recorder[:self.samples_counter],
                      response_data = self.response_recorder[:self.samples_counter],
-                     cue_data=self.cue_recorder[:self.samples_counter],
+                     cue_data=self.cue_recorder[:self.samples_counter], # TODO: make this an attribute not a dataset
                      probe_data=self.probe_recorder[:self.samples_counter],
                      chunk_data=self.chunk_recorder[:self.samples_counter])
 
