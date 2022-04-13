@@ -92,6 +92,11 @@ def load_data(file_path):
             posner_stim_data = [f['protocol{}/posner_stim_data'.format(k + 1)][:] for k in range(len(p_names))]
             df['posner_stim'] = np.concatenate(posner_stim_data)
 
+        # Posner stim time
+        if 'protocol1/posner_stim_time' in f:
+            posner_stim_time = [f['protocol{}/posner_stim_time'.format(k + 1)][:] for k in range(len(p_names))]
+            df['posner_time'] = np.concatenate(posner_stim_time)
+
         # response data
         if 'protocol1/response_data' in f:
             response_data = [f['protocol{}/response_data'.format(k + 1)][:] for k in range(len(p_names))]

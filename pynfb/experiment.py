@@ -248,12 +248,13 @@ class Experiment():
                         current_protocol.widget_painter.center_cue()
                     logging.info(
                         f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}, CUE ACTUAL SAMP START: {self.samples_counter}")
+
+            self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
             self.cue_recorder[self.samples_counter - 1] = int(cue_cond or 0)
 
             # Update the posner feedback task based on the previous cue
             posner_stim = None
-            response = None
-            key_press_time = None
+            posner_stim_time = None
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.train_side = self.cue_cond
                 # Remove the stim cross on either the valid or invalid side
@@ -263,6 +264,7 @@ class Experiment():
                 current_protocol.widget_painter.test_signal_sample = current_test_samp
                 if self.samples_counter >= stim_samp:
                     posner_stim = self.posner_stim
+                    posner_stim_time = int(time.time()*1000)
                     current_protocol.widget_painter.stim = True
                     current_protocol.widget_painter.stim_side = self.posner_stim
                     # logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
@@ -270,19 +272,21 @@ class Experiment():
                     if current_protocol.hold == False:
                         logging.debug(f"HOLD DISABLED AT {time.time()*1000}")
                         logging.debug(f"KEY PRESS TIME: {self.subject.key_press_time}")
-                        response = 1
-                        key_press_time = self.subject.key_press_time
-                        self.response_recorder[self.samples_counter - 1] = int(key_press_time or 0)
+                        self.response_recorder[self.samples_counter - 1] = int(self.subject.key_press_time or 0)
                     else:
                         self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 else:
                     current_protocol.hold = True
                     self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
             else:
-                # MAKE SURE TO FILL THE RECORDERS WITH 0 WHEN NOT NEEDED
+                # MAKE SURE TO FILL THE RECORDER WITH 0 WHEN NOT NEEDED
                 self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
 
-            self.posnerstim_recorder[self.samples_counter - 1] = int(posner_stim or 0)
+            self.posnerstim_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+            self.posnerstim_recorder[self.samples_counter - 1] = int(posner_stim_time or 0)
+
+            self.posnerdir_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
+            self.posnerdir_recorder[self.samples_counter - 1] = int(posner_stim or 0)
 
             # If probe, display probe at random time after beginning of delay
             probe_val = None
@@ -427,7 +431,8 @@ class Experiment():
                      mark_data=self.mark_recorder[:self.samples_counter],
                      choice_data=self.choice_recorder[:self.samples_counter],
                      answer_data=self.answer_recorder[:self.samples_counter],
-                     posner_stim_data = self.posnerstim_recorder[:self.samples_counter],
+                     posner_stim_data = self.posnerdir_recorder[:self.samples_counter],
+                     posner_stim_time = self.posnerstim_recorder[:self.samples_counter],
                      response_data = self.response_recorder[:self.samples_counter],
                      cue_data=self.cue_recorder[:self.samples_counter], # TODO: make this an attribute not a dataset
                      probe_data=self.probe_recorder[:self.samples_counter],
@@ -901,15 +906,16 @@ class Experiment():
         self.timestamp_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.raw_recorder_other = np.zeros((max_protocol_n_samples * 110 // 100, self.n_channels_other)) * np.nan
         self.signals_recorder = np.zeros((max_protocol_n_samples * 110 // 100, len(self.signals))) * np.nan
-        self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.reward_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # cumulative reward (int)
         self.mark_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.choice_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
         self.answer_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
-        self.posnerstim_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
-        self.response_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
-        self.chunk_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
-        self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
-        self.cue_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan
+        self.posnerstim_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # The onset of stimlus (in ms)
+        self.posnerdir_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # The direction of posner stim
+        self.response_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # the user response (in ms)
+        self.chunk_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # the length of incoming chunks
+        self.probe_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # the onset sample of probes
+        self.cue_recorder = np.zeros((max_protocol_n_samples * 110 // 100)) * np.nan # the cue direction for posner tasks
 
         # save init signals
         save_signals(self.dir_name + 'experiment_data.h5', self.signals,

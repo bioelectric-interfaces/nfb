@@ -57,7 +57,7 @@ def load_channels_and_fs(file_path):
 
 def save_signals(file_path, signals, group_name='protocol0', raw_data=None, timestamp_data=None, signals_data=None,
                  raw_other_data=None, reward_data=None, protocol_name='unknown', mock_previous=0, mark_data=None,
-                 choice_data=None, answer_data=None, probe_data=None, chunk_data=None, cue_data=None, posner_stim_data=None, response_data=None):
+                 choice_data=None, answer_data=None, probe_data=None, chunk_data=None, cue_data=None, posner_stim_data=None, posner_stim_time=None, response_data=None):
     print('Signals stats saving', group_name)
     with h5py.File(file_path, 'a') as f:
         main_group = f.create_group(group_name)
@@ -109,6 +109,8 @@ def save_signals(file_path, signals, group_name='protocol0', raw_data=None, time
             main_group.create_dataset('cue_data', data=cue_data, compression="gzip")
         if posner_stim_data is not None:
             main_group.create_dataset('posner_stim_data', data=posner_stim_data, compression="gzip")
+        if posner_stim_time is not None:
+            main_group.create_dataset('posner_stim_time', data=posner_stim_time, compression="gzip")
         if response_data is not None:
             main_group.create_dataset('response_data', data=response_data, compression="gzip")
 
