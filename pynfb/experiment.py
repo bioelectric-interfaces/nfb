@@ -26,7 +26,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
     EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter, FixationCrossProtocolWidgetPainter, \
     PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter, PosnerCueProtocol, PosnerCueProtocolWidgetPainter, \
-    PosnerFeedbackProtocolWidgetPainter
+    PosnerFeedbackProtocolWidgetPainter, ExperimentStartWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -56,7 +56,7 @@ class Experiment():
         self.cue_cond = r.choice([1, 2, 3]) # Even choice of 1=left, 2=right, 3=centre cue
         self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
         self.posner_stim = r.choice([1, 2]) # 1=left, 2=right
-        self.posner_stim_time = 6 + r.uniform(0, 2) # timing of posner stim
+        self.posner_stim_time = None #6 + r.uniform(0, 2) # timing of posner stim
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         # self.test_signal = (np.sin(2*np.pi*np.arange(1000*100)*0.5/1000)).astype(np.float32) #Test signal to be used for posner distractor colour
@@ -253,6 +253,13 @@ class Experiment():
             self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
             self.cue_recorder[self.samples_counter - 1] = int(cue_cond or 0)
 
+
+            if isinstance(current_protocol.widget_painter, ExperimentStartWidgetPainter):
+                # finish the start protocol when the participant presses space
+                if current_protocol.hold == False:
+                                        # End the protocol immediately if the participant presses a key
+                                        self.current_protocol_n_samples = self.samples_counter
+
             # Update the posner feedback task based on the previous cue
             posner_stim = None
             posner_stim_time = None
@@ -269,8 +276,18 @@ class Experiment():
                     current_protocol.widget_painter.stim = True
                     current_protocol.widget_painter.stim_side = self.posner_stim
                     # logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
-                    self.current_protocol_n_samples = self.samples_counter # Allow the protocol to end after the cue is displayed
-                    if current_protocol.hold == False:
+                    stim_response_period = 2 # time allowed for the participant to react to the stimulus
+                    if not current_protocol.widget_painter.kill:
+                        current_protocol.widget_painter.kill = True
+                        self.current_protocol_n_samples = self.samples_counter + (self.freq * stim_response_period) # Allow the protocol to end after the stimulus is displayed
+                    if self.samples_counter >= self.current_protocol_n_samples:
+                        # end the protocol if the participant hasn't responded in time
+                        # NOTE: Must have the max experiment samples larger than the posner feedback + 2 otherwise can get stuck todo: fix this
+                        self.current_protocol_n_samples = self.samples_counter
+                        current_protocol.hold = False
+                    elif current_protocol.hold == False:
+                        # End the protocol immediately if the participant presses a key
+                        self.current_protocol_n_samples = self.samples_counter
                         logging.debug(f"HOLD DISABLED AT {time.time()*1000}")
                         logging.debug(f"KEY PRESS TIME: {self.subject.key_press_time}")
                         self.response_recorder[self.samples_counter - 1] = int(self.subject.key_press_time or 0)
@@ -533,7 +550,7 @@ class Experiment():
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.stim = False
                 self.posner_stim = r.choice([1, 2])
-                self.posner_stim_time = 6 + r.uniform(0, 2)
+                self.posner_stim_time = current_protocol.duration - 2 + r.uniform(0, 2)
                 current_protocol.hold = True
 
             # Update the probe location, visibility, and start time

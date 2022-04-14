@@ -324,6 +324,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.test_signal_sample = 0
         self.no_nfb = no_nfb
         self.max_th = max_th
+        self.kill = False # flag to allow widget to be killed (after target is displayed)
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
