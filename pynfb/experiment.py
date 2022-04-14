@@ -270,11 +270,16 @@ class Experiment():
                 test_samp_idx = int((self.test_start + self.samples_counter))
                 current_test_samp = self.test_signal[test_samp_idx]
                 current_protocol.widget_painter.test_signal_sample = current_test_samp
+                stimuli_duration = 0.1 # Duration of posner stimuli (s)
                 if self.samples_counter >= stim_samp:
                     posner_stim = self.posner_stim
-                    posner_stim_time = int(time.time()*1000)
                     current_protocol.widget_painter.stim = True
-                    current_protocol.widget_painter.stim_side = self.posner_stim
+                    if self.samples_counter > stim_samp + stimuli_duration * self.freq:
+                        current_protocol.widget_painter.stim_side = 0
+                        posner_stim_time = int(0)
+                    else:
+                        posner_stim_time = int(time.time()*1000)
+                        current_protocol.widget_painter.stim_side = self.posner_stim
                     # logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
                     stim_response_period = 2 # time allowed for the participant to react to the stimulus
                     if not current_protocol.widget_painter.kill:
@@ -319,6 +324,7 @@ class Experiment():
                 probe_end_samp = round(probe_start_samp + probe_dur_samp)
                 if probe_start_samp <= self.samples_counter < probe_end_samp:
                     # display probe
+                    logging.debug(f"PROBE COMMANDED TIME: {time.time() * 1000}")
                     current_protocol.widget_painter.probe = True
                     current_protocol.widget_painter.probe_loc = self.probe_loc
                     # Add probe to probe recorder - Left probe = 2, RIght probe = 1, no probe = 0 or nan

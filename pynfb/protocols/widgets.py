@@ -4,6 +4,7 @@ import warnings
 import random
 
 import cv2
+import logging
 
 from PyQt5.QtWidgets import QDesktopWidget, QVBoxLayout
 
@@ -346,8 +347,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
                                      left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
         self.st_l2 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                      left_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
-        self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color='black', width=5)).curve
-        self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color='black', width=5)).curve
+        self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=5)).curve
+        self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=5)).curve
 
         right_off_x = 4.5
         right_off_y = -1
@@ -355,8 +356,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
                                      right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
         self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                      right_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color='black', width=5)).curve
-        self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x), pen=pg.mkPen(color='black', width=5)).curve
-        self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x, pen=pg.mkPen(color='black', width=5)).curve
+        self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=5)).curve
+        self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=5)).curve
 
 
     def set_red_state(self, flag):
@@ -429,20 +430,22 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=5))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=5))
         if self.stim and self.stim_side == 1:
-            self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
-            self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
-        else:
+            logging.debug(f"LEFT STIM: {time.time()*1000}")
             self.cr_l1.setPen(pg.mkPen(color=left_brush, width=5))
             self.cr_l2.setPen(pg.mkPen(color=left_brush, width=5))
+        else:
+            self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
+            self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
 
         self.st_r1.setPen(pg.mkPen(color=right_brush, width=5))
         self.st_r2.setPen(pg.mkPen(color=right_brush, width=5))
         if self.stim and self.stim_side == 2:
-            self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
-            self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
-        else:
+            logging.debug(f"RIGHT STIM: {time.time()*1000}")
             self.cr_r1.setPen(pg.mkPen(color=right_brush, width=5))
             self.cr_r2.setPen(pg.mkPen(color=right_brush, width=5))
+        else:
+            self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=5))
+            self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=5))
 
 
 class FixationCrossProtocolWidgetPainter(Painter):
@@ -506,6 +509,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
 
         # Draw the probe if requested
         if self.probe:
+            logging.debug(f"PROBE DRAW START TIME: {time.time()*1000}")
             self.fill.setBrush((0, 0, 0, 255))
             tr = QTransform()
             if self.probe_loc == "LEFT":
