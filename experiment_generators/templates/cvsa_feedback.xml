@@ -321,8 +321,8 @@
 	<vPGroups>
 		<PGroup>
 			<sName>fb_group</sName>
-			<sList>fc cue nfb score</sList>
-			<sNumberList>1 1 1 1</sNumberList>
+			<sList>fc cue nfb</sList>
+			<sNumberList>1 1 1</sNumberList>
 			<bShuffle>0</bShuffle>
 			<sSplitBy></sSplitBy>
 		</PGroup>
@@ -332,6 +332,7 @@
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
         {% endfor %}
+		<s>score</s>
 		<s>end</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>

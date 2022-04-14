@@ -69,6 +69,7 @@ class Experiment():
         self.choice_fb = None
         self.nfb_samps = 0
         self.percent_score = 0
+        self.block_score = []
         self.restart()
         logging.info(f"{__name__}: ")
         pass
@@ -351,6 +352,14 @@ class Experiment():
                             self.fb_score = self.reward.get_score()
                         logging.debug(f"SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
 
+                        # Calculate the percent score for the feedback block
+                        nfb_duration = self.nfb_samps
+                        max_reward = round(nfb_duration / self.freq / self.reward.rate_of_increase)
+                        self.percent_score = round((self.fb_score / max_reward) * 100)
+                        self.block_score.append(self.percent_score)
+                        logging.debug(
+                            f"PROTOCOL: {self.current_protocol_index}, MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: {self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
+                        logging.debug(f"BLOCK SCORE: {self.block_score}")
                 # only change if not a pausing protocol
                 if current_protocol.hold:
                     # don't switch protocols if holding
@@ -492,13 +501,14 @@ class Experiment():
                     logging.info(f"MOCK R THRESHOLD: {bc_threshold}")
                     current_protocol.widget_painter.r_threshold = bc_threshold
 
-            if self.nfb_samps and self.fb_score !=None:
-                nfb_duration = self.nfb_samps
-                max_reward = round(nfb_duration / self.freq / self.reward.rate_of_increase)
-                self.percent_score = round((self.fb_score/max_reward )* 100)
-                logging.info(f"MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
-            if current_protocol.widget_painter.show_reward and isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
-                current_protocol.widget_painter.set_message( f'{self.percent_score} %')
+            # if self.nfb_samps and self.fb_score !=None:
+            #     nfb_duration = self.nfb_samps
+            #     max_reward = round(nfb_duration / self.freq / self.reward.rate_of_increase)
+            #     self.percent_score = round((self.fb_score/max_reward )* 100)
+            #     self.block_score.append(self.percent_score)
+            #     logging.info(f"PROTOCOL: {self.current_protocol_index}, MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
+            # if current_protocol.widget_painter.show_reward and isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
+            #     current_protocol.widget_painter.set_message( f'{self.percent_score} %')
 
             # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):
@@ -549,7 +559,9 @@ class Experiment():
             if current_protocol.show_pc_score_after:
                 # display the previous percent score if fixation cross protocol
                 if isinstance(current_protocol.widget_painter, FixationCrossProtocolWidgetPainter):
-                    current_protocol.widget_painter.text = f"{self.percent_score} % "
+                    block_average_score = round(np.mean(self.block_score))
+                    # current_protocol.widget_painter.text = f"{self.percent_score} %"
+                    current_protocol.widget_painter.text = f"{block_average_score} %"
 
 
             # prepare mock from raw if necessary
