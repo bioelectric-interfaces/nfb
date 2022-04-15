@@ -379,7 +379,9 @@ class Experiment():
                         nfb_duration = self.nfb_samps
                         max_reward = round(nfb_duration / self.freq / self.reward.rate_of_increase)
                         self.percent_score = round((self.fb_score / max_reward) * 100)
-                        self.block_score.append(self.percent_score)
+                        if self.cue_cond in [1, 2]:
+                            # Only append the score for averaging if it is not a center condition
+                            self.block_score.append(self.percent_score)
                         logging.debug(
                             f"PROTOCOL: {self.current_protocol_index}, MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: {self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
                         logging.debug(f"BLOCK SCORE: {self.block_score}")
@@ -653,6 +655,8 @@ class Experiment():
             # save_h5py(self.dir_name + 'signals.h5', self.main.signals_recorder)
 
     def restart(self):
+
+        self.block_score = []
 
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
