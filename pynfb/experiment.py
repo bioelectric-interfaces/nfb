@@ -64,6 +64,7 @@ class Experiment():
         self.test_signal = self.Randomwalk1D(100000)[1]
         self.test_start = 0 # randomly start somewhere in the test signal
         self.mean_reward_signal = 0
+        self.median_eye_signal = 0
         self.fb_score = None
         self.cum_score = None
         self.calc_score = True
@@ -360,6 +361,15 @@ class Experiment():
                     self.mean_reward_signal = np.median(reward_sig)
                     print(f"len signal: {len(reward_sig)}, mean: {reward_sig.mean()}, median: {np.median(reward_sig)}, signal: {reward_sig}")
 
+                # If fixation cross, calculate the median of the eye movement signal (assuming this is EOG-ECG)
+                if isinstance(current_protocol, FixationCrossProtocol):
+                    if current_protocol.m_signal_id:
+                        eye_signal_id = current_protocol.m_signal_id
+                        eye_signal = self.signals_recorder[~np.isnan(self.signals_recorder).any(axis=1)]
+                        eye_signal = eye_signal[:,eye_signal_id]
+                        self.median_eye_signal = np.median(eye_signal)
+
+
                 # Record the reward from feedback only for the current protocol
                 if isinstance(current_protocol, FeedbackProtocol):
                     if self.calc_score:
@@ -535,6 +545,11 @@ class Experiment():
             #     logging.info(f"PROTOCOL: {self.current_protocol_index}, MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: { self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
             # if current_protocol.widget_painter.show_reward and isinstance(current_protocol.widget_painter, BaselineProtocolWidgetPainter):
             #     current_protocol.widget_painter.set_message( f'{self.percent_score} %')
+
+            # update the movement threshold for feedback protocol
+            if isinstance(current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter)):
+                eye_threshold = self.median_eye_signal + 0.1 # TODO - calibrate this
+                current_protocol.widget_painter.m_threshold = eye_threshold
 
             # Update the choice gabor angle, score, and sample idx
             if isinstance(current_protocol.widget_painter, ParticipantChoiceWidgetPainter):

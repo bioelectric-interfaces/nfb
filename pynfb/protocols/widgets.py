@@ -372,11 +372,16 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             self.p2.setPen(pg.mkPen(229, 223, 213))
             self.fill.setBrush(229, 223, 213, 25)
 
+    def over_m_threshold(self, m_sample, flag):
+        if flag:
+            logging.info(f"EXCESSIVE EYE MOVEMENT! TH: {self.m_threshold}, SAMP: {m_sample}")
+
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
-            self.set_red_state(m_sample > self.m_threshold)
+            # self.set_red_state(m_sample > self.m_threshold)
+            self.set_red_state(m_sample, m_sample > self.m_threshold)
         if np.ndim(sample)>0:
-            sample = np.sum(sample)
+            sample = np.sum(sample)                  
 
         # Ensure the correct side gets trained - this assumes a leftward AAI (L-R)/(L+R)
         if self.train_side == 2:
