@@ -12,11 +12,12 @@ class Reward:
         self.enable = False
         self.n_acc = 0
         self.mean_acc = 0
+        self.reward_factor = 1
         pass
 
     def update(self, sample, chunk_size):
         if self.enable:
-            current_sample = sample
+            current_sample = sample * self.reward_factor
             if not isinstance(current_sample, float):
                 current_sample = current_sample[0]
             if current_sample > self.threshold:

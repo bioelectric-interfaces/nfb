@@ -553,6 +553,12 @@ class Experiment():
                 self.cue_random_start = 1 + r.uniform(0, 1)  # random start between 1 and 2 seconds
                 cue_dict = {1:"LEFT", 2:"RIGHT", 3:"CENTER"}
                 logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
+                # Update the reward to flip the calculation (if on the right side) - NOTE: this assumes a leftward AAI
+                # TODO: make all this more generic!!
+                if self.cue_cond in [1, 3]:
+                    self.reward.reward_factor = 1
+                elif self.cue_cond == 2:
+                    self.reward.reward_factor = -1
 
             # Update the next stim (left or right)
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
