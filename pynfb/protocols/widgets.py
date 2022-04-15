@@ -379,9 +379,9 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
             # self.set_red_state(m_sample > self.m_threshold)
-            self.set_red_state(m_sample, m_sample > self.m_threshold)
+            self.over_m_threshold(m_sample, m_sample > self.m_threshold)
         if np.ndim(sample)>0:
-            sample = np.sum(sample)                  
+            sample = np.sum(sample)
 
         # Ensure the correct side gets trained - this assumes a leftward AAI (L-R)/(L+R)
         if self.train_side == 2:
