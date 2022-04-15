@@ -55,6 +55,7 @@ class Experiment():
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
         self.cue_cond = r.choice([1, 2, 3]) # Even choice of 1=left, 2=right, 3=centre cue
         self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
+        self.cue_duration = 1 # Duration of the cue (s)
         self.posner_stim = r.choice([1, 2]) # 1=left, 2=right
         self.posner_stim_time = None #6 + r.uniform(0, 2) # timing of posner stim
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
@@ -229,7 +230,7 @@ class Experiment():
             # If posner cue, update the cue after random delay
             cue_cond = None
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
-                cue_dur_samp = self.freq * (100 * 1e-3) # Cue duration is 100ms
+                cue_dur_samp = self.freq * (self.cue_duration) # Cue duration is 100ms
                 cue_start_samp = round(self.freq * self.cue_random_start)
                 cue_end_samp = round(cue_start_samp + cue_dur_samp)
                 self.current_protocol_n_samples = cue_end_samp # End the cue after the cue is displayed
@@ -554,7 +555,7 @@ class Experiment():
                 cue_dict = {1:"LEFT", 2:"RIGHT", 3:"CENTER"}
                 logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
                 # Update the reward to flip the calculation (if on the right side) - NOTE: this assumes a leftward AAI
-                # TODO: make all this more generic!!
+                # TODO: make all this more generic!! (maybe pull out the ability to cue to the top level and randomly generate the directions outside the experiment)
                 if self.cue_cond in [1, 3]:
                     self.reward.reward_factor = 1
                 elif self.cue_cond == 2:
