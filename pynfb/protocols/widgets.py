@@ -142,6 +142,57 @@ class BarFeedbackProtocolWidgetPainter(Painter):
             self.fill.setBrush(35, 45, 176, 25)
         pass
 
+class EyeTrackFeedbackProtocolWidgetPainter(Painter):
+    def __init__(self, show_reward=False, m_threshold=1, r_threshold=100, center_fixation=0):
+        super(EyeTrackFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
+        self.fixdot = np.linspace(-np.pi / 2, np.pi / 2, 200)
+        self.fixdot_radius = 0.5
+        self.widget = None
+        self.m_threshold = m_threshold
+        self.r_threshold = r_threshold
+        self.centre_fixation = center_fixation
+
+
+    def prepare_widget(self, widget):
+        self.widget = widget
+        self.screen = QDesktopWidget().screenGeometry(widget)
+        # Draw fixation dot
+        self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot),
+                                      self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color='black')).curve
+        self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot),
+                                      self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color='black')).curve
+        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=('black'))
+        self.fill = fill_fd
+        widget.addItem(fill_fd)
+
+    def set_red_state(self, flag):
+        if flag:
+            self.p1_fd.setPen(pg.mkPen(176, 35, 48))
+            self.p2_fd.setPen(pg.mkPen(176, 35, 48))
+            self.fill.setBrush(176, 35, 48, 25)
+        else:
+            self.p1_fd.setPen(pg.mkPen(229, 223, 213))
+            self.p2_fd.setPen(pg.mkPen(229, 223, 213))
+            self.fill.setBrush(229, 223, 213, 25)
+
+    def redraw_state(self, sample, m_sample):
+        # Map the centre fixation to the min and the max fixation to the edge of the screen
+        un_scaled_min = self.centre_fixation
+        un_scaled_max = 100#self.r_threshold
+        scaled_min = 0
+        scaled_max = 5
+        un_scaled_range = (un_scaled_max - un_scaled_min)
+        scaled_range = (scaled_max - scaled_min)
+        scaled_sample = (((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+
+        # translate the dot in the x direction based on the sample amplitude
+        tr = QTransform()  # prepare ImageItem transformation:
+        self.scale_factor = 20
+        tr.translate(scaled_sample, 0)
+        # tr.scale(1./self.scale_factor, 1./self.scale_factor)  # scale horizontal and vertical axes
+        self.fill.setTransform(tr)
+        pass
+
 
 class GaborFeedbackProtocolWidgetPainter(Painter):
     def __init__(self, gabor_theta=45, m_threshold=1, r_threshold=0, show_reward=False):

@@ -14,7 +14,7 @@ from pynfb.helpers.dc_blocker import DCBlocker
 from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol, ExperimentStartProtocol, ImageProtocol, \
     EyeCalibrationProtocol
 from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, \
-    PlotFeedbackWidgetPainter, PosnerFeedbackProtocolWidgetPainter
+    PlotFeedbackWidgetPainter, PosnerFeedbackProtocolWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
@@ -352,7 +352,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             x_range = 10
             self.figure.setYRange(-y_range, y_range)
             self.figure.setXRange(-x_range, x_range)
-        elif isinstance(self.current_protocol.widget_painter, PlotFeedbackWidgetPainter):
+        elif isinstance(self.current_protocol.widget_painter, (PlotFeedbackWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter)):
             new_range = 500
             print(f"SETTING RANGE TO {new_range} FOR GRAPH FB")
             self.figure.setMaximumWidth(new_range)

@@ -192,7 +192,7 @@ class ProtocolDialog(QtWidgets.QDialog):
 
         # random circle bound
         self.circle_border = QtWidgets.QComboBox()
-        self.circle_border.addItems(['SinCircle', 'RandomCircle', 'Bar', 'Gabor', 'Plot', 'Posner'])
+        self.circle_border.addItems(['SinCircle', 'RandomCircle', 'Bar', 'Gabor', 'Plot', 'Posner', 'EyeTrack'])
         self.form_layout.addRow('&Feedback type:', self.circle_border)
 
         # Fixation Cross settings
