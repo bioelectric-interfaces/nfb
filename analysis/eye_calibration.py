@@ -42,9 +42,12 @@ df1['EOG_FILTERED'] = butter_lowpass_filter(df1['EOG'], cutoff, fs)
 # Get the left mid side (idx=13) and right mid side (idx=15)
 eye_calib_data = df1[df1['block_name'] == 'eye_calib']
 left_calib_data = eye_calib_data[eye_calib_data['probe'] == 13]
+centre_calib_data = eye_calib_data[eye_calib_data['probe'] == 14]
 right_calib_data = eye_calib_data[eye_calib_data['probe'] == 15]
 
 left_calib_mean = (left_calib_data['EOG_FILTERED'] - left_calib_data['ECG_FILTERED']).mean()
+centre_calib_mean = (centre_calib_data['EOG_FILTERED'] - centre_calib_data['ECG_FILTERED']).mean()
 right_calib_mean = (right_calib_data['EOG_FILTERED'] - right_calib_data['ECG_FILTERED']).mean()
 
+eye_centre = centre_calib_mean
 eye_range = left_calib_mean - right_calib_mean
