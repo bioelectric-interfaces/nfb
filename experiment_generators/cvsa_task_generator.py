@@ -34,7 +34,9 @@ if __name__ == "__main__":
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
-    tasks = {"baseline": "baseline.xml", "test_task": test_template,
+    tasks = {"baseline": "baseline.xml",
+             "eye_calibration": "eye_calibration.xml",
+             "test_task": test_template,
              "nfb_task": nfb_template}
 
     task_info = {}
