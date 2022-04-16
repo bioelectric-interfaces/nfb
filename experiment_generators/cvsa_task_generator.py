@@ -31,6 +31,8 @@ if __name__ == "__main__":
     enable_smoothing = 1 # THIS IS AAI SMOOTHING
     fft_window = 1000
     mock_reward_threshold = 0.089
+    eye_threshold = 1
+    eye_range = 500
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -85,5 +87,7 @@ if __name__ == "__main__":
                                            fft_window=fft_window,
                                            mock_reward_threshold=mock_reward_threshold,
                                            nfb_type=nfb_type,
-                                           posner_test=posner_test)
+                                           posner_test=posner_test,
+                                           eye_range=eye_range,
+                                           eye_threshold=eye_threshold)
             Tsk.create_task(participant=participant_no)

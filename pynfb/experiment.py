@@ -553,7 +553,7 @@ class Experiment():
 
             # update the movement threshold for feedback protocol
             if isinstance(current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter)):
-                eye_threshold = self.median_eye_signal + 0.1 # TODO - calibrate this (this should be calculated as a percent of the eye range which should be put into the protocol)
+                eye_threshold = self.median_eye_signal + current_protocol.eye_range * 0.1 # TODO - calibrate this
                 current_protocol.widget_painter.m_threshold = eye_threshold
 
             # Update the choice gabor angle, score, and sample idx

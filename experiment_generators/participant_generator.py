@@ -21,7 +21,7 @@ class ParticipantTaskGenerator:
                  right_spatial_filter_scalp="P3=1",
                  source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
                  baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=0, smooth_window=100,
-                 fft_window=250, mock_reward_threshold=0.0, nfb_type=2, posner_test=0):
+                 fft_window=250, mock_reward_threshold=0.0, nfb_type=2, posner_test=0, eye_range=500, eye_threshold=1):
 
         self.template_file = template_file
         self.composite_signal = composite_signal
@@ -54,6 +54,8 @@ class ParticipantTaskGenerator:
         self.enable_smoothing = enable_smoothing
         self.fft_window = fft_window
         self.mock_reward_threshold = mock_reward_threshold
+        self.eye_range=eye_range
+        self.eye_threshold=eye_threshold
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -92,6 +94,8 @@ class ParticipantTaskGenerator:
             'mock_reward_threshold': self.mock_reward_threshold,
             'nfb_type': self.nfb_type,
             'posner_test': self.posner_test,
+            'eye_range': self.eye_range,
+            'eye_threshold': self.eye_threshold
         }
         #
         with open(output_fname, 'w') as f:

@@ -440,8 +440,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
             # self.set_red_state(m_sample > self.m_threshold)
-            self.over_m_threshold(m_sample, sample > self.m_threshold)
-            self.over_m_threshold(m_sample, sample < - self.m_threshold)
+            self.over_m_threshold(m_sample, m_sample > self.m_threshold)
+            self.over_m_threshold(m_sample, m_sample < - self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
 
