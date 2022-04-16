@@ -372,6 +372,7 @@ class Experiment():
 
                 if isinstance(current_protocol.widget_painter, EyeTrackFeedbackProtocolWidgetPainter):
                     current_protocol.widget_painter.centre_fixation = self.median_eye_signal
+                    current_protocol.widget_painter.eye_range = current_protocol.eye_range
 
 
                 # Record the reward from feedback only for the current protocol
@@ -833,7 +834,8 @@ class Experiment():
                 show_probe=protocol['bProbe'],
                 probe_duration=protocol['iProbeDur'],
                 probe_loc=protocol['sProbeLoc'],
-                posner_test=protocol['bPosnerTest']
+                posner_test=protocol['bPosnerTest'],
+                eye_range=protocol['fEyeRange']
             )
 
             # type specific arguments

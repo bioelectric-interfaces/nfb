@@ -37,7 +37,7 @@ class Protocol:
                  ssd_in_the_end=False, timer=None, freq=500, mock_previous=0, drop_outliers=0, stats_type='meanstd',
                  experiment=None, pause_after=False, reverse_mock_previous=False, m_signal_index=None,
                  shuffle_mock_previous=None, beep_after=False, as_mock=False, auto_bci_fit=False, montage=None,
-                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND', show_pc_score_after=0, posner_test=False):
+                 random_over_time=0, show_probe=False, probe_duration=0, probe_loc='RAND', show_pc_score_after=0, posner_test=False, eye_range=100):
         """ Constructor
         :param signals: derived signals
         :param source_signal_id: base signal id, or None if 'All' signals using
@@ -80,6 +80,7 @@ class Protocol:
         self.probe_loc = probe_loc
         self.input_protocol = False
         self.posner_test = posner_test
+        self.eye_range = eye_range
         pass
 
     def update_state(self, samples, reward, chunk_size=1, is_half_time=False):

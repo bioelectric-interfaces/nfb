@@ -95,6 +95,7 @@ vectors_defaults = OrderedDict([
             ('cString2', ''),
             ('fBlinkDurationMs', 50),
             ('fBlinkThreshold', 0),
+            ('fEyeRange', 100),
             ('sMockSignalFilePath', ''),
             ('sMockSignalFileDataset', 'protocol1'),
             ('iMockPrevious', 0),

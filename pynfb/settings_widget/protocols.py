@@ -210,6 +210,11 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.form_layout.addRow('&Blink duration [ms]:', self.blink_duration_ms)
         self.form_layout.addRow('&Blink threshold:', self.blink_threshold)
 
+        # Eye threshold settings
+        self.eye_range = QtWidgets.QDoubleSpinBox()
+        self.eye_range.setRange(0, 1e3)
+        self.form_layout.addRow('&eye range:', self.eye_range)
+
         # mock settings
         # self.mock_checkbox = QtGui.QCheckBox()
         # self.form_layout.addRow('&Enable mock signals:', self.mock_checkbox)
@@ -391,6 +396,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.circle_border.setEnabled(self.type.currentText() == 'Feedback')
         self.blink_duration_ms.setValue(current_protocol['fBlinkDurationMs'])
         self.blink_threshold.setValue(current_protocol['fBlinkThreshold'])
+        self.eye_range.setValue(current_protocol['fEyeRange'])
         self.mock_file.path.setText(current_protocol['sMockSignalFilePath'])
         self.mock_dataset.setText(current_protocol['sMockSignalFileDataset'])
         self.message.setText(current_protocol['cString'])
@@ -451,6 +457,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['iRandomBound'] = self.circle_border.currentIndex()
         self.params[current_signal_index]['fBlinkDurationMs'] = self.blink_duration_ms.value()
         self.params[current_signal_index]['fBlinkThreshold'] = self.blink_threshold.value()
+        self.params[current_signal_index]['fEyeRange'] = self.eye_range.value()
         self.params[current_signal_index]['sMockSignalFilePath'] = self.mock_file.path.text()
         self.params[current_signal_index]['sMockSignalFileDataset'] = self.mock_dataset.text()
         self.params[current_signal_index]['cString'] = self.message.toPlainText()
