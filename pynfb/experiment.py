@@ -26,7 +26,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
     GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, EyeCalibrationProtocol, \
     EyeCalibrationProtocolWidgetPainter, BaselineProtocolWidgetPainter, FixationCrossProtocolWidgetPainter, \
     PlotFeedbackWidgetPainter, BarFeedbackProtocolWidgetPainter, PosnerCueProtocol, PosnerCueProtocolWidgetPainter, \
-    PosnerFeedbackProtocolWidgetPainter, ExperimentStartWidgetPainter
+    PosnerFeedbackProtocolWidgetPainter, ExperimentStartWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
@@ -368,6 +368,10 @@ class Experiment():
                         eye_signal = self.signals_recorder[~np.isnan(self.signals_recorder).any(axis=1)]
                         eye_signal = eye_signal[:,eye_signal_id]
                         self.median_eye_signal = np.median(eye_signal)
+                        logging.info(f"MEDIAN EYE SIGNAL: {self.median_eye_signal}")
+
+                if isinstance(current_protocol.widget_painter, EyeTrackFeedbackProtocolWidgetPainter):
+                    current_protocol.widget_painter.centre_fixation = self.median_eye_signal
 
 
                 # Record the reward from feedback only for the current protocol
@@ -548,7 +552,7 @@ class Experiment():
 
             # update the movement threshold for feedback protocol
             if isinstance(current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter)):
-                eye_threshold = self.median_eye_signal + 0.1 # TODO - calibrate this
+                eye_threshold = self.median_eye_signal + 0.1 # TODO - calibrate this (this should be calculated as a percent of the eye range which should be put into the protocol)
                 current_protocol.widget_painter.m_threshold = eye_threshold
 
             # Update the choice gabor angle, score, and sample idx

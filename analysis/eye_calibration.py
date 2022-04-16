@@ -51,3 +51,5 @@ right_calib_mean = (right_calib_data['EOG_FILTERED'] - right_calib_data['ECG_FIL
 
 eye_centre = centre_calib_mean
 eye_range = left_calib_mean - right_calib_mean
+
+print(f"EYE CENTRE: {eye_centre}, EYE RANGE: {eye_range}")
