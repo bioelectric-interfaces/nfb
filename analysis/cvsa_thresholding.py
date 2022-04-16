@@ -38,7 +38,8 @@ else:
 
 # Read in the raw data of the test
 task_data = {}
-h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-21-37/experiment_data.h5" # Ksenia cvsa 3 **
+# h5file = f"/Users/{userdir}/Documents/EEG_Data/system_testing/ksenia_cvsa/cvsa_02-15_15-21-37/experiment_data.h5" # Ksenia cvsa 3 **
+h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
 
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
@@ -47,7 +48,7 @@ df1['sample'] = df1.index
 df1 = df1[['signal_AAI', 'block_name', 'block_number', 'sample']]
 
 # Extract all of the AAI blocks
-df1 = df1[df1['block_name'].str.contains("probe")]
+df1 = df1[df1['block_name'].str.contains("nfb")]
 
 # Calculate mean of all AAI blocks
 block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
