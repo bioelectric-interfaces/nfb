@@ -29,7 +29,8 @@ else:
 
 task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/cvsa_test1/0-nfb_task_cvsa_test_04-06_17-35-45/experiment_data.h5"
-h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-14_18-03-49/experiment_data.h5"
+
+h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -63,11 +64,13 @@ stim_times = grouped_df.min()
 reaction_time_key = {}
 for index, row in stim_times.iterrows():
     block = df1[df1['block_number'] == row['block_number']]
-    response_time = block[block['response_data']>0].iloc[0]['response_data']
-    reaction_time_key[row['block_number']] = response_time - row['posner_time']
+    if not bool(block[block['response_data']>0].empty):
+        response_time = block[block['response_data']>0].iloc[0]['response_data']
+        reaction_time_key[row['block_number']] = response_time - row['posner_time']
 df1["reaction_time"] = df1['block_number'].map(reaction_time_key)
 
 # Plot reaction times for valid, invalid, and no training trials
+valid_reaction_times =
 
 
 # Get the AAI for the left, right, and centre trials
