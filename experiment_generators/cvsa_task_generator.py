@@ -33,6 +33,7 @@ if __name__ == "__main__":
     mock_reward_threshold = 0.089
     eye_threshold = 1
     eye_range = 500
+    stim_duration = 5 # TODO - make this random?
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -62,9 +63,11 @@ if __name__ == "__main__":
             if task == "test_task":
                 number_nfb_tasks = 10
                 posner_test = 1
+                stim_duration = 3
             elif task == "nfb_task":
-                number_nfb_tasks = 10
+                number_nfb_tasks = 25
                 posner_test = 0
+                stim_duration = 5
 
 
             Tsk = ParticipantTaskGenerator(participant_no=participant_no,
@@ -89,5 +92,6 @@ if __name__ == "__main__":
                                            nfb_type=nfb_type,
                                            posner_test=posner_test,
                                            eye_range=eye_range,
-                                           eye_threshold=eye_threshold)
+                                           eye_threshold=eye_threshold,
+                                           stim_duration=stim_duration)
             Tsk.create_task(participant=participant_no)
