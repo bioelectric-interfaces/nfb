@@ -30,7 +30,8 @@ else:
 task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/cvsa_test1/0-nfb_task_cvsa_test_04-06_17-35-45/experiment_data.h5"
 
-h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
+# h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
+h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_16-09-15/experiment_data.h5"
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -53,6 +54,8 @@ valid_cue_key = {}
 for index, row in df1[df1['posner_stim'].isin([1,2])].iterrows():
     if row['posner_stim'] == row['cue_dir']:
         valid_cue_key[row['block_number']] = True
+    elif row['cue_dir'] == 3:
+        valid_cue_key[row['block_number']] = 'NA'
     else:
         valid_cue_key[row['block_number']] = False
 df1["valid_cue"] = df1['block_number'].map(valid_cue_key)
@@ -70,7 +73,15 @@ for index, row in stim_times.iterrows():
 df1["reaction_time"] = df1['block_number'].map(reaction_time_key)
 
 # Plot reaction times for valid, invalid, and no training trials
-valid_reaction_times =
+rt_df = df1[['signal_AAI', 'block_name', 'block_number', 'sample', "reaction_time", 'posner_time', "valid_cue", 'posner_stim', 'cue', 'cue_dir']]
+rt_df = rt_df[rt_df['block_name'].str.contains("nfb")]
+rt_df = rt_df[rt_df['posner_stim'] != 0]
+rt_df = rt_df.drop_duplicates(['block_number'], keep='first')
+
+
+fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all')
+fig.show()
+
 
 
 # Get the AAI for the left, right, and centre trials
