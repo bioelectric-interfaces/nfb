@@ -167,22 +167,24 @@ colors = px.colors.qualitative.Plotly
 color_idx = 0
 for idx1, experiment in enumerate(experiment_data):
     for idx, session_data in enumerate( experiment['session_data']):
-        for s_no, s_data in session_data.items():
-            # print the AAI medians
-            fig_all_aais.add_trace(go.Scatter(y=s_data['aai_medians'],
-                                              mode='lines',
-                                              name=f"{experiment['participant_id']} - {session_types[idx]}"))
-            fig_all_pc_correct.add_trace(go.Bar(y=[s_data['percent_correct']],
-                                                name=f"{experiment['participant_id']} - {session_types[idx]}"))
-            for s_name, section in s_data.items():
-                if s_name == "aai_medians_q":
-                    section_data = pd.melt(section, value_vars=['aai_1', 'aai_2', 'aai_3', 'aai_4'], var_name='section_number')
-                    title = f"{experiment['participant_id']} - {session_types[idx]}"
-                    fig = px.box(section_data, x="section_number", y="value", title=title)
-                    fig.update_traces(line_color=colors[color_idx])
-                    fig.show()
-                    color_idx +=1
-                    pass
+        if session_data:
+            # if (experiment['participant_id'] == 'kk') and idx == 2:
+                for s_no, s_data in session_data.items():
+                    # print the AAI medians
+                    fig_all_aais.add_trace(go.Scatter(y=s_data['aai_medians'],
+                                                      mode='lines',
+                                                      name=f"{experiment['participant_id']} - {session_types[idx]}"))
+                    fig_all_pc_correct.add_trace(go.Bar(y=[s_data['percent_correct']],
+                                                        name=f"{experiment['participant_id']} - {session_types[idx]}"))
+                    for s_name, section in s_data.items():
+                        if s_name == "aai_medians_q":
+                            section_data = pd.melt(section, value_vars=['aai_1', 'aai_2', 'aai_3', 'aai_4'], var_name='section_number')
+                            title = f"{experiment['participant_id']} - {session_types[idx]}"
+                            fig = px.box(section_data, x="section_number", y="value", title=title)
+                            fig.update_traces(line_color=colors[color_idx])
+                            fig.show()
+                            color_idx +=1
+                            pass
 
 fig_all_aais.update_layout(title=f"AAI",
                            xaxis_title='sample',
