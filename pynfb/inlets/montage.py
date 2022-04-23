@@ -1,6 +1,7 @@
 import numpy as np
 import mne
 import pandas as pd
+import packaging.version
 
 
 def azimuthal_equidistant_projection(hsp):
@@ -76,7 +77,7 @@ class Montage(pd.DataFrame):
     @staticmethod
     def load_layout(name):
         if name == 'EEG1005':
-            if int(mne.__version__.split('.')[1]) >= 19:  # validate mne version (mne 0.19+)
+            if packaging.version.parse(mne.__version__) >= packaging.version.parse("0.19"):  # validate mne version (mne 0.19+)
                 layout = mne.channels.make_standard_montage('standard_1005')
                 layout.names = layout.ch_names
                 ch_pos_dict = layout._get_ch_pos()

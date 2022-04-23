@@ -10,6 +10,8 @@ from ..widgets.helpers import ch_names_to_2d_pos
 from scipy.signal import butter, filtfilt
 from scipy.linalg import eigh, inv
 from sklearn.metrics import mutual_info_score
+import packaging.version
+
 
 DEFAULTS = {'bandpass_low': 3,
             'regularizator': 0.001,
@@ -126,7 +128,7 @@ class ICADecomposition(SpatialDecomposition):
 
     def decompose(self, X, y=None):
         raw_inst = RawArray(X.T, create_info(self.channel_names, self.fs, 'eeg', None))
-        if int(mne.__version__.split('.')[1]) >= 19:  # validate mne version (mne 0.19+)
+        if packaging.version.parse(mne.__version__) >= packaging.version.parse("0.19"):  # validate mne version (mne 0.19+)
             ica = ICA(method='infomax', fit_params=dict(extended=True))
         else:
             ica = ICA(method='extended-infomax')
