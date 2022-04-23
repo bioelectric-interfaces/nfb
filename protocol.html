@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Protocol settings &mdash; NFB Lab 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Experiment" href="experiment.html" />
+    <link rel="prev" title="Composite signal settings" href="composite.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NFB Lab
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="experimental_design.html">Experimental designer</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="signals.html">Derived signal settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="composite.html">Composite signal settings</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Protocol settings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signals_manager.html">Data-driven filters (signals manager)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_nfb_example.html">Occipital alpha rhythm neurofeedback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment_results_file.html">Results file structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NFB Lab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="experimental_design.html">Experimental designer</a> &raquo;</li>
+      <li>Protocol settings</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/protocol.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="protocol-settings">
+<h1>Protocol settings<a class="headerlink" href="#protocol-settings" title="Permalink to this headline"></a></h1>
+<a class="reference internal image-reference" href="_images/protocol.png"><img alt="_images/protocol.png" src="_images/protocol.png" style="width: 300px;" /></a>
+<p>Protocol settings include:</p>
+<p><strong>Name</strong>: name of the protocol.</p>
+<p><strong>Duration [s]</strong>: the duration of the protocol in seconds.</p>
+<p><strong>Random over time [s]</strong>: a random number between 0 and the entered value will be added or substracted from the main duration each time the protocol is used.</p>
+<p><strong>Open signal manager in the end (SSD, CSP, ICA)</strong>: opens at the end of protocol signaling manager where, by using different methods (SSD, CSP, ICA), computed spatial filters signals.</p>
+<p><strong>Update statistics</strong>: if this checkmark is exhibited and “meanstd” is selected, then, at the end of the protocol the average (mean) and standard deviation (std) of the signal will be recalculated, and subsequently mean will be subtracted from the signal and it will be divided by std. Min/max calculates values above zero (minimum) and usually below one (maximum), where minimum and maximum are taken from the finished protocol.</p>
+<p><strong>Beep after protocol</strong>: after the protocol there will be sound indicating the end of the protocol.</p>
+<p><strong>Auto BCI fitting</strong>: …</p>
+<p><strong>Mock source</strong>: …</p>
+<p><strong>Make a pause after protocol</strong>: enables / disables a pause after the protocol.</p>
+<p><strong>Enable detection task</strong>: an obsolete function. It will be removed in the next version.</p>
+<p><strong>Drop outliers [std]</strong>: if “Update statistics” is checked, you can enter a number indicating a border of standard deviation to detect outliers and delete them.</p>
+<p><strong>Signal</strong>: name of the signal that will be processing. Corresponds to the name from the “Signals” or “Composite signals” properties. It can be set to “All” in the case when no specified signal is applied, during baseline, for instance.</p>
+<p><strong>Type</strong>: type of the protocol. Available 4 types of protocols: Baseline (on the screen of subject will be displayed a message, is used to collect data, to update the signal statistics, calculation of spatial filters, etc.), Feedback (if “Feedback type” is SinCircle, on the subject’s screen will be displayed the circle, with jagged edges, whom degree of unevenness depends on the particular signal in the “Signal” (see previous paragraph.), the subjects task is to achieve complete smoothness of the edge of the circle), ThresholdBlink  (subjects screen at the time specified in paragraph “Blink duration” will turn white if the signal exceeds threshold defined in “Blink threshold”; this protocol is needed for measuring delays and can be considered obsolete), Video (in testing).</p>
+<p><strong>Feedback type</strong>: type of the feedback, if it is chosen in the “Type” field. SinCircle - a shrinking circle; RandomCircle - a shrinking circle with a random bound distortion; Bar - a bar that gets higher when the signal amplitude increases.</p>
+<p><strong>Blink duration</strong>: only available for ThresholdBlink protocol type (see above). Deprecated function.</p>
+<p><strong>Blink threshold</strong>: only available for ThresholdBlink protocol type (see above). Deprecated function.</p>
+<p><strong>Mock signals file</strong>: only available for FeedbackProtocol. Here you can specify the file from which to read the signal for FeedbackProtocol recorded previously. This signal is false and will be changed at the time of the signal with the actual signal.</p>
+<p><strong>Mock signals file dataset</strong>: only available for FeedbackProtocol. Here specifies the protocol of the last experiment whose data is stored in a file specified by paragraph above. The signal recorded in this protocol will substitute the actual signal.</p>
+<p><strong>Mock from previous protocol raw data</strong>: only available for FeedbackProtocol. This sets an alternative method of signal substitution. Data for substitution are taken from the experiment itself (from the previous protocol, its number is indicated).</p>
+<p><strong>Muscular signal</strong>: only available for FeedbackProtocol. …</p>
+<p><strong>Message</strong>: Here you specify the message that will be displayed and presented to the subject during the block.</p>
+<p><strong>Voiceover</strong>: enables / disables audio message for the subject.</p>
+<p><strong>Add half time extra message (for CSP)</strong>: if a tick is exhibited, then after half the time pass, a beep sounds will occur and message will change (additional message given by paragraph below). Deprecated function.</p>
+<p><strong>Half time extra message</strong>: Additional message. Deprecated function.</p>
+<p><strong>Reward signal</strong>: the signal that will be the basic for determining the awarding for subject.</p>
+<p><strong>Reward threshold</strong>: the threshold, above which will launch a counter points for subject award.</p>
+<p><strong>Show reward</strong>: if the user is exhibited the tick count points, awards will be presented.</p>
+<p><strong>Video file</strong>: add a path to the video if block type is video.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="composite.html" class="btn btn-neutral float-left" title="Composite signal settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="experiment.html" class="btn btn-neutral float-right" title="Experiment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016, Nikolai Smetanin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

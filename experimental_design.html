@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Experimental designer &mdash; NFB Lab 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Derived signal settings" href="signals.html" />
+    <link rel="prev" title="Welcome to NFB Lab’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NFB Lab
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Experimental designer</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="signals.html">Derived signal settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="composite.html">Composite signal settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html">Protocol settings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signals_manager.html">Data-driven filters (signals manager)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_nfb_example.html">Occipital alpha rhythm neurofeedback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment_results_file.html">Results file structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NFB Lab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Experimental designer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/experimental_design.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="experimental-designer">
+<h1>Experimental designer<a class="headerlink" href="#experimental-designer" title="Permalink to this headline"></a></h1>
+<a class="reference internal image-reference" href="_images/design.png"><img alt="_images/design.png" src="_images/design.png" style="width: 600px;" /></a>
+<p>This module allows you to configure the experiment design. Customized design is saved in an .xml file and can be
+loaded with further use of the program. ‘Start’ button starts the module of carrying out experiments in which an
+experiment is conducted with your settings.</p>
+<p>Below is a simplified version that describes the basic settings of the experiment in order from top to bottom and left to right.</p>
+<p><strong>Name</strong>: the name of the experiment (in a folder ‘results’ there is a folder with the same name and added timestamp).</p>
+<p><strong>Inlet</strong>: selection of the data stream to which you want to connect. There is a choice of four options: Normal LSL stream (for connection of devices with LSL support), LSL generator (created LSL flow with a model signal for the test program), LSL from file (created LSL signal playback stream recorded in the file during the previous experiments), FieldTripBuffer (connection for FieldTripBuffer Protocol).</p>
+<dl>
+<dt><strong>Reference</strong>:</dt><dd><p><strong>Exclude channels</strong>: a list of channels that should not be taken into account when conducting the experiment (in the construction of spatial filters).</p>
+<p><strong>Substract channel from other</strong>: a list of channels that will be subtracted from others.</p>
+</dd>
+</dl>
+<p><strong>Plot raw</strong>: disables / enables online drawing of raw signals.</p>
+<p><strong>Plot signals</strong>: disables / enables online drawing of processed signals.</p>
+<p><strong>Plot source space</strong>: disables / enables online drawing of spatially distributed signals.</p>
+<p><strong>Show subject window</strong>: disables / enables the window with messages or feedback presentation for a subject.</p>
+<p><strong>Reward period</strong>: the period of accrual encouragement (if the processed signal from the test exceeds a predetermined threshold, then the subject is beginning to accrued encouragement points with the given period).</p>
+<p><strong>Test beep sound</strong>: check of the sound stimulus.</p>
+<p><strong>Enable DC-blocker</strong>: disables / enables DC-blocker. Notice, DC-blocker applies to all raw data including EEG channels, photosensors, etc.</p>
+<p><strong>Show photo-sensor rect.</strong>: enables / disables the rectangle at the bottom right of the screen during the experiment. Its brightness depends on the derived signal amplitude and imitate the feedback stimulus. It is used for computation of the latency (photo-sensor is needed).</p>
+<p><strong>Signals</strong>: configuration of the processed signals (such signals obtained from raw signals through the application of spatial filters, frequency filters, amplitudes calculation, subtracting the mean and dividing by the standard deviation, thus the smoothing is performed). When you double-click on one of the signals you open the composite signal settings:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="signals.html">Derived signal settings</a></li>
+</ul>
+</div>
+<p><strong>Composite signals</strong>: configurations of composite signals (samples of these signals are obtained by means of an algebraic expression of the signals samples from the field of “Signals”). When you double-click on one of the signals you open the settings of the composite signal:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="composite.html">Composite signal settings</a></li>
+</ul>
+</div>
+<p><strong>Protocols</strong>: includes settings of protocols (experiment consists of several protocols, each of which has a duration, settings of signal processing and rendering properties window for subject). When you double-click on one of the protocols you open protocol settings.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol settings</a></li>
+</ul>
+</div>
+<p><strong>Protocol groups</strong>: inside a group it is possible to unite several blocks (protocols) in order to use them together in the general sequence. When you double-click on one of the groups you open the group settings where you can enter the blocks to add and their sequence within the group.</p>
+<p><strong>Protocols sequence</strong>: here you set the protocol sequence that will be implemented during the experiment (minutes can be dragged from the fields “Protocols” and “Protocol groups”).</p>
+<p>The <strong>Start</strong> button starts the experiment.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to NFB Lab’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="signals.html" class="btn btn-neutral float-right" title="Derived signal settings" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016, Nikolai Smetanin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

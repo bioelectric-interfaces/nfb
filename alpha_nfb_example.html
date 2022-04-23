@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Occipital alpha rhythm neurofeedback &mdash; NFB Lab 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Results file structure" href="experiment_results_file.html" />
+    <link rel="prev" title="SSD" href="ssd.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NFB Lab
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="experimental_design.html">Experimental designer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signals_manager.html">Data-driven filters (signals manager)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Occipital alpha rhythm neurofeedback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment_results_file.html">Results file structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NFB Lab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Occipital alpha rhythm neurofeedback</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/alpha_nfb_example.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="occipital-alpha-rhythm-neurofeedback">
+<h1>Occipital alpha rhythm neurofeedback<a class="headerlink" href="#occipital-alpha-rhythm-neurofeedback" title="Permalink to this headline"></a></h1>
+<p>The simplest example of an experiment using NFB Lab is alpha rhythm training in the neurofeedback paradigm.
+As a feedback signal, the derived signal was used with the following settings:
+the spatial filter is determined during the experiment, the frequency filtering band is 9-11 Hz,
+the envelope detector is a sequence of complex demodulation, the 4th-order Butterworth filter is used in the specified band, and smoothing by the
+Savitzky–Golay filter of the 2nd order with a window width of 151 samples.
+At a sampling rate of 250 Hz, these settings, due to the causality of the used filters, introduce a delay of 131 ms. When evaluating the envelope
+versus non-causal filtering, the correlation of the reconstructed envelope versus the envelope obtained by the Hilbert transform is 0.7. The
+experiment is divided into 19 blocks</p>
+<figure class="align-default" id="id1">
+<img alt="_images/alpha-nfb-example.png" src="_images/alpha-nfb-example.png" />
+<figcaption>
+<p><span class="caption-text">Fig. 1. Experiment sequence (a) and feedback stimulus (b).</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<p>In the first part of the experiment (blocks 1-6 “Open” and “Close”) EEG data are recorded in states with eyes open and closed, respectively.
+Further, in block 7 (“CSP”), using the module “Filter settings by collected data”, a spatial filter corresponding to the alpha rhythm is selected
+from the functional samples obtained in blocks 1-6. For this, CSP analysis of “Open” vs. “Close” blocks is used. The use of CSP is motivated by
+the assumption that the source generating the alpha rhythm works in a synchronous mode with the eyes closed and de-synchronizes when the eyes are
+open.</p>
+<figure class="align-default" id="id2">
+<img alt="_images/alpha-nfb-example-stats.png" src="_images/alpha-nfb-example-stats.png" />
+<figcaption>
+<p><span class="caption-text">Fig. 2. Properties of the feedback signal.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
+</figcaption>
+</figure>
+<p>Figure 2 shows the properties of the selected CSP component, namely, a portion of the time series with a pronounced alpha spindle (a), the
+spectrum of the component in two states Open and Close (b), a spatial filter (c), and topography (d). Next, the resting state (Baseline) is
+recorded to calculate the z-score of signal statistics (mean and standard deviation). These statistics are needed to correctly display the
+reinforcing stimulus (b) in the future. This stimulus is an inflating circle and assumes that the mean of the selected signal is 0 and the
+standard deviation is 1. The roughness of the border of the circle is inversely proportional to the input signal. After that, training is carried
+out in the NFB paradigm: 10 sessions of 2 minutes without a break, among which half of the sessions are based on the presentation of a false
+(Mock) feedback (not corresponding to the current activity of the brain), and the second half is real feedback (Real).</p>
+<p>The experiment design is available at the link (<a class="reference external" href="https://github.com/nikolaims/nfb/blob/master/tests/designs/alpha_nfb_settings.xml">https://github.com/nikolaims/nfb/blob/master/tests/designs/alpha_nfb_settings.xml</a>).</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ssd.html" class="btn btn-neutral float-left" title="SSD" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="experiment_results_file.html" class="btn btn-neutral float-right" title="Results file structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016, Nikolai Smetanin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

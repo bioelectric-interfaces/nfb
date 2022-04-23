@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CSP &mdash; NFB Lab 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SSD" href="ssd.html" />
+    <link rel="prev" title="ICA" href="ica.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> NFB Lab
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="experimental_design.html">Experimental designer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment.html">Experiment</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="signals_manager.html">Data-driven filters (signals manager)</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ica.html">ICA</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">CSP</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-allotment-and-removal-of-the-alpha-activity">Example: allotment and removal of the alpha activity.</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ssd.html">SSD</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="alpha_nfb_example.html">Occipital alpha rhythm neurofeedback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiment_results_file.html">Results file structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="requirements.html">Requirements</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">NFB Lab</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="signals_manager.html">Data-driven filters (signals manager)</a> &raquo;</li>
+      <li>CSP</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/csp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="csp">
+<h1>CSP<a class="headerlink" href="#csp" title="Permalink to this headline"></a></h1>
+<img alt="_images/csp.png" src="_images/csp.png" />
+<p>Interface for CSP (common spatial pattern) decomposition looks similarly. This method allows you to select components with the highest ratio of signal power to the two windows (usually the first window corresponds to the first half of the recording, in which subject stays with closed eyes, in the second - open). A key part of the algorithm is the solution of the generalized eigenvalue problem. Algorithm parameters handed down and can be adjusted by sliders at the bottom of the window.</p>
+<section id="example-allotment-and-removal-of-the-alpha-activity">
+<h2>Example: allotment and removal of the alpha activity.<a class="headerlink" href="#example-allotment-and-removal-of-the-alpha-activity" title="Permalink to this headline"></a></h2>
+<p>This example is relevant for experiments in training the mu rhythm. As mu and alpha rhythms are in the same frequency range, only frequency filtering (specified in the properties of the derived signal) is not enough to highlight the mu rhythm. With CSP analysis it is possible to create a spatial filter, which reduces the contribution of alpha activity in the derived signal. The following describes a typical algorithm of this procedure:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Data collection. Allotment of the alpha activity is possible with the help of the following protocol: in the first half of a protocol give the task to the subject to seat with his/her eyes closed, and in the second - to open (in the settings of the protocol can be set checkbox “Add half time extra message” to change the message displayed on the screen at the moment when first half was completed). These two contrasting states are able to allocate space alpha activity in CSP algorithm.</p></li>
+<li><p>CSP decomposition of the collected data. During the experiment, at the end of the protocol, at the time of opening the signals manager, necessary to select the signal to which you want to add to filter alpha activity, t then click on the appropriate line of the open button from ICA column. Collected in the “Protocol Filters” multichannel data will be decomposed into n components by CSP (n - number of channels). Next window appears to visualize data components; in Figure 9 you could see an example.</p></li>
+<li><p>Selection a component corresponding to the alpha activity. Further, it is necessary to note row corresponded to components, in which observes alpha activity. In the example of Figure 9 such component 3 (1.3 parts).</p></li>
+<li><p>Creation spatial bandstop filter. After selecting the components that you want to exclude from the data, you must click “Reject selection”. For the selected signals will be created a spatial filter, which removes the selected CSP components. If you check the checkbox “add to all signals”, then the filter will be added to all derived signals.</p></li>
+<li><p>Continuation of the experiment. After closing signals manager in the real-time for selected derived signals will be applied a spatial filter, which removes the selected CSP components with alpha activity.</p></li>
+</ol>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="ica.html" class="btn btn-neutral float-left" title="ICA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ssd.html" class="btn btn-neutral float-right" title="SSD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2016, Nikolai Smetanin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
