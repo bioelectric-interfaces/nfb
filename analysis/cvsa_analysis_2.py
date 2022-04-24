@@ -31,7 +31,9 @@ task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/cvsa_test1/0-nfb_task_cvsa_test_04-06_17-35-45/experiment_data.h5"
 
 # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
-h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_16-09-15/experiment_data.h5"
+
+# h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_16-09-15/experiment_data.h5"
+h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_17-00-08/experiment_data.h5"
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -85,6 +87,17 @@ fig.show()
 
 
 # Get the AAI for the left, right, and centre trials
+
+# Get AAI from signal_AAI
+
+# Get AAI by calculating raw signals from hdf5
+
+# Get AAI by calculating signals from MNE
+
+# Compare MNE signals (with average ref) to raw hdf5 signals
+
+# Compare MNE AAI (with average ref) to AAI from raw signals
+
 
 
 
