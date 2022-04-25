@@ -7,7 +7,7 @@
 	<dAAIThresholdMean>0.0</dAAIThresholdMean>
 	<bUseAAIThreshold>0</bUseAAIThreshold>
 	<sPrefilterBand>None None</sPrefilterBand>
-	<sExperimentName>0-baseline_cvsa_test</sExperimentName>
+	<sExperimentName>{{ experiment }}</sExperimentName>
 	<sInletType>lsl</sInletType>
 	<sStreamName>BrainVision RDA</sStreamName>
 	<sEventsStreamName></sEventsStreamName>

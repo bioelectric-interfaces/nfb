@@ -13,8 +13,13 @@ if __name__ == "__main__":
         mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
     nfb_types = {"circle": 1, "bar": 2, "gabor": 3, "plot": 4, "posner":5}
 
+    # TODO: add a section here for all the params that need to be set per experiment
+    #   make this read in from an ini file with the name of the ini file the participant name?
+    #   have that ini file written by the calibration scripts (put all the calibration scripts into one
+    #   then the only thing is making sure the right data is saved in an appropriate location for the calibration scripts
+
     # Common settings
-    participant_no = "cvsa_test"
+    participant_no = "ct_noise_test"
     stream_name = "BrainVision RDA"
     band_low = 8
     band_high = 12
@@ -34,6 +39,7 @@ if __name__ == "__main__":
     eye_threshold = 1
     eye_range = 500
     stim_duration = 5 # TODO - make this random?
+    baseline_duration = 5
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -93,5 +99,6 @@ if __name__ == "__main__":
                                            posner_test=posner_test,
                                            eye_range=eye_range,
                                            eye_threshold=eye_threshold,
-                                           stim_duration=stim_duration)
+                                           stim_duration=stim_duration,
+                                           baseline_duration=baseline_duration)
             Tsk.create_task(participant=participant_no)
