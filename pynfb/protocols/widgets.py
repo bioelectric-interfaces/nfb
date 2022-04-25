@@ -449,6 +449,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         if self.train_side == 2:
             sample *= -1
 
+        # Set the fixation dot brush
+        self.fill.setBrush('black')
         # Scale the sample to the target colour range
         un_scaled_min = self.r_threshold
         un_scaled_max = self.max_th
@@ -549,10 +551,10 @@ class FixationCrossProtocolWidgetPainter(Painter):
             self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
         else:
             # draw fixation dot
-            self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=self.colour)).curve
-            self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=self.colour)).curve
-            fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(self.colour))
-            self.fill = fill_fd
+            self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0,0))).curve
+            self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0,0))).curve
+            fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0,0,0,0))
+            self.fill_fd = fill_fd
             widget.addItem(fill_fd)
 
         # Draw probe stim
@@ -576,6 +578,9 @@ class FixationCrossProtocolWidgetPainter(Painter):
         if np.ndim(sample)>0:
             sample = np.sum(sample)
 
+        # colour the fixation dot (Do this here otherwise you get weird flashes between protocols)
+        
+        self.fill_fd.setBrush(self.colour)
         # Draw the probe if requested
         if self.probe:
             logging.debug(f"PROBE DRAW START TIME: {time.time()*1000}")
