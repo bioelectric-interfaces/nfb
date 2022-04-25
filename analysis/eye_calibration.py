@@ -30,7 +30,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 # -------------
-h5file = "/Users/christopherturner/Documents/EEG_Data/eyecalibtest_20221401/horizontal/eye_calib_9pt_01-14_12-41-22/experiment_data.h5" # Horizontal 9 pt calibration
+h5file = "../pynfb/results/0-eye_calibration_ct_noise_test_04-25_12-30-03/experiment_data.h5" # Horizontal 9 pt calibration
 
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
@@ -40,7 +40,7 @@ df1['ECG_FILTERED'] = butter_lowpass_filter(df1['ECG'], cutoff, fs)
 df1['EOG_FILTERED'] = butter_lowpass_filter(df1['EOG'], cutoff, fs)
 
 # Get the left mid side (idx=13) and right mid side (idx=15)
-eye_calib_data = df1[df1['block_name'] == 'eye_calib']
+eye_calib_data = df1[df1['block_name'] == 'EyeCalib']
 left_calib_data = eye_calib_data[eye_calib_data['probe'] == 13]
 centre_calib_data = eye_calib_data[eye_calib_data['probe'] == 14]
 right_calib_data = eye_calib_data[eye_calib_data['probe'] == 15]
