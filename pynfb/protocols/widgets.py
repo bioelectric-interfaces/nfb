@@ -394,10 +394,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.widget = widget
         # Draw fixation dot
         self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
-                                      self.fixdot_radius * np.cos(self.circle), pen=pg.mkPen(color='black')).curve
+                                      self.fixdot_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0))).curve
         self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
-                                      self.fixdot_radius * -np.cos(self.circle), pen=pg.mkPen(color='black')).curve
-        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=('black'))
+                                      self.fixdot_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0))).curve
+        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0,0,0,0))
         self.fill = fill_fd
         widget.addItem(fill_fd)
 
@@ -406,18 +406,18 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         left_off_y = -1
         curve_width = 8
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
-                                     left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=curve_width)).curve
+                                     left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.st_l2 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
-                                     left_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color='black', width=curve_width)).curve
+                                     left_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
 
         right_off_x = 5
         right_off_y = -1
         self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
-                                     right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color='black', width=curve_width)).curve
+                                     right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
-                                     right_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color='black', width=curve_width)).curve
+                                     right_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
 
