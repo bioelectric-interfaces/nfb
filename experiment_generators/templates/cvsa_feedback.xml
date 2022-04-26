@@ -235,7 +235,7 @@
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>5</iRandomBound>
 			<sVideoPath>../defaults/lena.png</sVideoPath>
-			<sMSignal>EYE_TRACK</sMSignal>
+			<sMSignal>{{muscle_signal}}</sMSignal>
 			<fMSignalThreshold>{{eye_threshold}}</fMSignalThreshold>
 			<fEyeRange>{{eye_range}}</fEyeRange>
 			<bMockSource>0</bMockSource>

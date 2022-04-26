@@ -10,7 +10,7 @@ if __name__ == "__main__":
         mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201_sham/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
     else:
         userdir = "christopherturner"
-        mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/sh/scalp/0-nfb_task_SH01_01-11_15-50-56/experiment_data.h5'
+        mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
     nfb_types = {"circle": 1, "bar": 2, "gabor": 3, "plot": 4, "posner":5}
 
     # TODO: add a section here for all the params that need to be set per experiment
@@ -60,11 +60,13 @@ if __name__ == "__main__":
             left_spatial_filter_scalp = "PO7=1"#"PO7=1;P5=1;O1=1"
             right_spatial_filter_scalp = "PO8=1"#"PO8=1;P6=1;O2=1"
             mock_file = ''
+            muscle_signal = 'EYE_TRACK'
         elif session == 1:
             # sham
             left_spatial_filter_scalp = "PO7=1"#;P5=1;01=1"
             right_spatial_filter_scalp = "PO8=1"#;P6=1;02=1"
             mock_file = mock_file_path
+            muscle_signal = ''
         for task, template in tasks.items():
             if task == "test_task":
                 number_nfb_tasks = 10
@@ -100,5 +102,6 @@ if __name__ == "__main__":
                                            eye_range=eye_range,
                                            eye_threshold=eye_threshold,
                                            stim_duration=stim_duration,
-                                           baseline_duration=baseline_duration)
+                                           baseline_duration=baseline_duration,
+                                           muscle_signal=muscle_signal)
             Tsk.create_task(participant=participant_no)
