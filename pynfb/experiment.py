@@ -283,7 +283,7 @@ class Experiment():
                         posner_stim_time = int(time.time()*1000)
                         current_protocol.widget_painter.stim_side = self.posner_stim
                     # logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
-                    stim_response_period = 10 # time allowed for the participant to react to the stimulus
+                    stim_response_period = 2 # time allowed for the participant to react to the stimulus
                     if not current_protocol.widget_painter.kill:
                         current_protocol.widget_painter.kill = True
                         self.current_protocol_n_samples = self.samples_counter + (self.freq * stim_response_period) # Allow the protocol to end after the stimulus is displayed
@@ -585,7 +585,9 @@ class Experiment():
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.stim = False
                 self.posner_stim = r.choice([1, 2])
-                self.posner_stim_time = current_protocol.duration - 2 + r.uniform(0, 2)
+                reaction_buffer = 5
+                max_stim_var_time = 2
+                self.posner_stim_time = current_protocol.duration - reaction_buffer + r.uniform(0, max_stim_var_time) # NOTE: the actual nfb duration will be specified duration - reaction_buffer + rand(0,max_stim_var_time). the reaction buffer needs to be bigger than (max_stim_var_time+posner_duration) otherwise can just end
                 current_protocol.hold = True
 
             # Update the probe location, visibility, and start time

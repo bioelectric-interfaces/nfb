@@ -579,7 +579,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
             sample = np.sum(sample)
 
         # colour the fixation dot (Do this here otherwise you get weird flashes between protocols)
-        
+
         self.fill_fd.setBrush(self.colour)
         # Draw the probe if requested
         if self.probe:
