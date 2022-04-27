@@ -85,14 +85,25 @@ fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all')
 fig.show()
 
 
+# Get the AAI for the left, right, and centre trials from signal_AAI
+aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample','cue_dir']]
+aai_df = aai_df[aai_df['block_name'].str.contains("nfb")]
+grouped_aai_df = aai_df.groupby("block_number", as_index=False)
+median_aais = grouped_aai_df.median()
+fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all')
+fig.show()
 
-# Get the AAI for the left, right, and centre trials
-
-# Get AAI from signal_AAI
-
-# Get AAI by calculating raw signals from hdf5
+# Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)
 
 # Get AAI by calculating signals from MNE
+
+# Add baseline and cue AAIs to the plot
+
+
+# Plot the median of the left and right alphas from the raw signal
+side_data = pd.melt(median_aais, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
+fig = px.box(side_data, x="cue_dir", y="data", color='side', points='all')
+fig.show()
 
 
 
