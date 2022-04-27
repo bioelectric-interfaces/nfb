@@ -261,6 +261,20 @@ def get_nfb_epoch_power_stats(data, fband=(8, 14), fs=1000, channel_labels=None,
     return epoch_pwr_mean, epoch_pwr_std, epoch_pwr
 
 
+def get_nfblab_power_stats_pandas(data, fband=(8, 14), fs=1000, channel_labels=None, chs=None, fft_samps=1000):
+    """
+    TODO: refactor with above function
+    """
+    smoothing_factor = 0.7
+    smoother = ExponentialSmoother(smoothing_factor)
+    n_samples = fft_samps
+    signal_estimator = FFTBandEnvelopeDetector(fband, fs, smoother, n_samples)
+    pick_chs_string = ";".join(chs)
+    pwr = get_nfb_derived_sig(data, pick_chs_string, fs, channel_labels, signal_estimator)
+    pwr_mean = pwr.mean(axis=0)
+    pwr_std = pwr.std(axis=0)
+    return pwr_mean, pwr_std, pwr
+
 # TODO: add capability to plot epoch start time etc (verticle lines)
 def plot_nfb_epoch_stats(fig, e_mean1, e_std1, name="case1", title="epoch power", color=(255,0,0,1), y_range=None):
     fig.add_trace(
