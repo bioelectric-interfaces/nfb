@@ -146,7 +146,7 @@ m_info.set_montage(standard_montage, on_missing='ignore')
 m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
 
 # set the reference to average
-m_raw.set_eeg_reference(projection=True)
+# m_raw = m_raw.set_eeg_reference(projection=False) # NOTE: this seems to remove the effect!!!
 
 # Create the stim channel
 info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])

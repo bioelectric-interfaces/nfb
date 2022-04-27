@@ -94,9 +94,7 @@ fig.show()
 
 # Get AAI by calculating signals from MNE
 
-# Compare MNE signals (with average ref) to raw hdf5 signals
 
-# Compare MNE AAI (with average ref) to AAI from raw signals
 
 
 
@@ -143,7 +141,7 @@ m_info.set_montage(standard_montage, on_missing='ignore')
 m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
 
 # set the reference to average
-m_raw.set_eeg_reference(projection=True)
+m_raw = m_raw.set_eeg_reference(projection=True) # Be careful about using a projection vs actual data referencing in the analysis
 
 # Create the stim channel
 info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
