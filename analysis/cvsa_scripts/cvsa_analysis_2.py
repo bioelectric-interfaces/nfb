@@ -33,7 +33,7 @@ task_data = {}
 # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
 
 # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_16-09-15/experiment_data.h5"
-h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_17-00-08/experiment_data.h5"
+h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_ct_noise_test_04-26_10-00-42/experiment_data.h5"
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)

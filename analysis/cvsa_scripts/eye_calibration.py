@@ -1,22 +1,8 @@
 """
 Script to get the screen witdh from the eye calibration
 """
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import transforms
-from matplotlib.axis import Axis
-from matplotlib.transforms import Affine2D
-
-from pynfb.serializers.hdf5 import load_h5py_all_samples, load_h5py_protocol_signals, load_h5py_protocols_raw, load_h5py
 from utils.load_results import load_data
-import os
-import glob
-import pandas as pd
-import plotly.express as px
 from scipy.signal import butter, lfilter, freqz
-import mne
-
-import analysis_functions as af
 
 # ------ low pass filter
 def butter_lowpass(cutoff, fs, order=5):
@@ -30,7 +16,7 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 # -------------
-h5file = "../pynfb/results/0-eye_calibration_ct_noise_test_04-25_12-30-03/experiment_data.h5" # Horizontal 9 pt calibration
+h5file = "../../pynfb/results/0-eye_calibration_ct_noise_test_04-25_12-30-03/experiment_data.h5" # Horizontal 9 pt calibration
 
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
