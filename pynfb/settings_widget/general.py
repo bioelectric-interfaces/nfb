@@ -129,7 +129,7 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.form_layout.addRow('&Use AAI Thresholds:', self.enable_aai_threshold)
         self.enable_aai_threshold.stateChanged.connect(self.aai_threshold_activated)
         self.aai_threshold_mean = QtWidgets.QDoubleSpinBox()
-        self.aai_threshold_mean.setRange(0.0, 1.0)
+        self.aai_threshold_mean.setRange(-1.0, 1.0)
         self.aai_threshold_mean.setEnabled(False)
         self.aai_threshold_mean.valueChanged.connect(self.aai_mean_changed_event)
         self.form_layout.addRow('&AAI mean:', self.aai_threshold_mean)

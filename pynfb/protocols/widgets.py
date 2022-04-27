@@ -481,6 +481,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             target_brush = (255, scaled_sample, scaled_sample)
         else:
             # Target is being focussed on more - colour target green
+            scaled_sample = np.clip(scaled_sample, 0, 255)
             target_brush = (scaled_sample, 255, scaled_sample)
 
         if self.train_side == 1:
@@ -518,6 +519,23 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
             self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
 
+def scale_sample(sample, un_scaled_min, un_scaled_max):
+    """
+    TODO: move this to some helper file somewhere
+    Scale the sample from the AAI range to the range of 0-255 for controlling colours
+    """
+    scaled_min = 255
+    scaled_max = 0
+    un_scaled_range = (un_scaled_max - un_scaled_min)
+    scaled_range = (scaled_max - scaled_min)
+    scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+    scaled_sample = np.clip(scaled_sample, 0, 255)
+    if sample < un_scaled_min:
+        un_scaled_range = (un_scaled_max - un_scaled_min)
+        scaled_range = -(scaled_max - scaled_min)
+        scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+        scaled_sample = np.clip(scaled_sample, 0, 255)
+    return scaled_sample
 
 class FixationCrossProtocolWidgetPainter(Painter):
     def __init__(self, text="", colour=(0,0,0)):
