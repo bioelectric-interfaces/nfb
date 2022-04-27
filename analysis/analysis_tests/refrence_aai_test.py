@@ -114,11 +114,12 @@ fig.show()
 
 
 # Plot AAI calculated from raw
-mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:2000], fband=(8, 14), fs=1000,
+aai_duration_samps = 10000
+mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=(8, 14), fs=1000,
                                                              channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
                                                              fft_samps=1000)
 
-mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:2000], fband=(8, 14), fs=1000,
+mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=(8, 14), fs=1000,
                                                              channel_labels=m_raw.info.ch_names, chs=["PO8=1"],
                                                              fft_samps=1000)
 aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
@@ -128,7 +129,7 @@ fig_aai.add_trace(go.Scatter(y=aai_raw_left,
                     name='AAI_raw_left'))
 
 # Plot AAI calculated from avg ref data
-raw_ref_avg_df = pd.DataFrame(raw_ref_avg.get_data(stop=2000).T, columns=m_raw.info.ch_names)
+raw_ref_avg_df = pd.DataFrame(raw_ref_avg.get_data(stop=aai_duration_samps).T, columns=m_raw.info.ch_names)
 mean_avg_l, std_avg_l, pwr_avg_l = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=(8, 14), fs=1000,
                                                              channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
                                                              fft_samps=1000)
@@ -142,7 +143,7 @@ fig_aai.add_trace(go.Scatter(y=aai_avg_left,
                     name='AAI_avg_left'))
 
 # Plot AAI calculated from CZ ref data
-raw_ref_cz_df = pd.DataFrame(raw_ref_cz.get_data(stop=2000).T, columns=m_raw.info.ch_names)
+raw_ref_cz_df = pd.DataFrame(raw_ref_cz.get_data(stop=aai_duration_samps).T, columns=m_raw.info.ch_names)
 mean_cz_l, std_cz_l, pwr_cz_l = af.get_nfblab_power_stats_pandas(raw_ref_cz_df, fband=(8, 14), fs=1000,
                                                              channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
                                                              fft_samps=1000)
