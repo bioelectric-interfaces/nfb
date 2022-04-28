@@ -8,6 +8,8 @@ import pandas as pd
 
 h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-baseline_ct_noise_test_04-27_13-27-54/experiment_data.h5"
 
+h5file = "/Users/2354158T/OneDrive - University of Glasgow/Documents/cvsa_pilot_testing/lab_test_20220428/0-baseline_ct_test_04-28_16-49-26/experiment_data.h5"
+
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
@@ -28,6 +30,7 @@ for block in baseline_blocks:
         columns=['signal_left', 'signal_right', 'signal_AAI', 'events', 'reward', 'choice', 'answer', 'probe',
                  'block_name', 'chunk_n', 'cue', 'posner_stim', 'posner_time', 'response_data',
                  'block_number', 'sample'])
+    eeg_data = eeg_data[['PO7', 'PO8']]
 
     # create an MNE info
     m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs, ch_types=['eeg' for ch in list(eeg_data.columns)])
