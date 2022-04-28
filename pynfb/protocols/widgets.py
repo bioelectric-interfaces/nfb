@@ -402,8 +402,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         widget.addItem(fill_fd)
 
         # draw Left and right stim
-        left_off_x = -5
-        left_off_y = -1
+        xoffset = 4
+        yoffset = 1.5
+        left_off_x = -xoffset
+        left_off_y = -yoffset
         curve_width = 8
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                      left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
@@ -412,8 +414,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
 
-        right_off_x = 5
-        right_off_y = -1
+        right_off_x = xoffset
+        right_off_y = -yoffset
         self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                      right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),

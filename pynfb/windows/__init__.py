@@ -338,7 +338,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             x_range = (screen.width()-margins.left()-margins.right())/2
             self.figure.setYRange(-y_range, y_range)
             self.figure.setXRange(-x_range, x_range)
-        elif isinstance(self.current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
+        elif isinstance(self.current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter)):
             screen = QDesktopWidget().screenGeometry(self.figure)
             print(f"SCREEN H: {screen.height()}, SCREEN W: {screen.width()}")
             size = self.geometry()
@@ -352,7 +352,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             x_range = 10
             self.figure.setYRange(-y_range, y_range)
             self.figure.setXRange(-x_range, x_range)
-        elif isinstance(self.current_protocol.widget_painter, (PlotFeedbackWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter)):
+        elif isinstance(self.current_protocol.widget_painter, (PlotFeedbackWidgetPainter)):
             new_range = 500
             print(f"SETTING RANGE TO {new_range} FOR GRAPH FB")
             self.figure.setMaximumWidth(new_range)
