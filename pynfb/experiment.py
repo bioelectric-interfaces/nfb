@@ -239,15 +239,15 @@ class Experiment():
                     cue_cond = 0
                     if self.cue_cond == 1:
                         cue_cond = 1
-                        print("CUE LEFT")
+                        # print("CUE LEFT")
                         current_protocol.widget_painter.left_cue()
                     if self.cue_cond == 2:
                         cue_cond = 2
-                        print("CUE RIGHT")
+                        # print("CUE RIGHT")
                         current_protocol.widget_painter.right_cue()
                     if self.cue_cond == 3:
                         cue_cond = 3
-                        print("CUE CENTER")
+                        # print("CUE CENTER")
                         current_protocol.widget_painter.center_cue()
                     logging.info(
                         f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}, CUE ACTUAL SAMP START: {self.samples_counter}")
