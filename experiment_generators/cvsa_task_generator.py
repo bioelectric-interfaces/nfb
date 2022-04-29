@@ -19,7 +19,7 @@ if __name__ == "__main__":
     #   then the only thing is making sure the right data is saved in an appropriate location for the calibration scripts
 
     # Common settings
-    participant_no = "ct_noise_test"
+    participant_no = "ct_test"
     stream_name = "BrainVision RDA"
     band_low = 8
     band_high = 12
@@ -40,6 +40,9 @@ if __name__ == "__main__":
     eye_range = 500
     stim_duration = 5 # TODO - make this random?
     baseline_duration = 5
+    aai_threshold_mean = 0.2
+    aai_threshold_max = 0.5
+    use_aai_threshold = 1
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -103,5 +106,8 @@ if __name__ == "__main__":
                                            eye_threshold=eye_threshold,
                                            stim_duration=stim_duration,
                                            baseline_duration=baseline_duration,
-                                           muscle_signal=muscle_signal)
+                                           muscle_signal=muscle_signal,
+                                           aai_threshold_max=aai_threshold_max,
+                                           aai_threshold_mean=aai_threshold_mean,
+                                           use_aai_threshold=use_aai_threshold)
             Tsk.create_task(participant=participant_no)

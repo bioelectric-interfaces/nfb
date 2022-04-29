@@ -21,7 +21,8 @@ class ParticipantTaskGenerator:
                  right_spatial_filter_scalp="P3=1",
                  source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
                  baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=0, smooth_window=100,
-                 fft_window=250, mock_reward_threshold=0.0, nfb_type=2, posner_test=0, eye_range=500, eye_threshold=1, stim_duration=3, muscle_signal=''):
+                 fft_window=250, mock_reward_threshold=0.0, nfb_type=2, posner_test=0, eye_range=500, eye_threshold=1,
+                 stim_duration=3, muscle_signal='', aai_threshold_max=1, aai_threshold_mean=0, use_aai_threshold=1):
 
         self.template_file = template_file
         self.composite_signal = composite_signal
@@ -58,6 +59,9 @@ class ParticipantTaskGenerator:
         self.eye_range = eye_range
         self.eye_threshold = eye_threshold
         self.muscle_signal = muscle_signal
+        self.aai_threshold_mean = aai_threshold_mean
+        self.aai_threshold_max = aai_threshold_max
+        self.use_aai_threshold = use_aai_threshold
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -99,7 +103,10 @@ class ParticipantTaskGenerator:
             'eye_range': self.eye_range,
             'eye_threshold': self.eye_threshold,
             'stim_duration': self.stim_duration,
-            'muscle_signal': self.muscle_signal
+            'muscle_signal': self.muscle_signal,
+            'aai_threshold_mean': self.aai_threshold_mean,
+            'aai_threshold_max': self.aai_threshold_max,
+            'use_aai_threshold': self.use_aai_threshold
         }
         #
         with open(output_fname, 'w') as f:
