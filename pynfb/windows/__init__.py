@@ -15,7 +15,7 @@ from pynfb.protocols import ParticipantInputProtocol, ParticipantChoiceProtocol,
     EyeCalibrationProtocol
 from pynfb.protocols.widgets import ProtocolWidget, GaborFeedbackProtocolWidgetPainter, ParticipantChoiceWidgetPainter, \
     PlotFeedbackWidgetPainter, PosnerFeedbackProtocolWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter, \
-    PosnerCueProtocolWidgetPainter
+    PosnerCueProtocolWidgetPainter, FixationCrossProtocolWidgetPainter
 from pynfb.widgets.helpers import ch_names_to_2d_pos
 from pynfb.widgets.signals_painter import RawViewer
 from pynfb.widgets.topography import TopomapWidget
@@ -339,7 +339,7 @@ class SecondaryWindow(QtWidgets.QMainWindow):
             x_range = (screen.width()-margins.left()-margins.right())/2
             self.figure.setYRange(-y_range, y_range)
             self.figure.setXRange(-x_range, x_range)
-        elif isinstance(self.current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter, PosnerCueProtocolWidgetPainter)):
+        elif isinstance(self.current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter, EyeTrackFeedbackProtocolWidgetPainter, PosnerCueProtocolWidgetPainter, FixationCrossProtocolWidgetPainter)):
             screen = QDesktopWidget().screenGeometry(self.figure)
             print(f"SCREEN H: {screen.height()}, SCREEN W: {screen.width()}")
             size = self.geometry()

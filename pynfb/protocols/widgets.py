@@ -544,7 +544,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
         super(FixationCrossProtocolWidgetPainter, self).__init__()
         self.x = np.linspace(-0.25, 0.25, 10)
         self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
-        self.fixdot_radius = 0.1
+        self.fixdot_radius = 0.075
         self.text = text
         self.text_item = pg.TextItem()
         self.widget = None
