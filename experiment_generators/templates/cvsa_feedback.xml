@@ -412,7 +412,7 @@
 		<PGroup>
 			<sName>fb_group</sName>
 			<sList>fc cue nfb</sList>
-			<sNumberList>1 1 1 1</sNumberList>
+			<sNumberList>1 1 1</sNumberList>
 			<bShuffle>0</bShuffle>
 			<sSplitBy></sSplitBy>
 		</PGroup>
