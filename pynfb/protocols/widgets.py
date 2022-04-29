@@ -629,8 +629,8 @@ class PosnerCueProtocolWidgetPainter(Painter):
         cond = side to draw cue. 0=left, 1=right, 2=center
         """
         super(PosnerCueProtocolWidgetPainter, self).__init__()
-        self.s1 = np.linspace(-0.25, 0, 10)
-        self.s2 = np.linspace(0, 0.25, 10)
+        self.s1 = np.linspace(-0.15, 0, 10)
+        self.s2 = np.linspace(0, 0.15, 10)
         self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
         self.fixdot_radius = 0.1
         self.cond = cond
