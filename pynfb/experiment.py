@@ -280,7 +280,7 @@ class Experiment():
                         current_protocol.widget_painter.stim_side = 0
                         posner_stim_time = int(0)
                     else:
-                        posner_stim_time = int(time.time()*1000)
+                        posner_stim_time = int(0)#int(time.time()*1000)
                         current_protocol.widget_painter.stim_side = self.posner_stim
                     # logging.debug(f"POSNER SAMPLE START (samp): {stim_samp}, ACTUAL STRT SAMP: {self.samples_counter}")
                     stim_response_period = 2 # time allowed for the participant to react to the stimulus
@@ -295,6 +295,7 @@ class Experiment():
                     elif current_protocol.hold == False:
                         # End the protocol immediately if the participant presses a key
                         self.current_protocol_n_samples = self.samples_counter
+                        posner_stim_time = int(current_protocol.widget_painter.stim_onset_time)
                         logging.debug(f"HOLD DISABLED AT {time.time()*1000}")
                         logging.debug(f"KEY PRESS TIME: {self.subject.key_press_time}")
                         self.response_recorder[self.samples_counter - 1] = int(self.subject.key_press_time or 0)

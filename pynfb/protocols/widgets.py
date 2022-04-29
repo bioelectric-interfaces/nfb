@@ -386,11 +386,12 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.test_signal_sample = 0
         self.no_nfb = no_nfb
         self.max_th = max_th
+        self.stim_onset_time = False
         self.kill = False # flag to allow widget to be killed (after target is displayed)
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
-
+        self.stim_onset_time = False
         self.widget = widget
         # Draw fixation dot
         self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
@@ -505,6 +506,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
         if self.stim and self.stim_side == 1:
             logging.debug(f"LEFT STIM: {time.time()*1000}")
+            if not self.stim_onset_time:
+                self.stim_onset_time = time.time()*1000
             self.cr_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
             self.cr_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
         else:
@@ -515,6 +518,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.st_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
         if self.stim and self.stim_side == 2:
             logging.debug(f"RIGHT STIM: {time.time()*1000}")
+            if not self.stim_onset_time:
+                self.stim_onset_time = time.time()*1000
             self.cr_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
             self.cr_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
         else:
