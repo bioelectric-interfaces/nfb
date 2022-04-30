@@ -29,11 +29,13 @@ else:
 
 task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/cvsa_test1/0-nfb_task_cvsa_test_04-06_17-35-45/experiment_data.h5"
-
 # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
-
 # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_cvsa_test_04-22_16-09-15/experiment_data.h5"
-h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_ct_noise_test_04-26_10-00-42/experiment_data.h5"
+# h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_ct_noise_test_04-26_10-00-42/experiment_data.h5"
+# h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_ct_test_04-29_17-42-07/experiment_data.h5"
+
+#--- lab test 28/04/22
+h5file = "/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-nfb_task_ct_test_04-28_17-39-22/experiment_data.h5"
 
 # Put data in pandas data frame
 df1, fs, channels, p_names = load_data(h5file)
@@ -85,28 +87,73 @@ fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all')
 fig.show()
 
 
-# Get the AAI for the left, right, and centre trials from signal_AAI
-aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample','cue_dir']]
+# Get the AAI for the left, right, and centre trials from signal_AAI----------------------------
+aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'cue_dir']]
 aai_df = aai_df[aai_df['block_name'].str.contains("nfb")]
 grouped_aai_df = aai_df.groupby("block_number", as_index=False)
 median_aais = grouped_aai_df.median()
-fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all')
+fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all', range_y=[-0.3, 0.2])
 fig.show()
-
-# Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)
-
-# Get AAI by calculating signals from MNE
-
-# Add baseline and cue AAIs to the plot
-
-
-# Plot the median of the left and right alphas from the raw signal
+# Plot the median of the left and right alphas from the online AAI signal
 side_data = pd.melt(median_aais, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
 fig = px.box(side_data, x="cue_dir", y="data", color='side', points='all')
 fig.show()
 
 
+# Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
+# Drop non eeg data
+drop_cols = [x for x in df1.columns if x not in channels]
+drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+eeg_data = df1.drop(columns=drop_cols)
 
+# Rescale the data (units are microvolts - i.e. x10^-6
+eeg_data = eeg_data * 1e-6
+aai_duration_samps = df1.shape[0]#10000
+mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=(7.25, 11.25), fs=1000,
+                                                             channel_labels=eeg_data.columns, chs=["PO7=1"],
+                                                             fft_samps=1000)
+
+mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=(7.25, 11.25), fs=1000,
+                                                             channel_labels=eeg_data.columns, chs=["PO8=1"],
+                                                             fft_samps=1000)
+aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=eeg_data.index, y=aai_raw_left,
+                    mode='lines',
+                    name='AAI_calc'))
+fig.add_trace(go.Scatter(x=eeg_data.index, y=df1['signal_AAI'],
+                    mode='lines',
+                    name='AAI_online'))
+fig.show()
+
+# Plot the median of the left and right alphas from the online AAI signal
+aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
+aai_df_raw['raw_aai'] = aai_raw_left
+aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("nfb")]
+grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
+median_aais_raw = grouped_aai_df_raw.median()
+fig = px.violin(median_aais_raw, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2])
+fig.show()
+# Plot the median of the left and right alphas from the online AAI signal
+side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
+fig = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all')
+fig.show()
+
+
+# Get AAI by calculating signals from MNE-------------------------------
+# (try with avg and no referencing (no ref should be the same))
+
+
+# Do the epoching and Add baseline and cue AAIs to the plot-----------------
+
+
+
+
+
+# TODO:
+#   2. look at epochs for all sections
+#   3. plot against cues and fixation crosses
 
 
 
