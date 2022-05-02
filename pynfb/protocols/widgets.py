@@ -150,8 +150,8 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
         self.widget = None
         self.m_threshold = m_threshold
         self.r_threshold = r_threshold
-        self.centre_fixation = center_fixation
-        self.eye_range = 580
+        self.centre_fixation = 109# center_fixation
+        self.eye_range = 586 #580
 
 
     def prepare_widget(self, widget):
@@ -166,6 +166,24 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
         self.fill = fill_fd
         widget.addItem(fill_fd)
 
+        # add a left and right marker
+        x_offset = 10
+        self.left_markb = self.widget.plot(-x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
+                                      self.fixdot_radius/4 * np.cos(self.fixdot), pen=pg.mkPen(color='blue')).curve
+        self.left_markt = self.widget.plot(-x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
+                                      self.fixdot_radius/4 * -np.cos(self.fixdot), pen=pg.mkPen(color='blue')).curve
+        left_mark_fill = pg.FillBetweenItem(self.left_markb, self.left_markt, brush=('blue'))
+        self.left_mark_fill = left_mark_fill
+        widget.addItem(left_mark_fill)
+
+        self.right_markb = self.widget.plot(x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
+                                      self.fixdot_radius/4 * np.cos(self.fixdot), pen=pg.mkPen(color='green')).curve
+        self.right_markt = self.widget.plot(x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
+                                      self.fixdot_radius/4 * -np.cos(self.fixdot), pen=pg.mkPen(color='green')).curve
+        right_mark_fill = pg.FillBetweenItem(self.right_markb, self.right_markt, brush=('green'))
+        self.right_mark_fill = right_mark_fill
+        widget.addItem(right_mark_fill)
+
     def set_red_state(self, flag):
         if flag:
             self.p1_fd.setPen(pg.mkPen(176, 35, 48))
@@ -178,17 +196,17 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
 
     def redraw_state(self, sample, m_sample):
         # Map the centre fixation to the min and the max fixation to the edge of the screen
-        un_scaled_min = self.centre_fixation
-        un_scaled_max = self.eye_range/2
-        scaled_min = 0
-        scaled_max = 5
+        un_scaled_min = self.centre_fixation + self.eye_range/2#self.centre_fixation
+        un_scaled_max = self.centre_fixation - self.eye_range/2
+        scaled_min = -25
+        scaled_max = 25
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
         scaled_sample = (((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
         # if sample < self.centre_fixation:
-        #     un_scaled_min = self.eye_range/2
+        #     un_scaled_min = - self.eye_range/2
         #     un_scaled_max = self.centre_fixation
-        #     scaled_min = -5
+        #     scaled_min = -10
         #     scaled_max = 0
         #     un_scaled_range = (un_scaled_max - un_scaled_min)
         #     scaled_range = (scaled_max - scaled_min)
