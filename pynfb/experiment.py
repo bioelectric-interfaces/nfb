@@ -249,8 +249,8 @@ class Experiment():
                         cue_cond = 3
                         # print("CUE CENTER")
                         current_protocol.widget_painter.center_cue()
-                    logging.info(
-                        f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}, CUE ACTUAL SAMP START: {self.samples_counter}")
+                    # logging.info(
+                    #     f"CUE COND: {self.cue_cond}, CUE DURATION (samps): {cue_dur_samp}, CUE START (time): {self.cue_random_start}, CUE START (samp) {cue_start_samp}, CUE END (samp): {cue_end_samp}, CUE ACTUAL SAMP START: {self.samples_counter}")
 
             self.cue_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
             self.cue_recorder[self.samples_counter - 1] = int(cue_cond or 0)
@@ -554,7 +554,8 @@ class Experiment():
 
             # update the movement threshold for feedback protocol
             if isinstance(current_protocol.widget_painter, (PosnerFeedbackProtocolWidgetPainter)):
-                eye_threshold = self.median_eye_signal + current_protocol.eye_range * 0.1 # TODO - calibrate this
+                eye_threshold = self.median_eye_signal + current_protocol.eye_range/2 * 0.1 # TODO - calibrate this
+                logging.info(f"MED EYE SIGNAL: {self.median_eye_signal}, THRESHOLD: {eye_threshold}")
                 current_protocol.widget_painter.m_threshold = eye_threshold
 
             # Update the choice gabor angle, score, and sample idx

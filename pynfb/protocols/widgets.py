@@ -578,6 +578,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 200)
         self.probe_radius = 0.1
         self.fixation_type = "dot"
+        self.m_threshold=0
 
     def prepare_widget(self, widget):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
@@ -616,8 +617,8 @@ class FixationCrossProtocolWidgetPainter(Painter):
             pass
 
     def redraw_state(self, sample, m_sample):
-        if m_sample is not None:
-            self.set_red_state(m_sample > self.m_threshold)
+        # if m_sample is not None:
+        #     self.set_red_state(m_sample > self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
 

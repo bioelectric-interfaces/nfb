@@ -429,6 +429,7 @@ class ProtocolDialog(QtWidgets.QDialog):
                    [d['sSignalName'] for d in self.parent().parent().params['vSignals']['CompositeSignal']])
         self.m_signal.addItems(['None'] + signals)
         self.m_signal.setEnabled(self.type.currentText() == 'Feedback')
+        self.m_signal.setEnabled(self.type.currentText() == 'FixationCross')
         self.m_signal_threshold.setEnabled(self.type.currentText() == 'Feedback')
         current_index = self.m_signal.findText(current_protocol['sMSignal'], QtCore.Qt.MatchFixedString)
         self.m_signal.setCurrentIndex(current_index if current_index > -1 else 0)

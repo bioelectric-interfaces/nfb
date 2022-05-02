@@ -321,7 +321,7 @@
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
 			<sVideoPath>../defaults/lena.png</sVideoPath>
-			<sMSignal>None</sMSignal>
+			<sMSignal>{{muscle_signal}}</sMSignal>
 			<fMSignalThreshold>1.0</fMSignalThreshold>
 			<bMockSource>0</bMockSource>
 			<bEnableDetectionTask>0</bEnableDetectionTask>
