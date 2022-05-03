@@ -12,11 +12,13 @@ from cvsa_thresholding import cvsa_threshold
 import platform
 import configparser
 import os
+import sys
 
 if __name__ == "__main__":
     # read in the config
     config = configparser.ConfigParser()
-    config.read('example.ini')
+    # config.read('example.ini')
+    config.read(sys.argv[1])
 
     # if data is present, calculate the appropriate thresholds and generate the rest of the experiment files
     iaf = False
