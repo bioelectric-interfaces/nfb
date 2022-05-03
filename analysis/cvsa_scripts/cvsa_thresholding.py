@@ -37,86 +37,87 @@ if platform.system() == "Windows":
 else:
     userdir = "christopherturner"
 
-# Read in the raw data of the test
-task_data = {}
-# h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
-h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
 
-df1, fs, channels, p_names = load_data(h5file)
-df1['sample'] = df1.index
+def cvsa_threshold(h5file, plot=False):
+    df1, fs, channels, p_names = load_data(h5file)
+    df1['sample'] = df1.index
 
-# Drop non eeg data
-drop_cols = [x for x in df1.columns if x not in channels]
-drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
-eeg_data = df1.drop(columns=drop_cols)
+    # Drop non eeg data
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data = df1.drop(columns=drop_cols)
 
-# Rescale the data (units are microvolts - i.e. x10^-6
-eeg_data = eeg_data * 1e-6
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
 
-# Drop everthing except the AAI
-df1 = df1[['signal_AAI', 'block_name', 'block_number', 'sample']]
+    # Drop everthing except the AAI
+    df1 = df1[['signal_AAI', 'block_name', 'block_number', 'sample']]
 
-# Extract all of the AAI blocks
-df1 = df1[df1['block_name'].str.contains("nfb")]
+    # Extract all of the AAI blocks
+    df1 = df1[df1['block_name'].str.contains("nfb")]
 
-# Calculate mean of all AAI blocks
-# block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
+    # Calculate mean of all AAI blocks
+    # block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
 
-# Fit normal distribution
-data = df1['signal_AAI'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
-# Fit a normal distribution to the data:
-mu, std = norm.fit(data)
-# Plot the histogram.
-plt.hist(data, bins=20, density=True, alpha=0.6, color='g')
-# Plot the PDF.
-xmin, xmax = plt.xlim()
-x = np.linspace(xmin, xmax, 100)
-p = norm.pdf(x, mu, std)
-plt.plot(x, p, 'k', linewidth=2)
-title = "Fit results: mu = %.2f,  std = %.2f" % (mu, std)
-plt.title(title)
-plt.show()
-print(f"ONLINE AAI MEAN: {mu}, STD: {std}")
+    # Fit normal distribution
+    data = df1['signal_AAI'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
+    # Fit a normal distribution to the data:
+    mu_online, std_online = norm.fit(data)
+    # Plot the histogram.
+    plt.hist(data, bins=20, density=True, alpha=0.6, color='g')
+    # Plot the PDF.
+    xmin, xmax = plt.xlim()
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu_online, std_online)
+    plt.plot(x, p, 'k', linewidth=2)
+    title = "Fit results: mu_online = %.2f,  std _online= %.2f" % (mu_online, std_online)
+    plt.title(title)
+    if plot:
+        plt.show()
+    print(f"ONLINE AAI MEAN: {mu_online}, STD: {std_online}")
 
-# Do the same, but for the raw AAI
-# Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
+    # Do the same, but for the raw AAI
+    # Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
 
-aai_duration_samps = df1.shape[0]#10000
-alpha_band = (7.25, 11.25)
-mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
-                                                             channel_labels=eeg_data.columns, chs=["PO7=1"],
-                                                             fft_samps=1000)
+    aai_duration_samps = df1.shape[0]#10000
+    alpha_band = (7.25, 11.25)
+    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
+                                                                 channel_labels=eeg_data.columns, chs=["PO7=1"],
+                                                                 fft_samps=1000)
 
-mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
-                                                             channel_labels=eeg_data.columns, chs=["PO8=1"],
-                                                             fft_samps=1000)
-aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
+    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
+                                                                 channel_labels=eeg_data.columns, chs=["PO8=1"],
+                                                                 fft_samps=1000)
+    aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
-df1['raw_aai'] = aai_raw_left
+    df1['raw_aai'] = aai_raw_left
 
 
-# Calculate mean of all AAI blocks
-# Fit normal distribution
-data = df1['raw_aai'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
-# Fit a normal distribution to the data:
-mu, std = norm.fit(data)
-# Plot the histogram.
-plt.hist(data, bins=20, density=True, alpha=0.6, color='g')
-# Plot the PDF.
-xmin, xmax = plt.xlim()
-x = np.linspace(xmin, xmax, 100)
-p = norm.pdf(x, mu, std)
-plt.plot(x, p, 'k', linewidth=2)
-title = "Fit results: mu = %.2f,  std = %.2f" % (mu, std)
-plt.title(title)
+    # Calculate mean of all AAI blocks
+    # Fit normal distribution
+    data = df1['raw_aai'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
+    # Fit a normal distribution to the data:
+    mu_raw, std_raw = norm.fit(data)
+    # Plot the histogram.
+    plt.hist(data, bins=20, density=True, alpha=0.6, color='g')
+    # Plot the PDF.
+    xmin, xmax = plt.xlim()
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu_raw, std_raw)
+    plt.plot(x, p, 'k', linewidth=2)
+    title = "Fit results: mu_raw = %.2f,  std_raw = %.2f" % (mu_raw, std_raw)
+    plt.title(title)
+    if plot:
+        plt.show()
 
-plt.show()
+    print(f"RAW AAI MEAN: {mu_raw}, STD: {std_raw}")
 
-print(f"RAW AAI MEAN: {mu}, STD: {std}")
+    return mu_raw, std_raw
 
+if __name__ == "__main__":
+    # Read in the raw data of the test
+    task_data = {}
+    # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
+    h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
+    mu, std = cvsa_threshold(h5file)
 
-
-
-
-
-pass
