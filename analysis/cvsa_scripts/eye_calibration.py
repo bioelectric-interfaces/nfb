@@ -77,6 +77,6 @@ def eye_calibration(h5file, plot=False):
 
 if __name__ == "__main__":
     # -------------
-    # h5file = "../../pynfb/results/0-eye_calibration_ct_test_05-02_16-35-24/experiment_data.h5"  # Horizontal 9 pt calibration
-    h5file = "/Users/2354158T/OneDrive - University of Glasgow/Documents/cvsa_pilot_testing/lab_test_20220428/0-eye_calibration_ct_test_04-28_17-20-40/experiment_data.h5"
+    h5file = "/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-eye_calibration_ct_test_04-28_17-20-40/experiment_data.h5"  # Horizontal 9 pt calibration
+    # h5file = "/Users/2354158T/OneDrive - University of Glasgow/Documents/cvsa_pilot_testing/lab_test_20220428/0-eye_calibration_ct_test_04-28_17-20-40/experiment_data.h5"
     eye_centre, eye_range = eye_calibration(h5file)

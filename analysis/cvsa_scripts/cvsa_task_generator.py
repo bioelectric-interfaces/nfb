@@ -7,6 +7,8 @@ It then generates the rest of the experiment scripts
 
 from experiment_generators.participant_generator import ParticipantTaskGenerator
 from iaf_calculation import iaf_from_baseline
+from eye_calibration import eye_calibration
+from cvsa_thresholding import cvsa_threshold
 import platform
 import configparser
 
@@ -31,17 +33,18 @@ if __name__ == "__main__":
     eye_range = 500
     if config['FILES']['eye_calibration']:
         # GENERATE the eye thresholds
+        eye_centre, eye_range = eye_calibration(config['FILES']['eye_calibration'])
         eye_threshold = True
-        eye_range = 500
 
     aai_thresholds = False
     aai_threshold_mean = 0
     aai_threshold_max = 1
     if config['FILES']['aai_test']:
-        aai_thresholds = True
         # GENERATE the AAI thresholds
-        aai_threshold_mean = 0.2
-        aai_threshold_max = 0.5
+        aai_thresholds = True
+        mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True)
+        aai_threshold_mean = mu
+        aai_threshold_max = 2 * std
 
     nfb_template = None
     if eye_threshold and aai_thresholds and iaf:
