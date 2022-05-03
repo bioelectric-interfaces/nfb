@@ -618,6 +618,7 @@ class Experiment():
                     block_average_score = round(np.mean(self.block_score))
                     # current_protocol.widget_painter.text = f"{self.percent_score} %"
                     current_protocol.widget_painter.text = f"{block_average_score} %"
+                    logging.info(f"BLOCK AVERAGE SCORE: {block_average_score}")
 
 
             # prepare mock from raw if necessary
