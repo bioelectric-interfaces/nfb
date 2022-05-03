@@ -11,6 +11,7 @@ from eye_calibration import eye_calibration
 from cvsa_thresholding import cvsa_threshold
 import platform
 import configparser
+import os
 
 if __name__ == "__main__":
     # read in the config
@@ -51,8 +52,8 @@ if __name__ == "__main__":
         nfb_template = "cvsa_feedback.xml"
 
     if platform.system() == "Windows":
-        userdir = "2354158T"
-        mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201_sham/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
+        userdir = os.path.join("2354158T", "OneDrive - University of Glasgow")
+        mock_file_path = f'/Users/{userdir}/Documents/cvsa_pilot_testing/lab_test_20220428/0-nfb_task_ct_test_04-28_17-39-22/experiment_data.h5'
     else:
         userdir = "christopherturner"
         mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
