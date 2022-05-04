@@ -111,7 +111,7 @@ if __name__ == "__main__":
         for task, template in tasks.items():
             if template:
                 if task == "test_task":
-                    number_nfb_tasks = 10
+                    number_nfb_tasks = 15
                     posner_test = 1
                     stim_duration = 3
                 elif task == "nfb_task":
