@@ -77,7 +77,7 @@ def get_posner_time(df1):
     return df1
 
 
-def cvsa_analysis(df1, fs, channels, p_names, block_idx=0):
+def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     # TODO - refactor all this nicely (and use/ add to/ refactor the helper functions)
 
     # Plot reaction times for valid, invalid, and no training trials
@@ -87,7 +87,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0):
     rt_df = rt_df.drop_duplicates(['block_number'], keep='first')
 
 
-    fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all', title=f"block:{block_idx}")
+    fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all', title=f"block:{block_idx}_{participant}")
     fig.show()
 
 
@@ -101,7 +101,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0):
     grouped_aai_df = aai_df.groupby("block_number", as_index=False)
     median_aais = grouped_aai_df.median()
     median_aais['cue_dir'] = grouped_aai_df.first()['cue_dir']
-    fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx} (online AAI)")
+    fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (online AAI)")
     fig.show()
     # # Plot the median of the left and right alphas from the online AAI signal
     # side_data = pd.melt(median_aais, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
@@ -144,11 +144,11 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0):
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
     median_aais_raw['cue_dir'] = grouped_aai_df_raw.first()['cue_dir']
-    fig = px.violin(median_aais_raw, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx} (raw_ref)")
+    fig = px.violin(median_aais_raw, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (raw_ref)")
     fig.show()
     # Plot the median of the left and right alphas from the online AAI signal
     side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    fig = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx} (raw_ref)")
+    fig = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)")
     fig.show()
     return eeg_data
 
@@ -196,11 +196,11 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0):
     grouped_aai_df_avg = aai_df_avg.groupby("block_number", as_index=False)
     median_aais_avg = grouped_aai_df_avg.median()
     median_aais_avg['cue_dir'] = grouped_aai_df_avg.first()['cue_dir']
-    fig = px.violin(median_aais_avg, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx} (avg_ref)")
+    fig = px.violin(median_aais_avg, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
     fig.show()
     # Plot the median of the left and right alphas from the online AAI signal
     side_data_avg = pd.melt(median_aais_avg, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    fig = px.box(side_data_avg, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx} (avg_ref)")
+    fig = px.box(side_data_avg, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (avg_ref)")
     fig.show()
 
 
@@ -225,13 +225,13 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0):
     grouped_block_type_df = block_type_df.groupby("block_number", as_index=False)
     median_block_type = grouped_block_type_df.median(numeric_only=False)
     median_block_type['block_type'] = grouped_block_type_df.first()['block_type']
-    fig = px.violin(median_block_type, x="block_type", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx} (avg_ref)")
+    fig = px.violin(median_block_type, x="block_type", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
     fig.show()
-    fig = px.box(median_block_type, x="block_type", y="raw_aai", points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx} (avg_ref)")
+    fig = px.box(median_block_type, x="block_type", y="raw_aai", points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
     fig.show()
     # Plot the median of the left and right alphas from the online AAI signal
     block_type_side_data = pd.melt(median_block_type, id_vars=['block_type'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    fig = px.box(block_type_side_data, x="block_type", y="data", color='side', points='all', title=f"block:{block_idx} (avg_ref)")
+    fig = px.box(block_type_side_data, x="block_type", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (avg_ref)")
     fig.show()
 
 
@@ -349,21 +349,27 @@ if __name__ == "__main__":
         userdir = "2354158T"
     else:
         userdir = "christopherturner"
-    participant_id = 'PO1'
+    participant_id = 'PO0'
     participant_dir = os.path.join(os.sep, "Users", userdir,"Documents","EEG_Data","pilot2_COPY",participant_id)
     nfb_data_dirs = [x for x in os.listdir(participant_dir) if '0-nfb' in x]
     sham_data_dirs = [x for x in os.listdir(participant_dir) if '1-nfb' in x]
-
     # Look at RTs and AAI stuff for each section in NFB and SHAM
     nfb_data_dfs = []
     for idx, data_dir in enumerate(nfb_data_dirs):
         h5file = os.path.join(participant_dir, data_dir, "experiment_data.h5")
+        # h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_test3_05-08_22-07-45/experiment_data.h5"
         df1, fs, channels, p_names = load_data(h5file)
         df1 = get_cue_dir(df1)
         df1 = get_posner_time(df1)
         df1["block_number"] = df1["block_number"] + idx * 100
-        # cvsa_analysis(df1, fs, channels, p_names, f"NFB_{idx}")
+        cvsa_analysis(df1, fs, channels, p_names, f"NFB_{idx}", participant_id)
         nfb_data_dfs.append(df1)
+
+        # block_lengths = {}
+        # for block_no in df1[df1.posner_time > 0]['block_number'].to_list():
+        #     block = df1[df1.block_number == block_no]
+        #     block_lengths[block_no] = block.shape[0]
+
 
     sham_data_dfs = []
     for idx, data_dir in enumerate(sham_data_dirs):
