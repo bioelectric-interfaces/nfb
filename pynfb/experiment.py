@@ -292,6 +292,7 @@ class Experiment():
                         # NOTE: Must have the max experiment samples larger than the posner feedback + 2 otherwise can get stuck todo: fix this
                         self.current_protocol_n_samples = self.samples_counter
                         current_protocol.hold = False
+                        posner_stim_time = int(current_protocol.widget_painter.stim_onset_time) # Make sure to record the posner stim time if the participant doesn't get it
                     elif current_protocol.hold == False:
                         # End the protocol immediately if the participant presses a key
                         self.current_protocol_n_samples = self.samples_counter
