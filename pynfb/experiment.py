@@ -71,7 +71,7 @@ class Experiment():
         self.choice_fb = None
         self.nfb_samps = 0
         self.percent_score = 0
-        self.block_score = []
+        self.block_score = {}
         self.restart()
         logging.info(f"{__name__}: ")
         pass
@@ -399,7 +399,7 @@ class Experiment():
                         self.percent_score = round((self.fb_score / max_reward) * 100)
                         if self.cue_cond in [1, 2]:
                             # Only append the score for averaging if it is not a center condition
-                            self.block_score.append(self.percent_score)
+                            self.block_score[self.current_protocol_index] = self.percent_score
                         logging.debug(
                             f"PROTOCOL: {self.current_protocol_index}, MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: {self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
                         logging.debug(f"BLOCK SCORE: {self.block_score}")
@@ -616,7 +616,7 @@ class Experiment():
             if current_protocol.show_pc_score_after:
                 # display the previous percent score if fixation cross protocol
                 if isinstance(current_protocol.widget_painter, FixationCrossProtocolWidgetPainter):
-                    block_average_score = round(np.mean(self.block_score))
+                    block_average_score = round(np.mean(list(self.block_score.values())))
                     # current_protocol.widget_painter.text = f"{self.percent_score} %"
                     current_protocol.widget_painter.text = f"{block_average_score} %"
                     logging.info(f"BLOCK AVERAGE SCORE: {block_average_score}")
@@ -689,7 +689,7 @@ class Experiment():
 
     def restart(self):
 
-        self.block_score = []
+        self.block_score = {}
 
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
