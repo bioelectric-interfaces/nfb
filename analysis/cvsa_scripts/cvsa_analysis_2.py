@@ -150,9 +150,44 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
     fig = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)")
     fig.show()
-    return eeg_data
+
+    figb = go.Figure()
+    figb.add_trace(go.Box(x=median_aais_raw['cue_dir'], y=median_aais_raw['raw_aai'],
+                          line=dict(color='blue'),
+                          name='nfb'))
+
+    # TODO - fix this code so the names don't copy from above
+    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
+    aai_df_raw['raw_aai'] = aai_raw_left
+    aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("fc")]
+    grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
+    median_aais_raw = grouped_aai_df_raw.median()
+    median_aais_raw['cue_dir'] = grouped_aai_df_raw.first()['cue_dir']
+    figb.add_trace(go.Box(y=median_aais_raw['raw_aai'],
+                          line=dict(color='green'),
+                          name='fc'))
+
+    # TODO - fix this code so the names don't copy from above
+    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
+    aai_df_raw['raw_aai'] = aai_raw_left
+    aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("cue")]
+    grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
+    median_aais_raw = grouped_aai_df_raw.median()
+    median_aais_raw['cue_dir'] = grouped_aai_df_raw.first()['cue_dir']
+    figb.add_trace(go.Box(y=median_aais_raw['raw_aai'],
+                          line=dict(color='red'),
+                          name='cue'))
+    figb.update_layout(
+        title=f"block:{block_idx}_{participant} section AAI",
+        hovermode="x",
+    )
+    figb.show()
 
 
+    return eeg_data, alpha_band
+
+
+def epoch_analysis(eeg_data, alpha_band, block_idx, participant):
     # Get AAI by calculating signals from MNE-------------------------------
     # (try with avg and no referencing (no ref should be the same))
 
@@ -176,6 +211,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     # set the reference to average
     # m_raw = m_raw.set_eeg_reference(projection=False) # Be careful about using a projection vs actual data referencing in the analysis
 
+    aai_duration_samps = eeg_data.shape[0]#10000
     raw_ref_avg_df = pd.DataFrame(m_raw.get_data(stop=aai_duration_samps).T, columns=m_raw.info.ch_names)
     mean_avg_l, std_avg_l, pwr_avg_l = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=1000,
                                                                  channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
@@ -235,111 +271,132 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     fig.show()
 
 
-#
-#
-# # Do the epoching and Add baseline and cue AAIs to the plot-----------------
-# # TODO:
-# #   2. look at epochs for all sections
-# #   3. plot against cues and fixation crosses
-#
-# # Create the stim channel
-# # --- Get the probe events and MNE raw objects
-# # Get start of blocks as different types of epochs (1=start, 2=right, 3=left, 4=centre)
-# df1['protocol_change'] = df1['block_number'].diff()
-# df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "start" else
-#                                  row.protocol_change * 2 if row.cue_dir == 1 else
-#                                  row.protocol_change * 3 if row.cue_dir == 2 else
-#                                  row.protocol_change * 4 if row.cue_dir == 3 else 0, axis=1)
-#
-# # Create the events list for the protocol transitions
-# probe_events = df1[['choice_events']].to_numpy()
-# left_probe= 2
-# right_probe = 3
-# centre_probe = 4
-# event_dict = {'right_probe': right_probe, 'left_probe': left_probe, 'centre_probe': centre_probe}
-# info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
-# stim_raw = mne.io.RawArray(probe_events.T, info)
-# m_raw.add_channels([stim_raw], force_update_info=True)
-#
-# # Get the epoch object
-# m_filt = m_raw.copy()
-# m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
-#                l_trans_bandwidth=1,  # make sure filter params are the same
-#                h_trans_bandwidth=1)  # in each band and skip "auto" option.
-#
-# events = mne.find_events(m_raw, stim_channel='STI')
-# reject_criteria = dict(eeg=100e-6)
-#
-# left_chs = ['PO7=1']
-# right_chs = ['PO8=1']
-#
-# epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=10, baseline=None,
-#                     preload=True, detrend=1)#, reject=reject_criteria)
-# # epochs.drop([19,22,27,32]) # Drop bads for K's 1st dataset
-#
-# # fig = epochs.plot(events=events)
-#
-# probe_left = epochs['left_probe'].average()
-# probe_right = epochs['right_probe'].average()
-#
-# dataframes = []
-# # ----Look at the power for the epochs in the left and right channels for left and right probes
-# e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-# e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-#
-# df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
-# df_i['section'] = f"left_probe"
-# dataframes.append(df_i)
-#
-# dataframes_aai_cue = []
-# dataframes_aai = []
-# aai_nfb_left = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
-# df_ix = pd.DataFrame(dict(aai=aai_nfb_left.mean(axis=0)[0]))
-# df_ix['probe'] = f"left"
-# dataframes_aai.append(df_ix[2000:9000])
-# dataframes_aai_cue.append(df_ix[0:2000])
-# fig2 = go.Figure()
-# af.plot_nfb_epoch_stats(fig2, aai_nfb_left.mean(axis=0)[0], aai_nfb_left.std(axis=0)[0], name=f"left probe aai",
-#                      title=f"left probe aai",
-#                      color=(230, 20, 20, 1), y_range=[-1, 1])
-#
-#
-# e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-# e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-#
-# df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
-# df_i['section'] = f"right_probe"
-# dataframes.append(df_i)
-#
-# aai_nfb_right = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
-# df_ix = pd.DataFrame(dict(aai=aai_nfb_right.mean(axis=0)[0]))
-# df_ix['probe'] = f"right"
-# dataframes_aai.append(df_ix[2000:9000])
-# dataframes_aai_cue.append(df_ix[0:2000])
-# af.plot_nfb_epoch_stats(fig2, aai_nfb_right.mean(axis=0)[0], aai_nfb_right.std(axis=0)[0], name=f"right probe aai",
-#                      title=f"mean aai time course",
-#                      color=(20, 20, 230, 1), y_range=[-1, 1])
-#
-#
-# e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-# e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
-#
-# df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
-# df_i['section'] = f"centre_probe"
-# dataframes.append(df_i)
-#
-# aai_nfb_centre = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
-# df_ix = pd.DataFrame(dict(aai=aai_nfb_centre.mean(axis=0)[0]))
-# df_ix['probe'] = f"centre"
-# dataframes_aai.append(df_ix[2000:9000])
-# dataframes_aai_cue.append(df_ix[0:2000])
-# af.plot_nfb_epoch_stats(fig2, aai_nfb_centre.mean(axis=0)[0], aai_nfb_centre.std(axis=0)[0], name=f"centre probe aai",
-#                      title=f"mean aai time course",
-#                      color=(20, 230, 20, 1), y_range=[-1, 1])
-# fig2.add_vline(x=2000, annotation_text="cvsa start")
-# fig2.show()
-#
-# fig2.show()
+
+    # Do the epoching and Add baseline and cue AAIs to the plot-----------------
+    # TODO:
+    #   2. look at epochs for all sections
+    #   3. plot against cues and fixation crosses
+
+    # Create the stim channel
+    # --- Get the probe events and MNE raw objects
+    # Get start of blocks as different types of epochs (1=start, 2=right, 3=left, 4=centre)
+    df1['protocol_change'] = df1['block_number'].diff()
+    df1['choice_events'] = df1.apply(lambda row: row.protocol_change if row.block_name == "start" else
+                                     row.protocol_change * 2 if row.cue_dir == "left" else
+                                     row.protocol_change * 3 if row.cue_dir == "right" else
+                                     row.protocol_change * 4 if row.cue_dir == "centre" else 0, axis=1)
+
+    # Create the events list for the protocol transitions
+    probe_events = df1[['choice_events']].to_numpy()
+    left_probe= 2
+    right_probe = 3
+    centre_probe = 4
+    event_dict = {'right_probe': right_probe, 'left_probe': left_probe, 'centre_probe': centre_probe}
+    info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
+    stim_raw = mne.io.RawArray(probe_events.T, info)
+    m_raw.add_channels([stim_raw], force_update_info=True)
+
+    # Get the epoch object
+    m_filt = m_raw.copy()
+    m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
+                   l_trans_bandwidth=1,  # make sure filter params are the same
+                   h_trans_bandwidth=1)  # in each band and skip "auto" option.
+
+    events = mne.find_events(m_raw, stim_channel='STI')
+    reject_criteria = dict(eeg=100e-6)
+
+    left_chs = ['PO7=1']
+    right_chs = ['PO8=1']
+
+    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=10, baseline=None,
+                        preload=True, detrend=1)#, reject=reject_criteria)
+    # epochs.drop([19,22,27,32]) # Drop bads for K's 1st dataset
+
+    # fig = epochs.plot(events=events)
+
+    probe_left = epochs['left_probe'].average()
+    probe_right = epochs['right_probe'].average()
+
+    dataframes = []
+    # ----Look at the power for the epochs in the left and right channels for left and right probes
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"left_probe"
+    dataframes.append(df_i)
+
+    dataframes_aai_cue = []
+    dataframes_aai = []
+    aai_nfb_left = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+    df_ix = pd.DataFrame(dict(aai=aai_nfb_left.mean(axis=0)[0]))
+    df_ix['probe'] = f"left"
+    dataframes_aai.append(df_ix[2000:9000])
+    dataframes_aai_cue.append(df_ix[0:2000])
+    fig2 = go.Figure()
+    af.plot_nfb_epoch_stats(fig2, aai_nfb_left.mean(axis=0)[0], aai_nfb_left.std(axis=0)[0], name=f"left probe aai",
+                         title=f"left probe aai",
+                         color=(230, 20, 20, 1), y_range=[-1, 1])
+
+
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"right_probe"
+    dataframes.append(df_i)
+
+    aai_nfb_right = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+    df_ix = pd.DataFrame(dict(aai=aai_nfb_right.mean(axis=0)[0]))
+    df_ix['probe'] = f"right"
+    dataframes_aai.append(df_ix[2000:9000])
+    dataframes_aai_cue.append(df_ix[0:2000])
+    af.plot_nfb_epoch_stats(fig2, aai_nfb_right.mean(axis=0)[0], aai_nfb_right.std(axis=0)[0], name=f"right probe aai",
+                         title=f"mean aai time course",
+                         color=(20, 20, 230, 1), y_range=[-1, 1])
+
+
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"centre_probe"
+    dataframes.append(df_i)
+
+    aai_nfb_centre = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+    df_ix = pd.DataFrame(dict(aai=aai_nfb_centre.mean(axis=0)[0]))
+    df_ix['probe'] = f"centre"
+    dataframes_aai.append(df_ix[2000:9000])
+    dataframes_aai_cue.append(df_ix[0:2000])
+    af.plot_nfb_epoch_stats(fig2, aai_nfb_centre.mean(axis=0)[0], aai_nfb_centre.std(axis=0)[0], name=f"centre probe aai",
+                         title=f"mean aai time course",
+                         color=(20, 230, 20, 1), y_range=[-1, 1])
+    fig2.add_vline(x=2000, annotation_text="cvsa start")
+    fig2.show()
+
+
+def plot_best_vs_worst_nfb_aai(df1, worst=0, best=0):
+    """
+    Plot the best vs the worst nfb aais
+    """
+    aai_worst = df1[(df1['block_number'] == worst) | (df1['block_number'] == worst - 1)]['signal_AAI'].reset_index(
+        drop=True)
+    aai_best = df1[(df1['block_number'] == best) | (df1['block_number'] == best - 1)]['signal_AAI'].reset_index(
+        drop=True)
+    # Best is a right condition so flip the plot
+    aai_best = aai_best * -1
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=aai_worst.index, y=aai_worst,
+                             mode='lines',
+                             name=f'worst (trial_{worst})'))
+    fig.add_trace(go.Scatter(x=aai_best.index, y=aai_best,
+                             mode='lines',
+                             name=f'best (trial_{best})'))
+    fig.add_hline(np.mean(aai_best), annotation_text="best_mean")
+    fig.add_hline(np.mean(aai_worst), annotation_text="worst_mean")
+    fig.add_vline(np.mean(df1[(df1['block_number'] == worst - 1)].shape[0]), annotation_text="worst_start")
+    fig.add_vline(np.mean(df1[(df1['block_number'] == best - 1)].shape[0]), annotation_text="best_start")
+    fig.show()
 
 
 if __name__ == "__main__":
@@ -349,7 +406,7 @@ if __name__ == "__main__":
         userdir = "2354158T"
     else:
         userdir = "christopherturner"
-    participant_id = 'PO0'
+    participant_id = 'PO2'
     participant_dir = os.path.join(os.sep, "Users", userdir,"Documents","EEG_Data","pilot2_COPY",participant_id)
     nfb_data_dirs = [x for x in os.listdir(participant_dir) if '0-nfb' in x]
     sham_data_dirs = [x for x in os.listdir(participant_dir) if '1-nfb' in x]
@@ -361,15 +418,17 @@ if __name__ == "__main__":
         df1, fs, channels, p_names = load_data(h5file)
         df1 = get_cue_dir(df1)
         df1 = get_posner_time(df1)
+        # TODO - resampling to make everything faster?
+        # plot_best_vs_worst_nfb_aai(df1, worst=58, best=43)
         df1["block_number"] = df1["block_number"] + idx * 100
-        cvsa_analysis(df1, fs, channels, p_names, f"NFB_{idx}", participant_id)
+        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id)
+        # epoch_analysis(eeg_data, alpha_band, f"NFB_{idx}", participant_id)
         nfb_data_dfs.append(df1)
 
         # block_lengths = {}
         # for block_no in df1[df1.posner_time > 0]['block_number'].to_list():
         #     block = df1[df1.block_number == block_no]
         #     block_lengths[block_no] = block.shape[0]
-
 
     sham_data_dfs = []
     for idx, data_dir in enumerate(sham_data_dirs):
