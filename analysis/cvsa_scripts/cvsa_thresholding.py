@@ -60,7 +60,7 @@ def cvsa_threshold(h5file, plot=False):
     # block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
 
     # Fit normal distribution
-    data = df1['signal_AAI'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
+    data = df1['signal_AAI'].dropna().to_numpy()# norm.rvs(10.0, 2.5, size=500)
     # Fit a normal distribution to the data:
     mu_online, std_online = norm.fit(data)
     # Plot the histogram.
