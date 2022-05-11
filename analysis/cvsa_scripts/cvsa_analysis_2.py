@@ -414,7 +414,8 @@ if __name__ == "__main__":
     nfb_data_dfs = []
     for idx, data_dir in enumerate(nfb_data_dirs):
         h5file = os.path.join(participant_dir, data_dir, "experiment_data.h5")
-        # h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-nfb_task_test3_05-08_22-07-45/experiment_data.h5"
+        h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_15-31-24/experiment_data.h5" # Test case with negative RT
+
         df1, fs, channels, p_names = load_data(h5file)
         df1 = get_cue_dir(df1)
         df1 = get_posner_time(df1)
@@ -436,6 +437,7 @@ if __name__ == "__main__":
         df1, fs, channels, p_names = load_data(h5file)
         df1 = get_cue_dir(df1)
         df1 = get_posner_time(df1)
+        df1["block_number"] = df1["block_number"] + idx * 100
         cvsa_analysis(df1, fs, channels, p_names,  f"SHAM_{idx}")
         sham_data_dfs.append(df1)
 

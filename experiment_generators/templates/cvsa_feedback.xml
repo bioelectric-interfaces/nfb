@@ -178,7 +178,7 @@
 			<bProbe>0</bProbe>
 			<iProbeDur>0</iProbeDur>
 			<sProbeLoc>RAND</sProbeLoc>
-			<bPosnerTest>0</bPosnerTest>
+			<bPosnerTest>{{ posner_test }}</bPosnerTest>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>

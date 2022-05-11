@@ -573,7 +573,10 @@ class Experiment():
 
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
-                self.cue_cond = r.choice([1, 2, 3])
+                if current_protocol.posner_test:
+                    self.cue_cond = r.choice([1, 2, 3]) # Only have the middle condition for the test blocks
+                else:
+                    self.cue_cond = r.choice([1, 2])
                 self.cue_random_start = 1 + r.uniform(0, 1)  # random start between 1 and 2 seconds
                 cue_dict = {1:"LEFT", 2:"RIGHT", 3:"CENTER"}
                 logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
