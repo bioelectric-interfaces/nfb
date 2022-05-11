@@ -299,7 +299,7 @@
 			<sFb_type>FixationCross</sFb_type>
 			<cString></cString>
 			<bVoiceover>0</bVoiceover>
-			<bProbe>1</bProbe>
+			<bProbe>0</bProbe>
 			<iProbeDur>50</iProbeDur>
 			<sProbeLoc>RAND</sProbeLoc>
 			<bPosnerTest>0</bPosnerTest>
