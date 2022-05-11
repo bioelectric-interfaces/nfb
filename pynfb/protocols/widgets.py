@@ -430,6 +430,9 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
                                      left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.st_l2 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                      left_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
+        fill_st_l = pg.FillBetweenItem(self.st_l1, self.st_l2, brush=(0,0,0,1))
+        self.fill_st_l = fill_st_l
+        self.widget.addItem(fill_st_l)
         self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
 
@@ -439,6 +442,9 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
                                      right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                      right_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
+        fill_st_r = pg.FillBetweenItem(self.st_r1, self.st_r2, brush=(0,0,0,1))
+        self.fill_st_r = fill_st_r
+        self.widget.addItem(fill_st_r)
         self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
         self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
 
@@ -490,7 +496,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
             distractor_brush = (255, scaled_test_sample, scaled_test_sample)
         else:
-            distractor_brush = (scaled_test_sample, 255, scaled_test_sample)
+            distractor_brush = (scaled_test_sample, scaled_test_sample, 255)
 
         if sample < self.r_threshold:
             un_scaled_range = (un_scaled_max - un_scaled_min)
@@ -503,7 +509,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         else:
             # Target is being focussed on more - colour target green
             scaled_sample = np.clip(scaled_sample, 0, 255)
-            target_brush = (scaled_sample, 255, scaled_sample)
+            target_brush = (scaled_test_sample, scaled_test_sample, 255)
 
         if self.train_side == 1:
             left_brush = target_brush
@@ -526,11 +532,13 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             logging.debug(f"LEFT STIM: {time.time()*1000}")
             if not self.stim_onset_time:
                 self.stim_onset_time = time.time()*1000
-            self.cr_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
-            self.cr_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
+            # self.cr_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
+            # self.cr_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
+            self.fill_st_l.setBrush("white")
         else:
-            self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
-            self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
+            # self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
+            # self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
+            self.fill_st_l.setBrush((0,0,0,1))
 
         self.st_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
         self.st_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
@@ -538,11 +546,13 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             logging.debug(f"RIGHT STIM: {time.time()*1000}")
             if not self.stim_onset_time:
                 self.stim_onset_time = time.time()*1000
-            self.cr_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
-            self.cr_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
+            # self.cr_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
+            # self.cr_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
+            self.fill_st_r.setBrush("white")
         else:
-            self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
-            self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
+            # self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
+            # self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
+            self.fill_st_r.setBrush((0,0,0,1))
 
 def scale_sample(sample, un_scaled_min, un_scaled_max):
     """
