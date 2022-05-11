@@ -590,7 +590,10 @@ class Experiment():
             # Update the next stim (left or right)
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.stim = False
-                self.posner_stim = r.choice([1, 2])
+                if current_protocol.posner_test:
+                    self.posner_stim = r.choice([1, 2]) # Only have random valid and invalid cues in the test/posner task with no NFB
+                else:
+                    self.posner_stim = self.cue_cond # Make the online NFB posner condition the same direction as the cue
                 reaction_buffer = 5
                 max_stim_var_time = 2
                 self.posner_stim_time = current_protocol.duration - reaction_buffer + r.uniform(0, max_stim_var_time) # NOTE: the actual nfb duration will be specified duration - reaction_buffer + rand(0,max_stim_var_time). the reaction buffer needs to be bigger than (max_stim_var_time+posner_duration) otherwise can just end
