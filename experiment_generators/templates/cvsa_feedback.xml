@@ -210,7 +210,7 @@
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
 			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>15.0</fDuration>
+			<fDuration>{{nfb_duration}}</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>Feedback</sFb_type>

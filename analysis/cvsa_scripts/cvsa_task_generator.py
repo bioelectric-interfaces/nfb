@@ -81,6 +81,7 @@ if __name__ == "__main__":
     stim_duration = 5 # TODO - make this random?
     baseline_duration = 120
     use_aai_threshold = int(aai_thresholds)
+    nfb_duration = 15
 
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
@@ -111,13 +112,15 @@ if __name__ == "__main__":
         for task, template in tasks.items():
             if template:
                 if task == "test_task":
-                    number_nfb_tasks = 15
+                    number_nfb_tasks = 20
                     posner_test = 1
-                    stim_duration = 3
+                    stim_duration = 1.5
+                    nfb_duration = 8
                 elif task == "nfb_task":
-                    number_nfb_tasks = 25
+                    number_nfb_tasks = 20
                     posner_test = 0
                     stim_duration = 5
+                    nfb_duration = 15
 
 
                 Tsk = ParticipantTaskGenerator(participant_no=participant_no,
@@ -148,5 +151,6 @@ if __name__ == "__main__":
                                                muscle_signal=muscle_signal,
                                                aai_threshold_max=aai_threshold_max,
                                                aai_threshold_mean=aai_threshold_mean,
-                                               use_aai_threshold=use_aai_threshold)
+                                               use_aai_threshold=use_aai_threshold,
+                                               nfb_duration=nfb_duration)
                 Tsk.create_task(participant=participant_no)
