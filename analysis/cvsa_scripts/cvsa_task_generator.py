@@ -88,7 +88,8 @@ if __name__ == "__main__":
     tasks = {"baseline": "baseline.xml",
              "eye_calibration": "eye_calibration.xml",
              "test_task": test_template,
-             "nfb_task": nfb_template}
+             "nfb_task": nfb_template,
+             "posner_task": test_template}
 
     task_info = {}
 
@@ -112,9 +113,14 @@ if __name__ == "__main__":
         for task, template in tasks.items():
             if template:
                 if task == "test_task":
-                    number_nfb_tasks = 20
-                    posner_test = 1
+                    number_nfb_tasks = 5
+                    posner_test = 0
                     stim_duration = 1.5
+                    nfb_duration = 8
+                if task == "posner_task":
+                    number_nfb_tasks = 75
+                    posner_test = 1
+                    stim_duration = 1
                     nfb_duration = 8
                 elif task == "nfb_task":
                     number_nfb_tasks = 20
