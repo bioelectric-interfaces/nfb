@@ -569,7 +569,7 @@ class Experiment():
                 current_protocol.widget_painter.current_sample_idx = 0
 
             # Get the start of the test signal (random value between 0 and 100000-cur protocol length - buffer(1000)
-            self.test_start = r.choice([0, 100000-self.current_protocol_n_samples-1000])
+            self.test_start = r.choice([0, 100000-self.current_protocol_n_samples])
 
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
@@ -590,7 +590,14 @@ class Experiment():
             # Update the next stim (left or right)
             if isinstance(current_protocol.widget_painter, PosnerFeedbackProtocolWidgetPainter):
                 current_protocol.widget_painter.stim = False
-                self.posner_stim = r.choice([1, 2])
+                # Have weights for valid and invalid cues
+                valid_cue_weight = 70
+                if self.cue_cond == 1:
+                    self.posner_stim = r.choices([1, 2], weights=(valid_cue_weight, 100-valid_cue_weight))[0]
+                elif self.cue_cond == 2:
+                    self.posner_stim = r.choices([1, 2], weights=(100-valid_cue_weight, valid_cue_weight))[0]
+                else:
+                    self.posner_stim = r.choice([1,2])
                 reaction_buffer = 5
                 max_stim_var_time = 2
                 self.posner_stim_time = current_protocol.duration - reaction_buffer + r.uniform(0, max_stim_var_time) # NOTE: the actual nfb duration will be specified duration - reaction_buffer + rand(0,max_stim_var_time). the reaction buffer needs to be bigger than (max_stim_var_time+posner_duration) otherwise can just end
