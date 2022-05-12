@@ -467,6 +467,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
             # self.set_red_state(m_sample > self.m_threshold)
+            # TODO: fix this so that it is really just watching dynamic changes during the actual protocol.
             self.over_m_threshold(m_sample, m_sample > self.m_threshold)
             self.over_m_threshold(m_sample, m_sample < - self.m_threshold)
         if np.ndim(sample)>0:
@@ -509,7 +510,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         else:
             # Target is being focussed on more - colour target green
             scaled_sample = np.clip(scaled_sample, 0, 255)
-            target_brush = (scaled_test_sample, scaled_test_sample, 255)
+            target_brush = (scaled_sample, scaled_sample, 255)
 
         if self.train_side == 1:
             left_brush = target_brush
