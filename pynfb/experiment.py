@@ -304,14 +304,8 @@ class Experiment():
                         logging.debug(f"HOLD DISABLED AT {time.time()*1000}")
                         logging.debug(f"KEY PRESS TIME: {self.subject.key_press_time}")
                         self.response_recorder[self.samples_counter - 1] = int(self.subject.key_press_time or 0)
-                    # else:
-                    #     self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
                 else:
                     current_protocol.hold = True
-                    # self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
-            # else:
-            #     # MAKE SURE TO FILL THE RECORDER WITH 0 WHEN NOT NEEDED
-            #     self.response_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
 
 
             self.posnerstim_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
