@@ -627,7 +627,8 @@ class Experiment():
                 if isinstance(current_protocol.widget_painter, FixationCrossProtocolWidgetPainter):
                     block_average_score = round(np.mean(list(self.block_score.values())))
                     # current_protocol.widget_painter.text = f"{self.percent_score} %"
-                    current_protocol.widget_painter.text = f"{block_average_score} %"
+                    block_best_score = round(np.max(list(self.block_score.values())))
+                    current_protocol.widget_painter.text = f"Average score: {block_average_score} % <br> Best: {block_best_score}"
                     logging.info(f"BLOCK AVERAGE SCORE: {block_average_score}")
 
 
