@@ -97,6 +97,7 @@ if __name__ == "__main__":
     right_spatial_filter_scalp = ""
     source_fb = False
     posner_test = 0
+    show_score = 0
     for session in [0, 1]:
         if session == 0:
             # scalp
@@ -127,6 +128,7 @@ if __name__ == "__main__":
                     posner_test = 0
                     stim_duration = 5
                     nfb_duration = 15
+                    show_score = 1
 
 
                 Tsk = ParticipantTaskGenerator(participant_no=participant_no,
@@ -158,5 +160,6 @@ if __name__ == "__main__":
                                                aai_threshold_max=aai_threshold_max,
                                                aai_threshold_mean=aai_threshold_mean,
                                                use_aai_threshold=use_aai_threshold,
-                                               nfb_duration=nfb_duration)
+                                               nfb_duration=nfb_duration,
+                                               show_score=show_score)
                 Tsk.create_task(participant=participant_no)

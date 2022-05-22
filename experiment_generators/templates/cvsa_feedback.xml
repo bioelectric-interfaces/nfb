@@ -275,7 +275,7 @@
 			<bRewardThreshold>0.0</bRewardThreshold>
 			<bMockRewardThreshold>0.0</bMockRewardThreshold>
 			<bShowReward>0</bShowReward>
-			<bShowPcScoreAfter>1</bShowPcScoreAfter>
+			<bShowPcScoreAfter>{{show_score}}</bShowPcScoreAfter>
 			<bPauseAfter>0</bPauseAfter>
 			<bBeepAfter>0</bBeepAfter>
 			<iRandomBound>0</iRandomBound>
