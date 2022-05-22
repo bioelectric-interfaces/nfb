@@ -118,11 +118,13 @@ if __name__ == "__main__":
                     posner_test = 0
                     stim_duration = 1.5
                     nfb_duration = 8
+                    show_score = 0
                 if task == "posner_task":
                     number_nfb_tasks = 75
                     posner_test = 1
                     stim_duration = 1
                     nfb_duration = 8
+                    show_score = 0
                 elif task == "nfb_task":
                     number_nfb_tasks = 20
                     posner_test = 0
