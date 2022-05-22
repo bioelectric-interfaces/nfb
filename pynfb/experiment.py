@@ -279,7 +279,8 @@ class Experiment():
                 stimuli_duration = 0.1 # Duration of posner stimuli (s)
                 if self.samples_counter >= stim_samp:
                     posner_stim = self.posner_stim
-                    current_protocol.widget_painter.stim = True
+                    if current_protocol.enable_posner:
+                        current_protocol.widget_painter.stim = True
                     if self.samples_counter > stim_samp + stimuli_duration * self.freq:
                         current_protocol.widget_painter.stim_side = 0
                         posner_stim_time = int(0)
@@ -851,6 +852,7 @@ class Experiment():
                 probe_duration=protocol['iProbeDur'],
                 probe_loc=protocol['sProbeLoc'],
                 posner_test=protocol['bPosnerTest'],
+                enable_posner=protocol['bEnablePosner'],
                 eye_range=protocol['fEyeRange']
             )
 

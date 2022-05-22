@@ -98,6 +98,7 @@ if __name__ == "__main__":
     source_fb = False
     posner_test = 0
     show_score = 0
+    enable_posner = 0
     for session in [0, 1]:
         if session == 0:
             # scalp
@@ -119,18 +120,21 @@ if __name__ == "__main__":
                     stim_duration = 1.5
                     nfb_duration = 8
                     show_score = 0
+                    enable_posner = 1
                 if task == "posner_task":
                     number_nfb_tasks = 75
                     posner_test = 1
                     stim_duration = 1
                     nfb_duration = 8
                     show_score = 0
+                    enable_posner = 1
                 elif task == "nfb_task":
                     number_nfb_tasks = 20
                     posner_test = 0
                     stim_duration = 5
                     nfb_duration = 15
                     show_score = 1
+                    enable_posner = 0
 
 
                 Tsk = ParticipantTaskGenerator(participant_no=participant_no,
@@ -163,5 +167,6 @@ if __name__ == "__main__":
                                                aai_threshold_mean=aai_threshold_mean,
                                                use_aai_threshold=use_aai_threshold,
                                                nfb_duration=nfb_duration,
-                                               show_score=show_score)
+                                               show_score=show_score,
+                                               enable_posner=enable_posner)
                 Tsk.create_task(participant=participant_no)

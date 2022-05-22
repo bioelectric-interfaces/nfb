@@ -268,6 +268,8 @@ class ProtocolDialog(QtWidgets.QDialog):
         # Posner settings
         self.posner_test = QtWidgets.QCheckBox()
         self.form_layout.addRow('Posner test:', self.posner_test)
+        self.enable_posner = QtWidgets.QCheckBox()
+        self.form_layout.addRow('Enable Posner:', self.enable_posner)
 
         # message text edit
         self.message = QtWidgets.QTextEdit()
@@ -408,6 +410,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.probe_loc.setCurrentIndex(['RAND', 'LEFT', 'RIGHT'].index(current_protocol['sProbeLoc']))
         self.probe_loc.setEnabled(self.probe.isChecked())
         self.posner_test.setChecked(current_protocol['bPosnerTest'])
+        self.enable_posner.setChecked(current_protocol['bEnablePosner'])
         self.split_checkbox.setChecked(current_protocol['bUseExtraMessage'])
         current_index = self.reward_signal.findText(current_protocol['sRewardSignal'], QtCore.Qt.MatchFixedString)
         self.reward_signal.setCurrentIndex(current_index if current_index > -1 else 0)
@@ -468,6 +471,7 @@ class ProtocolDialog(QtWidgets.QDialog):
         self.params[current_signal_index]['iProbeDur'] = self.probe_dur.value()
         self.params[current_signal_index]['sProbeLoc'] = self.probe_loc.currentText()
         self.params[current_signal_index]['bPosnerTest'] = int(self.posner_test.isChecked())
+        self.params[current_signal_index]['bEnablePosner'] = int(self.enable_posner.isChecked())
         self.params[current_signal_index]['bUseExtraMessage'] = int(self.split_checkbox.isChecked())
         self.params[current_signal_index]['sRewardSignal'] = self.reward_signal.currentText()
         self.params[current_signal_index]['bShowReward'] = int(self.show_reward.isChecked())

@@ -220,6 +220,7 @@
 			<iProbeDur>0</iProbeDur>
 			<sProbeLoc>RAND</sProbeLoc>
 			<bPosnerTest>{{ posner_test }}</bPosnerTest>
+			<bEnablePosner>{{ enable_posner }}</bEnablePosner>
 			<bUseExtraMessage>0</bUseExtraMessage>
 			<cString2></cString2>
 			<fBlinkDurationMs>50</fBlinkDurationMs>

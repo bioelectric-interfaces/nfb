@@ -22,7 +22,7 @@ class ParticipantTaskGenerator:
                  source_fb=False, source_roi_left=(), source_roi_right=(), mock_file=None,
                  baseline_cor_threshold=0.25, use_baseline_correction=1, enable_smoothing=0, smooth_window=100,
                  fft_window=250, mock_reward_threshold=0.0, nfb_type=2, posner_test=0, eye_range=500, eye_threshold=1,
-                 stim_duration=3, muscle_signal='', aai_threshold_max=1, aai_threshold_mean=0, use_aai_threshold=1, nfb_duration=15, show_score=0):
+                 stim_duration=3, muscle_signal='', aai_threshold_max=1, aai_threshold_mean=0, use_aai_threshold=1, nfb_duration=15, show_score=0, enable_posner=0):
 
         self.template_file = template_file
         self.composite_signal = composite_signal
@@ -64,6 +64,7 @@ class ParticipantTaskGenerator:
         self.use_aai_threshold = use_aai_threshold
         self.nfb_duration = nfb_duration
         self.show_score = show_score
+        self.enable_posner = enable_posner
 
     def render_template(self, template_filename, context):
         return TEMPLATE_ENVIRONMENT.get_template(template_filename).render(context)
@@ -110,7 +111,8 @@ class ParticipantTaskGenerator:
             'aai_threshold_max': self.aai_threshold_max,
             'use_aai_threshold': self.use_aai_threshold,
             'nfb_duration': self.nfb_duration,
-            'show_score': self.show_score
+            'show_score': self.show_score,
+            'enable_posner': self.enable_posner
         }
         #
         with open(output_fname, 'w') as f:
