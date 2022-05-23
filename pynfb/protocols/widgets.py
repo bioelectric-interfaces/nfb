@@ -409,6 +409,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
+        logging.info(f"PREPARING {self.__class__.__name__}")
         self.stim_onset_time = False
         self.widget = widget
         # Draw fixation dot
