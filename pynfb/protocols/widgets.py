@@ -466,11 +466,11 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             logging.info(f"EXCESSIVE EYE MOVEMENT! TH: {self.m_threshold}, SAMP: {m_sample}")
 
     def redraw_state(self, sample, m_sample):
-        if m_sample is not None:
-            # self.set_red_state(m_sample > self.m_threshold)
-            # TODO: fix this so that it is really just watching dynamic changes during the actual protocol.
-            self.over_m_threshold(m_sample, m_sample > self.m_threshold)
-            self.over_m_threshold(m_sample, m_sample < - self.m_threshold)
+        # if m_sample is not None:
+        #     # self.set_red_state(m_sample > self.m_threshold)
+        #     # TODO: fix this so that it is really just watching dynamic changes during the actual protocol.
+        #     self.over_m_threshold(m_sample, m_sample > self.m_threshold)
+        #     self.over_m_threshold(m_sample, m_sample < - self.m_threshold)
         if np.ndim(sample)>0:
             sample = np.sum(sample)
 
