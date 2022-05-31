@@ -72,6 +72,8 @@ class Experiment():
         self.nfb_samps = 0
         self.percent_score = 0
         self.block_score = {}
+        self.block_score_left = {}
+        self.block_score_right = {}
         self.restart()
         logging.info(f"{__name__}: ")
         pass
@@ -400,9 +402,15 @@ class Experiment():
                         if self.cue_cond in [1, 2]:
                             # Only append the score for averaging if it is not a center condition
                             self.block_score[self.current_protocol_index] = self.percent_score
+                        if self.cue_cond == 1:
+                            self.block_score_left[self.current_protocol_index] = self.percent_score
+                        elif self.cue_cond == 2:
+                            self.block_score_right[self.current_protocol_index] = self.percent_score
                         logging.debug(
                             f"PROTOCOL: {self.current_protocol_index}, MAX SCORE: {max_reward}, n_SAMPS: {nfb_duration}, freq: {self.freq}, rateInc: {self.reward.rate_of_increase}, SCORE: {self.fb_score}, PERCENT SCORE: {self.percent_score}")
                         logging.debug(f"BLOCK SCORE: {self.block_score}")
+                        logging.debug(f"LEFT SCORE: {self.block_score_left}")
+                        logging.debug(f"RIGHT SCORE: {self.block_score_right}")
                 # only change if not a pausing protocol
                 if current_protocol.hold:
                     # don't switch protocols if holding
@@ -627,9 +635,11 @@ class Experiment():
                 # display the previous percent score if fixation cross protocol
                 if isinstance(current_protocol.widget_painter, FixationCrossProtocolWidgetPainter):
                     block_average_score = round(np.mean(list(self.block_score.values())))
+                    block_average_score_left = round(np.mean(list(self.block_score_left.values())))
+                    block_average_score_right = round(np.mean(list(self.block_score_right.values())))
                     # current_protocol.widget_painter.text = f"{self.percent_score} %"
                     block_best_score = round(np.max(list(self.block_score.values())))
-                    current_protocol.widget_painter.text = f"Average score: {block_average_score} % <br> Best: {block_best_score}"
+                    current_protocol.widget_painter.text = f"Total average score: {block_average_score} % <br> left avg: {block_average_score_left} % <br> right avg: {block_average_score_right} <br> Best: {block_best_score}"
                     logging.info(f"BLOCK AVERAGE SCORE: {block_average_score}")
 
 
@@ -701,6 +711,8 @@ class Experiment():
     def restart(self):
 
         self.block_score = {}
+        self.block_score_left = {}
+        self.block_score_right = {}
 
         timestamp_str = datetime.strftime(datetime.now(), '%m-%d_%H-%M-%S')
         self.dir_name = 'results/{}_{}/'.format(self.params['sExperimentName'], timestamp_str)
