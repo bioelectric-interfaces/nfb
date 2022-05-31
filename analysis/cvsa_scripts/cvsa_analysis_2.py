@@ -5,6 +5,7 @@ Scropt to analyse covert attention protocols
 import os
 import mne
 import numpy as np
+import ast
 import matplotlib.pyplot as plt
 import platform
 from scipy.stats import norm
@@ -76,8 +77,39 @@ def get_posner_time(df1):
     df1["reaction_time"] = df1['block_number'].map(reaction_time_key)
     return df1
 
+def read_log_file(logfile):
+    string1 = 'BLOCK SCORE'
 
-def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
+    # opening a text file
+    file1 = open(logfile, "r")
+
+    # setting flag and index to 0
+    flag = 0
+    index = 0
+    score_line = ""
+    score = {}
+
+    # Loop through the file line by line
+    for line in file1:
+        index += 1
+
+        # checking string is present in line or not
+        if string1 in line:
+            flag = 1
+            score_line = line
+            score = ast.literal_eval(score_line.split("BLOCK SCORE: ")[1])
+
+        # checking condition for string found or not
+    if flag == 0:
+        print('String', string1, 'Not Found')
+    else:
+        print('String', string1, 'Found In Line', index)
+
+    # closing text file
+    file1.close()
+    return score
+
+def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score={}):
     # TODO - refactor all this nicely (and use/ add to/ refactor the helper functions)
 
     # Plot reaction times for valid, invalid, and no training trials
@@ -87,7 +119,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     rt_df = rt_df.drop_duplicates(['block_number'], keep='first')
 
 
-    fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all', title=f"block:{block_idx}_{participant}")
+    fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all', title=f"block:{block_idx}_{participant}", range_y=[200, 800])
     fig.show()
 
 
@@ -103,10 +135,11 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     median_aais['cue_dir'] = grouped_aai_df.first()['cue_dir']
     fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (online AAI)")
     fig.show()
-    # # Plot the median of the left and right alphas from the online AAI signal
-    # side_data = pd.melt(median_aais, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    # fig = px.box(side_data, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}")
-    # fig.show()
+
+    # Plot time course of median AAIs
+    figma = px.scatter(median_aais, x='block_number', y='signal_AAI', color='cue_dir')
+    figma.show()
+
 
 
     # Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
@@ -140,16 +173,39 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     # Plot the median of the left and right alphas from the online AAI signal
     aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
     aai_df_raw['raw_aai'] = aai_raw_left
+    aai_df_raw['P08_pwr'] = pwr_raw_r
+    aai_df_raw['P07_pwr'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("nfb")]
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
     median_aais_raw['cue_dir'] = grouped_aai_df_raw.first()['cue_dir']
+    median_aais['raw_aai'] = median_aais_raw['raw_aai']
     fig = px.violin(median_aais_raw, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (raw_ref)")
     fig.show()
+
+    # Plot time course of median AAIs
+    m_a_r = median_aais_raw.copy()
+    cue_dirs = ["left", "right", "centre"]
+    cue_recode = ["left_raw", "right_raw", "centre_raw"]
+
+    m_a_r['cue_dir'] = m_a_r['cue_dir'].replace(cue_dirs, cue_recode)
+    figma.add_traces(
+        list(px.scatter(m_a_r, x='block_number', y='raw_aai', color='cue_dir', color_discrete_sequence=px.colors.qualitative.Pastel1).select_traces())
+    )
+    figma.show()
+
+    # look at scores
+    if score:
+        median_aais_raw['score'] = list(score.values())
+
+    # Plot the aai for eachblock
+    # fig = px.line(aai_df_raw, x='sample', y='raw_aai', color='cue_dir').show()
+
     # Plot the median of the left and right alphas from the online AAI signal
-    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    fig = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)")
-    fig.show()
+    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['P07_pwr', 'P08_pwr'], var_name='side', value_name='data')
+    figx = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)")
+    # figx.show()
+
 
     figb = go.Figure()
     figb.add_trace(go.Box(x=median_aais_raw['cue_dir'], y=median_aais_raw['raw_aai'],
@@ -159,6 +215,8 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     # TODO - fix this code so the names don't copy from above
     aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
     aai_df_raw['raw_aai'] = aai_raw_left
+    aai_df_raw['P08_pwr_fc'] = pwr_raw_r
+    aai_df_raw['P07_pwr_fc'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("fc")]
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
@@ -167,9 +225,17 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
                           line=dict(color='green'),
                           name='fc'))
 
+    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['P07_pwr_fc', 'P08_pwr_fc'], var_name='side', value_name='data')
+    side_data_raw['cue_dir'] = 'fc'
+    figx.add_traces(
+        list(px.box(side_data_raw, x='cue_dir', y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)", color_discrete_sequence=px.colors.qualitative.Dark2).select_traces())
+    )
+
     # TODO - fix this code so the names don't copy from above
     aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
     aai_df_raw['raw_aai'] = aai_raw_left
+    aai_df_raw['P08_pwr_cue'] = pwr_raw_r
+    aai_df_raw['P07_pwr_cue'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("cue")]
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
@@ -180,9 +246,21 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant=""):
     figb.update_layout(
         title=f"block:{block_idx}_{participant} section AAI",
         hovermode="x",
+        yaxis_range=[-0.25, 0.25]
     )
     figb.show()
 
+    # Plot left and right power for each block
+    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['P07_pwr_cue', 'P08_pwr_cue'], var_name='side', value_name='data')
+    side_data_raw['cue_dir'] = 'cue'
+    figx.add_traces(
+        list(px.box(side_data_raw, x='cue_dir', y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)", color_discrete_sequence=px.colors.qualitative.Bold).select_traces())
+    )
+    figx.show()
+
+    # Look at time course of AAI for best and worst blocks - how does the score correspond
+
+    # Would magnitude of deviation above threshold make score better?
 
     return eeg_data, alpha_band
 
@@ -414,7 +492,35 @@ if __name__ == "__main__":
     nfb_data_dfs = []
     for idx, data_dir in enumerate(nfb_data_dirs):
         h5file = os.path.join(participant_dir, data_dir, "experiment_data.h5")
-        h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_15-31-24/experiment_data.h5" # Test case with negative RT
+        # h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_15-31-24/experiment_data.h5" # Test case with negative RT
+        h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_16-19-51/experiment_data.h5" # Test case with negative RT
+
+        # MAC - no online posner
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5" # Correct dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/05-27_17-15-46.log") # TODO: automatically get this file
+
+        h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/experiment_data.h5" # Opposite dir
+        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/05-27_17-27-36.log")
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-55-50/experiment_data.h5" # Doing nothing
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-55-50/05-27_17-55-50.log")
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-posner_task_posner_test_mac_off_05-27_16-53-51/experiment_data.h5" # posner
+
+        # LINUX - with online posner
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_16-57-32/experiment_data.h5" #correct dir
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/experiment_data.h5" # opposite dir
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-26-10/experiment_data.h5" # Do nothing
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-46-51/experiment_data.h5" #correct dir
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-posner_task_posner_test_on_05-26_16-26-58/experiment_data.h5"
+
+        # RT Testing
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/rt_testing_20220530/0-posner_task_posner_test_mac_off_05-30_12-25-51_mac_extkb_100hz_full/experiment_data.h5"
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/rt_testing_20220530/0-posner_task_posner_test_mac_off_05-30_11-11-45_mac_intkb_1000hz/experiment_data.h5"
+
+        # h1 = df1.groupby("block_number").first()
+        # h1 = h1[h1.block_name == 'nfb']
+        # px.scatter(h1, x='sample', y='reaction_time').show()
 
         df1, fs, channels, p_names = load_data(h5file)
         df1 = get_cue_dir(df1)
@@ -422,9 +528,12 @@ if __name__ == "__main__":
         # TODO - resampling to make everything faster?
         # plot_best_vs_worst_nfb_aai(df1, worst=58, best=43)
         df1["block_number"] = df1["block_number"] + idx * 100
-        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id)
+        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score)
         # epoch_analysis(eeg_data, alpha_band, f"NFB_{idx}", participant_id)
         nfb_data_dfs.append(df1)
+
+        # dd = df1.groupby('block_number').first()
+        # dd[dd.block_name == 'nfb']
 
         # block_lengths = {}
         # for block_no in df1[df1.posner_time > 0]['block_number'].to_list():
