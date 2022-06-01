@@ -42,25 +42,25 @@ def cvsa_threshold(h5file, plot=False):
     df1, fs, channels, p_names = load_data(h5file)
     df1['sample'] = df1.index
 
-    # Drop non eeg data
-    drop_cols = [x for x in df1.columns if x not in channels]
-    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
-    eeg_data = df1.drop(columns=drop_cols)
-
-    # Rescale the data (units are microvolts - i.e. x10^-6
-    eeg_data = eeg_data * 1e-6
-
     # Drop everthing except the AAI
-    df1 = df1[['signal_AAI', 'block_name', 'block_number', 'sample']]
+    # df1 = df1[['signal_AAI', 'block_name', 'block_number', 'sample']]
 
     # Extract all of the AAI blocks
     df1 = df1[df1['block_name'].str.contains("nfb")]
+
+    # only include finite values
+    df1 = df1[np.isfinite(df1.signal_AAI)]
+
+    # look at left and right for /Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5
+    # left_blocks = [4,7,10,19,28,34,37,40,49,52,58,61]
+    # right_blocks = [13,16,22,25,31,43,46,55]
+    # df1 = df1[df1.block_number.isin(right_blocks)]
 
     # Calculate mean of all AAI blocks
     # block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
 
     # Fit normal distribution
-    data = df1['signal_AAI'].dropna().to_numpy()# norm.rvs(10.0, 2.5, size=500)
+    data = df1['signal_AAI'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
     # Fit a normal distribution to the data:
     mu_online, std_online = norm.fit(data)
     # Plot the histogram.
@@ -79,6 +79,14 @@ def cvsa_threshold(h5file, plot=False):
     # Do the same, but for the raw AAI
     # Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
 
+    # Drop non eeg data
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
+
     aai_duration_samps = df1.shape[0]#10000
     alpha_band = (7.25, 11.25)
     mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
@@ -91,6 +99,17 @@ def cvsa_threshold(h5file, plot=False):
     aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
     df1['raw_aai'] = aai_raw_left
+
+    # Check the calculated aai is the same as the online
+    # import plotly.graph_objs as go
+    # fig1 = go.Figure()
+    # fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
+    #                     mode='lines',
+    #                     name='AAI_calc'))
+    # fig1.add_trace(go.Scatter(x=df1.index, y=df1['signal_AAI'],
+    #                     mode='lines',
+    #                     name='AAI_online'))
+    # fig1.show()
 
 
     # Calculate mean of all AAI blocks
@@ -118,6 +137,7 @@ if __name__ == "__main__":
     # Read in the raw data of the test
     task_data = {}
     # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
-    h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
-    mu, std = cvsa_threshold(h5file)
+    # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
+    h5file = f"/Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5"
+    mu, std = cvsa_threshold(h5file, plot=True)
 
