@@ -253,7 +253,7 @@
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
 			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>1.0</fDuration>
+			<fDuration>10.0</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>FixationCross</sFb_type>
