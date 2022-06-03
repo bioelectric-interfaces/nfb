@@ -59,6 +59,14 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     # Extract all of the AAI blocks
     df1_aai = df1_aai[df1_aai['block_name'].str.contains("nfb")]
 
+    # only include finite values
+    df1 = df1[np.isfinite(df1.signal_AAI)]
+
+    # look at left and right for /Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5
+    # left_blocks = [4,7,10,19,28,34,37,40,49,52,58,61]
+    # right_blocks = [13,16,22,25,31,43,46,55]
+    # df1 = df1[df1.block_number.isin(right_blocks)]
+
     # Calculate mean of all AAI blocks
     # block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
 
@@ -81,6 +89,14 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
 
     # Do the same, but for the raw AAI
     # Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
+
+    # Drop non eeg data
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
 
     aai_duration_samps = df1.shape[0]#10000
     # alpha_band = (7.75, 11.75)
@@ -148,6 +164,6 @@ if __name__ == "__main__":
     # Read in the raw data of the test
     task_data = {}
     # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
-    h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
-    mu, std = cvsa_threshold(h5file)
-
+    # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
+    h5file = f"/Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5"
+    mu, std = cvsa_threshold(h5file, plot=True)
