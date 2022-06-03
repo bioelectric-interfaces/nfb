@@ -128,7 +128,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     cue_recode = ["left", "right", "centre"]
 
     df1['cue_dir'] = df1['cue_dir'].replace(cue_dirs, cue_recode)
-    aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'cue_dir']]
+    aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'cue_dir', 'chunk_n']]
     aai_df = aai_df[aai_df['block_name'].str.contains("nfb")]
     grouped_aai_df = aai_df.groupby("block_number", as_index=False)
     median_aais = grouped_aai_df.median()
@@ -144,6 +144,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
 
     # Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
     # Drop non eeg data
+    # eeg_df = df1[df1['block_name'].str.contains("nfb")]
     drop_cols = [x for x in df1.columns if x not in channels]
     drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
     eeg_data = df1.drop(columns=drop_cols)
@@ -152,27 +153,21 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     eeg_data = eeg_data * 1e-6
     aai_duration_samps = df1.shape[0]#10000
     alpha_band = (7.25, 11.25)
-    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
+    chunksize = aai_df[aai_df.chunk_n > 0]['chunk_n'].median()
+    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
                                                                  channel_labels=eeg_data.columns, chs=["PO7=1"],
-                                                                 fft_samps=1000)
+                                                                 fft_samps=fs, chunksize=chunksize)
 
-    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
+    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
                                                                  channel_labels=eeg_data.columns, chs=["PO8=1"],
-                                                                 fft_samps=1000)
+                                                                 fft_samps=fs, chunksize=chunksize)
     aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
-    # fig1 = go.Figure()
-    # fig1.add_trace(go.Scatter(x=eeg_data.index, y=aai_raw_left,
-    #                     mode='lines',
-    #                     name='AAI_calc'))
-    # fig1.add_trace(go.Scatter(x=eeg_data.index, y=df1['signal_AAI'],
-    #                     mode='lines',
-    #                     name='AAI_online'))
-    # fig1.show()
-
     # Plot the median of the left and right alphas from the online AAI signal
-    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
+    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir', 'signal_AAI']]
     aai_df_raw['raw_aai'] = aai_raw_left
+    aai_df_raw['raw_aai'] = aai_df_raw['raw_aai'].rolling(window=int(fs / 10)).mean()
+    aai_df_raw['raw_smoothed'] = aai_df_raw['raw_aai'].rolling(window=int(fs / 10)).mean()
     aai_df_raw['P08_pwr'] = pwr_raw_r
     aai_df_raw['P07_pwr'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("nfb")]
@@ -197,6 +192,19 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     # look at scores
     if score:
         median_aais_raw['score'] = list(score.values())
+
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(x=aai_df_raw.index, y=aai_df_raw['raw_aai'],
+                        mode='lines',
+                        name='AAI_calc'))
+    fig1.add_trace(go.Scatter(x=aai_df_raw.index, y=aai_df_raw['signal_AAI'],
+                        mode='lines',
+                        name='AAI_online'))
+    fig1.add_trace(go.Scatter(x=aai_df_raw.index, y=aai_df_raw['raw_smoothed'],
+                        mode='lines',
+                        name='AAI_calc_smoothed'))
+    fig1.show()
+
 
     # Plot the aai for eachblock
     # fig = px.line(aai_df_raw, x='sample', y='raw_aai', color='cue_dir').show()
@@ -291,10 +299,10 @@ def epoch_analysis(eeg_data, alpha_band, block_idx, participant):
 
     aai_duration_samps = eeg_data.shape[0]#10000
     raw_ref_avg_df = pd.DataFrame(m_raw.get_data(stop=aai_duration_samps).T, columns=m_raw.info.ch_names)
-    mean_avg_l, std_avg_l, pwr_avg_l = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=1000,
+    mean_avg_l, std_avg_l, pwr_avg_l = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=fs,
                                                                  channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
                                                                  fft_samps=1000)
-    mean_avg_r, std_avg_r, pwr_avg_r = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=1000,
+    mean_avg_r, std_avg_r, pwr_avg_r = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=fs,
                                                                  channel_labels=m_raw.info.ch_names, chs=["PO8=1"],
                                                                  fft_samps=1000)
     aai_avg_left = (pwr_avg_l - pwr_avg_r) / (pwr_avg_l + pwr_avg_r)
@@ -397,8 +405,8 @@ def epoch_analysis(eeg_data, alpha_band, block_idx, participant):
 
     dataframes = []
     # ----Look at the power for the epochs in the left and right channels for left and right probes
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"left_probe"
@@ -495,29 +503,59 @@ if __name__ == "__main__":
         # h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_15-31-24/experiment_data.h5" # Test case with negative RT
         h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_16-19-51/experiment_data.h5" # Test case with negative RT
 
+        #-----------------------
         # MAC - no online posner
-        # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5" # Correct dir
-        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/05-27_17-15-46.log") # TODO: automatically get this file
+        h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5" # Correct dir
+        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/05-27_17-15-46.log") # TODO: automatically get this file
 
-        h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/experiment_data.h5" # Opposite dir
-        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/05-27_17-27-36.log")
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/experiment_data.h5" # Opposite dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/05-27_17-27-36.log")
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-55-50/experiment_data.h5" # Doing nothing
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-55-50/05-27_17-55-50.log")
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-posner_task_posner_test_mac_off_05-27_16-53-51/experiment_data.h5" # posner
 
+        #-----------------------
         # LINUX - with online posner
         # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_16-57-32/experiment_data.h5" #correct dir
-        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/experiment_data.h5" # opposite dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_16-57-32/05-26_16-57-32.log")
+
+        h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/experiment_data.h5" # opposite dir
+        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/05-26_17-12-29.log")
+
         # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-26-10/experiment_data.h5" # Do nothing
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-26-10/05-26_17-26-10.log")
+
         # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-46-51/experiment_data.h5" #correct dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-46-51/05-26_17-46-51.log")
+
         # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-posner_task_posner_test_on_05-26_16-26-58/experiment_data.h5"
 
+        #-----------------------
         # RT Testing
         # h5file = "/Users/christopherturner/Documents/EEG_Data/rt_testing_20220530/0-posner_task_posner_test_mac_off_05-30_12-25-51_mac_extkb_100hz_full/experiment_data.h5"
         # h5file = "/Users/christopherturner/Documents/EEG_Data/rt_testing_20220530/0-posner_task_posner_test_mac_off_05-30_11-11-45_mac_intkb_1000hz/experiment_data.h5"
 
+        #-----------------------
+        # AAI Testing
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/experiment_data.h5" # correct dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/06-01_17-27-12.log") # correct dir
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-15-17/experiment_data.h5" # pattern (LLRLRRRLRL)
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-15-17/06-01_18-15-17.log") # pattern
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-51-16/experiment_data.h5" # do nothing
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-51-16/06-01_17-51-16.log") # do nothing
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-23-46/experiment_data.h5" #wrong dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-23-46/06-01_18-23-46.log") # wrong dir
+
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-posner_task_PO0_06-01_17-02-59/experiment_data.h5"
+        # score = {}
+
+        #-----------------------
         # h1 = df1.groupby("block_number").first()
         # h1 = h1[h1.block_name == 'nfb']
         # px.scatter(h1, x='sample', y='reaction_time').show()
