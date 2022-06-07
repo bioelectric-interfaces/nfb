@@ -45,7 +45,7 @@ if __name__ == "__main__":
     if config['FILES']['aai_test']:
         # GENERATE the AAI thresholds
         aai_thresholds = True
-        mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True)
+        mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
         aai_threshold_mean = mu
         aai_threshold_max = 2 * std
 

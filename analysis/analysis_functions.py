@@ -213,9 +213,8 @@ def convert_hdf5_to_bv(h5file, output_file="output-bv.vhdr"):
     write_raw_brainvision(m_raw, brainvision_file, events=True)
 
 
-def get_nfb_derived_sig(eeg_data, pick_chs, fs, channel_labels, signal_estimator):
+def get_nfb_derived_sig(eeg_data, pick_chs, fs, channel_labels, signal_estimator, chunksize=20):
     spatial_matrix = read_spatial_filter(pick_chs, fs, channel_labels=channel_labels)
-    chunksize = 20
     filtered_data = np.empty(0)
     for k, chunk in eeg_data.groupby(np.arange(len(eeg_data)) // chunksize):
         filtered_chunk = np.dot(chunk, spatial_matrix)
@@ -261,7 +260,7 @@ def get_nfb_epoch_power_stats(data, fband=(8, 14), fs=1000, channel_labels=None,
     return epoch_pwr_mean, epoch_pwr_std, epoch_pwr
 
 
-def get_nfblab_power_stats_pandas(data, fband=(8, 14), fs=1000, channel_labels=None, chs=None, fft_samps=1000):
+def get_nfblab_power_stats_pandas(data, fband=(8, 14), fs=1000, channel_labels=None, chs=None, fft_samps=1000, chunksize=20):
     """
     TODO: refactor with above function
     """
@@ -270,7 +269,7 @@ def get_nfblab_power_stats_pandas(data, fband=(8, 14), fs=1000, channel_labels=N
     n_samples = fft_samps
     signal_estimator = FFTBandEnvelopeDetector(fband, fs, smoother, n_samples)
     pick_chs_string = ";".join(chs)
-    pwr = get_nfb_derived_sig(data, pick_chs_string, fs, channel_labels, signal_estimator)
+    pwr = get_nfb_derived_sig(data, pick_chs_string, fs, channel_labels, signal_estimator, chunksize=chunksize)
     pwr_mean = pwr.mean(axis=0)
     pwr_std = pwr.std(axis=0)
     return pwr_mean, pwr_std, pwr

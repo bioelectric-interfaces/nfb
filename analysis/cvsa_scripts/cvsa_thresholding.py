@@ -28,6 +28,7 @@ import platform
 from utils.load_results import load_data
 import numpy as np
 from scipy.stats import norm
+import plotly.graph_objs as go
 import matplotlib.pyplot as plt
 
 import analysis.analysis_functions as af
@@ -38,15 +39,25 @@ else:
     userdir = "christopherturner"
 
 
-def cvsa_threshold(h5file, plot=False):
+def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     df1, fs, channels, p_names = load_data(h5file)
     df1['sample'] = df1.index
 
+    df1[df1.cue > 0].groupby("block_number", as_index=True).first()
+
+    # Drop non eeg data
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
+
     # Drop everthing except the AAI
-    # df1 = df1[['signal_AAI', 'block_name', 'block_number', 'sample']]
+    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n']]
 
     # Extract all of the AAI blocks
-    df1 = df1[df1['block_name'].str.contains("nfb")]
+    df1_aai = df1_aai[df1_aai['block_name'].str.contains("nfb")]
 
     # only include finite values
     df1 = df1[np.isfinite(df1.signal_AAI)]
@@ -60,7 +71,7 @@ def cvsa_threshold(h5file, plot=False):
     # block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
 
     # Fit normal distribution
-    data = df1['signal_AAI'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
+    data = df1_aai['signal_AAI'].dropna().to_numpy()# norm.rvs(10.0, 2.5, size=500)
     # Fit a normal distribution to the data:
     mu_online, std_online = norm.fit(data)
     # Plot the histogram.
@@ -88,29 +99,45 @@ def cvsa_threshold(h5file, plot=False):
     eeg_data = eeg_data * 1e-6
 
     aai_duration_samps = df1.shape[0]#10000
-    alpha_band = (7.25, 11.25)
-    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
-                                                                 channel_labels=eeg_data.columns, chs=["PO7=1"],
-                                                                 fft_samps=1000)
+    # alpha_band = (7.75, 11.75)
 
-    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=1000,
+    chunksize = df1[df1.chunk_n > 0]['chunk_n'].median()
+
+    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
+                                                                 channel_labels=eeg_data.columns, chs=["PO7=1"],
+                                                                 fft_samps=fs, chunksize=chunksize)
+
+    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
                                                                  channel_labels=eeg_data.columns, chs=["PO8=1"],
-                                                                 fft_samps=1000)
+                                                                 fft_samps=fs, chunksize=chunksize)
     aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
+
 
     df1['raw_aai'] = aai_raw_left
 
-    # Check the calculated aai is the same as the online
-    # import plotly.graph_objs as go
-    # fig1 = go.Figure()
-    # fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
-    #                     mode='lines',
-    #                     name='AAI_calc'))
-    # fig1.add_trace(go.Scatter(x=df1.index, y=df1['signal_AAI'],
-    #                     mode='lines',
-    #                     name='AAI_online'))
-    # fig1.show()
+    # Replicate the moving average smoother
+    df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
 
+    # Extract all of the AAI blocks
+    df1 = df1[df1['block_name'].str.contains("nfb")]
+
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
+                        mode='lines',
+                        name='AAI_calc'))
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['signal_AAI'],
+                        mode='lines',
+                        name='AAI_online'))
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_smoothed'],
+                        mode='lines',
+                        name='raw_smoothed'))
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['signal_left'],
+                        mode='lines',
+                        name='signal_left'))
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['signal_right'],
+                        mode='lines',
+                        name='signal_right'))
+    fig1.show()
 
     # Calculate mean of all AAI blocks
     # Fit normal distribution
@@ -140,4 +167,3 @@ if __name__ == "__main__":
     # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
     h5file = f"/Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5"
     mu, std = cvsa_threshold(h5file, plot=True)
-
