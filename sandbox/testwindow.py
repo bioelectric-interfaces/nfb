@@ -1,10 +1,12 @@
 # https://pythonprogramminglanguage.com/pyqt5-hello-world/
 import sys
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QFormLayout, QWidget
 from PyQt5.QtCore import QSize
 
 import logging
+# import parallel
+from psychopy import parallel
 import time
 
 class HelloWindow(QMainWindow):
@@ -17,12 +19,31 @@ class HelloWindow(QMainWindow):
         centralWidget = QWidget(self)
         self.setCentralWidget(centralWidget)
 
-        gridLayout = QGridLayout(self)
-        centralWidget.setLayout(gridLayout)
+        # gridLayout = QGridLayout(self)
+        # centralWidget.setLayout(gridLayout)
+
+        layout = QFormLayout(self)
+        centralWidget.setLayout(layout)
 
         title = QLabel("Hello World from PyQt", self)
         title.setAlignment(QtCore.Qt.AlignCenter)
-        gridLayout.addWidget(title, 0, 0)
+        # layout.addWidget(title, 0, 0)
+
+        parallel_high = QtWidgets.QPushButton('Parallel_0_set_high')
+        parallel_high.clicked.connect(lambda x: self.send_parallel_info(2))
+        layout.addRow('&Test beep sound:', parallel_high)
+
+        parallel_low = QtWidgets.QPushButton('Parallel_0_set_low')
+        parallel_low.clicked.connect(lambda x: self.send_parallel_info(0))
+        layout.addRow('&Test beep sound:', parallel_low)
+
+        # Setup parallel port
+        # self.p_port = parallel.Parallel(port=2010)
+        self.p_port = parallel.ParallelPort(address=2010)
+
+    def send_parallel_info(self, data):
+        # send some info over the parallel port
+        self.p_port.setData(data) # set bit 0 high
 
     def keyPressEvent(self, e):
         # TODO: make it so this can't be pressed when the pre-calcs are happening!!!!

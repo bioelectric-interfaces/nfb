@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2022.1.2">
+<PsychoPy2experiment encoding="utf-8" version="2022.1.4">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -329,6 +329,23 @@
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
       </KeyboardComponent>
+      <ParallelOutComponent name="p_port_2">
+        <Param val="0x2010" valType="str" updates="None" name="address"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="p_port_2" valType="code" updates="None" name="name"/>
+        <Param val="EIO" valType="str" updates="None" name="register"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="3" valType="code" updates="None" name="startData"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="0" valType="code" updates="None" name="stopData"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="1.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreen"/>
+        <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
+      </ParallelOutComponent>
     </Routine>
     <Routine name="start">
       <CodeComponent name="code_3">
@@ -491,6 +508,23 @@
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
+      <ParallelOutComponent name="p_port">
+        <Param val="0x2010" valType="str" updates="None" name="address"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="p_port" valType="code" updates="None" name="name"/>
+        <Param val="EIO" valType="str" updates="None" name="register"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="side" valType="code" updates="None" name="startData"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="0" valType="code" updates="None" name="stopData"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="1.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreen"/>
+        <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
+      </ParallelOutComponent>
     </Routine>
   </Routines>
   <Flow>
