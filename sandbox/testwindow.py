@@ -30,20 +30,21 @@ class HelloWindow(QMainWindow):
         # layout.addWidget(title, 0, 0)
 
         parallel_high = QtWidgets.QPushButton('Parallel_0_set_high')
-        parallel_high.clicked.connect(lambda x: self.send_parallel_info(2))
-        layout.addRow('&Test beep sound:', parallel_high)
+        parallel_high.clicked.connect(lambda x: self.send_parallel_info(1))
+        layout.addRow('', parallel_high)
 
         parallel_low = QtWidgets.QPushButton('Parallel_0_set_low')
         parallel_low.clicked.connect(lambda x: self.send_parallel_info(0))
-        layout.addRow('&Test beep sound:', parallel_low)
+        layout.addRow('', parallel_low)
 
         # Setup parallel port
-        # self.p_port = parallel.Parallel(port=2010)
-        self.p_port = parallel.ParallelPort(address=2010)
+        # self.p_port = parallel.Parallel(port=0x2010)
+        self.p_port = parallel.ParallelPort(address=0x2010)
 
     def send_parallel_info(self, data):
         # send some info over the parallel port
-        self.p_port.setData(data) # set bit 0 high
+        self.p_port.setData(data)
+        print(f'sending: {data}')
 
     def keyPressEvent(self, e):
         # TODO: make it so this can't be pressed when the pre-calcs are happening!!!!
