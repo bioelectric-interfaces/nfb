@@ -3,6 +3,7 @@ import sys
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QLabel, QGridLayout, QFormLayout, QWidget
 from PyQt5.QtCore import QSize
+import time
 
 import logging
 # import parallel
@@ -44,6 +45,8 @@ class HelloWindow(QMainWindow):
     def send_parallel_info(self, data):
         # send some info over the parallel port
         self.p_port.setData(data)
+        time.sleep(0.05)
+        self.p_port.setData(0)
         print(f'sending: {data}')
 
     def keyPressEvent(self, e):
