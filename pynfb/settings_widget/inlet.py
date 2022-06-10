@@ -128,16 +128,20 @@ class EventsInletSettingsWidget(QtWidgets.QWidget):
 
     def use_events_changed_action(self):
         self.name_edit.setEnabled(self.use_events.isChecked())
-        self.parent().params['sEventsStreamName'] = ''
+        self.parent().params['sEventsStreamName'] = self.get_name()
+        self.parent().params['bUseEvents'] = int(self.use_events.isChecked())
 
     def get_name(self):
         return self.name_edit.text() if self.use_events.isChecked() else ''
 
     def reset(self):
+        print(f"USE EVENTS: {self.parent().params['bUseEvents']}")
         name = self.parent().params['sEventsStreamName']
         self.name_edit.setText(name)
         if len(name) == 0:
             self.use_events.setChecked(False)
+        else:
+            self.use_events.setChecked(self.parent().params['bUseEvents'])
         self.use_events_changed_action()
 
     def name_changed_action(self):

@@ -24,6 +24,7 @@ vectors_defaults = OrderedDict([
     ('sInletType', 'lsl'),
     ('sStreamName', 'NVX136_Data'),
     ('sEventsStreamName', ''),
+    ('bUseEvents', 0),
     ('sRawDataFilePath', ''),
     ('sFTHostnamePort', 'localhost:1972'),
     ('bPlotRaw', 1),

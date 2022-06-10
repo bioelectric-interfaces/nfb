@@ -769,6 +769,7 @@ class Experiment():
         # setup events stream by name
         events_stream_name = self.params['sEventsStreamName']
         events_stream = LSLInlet(events_stream_name) if events_stream_name else None
+        print(f"EVENTS STREAM NAME: {events_stream_name}")
 
         # setup main stream
         self.stream = ChannelsSelector(stream, exclude=self.params['sReference'],
