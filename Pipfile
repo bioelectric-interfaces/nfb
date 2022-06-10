@@ -6,6 +6,21 @@ name = "pypi"
 [packages]
 pyqt5 = "*"
 psychopy = "*"
+xml-python = "*"
+pyparallel = "*"
+adafruit-circuitpython-simpleio = "*"
+pylsl = "*"
+mne = "==0.24.1"
+h5py = "*"
+seaborn = "*"
+sympy = "*"
+sklearn = "*"
+gtts = "*"
+googletrans = "*"
+pyqtgraph = "*"
+pyopengl = "*"
+pooch = "*"
+plotly = "*"
 
 [dev-packages]
 
