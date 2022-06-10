@@ -30,6 +30,7 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
+import pandas as pd
 import mne
 
 
@@ -61,7 +62,7 @@ class Experiment():
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         # self.test_signal = (np.sin(2*np.pi*np.arange(1000*100)*0.5/1000)).astype(np.float32) #Test signal to be used for posner distractor colour
-        self.test_signal = self.Randomwalk1D(100000)[1]
+        self.test_signal = self.Randomwalk1D(100000)[1] #self.get_aai_from_pickle() #
         self.test_start = 0 # randomly start somewhere in the test signal
         self.mean_reward_signal = 0
         self.median_eye_signal = 0
@@ -116,6 +117,9 @@ class Experiment():
             elif yposition[-1] < -0.9:
                 upp = 1
         return [xposition, yposition]
+
+    def get_aai_from_pickle(self):
+        return pd.read_pickle('/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/aai.pkl').to_list()
 
     def update(self):
         """
@@ -577,7 +581,7 @@ class Experiment():
                 current_protocol.widget_painter.current_sample_idx = 0
 
             # Get the start of the test signal (random value between 0 and 100000-cur protocol length - buffer(1000)
-            self.test_start = r.choice([0, 100000-self.current_protocol_n_samples])
+            self.test_start = r.randrange(0, 100000-self.current_protocol_n_samples, 1)
 
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
