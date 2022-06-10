@@ -2,6 +2,8 @@
 import mne
 from utils.load_results import load_data
 import numpy as np
+import pandas as pd
+import csv
 
 # get the brain vision stuff
 fname_raw = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_marker_test2.vhdr"
@@ -34,5 +36,26 @@ while x_nfb != 0:
 
 diff.pop(0) # remove extra beginning event in BV in NFBLAB
 subtracted = np.subtract(diff, diff_nfb) #[element1 - element2 for (element1, element2) in zip(diff, diff_nfb)]
+
+
+# read in the psychopy results
+pp_df = pd.DataFrame(dict(marker=[], time=[]))
+psychopy_results = pd.read_csv('/Users/2354158T/Documents/EEG_Data/bv_stim_test/2_posner_2022-06-10_13h18.45.421.csv', squeeze=True)
+for index, row in psychopy_results.iterrows():
+    pp_df = pp_df.append({'marker':row['cue'], 'time': row['fc.started']}, ignore_index = True)
+    pp_df = pp_df.append({'marker':3, 'time': row['fixation_cross.started']}, ignore_index = True)
+
+# Drop extra rows in beginning
+pp_df = pp_df.drop([pp_df.index[0] , pp_df.index[1]])
+
+x_pp = len(pp_df)-1
+diff_pp = []
+while x_pp != 0:
+    diff_pp.insert(0, round((pp_df['time'].iloc[x_pp] - pp_df['time'].iloc[x_pp-1])*1000)) # approx samples
+    x_pp = x_pp-1
+
+
+subtracted_parallel_pp = np.subtract(diff, diff_pp) # This is the difference between the pyschopy timestamped blocks and the brainvision recorded events. It is the same (+-1 is rounding error)
+
 
 print("done")
