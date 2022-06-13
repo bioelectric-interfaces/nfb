@@ -25,7 +25,7 @@
     <Param val="False" valType="bool" updates="None" name="Show mouse"/>
     <Param val="height" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
-    <Param val="[1280, 1024]" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="[1920, 1080]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -74,8 +74,8 @@
         <Param val="Auto-&gt;JS" valType="str" updates="None" name="Code Type"/>
         <Param val="rnd = random.randrange(0, 255)&amp;#10;l_color = (0,0,0)&amp;#10;aai_chunk = 0&amp;#10;aai_chunk_scaled = 0&amp;#10;aai_mean = 0&amp;#10;aai_chunk_scaled = 0&amp;#10;#try:&amp;#10;#    print(inlet.pull_sample())&amp;#10;#    chunk, timestamps = inlet.pull_chunk()&amp;#10;#    logging.log(level=logging.INFO, msg='CHUNK')&amp;#10;#    print(f&quot;len: {len(chunk)}&quot;)&amp;#10;#    print(f&quot;CHUNK:&quot;)&amp;#10;#    print(chunk)&amp;#10;#    print(&quot;AAI_CHUNK&quot;)&amp;#10;#    aai_chunk = pd.DataFrame(chunk)[4]&amp;#10;#    print(aai_chunk)&amp;#10;#    aai_mean = aai_chunk.mean()&amp;#10;#    print(aai_mean)&amp;#10;#    aai_chunk_scaled = rescale(aai_mean, un_scaled_min=0, un_scaled_max=0.25)&amp;#10;#&amp;#10;#    l_color = (aai_chunk_scaled, aai_chunk_scaled, 255)&amp;#10;#except:&amp;#10;#    print(&quot;ExcepT&quot;)&amp;#10;#    &amp;#10;#    l_color = (255, 255, 255)&amp;#10;#    pass" valType="extendedCode" updates="constant" name="Each Frame"/>
         <Param val="rnd = random.randrange(0, 255);&amp;#10;l_color = [0, 0, 0];&amp;#10;aai_chunk = 0;&amp;#10;aai_chunk_scaled = 0;&amp;#10;aai_mean = 0;&amp;#10;aai_chunk_scaled = 0;&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
-        <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
-        <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
+        <Param val="outlet.push_sample([55])" valType="extendedCode" updates="constant" name="End Experiment"/>
+        <Param val="outlet.push_sample([55]);&amp;#10;" valType="extendedCode" updates="constant" name="End JS Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Routine"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Routine"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
@@ -286,7 +286,7 @@
         <Param val="p_port_2" valType="code" updates="None" name="name"/>
         <Param val="EIO" valType="str" updates="None" name="register"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
-        <Param val="3" valType="code" updates="None" name="startData"/>
+        <Param val="55" valType="code" updates="None" name="startData"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0.0" valType="code" updates="None" name="startVal"/>
@@ -472,6 +472,68 @@
         <Param val="0" valType="code" updates="None" name="stopData"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
         <Param val="1.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreen"/>
+        <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
+      </ParallelOutComponent>
+    </Routine>
+    <Routine name="end">
+      <TextComponent name="end_text">
+        <Param val="white" valType="color" updates="constant" name="color"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="None" valType="str" updates="constant" name="flip"/>
+        <Param val="Open Sans" valType="str" updates="constant" name="font"/>
+        <Param val="LTR" valType="str" updates="None" name="languageStyle"/>
+        <Param val="0.05" valType="num" updates="constant" name="letterHeight"/>
+        <Param val="end_text" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="(0, 0)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="Task finished, wait for experimenter" valType="str" updates="constant" name="text"/>
+        <Param val="from exp settings" valType="str" updates="None" name="units"/>
+        <Param val="" valType="num" updates="constant" name="wrapWidth"/>
+      </TextComponent>
+      <KeyboardComponent name="end_key">
+        <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
+        <Param val="" valType="str" updates="constant" name="correctAns"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="True" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="end_key" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="" valType="code" updates="constant" name="stopVal"/>
+        <Param val="last key" valType="str" updates="constant" name="store"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
+      </KeyboardComponent>
+      <ParallelOutComponent name="p_port_3">
+        <Param val="0x2010" valType="str" updates="None" name="address"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="p_port_3" valType="code" updates="None" name="name"/>
+        <Param val="EIO" valType="str" updates="None" name="register"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="1" valType="code" updates="None" name="startData"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="0" valType="code" updates="None" name="stopData"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="0.1" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreen"/>
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
       </ParallelOutComponent>
