@@ -25,8 +25,12 @@ based on:
 """
 import os
 import platform
+
+import mne
+
 from utils.load_results import load_data
 import numpy as np
+import pandas as pd
 from scipy.stats import norm
 import plotly.graph_objs as go
 import matplotlib.pyplot as plt
@@ -124,6 +128,11 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
 
     df1['raw_aai'] = aai_raw_left
 
+    # Get number of left and right events
+    print(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
+    print(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
+    print(f"No. NFB EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[22]}")
+
     # Replicate the moving average smoother
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
 
@@ -171,11 +180,73 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     return mu_raw, std_raw
 
 
-def cvsa_threshold_bv():
+def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     """
     csva thresholding function that uses markers from a brainvision file
     """
-    pass
+
+    # Load the brainvision data
+    raw = mne.io.read_raw_brainvision(bv_file)
+
+    # Epoch the data
+    events_from_annot, event_dict = mne.events_from_annotations(raw)
+    # split the data based on annotations
+    epochs = mne.Epochs(raw, events_from_annot)
+     # epochs['3']:  This is the actual task data
+
+    # Get number of left and right events
+    print(f"No. LEFT EVENTS (BV): {epochs['1'].events.shape[0]}")
+    print(f"No. RIGHT EVENTS (BV): {epochs['2'].events.shape[0]}")
+    print(f"No. NFB EVENTS (BV): {epochs['3'].events.shape[0]}")
+
+    fs = int(raw.info['sfreq'])
+    aai_duration_samps = len(raw)
+    chunksize = 20 # This is arbitrary
+
+    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfb_epoch_power_stats(epochs['3'], fband=alpha_band, fs=fs,
+                                                                     channel_labels=raw.info.ch_names,
+                                                                     chs=["PO7=1"], fft_samps=fs)
+
+    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfb_epoch_power_stats(epochs['3'], fband=alpha_band, fs=fs,
+                                                                     channel_labels=raw.info.ch_names,
+                                                                     chs=["PO8=1"], fft_samps=fs)
+
+    aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
+
+    df1 = pd.DataFrame(aai_raw_left.flatten().T, columns=['raw_aai'])
+
+    # Replicate the moving average smoother
+    df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
+
+    fig1 = go.Figure()
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
+                        mode='lines',
+                        name='AAI_calc'))
+    fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_smoothed'],
+                        mode='lines',
+                        name='raw_smoothed'))
+    fig1.show()
+
+    # Calculate mean of all AAI blocks
+    # Fit normal distribution
+    data = df1['raw_aai'].to_numpy()# norm.rvs(10.0, 2.5, size=500)
+    # Fit a normal distribution to the data:
+    mu_raw, std_raw = norm.fit(data)
+    # Plot the histogram.
+    plt.hist(data, bins=20, density=True, alpha=0.6, color='g')
+    # Plot the PDF.
+    xmin, xmax = plt.xlim()
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu_raw, std_raw)
+    plt.plot(x, p, 'k', linewidth=2)
+    title = "Fit results: mu_raw = %.2f,  std_raw = %.2f" % (mu_raw, std_raw)
+    plt.title(title)
+    if plot:
+        plt.show()
+
+    print(f"RAW AAI MEAN: {mu_raw}, STD: {std_raw}")
+
+    return mu_raw, std_raw
 
 
 if __name__ == "__main__":
@@ -184,4 +255,8 @@ if __name__ == "__main__":
     # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
     # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
     h5file = f"/Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5"
-    mu, std = cvsa_threshold(h5file, plot=True)
+
+    # mu, std = cvsa_threshold(h5file, plot=True)
+
+    bv_file = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_marker_test2.vhdr"
+    mu, std = cvsa_threshold_bv(bv_file, plot=True)
