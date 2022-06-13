@@ -54,7 +54,7 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     task_dir = 0
     df1["task_dir"] = 0
     for idx, row in df1.copy().iterrows():
-        if row.EVENTS in [1, 2, 22]:
+        if row.EVENTS in [1, 2, 22, 55]:
             task_dir = row.EVENTS
         df1.at[idx, 'task_dir'] = task_dir
 
@@ -190,34 +190,60 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
 
     # Epoch the data
     events_from_annot, event_dict = mne.events_from_annotations(raw)
-    # split the data based on annotations
-    epochs = mne.Epochs(raw, events_from_annot)
-     # epochs['3']:  This is the actual task data
 
-    # Get number of left and right events
-    print(f"No. LEFT EVENTS (BV): {epochs['1'].events.shape[0]}")
-    print(f"No. RIGHT EVENTS (BV): {epochs['2'].events.shape[0]}")
-    print(f"No. NFB EVENTS (BV): {epochs['3'].events.shape[0]}")
+    # Put into dataframe
+    df1 = pd.DataFrame(raw.get_data().T, columns=raw.info.ch_names)
+    df1['sample'] = df1.index
+    df1['EVENTS'] = 0
+    for event in events_from_annot:
+        df1.at[event[0], 'EVENTS'] = event[2]
+
+    # create and fill in the task_dir column (task_dir = 1: left, 2: right)
+    task_dir = 0
+    df1["task_dir"] = 0
+    for idx, row in df1.copy().iterrows():
+        if row.EVENTS in [1, 2, 3, 5]:
+            task_dir = row.EVENTS
+        df1.at[idx, 'task_dir'] = task_dir
+
+
+    # split the data based on annotations
+    # epochs = mne.Epochs(raw, events_from_annot, tmin=- 0.2, tmax=0.5) #NOTE!!: tmin and tmax MUST be given - therefore, this method is probably less accurate than the LSL one (because each nfb period is different)
+     # epochs['3']:  This is the actual task data
 
     fs = int(raw.info['sfreq'])
     aai_duration_samps = len(raw)
     chunksize = 20 # This is arbitrary
 
-    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfb_epoch_power_stats(epochs['3'], fband=alpha_band, fs=fs,
-                                                                     channel_labels=raw.info.ch_names,
-                                                                     chs=["PO7=1"], fft_samps=fs)
+    drop_cols = [x for x in df1.columns if x not in raw.info.ch_names]
+    drop_cols.extend(['EOG', 'ECG', 'task_dir', 'EVENTS'])
+    eeg_data = df1.drop(columns=drop_cols)
 
-    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfb_epoch_power_stats(epochs['3'], fband=alpha_band, fs=fs,
-                                                                     channel_labels=raw.info.ch_names,
-                                                                     chs=["PO8=1"], fft_samps=fs)
+    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
+                                                                 channel_labels=eeg_data.columns, chs=["PO7=1"],
+                                                                 fft_samps=fs, chunksize=chunksize)
 
+    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
+                                                                 channel_labels=eeg_data.columns, chs=["PO8=1"],
+                                                                 fft_samps=fs, chunksize=chunksize)
     aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
-    df1 = pd.DataFrame(aai_raw_left.flatten().T, columns=['raw_aai'])
+
+    df1['raw_aai'] = aai_raw_left
+
+    # Get number of left and right events
+    print(f"No. LEFT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
+    print(f"No. RIGHT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
+    print(f"No. NFB EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[3]}")
 
     # Replicate the moving average smoother
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
 
+    # Extract all of the AAI blocks
+    # df1 = df1[df1['block_name'].str.contains("nfb")]
+    df1 = df1[df1['task_dir'] == 3]
+
+    df1 = df1.reset_index()
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
                         mode='lines',
