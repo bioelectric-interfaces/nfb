@@ -40,27 +40,35 @@ else:
 
 
 def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
+    """
+    Thresholding script using NFBLab EVENTS to separate left, right, and neutral cases
+    """
     df1, fs, channels, p_names = load_data(h5file)
     df1['sample'] = df1.index
 
-    df1[df1.cue > 0].groupby("block_number", as_index=True).first()
+    # create and fill in the task_dir column (task_dir = 1: left, 2: right)
+    task_dir = 0
+    df1["task_dir"] = 0
+    for idx, row in df1.copy().iterrows():
+        if row.EVENTS in [1, 2, 22]:
+            task_dir = row.EVENTS
+        df1.at[idx, 'task_dir'] = task_dir
 
-    # Drop non eeg data
-    drop_cols = [x for x in df1.columns if x not in channels]
-    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
-    eeg_data = df1.drop(columns=drop_cols)
+    # Just get the actual task blocks
+    # EVENT: 1,2 = start of LEFT/RIGHT cue block. 22 = start of task block
 
-    # Rescale the data (units are microvolts - i.e. x10^-6
-    eeg_data = eeg_data * 1e-6
 
-    # Drop everthing except the AAI
-    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n']]
+    # df1[df1.cue > 0].groupby("block_number", as_index=True).first()
+
+    # Drop everthing not relevant
+    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n', 'task_dir']]
 
     # Extract all of the AAI blocks
-    df1_aai = df1_aai[df1_aai['block_name'].str.contains("nfb")]
+    # df1_aai = df1_aai[df1_aai['block_name'].str.contains("nfb")]
+    df1_aai = df1_aai[df1_aai['task_dir'] == 22]
 
     # only include finite values
-    df1 = df1[np.isfinite(df1.signal_AAI)]
+    df1_aai = df1_aai[np.isfinite(df1_aai.signal_AAI)]
 
     # look at left and right for /Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5
     # left_blocks = [4,7,10,19,28,34,37,40,49,52,58,61]
@@ -87,6 +95,8 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
         plt.show()
     print(f"ONLINE AAI MEAN: {mu_online}, STD: {std_online}")
 
+
+    # ++++++++++++++++++++++++++++++++++++++++++++++++++
     # Do the same, but for the raw AAI
     # Get AAI by calculating raw signals from hdf5 (i.e. no smoothing)------------------------------------
 
@@ -97,7 +107,6 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
 
     # Rescale the data (units are microvolts - i.e. x10^-6
     eeg_data = eeg_data * 1e-6
-
     aai_duration_samps = df1.shape[0]#10000
     # alpha_band = (7.75, 11.75)
 
@@ -119,7 +128,8 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
 
     # Extract all of the AAI blocks
-    df1 = df1[df1['block_name'].str.contains("nfb")]
+    # df1 = df1[df1['block_name'].str.contains("nfb")]
+    df1 = df1[df1['task_dir'] == 22]
 
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
@@ -159,6 +169,14 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     print(f"RAW AAI MEAN: {mu_raw}, STD: {std_raw}")
 
     return mu_raw, std_raw
+
+
+def cvsa_threshold_bv():
+    """
+    csva thresholding function that uses markers from a brainvision file
+    """
+    pass
+
 
 if __name__ == "__main__":
     # Read in the raw data of the test
