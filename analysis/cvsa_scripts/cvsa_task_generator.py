@@ -8,7 +8,7 @@ It then generates the rest of the experiment scripts
 from experiment_generators.participant_generator import ParticipantTaskGenerator
 from iaf_calculation import iaf_from_baseline
 from eye_calibration import eye_calibration
-from cvsa_thresholding import cvsa_threshold
+from cvsa_thresholding import cvsa_threshold, cvsa_threshold_bv
 import platform
 import configparser
 import os
@@ -45,7 +45,10 @@ if __name__ == "__main__":
     if config['FILES']['aai_test']:
         # GENERATE the AAI thresholds
         aai_thresholds = True
-        mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
+        if config['FILES']['aai_test'].endswith('vhdr'):
+            mu, std = cvsa_threshold_bv(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
+        else:
+            mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
         aai_threshold_mean = mu
         aai_threshold_max = 2 * std
 
@@ -87,9 +90,8 @@ if __name__ == "__main__":
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
     tasks = {"baseline": "baseline.xml",
              "eye_calibration": "eye_calibration.xml",
-             "test_task": test_template,
              "nfb_task": nfb_template,
-             "posner_task": test_template}
+             "posner_task": "posner_psychopy.xml"}
 
     task_info = {}
 
