@@ -13,6 +13,8 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt5.QtGui import QPainter, QPen, QBrush, QTransform
 from PyQt5.QtCore import Qt
+from psychopy import parallel
+
 
 class ProtocolWidget(pg.PlotWidget):
     def __init__(self, fbtype=None, size=500, **kwargs):
@@ -28,7 +30,7 @@ class ProtocolWidget(pg.PlotWidget):
         self.hideAxis('left')
         self.setBackgroundBrush(pg.mkBrush('#252120'))
         # if type and type == "Gabor":
-        self.setBackgroundBrush(pg.mkBrush(126,126,126))
+        self.setBackgroundBrush(pg.mkBrush(126, 126, 126))
         self.reward_str = '<font size="4" color="#B48375">Reward: </font><font size="5" color="#91C7A9">{}</font>'
         self.reward = pg.TextItem(html=self.reward_str.format(0))
         self.reward.setPos(-4.7, 4.7)
@@ -60,12 +62,12 @@ class Painter:
 
 
 class CircleFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1):
+    def __init__(self, noise_scaler=2, show_reward=False, radius=3, circle_border=0, m_threshold=1):
         super(CircleFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.noise_scaler = noise_scaler
-        self.x = np.linspace(-np.pi/2, np.pi/2, 100)
+        self.x = np.linspace(-np.pi / 2, np.pi / 2, 100)
         np.random.seed(42)
-        self.noise = np.sin(15*self.x)*0.5-0.5 if not circle_border else np.random.uniform(-0.5, 0.5, 100)-0.5
+        self.noise = np.sin(15 * self.x) * 0.5 - 0.5 if not circle_border else np.random.uniform(-0.5, 0.5, 100) - 0.5
         self.widget = None
         self.radius = radius
         self.m_threshold = m_threshold
@@ -91,17 +93,17 @@ class CircleFeedbackProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
         noise_ampl = -np.tanh(sample + self.noise_scaler) + 1
-        noise = self.noise*noise_ampl
-        self.p1.setData(self.radius * np.sin(self.x)*(1+noise), self.radius * np.cos(self.x)*(1+noise))
-        self.p2.setData(self.radius * np.sin(self.x)*(1+noise), -self.radius * np.cos(self.x)*(1+noise))
+        noise = self.noise * noise_ampl
+        self.p1.setData(self.radius * np.sin(self.x) * (1 + noise), self.radius * np.cos(self.x) * (1 + noise))
+        self.p2.setData(self.radius * np.sin(self.x) * (1 + noise), -self.radius * np.cos(self.x) * (1 + noise))
         pass
 
 
 class BarFeedbackProtocolWidgetPainter(Painter):
-    def __init__(self, noise_scaler=2, show_reward=False, radius = 3, circle_border=0, m_threshold=1, r_threshold=0):
+    def __init__(self, noise_scaler=2, show_reward=False, radius=3, circle_border=0, m_threshold=1, r_threshold=0):
         super(BarFeedbackProtocolWidgetPainter, self).__init__(show_reward=show_reward)
         self.x = np.linspace(-1, 1, 100)
         self.widget = None
@@ -111,7 +113,7 @@ class BarFeedbackProtocolWidgetPainter(Painter):
     def prepare_widget(self, widget):
         super(BarFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
         self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(229, 223, 213)).curve
-        self.p2 = widget.plot(self.x, np.zeros_like(self.x)-5, pen=pg.mkPen(229, 223, 213)).curve
+        self.p2 = widget.plot(self.x, np.zeros_like(self.x) - 5, pen=pg.mkPen(229, 223, 213)).curve
         fill = pg.FillBetweenItem(self.p1, self.p2, brush=(229, 223, 213, 25))
         self.fill = fill
         self.threshold_line = widget.plot()
@@ -131,16 +133,17 @@ class BarFeedbackProtocolWidgetPainter(Painter):
         self.threshold_line.setData(self.x, np.ones_like(self.x) * self.r_threshold)
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
-        self.p1.setData(self.x, np.zeros_like(self.x)+max(min(sample, 5), -5))
-        self.p2.setData(self.x, np.zeros_like(self.x)-5)
+        self.p1.setData(self.x, np.zeros_like(self.x) + max(min(sample, 5), -5))
+        self.p2.setData(self.x, np.zeros_like(self.x) - 5)
 
         if sample > self.r_threshold:
             self.fill.setBrush(176, 176, 48, 25)
         else:
             self.fill.setBrush(35, 45, 176, 25)
         pass
+
 
 class EyeTrackFeedbackProtocolWidgetPainter(Painter):
     def __init__(self, show_reward=False, m_threshold=1, r_threshold=100, center_fixation=0):
@@ -150,9 +153,8 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
         self.widget = None
         self.m_threshold = m_threshold
         self.r_threshold = r_threshold
-        self.centre_fixation = 109# center_fixation
-        self.eye_range = 586 #580
-
+        self.centre_fixation = 109  # center_fixation
+        self.eye_range = 586  # 580
 
     def prepare_widget(self, widget):
         self.widget = widget
@@ -168,18 +170,22 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
 
         # add a left and right marker
         x_offset = 10
-        self.left_markb = self.widget.plot(-x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
-                                      self.fixdot_radius/4 * np.cos(self.fixdot), pen=pg.mkPen(color='blue')).curve
-        self.left_markt = self.widget.plot(-x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
-                                      self.fixdot_radius/4 * -np.cos(self.fixdot), pen=pg.mkPen(color='blue')).curve
+        self.left_markb = self.widget.plot(-x_offset + self.fixdot_radius / 4 * np.sin(self.fixdot),
+                                           self.fixdot_radius / 4 * np.cos(self.fixdot),
+                                           pen=pg.mkPen(color='blue')).curve
+        self.left_markt = self.widget.plot(-x_offset + self.fixdot_radius / 4 * np.sin(self.fixdot),
+                                           self.fixdot_radius / 4 * -np.cos(self.fixdot),
+                                           pen=pg.mkPen(color='blue')).curve
         left_mark_fill = pg.FillBetweenItem(self.left_markb, self.left_markt, brush=('blue'))
         self.left_mark_fill = left_mark_fill
         widget.addItem(left_mark_fill)
 
-        self.right_markb = self.widget.plot(x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
-                                      self.fixdot_radius/4 * np.cos(self.fixdot), pen=pg.mkPen(color='green')).curve
-        self.right_markt = self.widget.plot(x_offset + self.fixdot_radius/4 * np.sin(self.fixdot),
-                                      self.fixdot_radius/4 * -np.cos(self.fixdot), pen=pg.mkPen(color='green')).curve
+        self.right_markb = self.widget.plot(x_offset + self.fixdot_radius / 4 * np.sin(self.fixdot),
+                                            self.fixdot_radius / 4 * np.cos(self.fixdot),
+                                            pen=pg.mkPen(color='green')).curve
+        self.right_markt = self.widget.plot(x_offset + self.fixdot_radius / 4 * np.sin(self.fixdot),
+                                            self.fixdot_radius / 4 * -np.cos(self.fixdot),
+                                            pen=pg.mkPen(color='green')).curve
         right_mark_fill = pg.FillBetweenItem(self.right_markb, self.right_markt, brush=('green'))
         self.right_mark_fill = right_mark_fill
         widget.addItem(right_mark_fill)
@@ -196,13 +202,13 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
 
     def redraw_state(self, sample, m_sample):
         # Map the centre fixation to the min and the max fixation to the edge of the screen
-        un_scaled_min = self.centre_fixation + self.eye_range/2#self.centre_fixation
-        un_scaled_max = self.centre_fixation - self.eye_range/2
+        un_scaled_min = self.centre_fixation + self.eye_range / 2  # self.centre_fixation
+        un_scaled_max = self.centre_fixation - self.eye_range / 2
         scaled_min = -25
         scaled_max = 25
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
-        scaled_sample = (((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
         # if sample < self.centre_fixation:
         #     un_scaled_min = - self.eye_range/2
         #     un_scaled_max = self.centre_fixation
@@ -211,7 +217,6 @@ class EyeTrackFeedbackProtocolWidgetPainter(Painter):
         #     un_scaled_range = (un_scaled_max - un_scaled_min)
         #     scaled_range = (scaled_max - scaled_min)
         #     scaled_sample = (((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
-
 
         # translate the dot in the x direction based on the sample amplitude
         tr = QTransform()  # prepare ImageItem transformation:
@@ -233,7 +238,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         self.r_threshold = r_threshold
         print(f'GABOR_THETA={gabor_theta}')
 
-        self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.fixdot = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.1
         self.colour = "black"
 
@@ -250,10 +255,10 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         self.fill.setOpts(update=True, opacity=0)
         tr = QTransform()  # prepare ImageItem transformation:
         self.scale_factor = 20
-        self.x_off = gabor.shape[0]/(2*self.scale_factor)
-        self.y_off = gabor.shape[1]/(2*self.scale_factor)
+        self.x_off = gabor.shape[0] / (2 * self.scale_factor)
+        self.y_off = gabor.shape[1] / (2 * self.scale_factor)
         tr.translate(-self.x_off, -self.y_off)
-        tr.scale(1./self.scale_factor, 1./self.scale_factor)  # scale horizontal and vertical axes
+        tr.scale(1. / self.scale_factor, 1. / self.scale_factor)  # scale horizontal and vertical axes
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
         # draw cross
@@ -279,7 +284,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
         # print(f"SAMPLE: {sample}, ANGLE: {sample*180/np.pi}")
         # scale the values between the r_threshold and 1 to be between 0 and 1
@@ -289,7 +294,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         scaled_max = 1
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
-        scaled_sample = (((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
 
         # Change visibility based on opacity
         self.fill.setOpts(update=True, opacity=max(min(scaled_sample, 1.0), 0))
@@ -302,7 +307,7 @@ class GaborFeedbackProtocolWidgetPainter(Painter):
         scaled_max = 0
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
-        scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
         # scaled_sample = max(min(scaled_sample, 1.0), 0)
 
         # self.x_off = self.gabor.shape[0]/(2*self.scale_factor)
@@ -333,9 +338,9 @@ class PlotFeedbackWidgetPainter(Painter):
         self.widget = None
         self.m_threshold = m_threshold
         self.r_threshold = r_threshold
-        self.gabor_theta=0
+        self.gabor_theta = 0
         self.maxLen = 150  # max number of data points to show on graph
-        self.x = np.linspace(-self.maxLen*2, self.maxLen*2, 10)
+        self.x = np.linspace(-self.maxLen * 2, self.maxLen * 2, 10)
         self.fixdot = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.02
         self.maxLen = 150  # max number of data points to show on graph
@@ -353,17 +358,15 @@ class PlotFeedbackWidgetPainter(Painter):
 
         self.curve1 = self.p1.plot()
         self.threshold_line = self.p1.plot()
-        r_ratio = self.maxLen/2
-        self.p1_fd = self.p1.plot(self.fixdot_radius*r_ratio * np.sin(self.fixdot),
-                                      self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0)))
-        self.p2_fd = self.p1.plot(self.fixdot_radius *r_ratio* np.sin(self.fixdot),
-                                      self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0)))
+        r_ratio = self.maxLen / 2
+        self.p1_fd = self.p1.plot(self.fixdot_radius * r_ratio * np.sin(self.fixdot),
+                                  self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=(0, 0, 0)))
+        self.p2_fd = self.p1.plot(self.fixdot_radius * r_ratio * np.sin(self.fixdot),
+                                  self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=(0, 0, 0)))
 
-
-        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0,0,0))
+        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0, 0, 0))
         self.fill = fill_fd
         self.p1.addItem(fill_fd)
-
 
     def set_red_state(self, flag):
         if flag:
@@ -377,15 +380,15 @@ class PlotFeedbackWidgetPainter(Painter):
         self.threshold_line.setData(self.x, np.ones_like(self.x) * self.r_threshold)
         if m_sample is not None:
             self.set_red_state(m_sample > self.m_threshold)
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
 
         if len(self.dat1) > self.maxLen:
             self.dat1 = self.dat1[1:]
 
-        pen1 = pg.mkPen(255,233,0)
+        pen1 = pg.mkPen(255, 233, 0)
         self.dat1 = self.dat1 + [sample]
-        self.curve1.setData(np.arange(self.maxLen/2 - len(self.dat1), self.maxLen/2), self.dat1, pen=pen1)
+        self.curve1.setData(np.arange(self.maxLen / 2 - len(self.dat1), self.maxLen / 2), self.dat1, pen=pen1)
 
 
 class PosnerFeedbackProtocolWidgetPainter(Painter):
@@ -400,12 +403,12 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.x = np.linspace(-self.stim_radius, self.stim_radius, 100)
         self.train_side = None
         self.stim_side = None
-        self.stim = False # when true, remove the cross
+        self.stim = False  # when true, remove the cross
         self.test_signal_sample = 0
         self.no_nfb = no_nfb
         self.max_th = max_th
         self.stim_onset_time = False
-        self.kill = False # flag to allow widget to be killed (after target is displayed)
+        self.kill = False  # flag to allow widget to be killed (after target is displayed)
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -414,10 +417,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.widget = widget
         # Draw fixation dot
         self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
-                                      self.fixdot_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0))).curve
+                                      self.fixdot_radius * np.cos(self.circle), pen=pg.mkPen(color=(0, 0, 0, 0))).curve
         self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.circle),
-                                      self.fixdot_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0))).curve
-        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0,0,0,0))
+                                      self.fixdot_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0, 0, 0, 0))).curve
+        fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0, 0, 0, 0))
         self.fill = fill_fd
         widget.addItem(fill_fd)
 
@@ -428,27 +431,34 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         left_off_y = -yoffset
         curve_width = 8
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
-                                     left_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
+                                      left_off_y + self.stim_radius * np.cos(self.circle),
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
         self.st_l2 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
-                                     left_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
-        fill_st_l = pg.FillBetweenItem(self.st_l1, self.st_l2, brush=(0,0,0,1))
+                                      left_off_y + self.stim_radius * -np.cos(self.circle),
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+        fill_st_l = pg.FillBetweenItem(self.st_l1, self.st_l2, brush=(0, 0, 0, 1))
         self.fill_st_l = fill_st_l
         self.widget.addItem(fill_st_l)
-        self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
-        self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
+        self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x),
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+        self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x,
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
 
         right_off_x = xoffset
         right_off_y = -yoffset
         self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
-                                     right_off_y + self.stim_radius * np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
+                                      right_off_y + self.stim_radius * np.cos(self.circle),
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
         self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
-                                     right_off_y + self.stim_radius * -np.cos(self.circle), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
-        fill_st_r = pg.FillBetweenItem(self.st_r1, self.st_r2, brush=(0,0,0,1))
+                                      right_off_y + self.stim_radius * -np.cos(self.circle),
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+        fill_st_r = pg.FillBetweenItem(self.st_r1, self.st_r2, brush=(0, 0, 0, 1))
         self.fill_st_r = fill_st_r
         self.widget.addItem(fill_st_r)
-        self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
-        self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x, pen=pg.mkPen(color=(0,0,0,0), width=curve_width)).curve
-
+        self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x),
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+        self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x,
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
 
     def set_red_state(self, flag):
         # TODO: make something alert the participant to eyes wandering
@@ -471,7 +481,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         #     # TODO: fix this so that it is really just watching dynamic changes during the actual protocol.
         #     self.over_m_threshold(m_sample, m_sample > self.m_threshold)
         #     self.over_m_threshold(m_sample, m_sample < - self.m_threshold)
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
 
         # Ensure the correct side gets trained - this assumes a leftward AAI (L-R)/(L+R)
@@ -487,14 +497,15 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         scaled_max = 0
         un_scaled_range = (un_scaled_max - un_scaled_min)
         scaled_range = (scaled_max - scaled_min)
-        scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_sample = (((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
         scaled_sample = np.clip(scaled_sample, 0, 255)
-        scaled_test_sample =(((self.test_signal_sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
+        scaled_test_sample = (((self.test_signal_sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
         scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
 
         if self.test_signal_sample < 0:
             scaled_range = -(scaled_max - scaled_min)
-            scaled_test_sample = (((self.test_signal_sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
+            scaled_test_sample = (((
+                                               self.test_signal_sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
             scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
             distractor_brush = (255, scaled_test_sample, scaled_test_sample)
         else:
@@ -527,34 +538,35 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             right_brush = distractor_brush
             left_brush = distractor_brush
 
-        curve_width=8
+        curve_width = 8
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
         if self.stim and self.stim_side == 1:
-            logging.debug(f"LEFT STIM: {time.time()*1000}")
+            logging.debug(f"LEFT STIM: {time.time() * 1000}")
             if not self.stim_onset_time:
-                self.stim_onset_time = time.time()*1000
+                self.stim_onset_time = time.time() * 1000
             # self.cr_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
             # self.cr_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
             self.fill_st_l.setBrush("white")
         else:
             # self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
             # self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
-            self.fill_st_l.setBrush((0,0,0,1))
+            self.fill_st_l.setBrush((0, 0, 0, 1))
 
         self.st_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
         self.st_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
         if self.stim and self.stim_side == 2:
-            logging.debug(f"RIGHT STIM: {time.time()*1000}")
+            logging.debug(f"RIGHT STIM: {time.time() * 1000}")
             if not self.stim_onset_time:
-                self.stim_onset_time = time.time()*1000
+                self.stim_onset_time = time.time() * 1000
             # self.cr_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
             # self.cr_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
             self.fill_st_r.setBrush("white")
         else:
             # self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
             # self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
-            self.fill_st_r.setBrush((0,0,0,1))
+            self.fill_st_r.setBrush((0, 0, 0, 1))
+
 
 def scale_sample(sample, un_scaled_min, un_scaled_max):
     """
@@ -574,11 +586,12 @@ def scale_sample(sample, un_scaled_min, un_scaled_max):
         scaled_sample = np.clip(scaled_sample, 0, 255)
     return scaled_sample
 
+
 class FixationCrossProtocolWidgetPainter(Painter):
-    def __init__(self, text="", colour=(0,0,0)):
+    def __init__(self, text="", colour=(0, 0, 0)):
         super(FixationCrossProtocolWidgetPainter, self).__init__()
         self.x = np.linspace(-0.25, 0.25, 10)
-        self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.fixdot = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.075
         self.text = text
         self.text_item = pg.TextItem()
@@ -587,10 +600,12 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.text_color = "#e5dfc5"
         self.probe = None
         self.probe_loc = "LEFT"
-        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.probe_stim = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.probe_radius = 0.1
         self.fixation_type = "dot"
-        self.m_threshold=0
+        self.m_threshold = 0
+        self.send_tacs_trig = True # TODO: make this a param available on the protocol settings window
+        self.p_port = parallel.ParallelPort(address=0x2010)  # set up parallel port for sendign tACS triggers
 
     def prepare_widget(self, widget):
         super(FixationCrossProtocolWidgetPainter, self).prepare_widget(widget)
@@ -607,18 +622,32 @@ class FixationCrossProtocolWidgetPainter(Painter):
             self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=self.colour, width=4)).curve
         else:
             # draw fixation dot
-            self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0,0))).curve
-            self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot), self.fixdot_radius * -np.cos(self.fixdot), pen=pg.mkPen(color=(0,0,0,0))).curve
-            fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0,0,0,0))
+            self.p1_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot),
+                                          self.fixdot_radius * np.cos(self.fixdot),
+                                          pen=pg.mkPen(color=(0, 0, 0, 0))).curve
+            self.p2_fd = self.widget.plot(self.fixdot_radius * np.sin(self.fixdot),
+                                          self.fixdot_radius * -np.cos(self.fixdot),
+                                          pen=pg.mkPen(color=(0, 0, 0, 0))).curve
+            fill_fd = pg.FillBetweenItem(self.p1_fd, self.p2_fd, brush=(0, 0, 0, 0))
             self.fill_fd = fill_fd
             widget.addItem(fill_fd)
 
         # Draw probe stim
-        self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
-        self.p2_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim),
+                                     self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p2_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim),
+                                     self.probe_radius * -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
         fill = pg.FillBetweenItem(self.p1_1, self.p2_1, brush=(0, 0, 0, 0))
         self.fill = fill
         widget.addItem(fill)
+
+        # If tACS trigger flag is set, send a trigger pulse to activate the tACS
+        if self.send_tacs_trig:
+            logging.info(f'sending tacs pulse: {1} at {time.time()}s')
+            self.p_port.setData(1)
+            time.sleep(0.05)  # This must be greater than 1ms to register on the neuroconn stimulator box
+            logging.info(f'sending tacs pulse: {0} at {time.time()}s')
+            self.p_port.setData(0)
 
     def set_red_state(self, flag):
         if flag:
@@ -631,7 +660,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
     def redraw_state(self, sample, m_sample):
         # if m_sample is not None:
         #     self.set_red_state(m_sample > self.m_threshold)
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
 
         # colour the fixation dot (Do this here otherwise you get weird flashes between protocols)
@@ -639,20 +668,19 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.fill_fd.setBrush(self.colour)
         # Draw the probe if requested
         if self.probe:
-            logging.debug(f"PROBE DRAW START TIME: {time.time()*1000}")
+            logging.debug(f"PROBE DRAW START TIME: {time.time() * 1000}")
             self.fill.setBrush((0, 0, 0, 255))
             tr = QTransform()
             if self.probe_loc == "LEFT":
                 loc = 1
             else:
                 loc = -1
-            x_off = 5 * loc # should correspond to an eccentricity of 6.7deg
-            y_off = -0 # Original paper didn't have y offset
+            x_off = 5 * loc  # should correspond to an eccentricity of 6.7deg
+            y_off = -0  # Original paper didn't have y offset
             tr.translate(-x_off, -y_off)
             self.fill.setTransform(tr)
         else:
             self.fill.setBrush((0, 0, 0, 0))
-
 
     def set_message(self, text):
         self.text = text
@@ -667,7 +695,7 @@ class PosnerCueProtocolWidgetPainter(Painter):
         super(PosnerCueProtocolWidgetPainter, self).__init__()
         self.s1 = np.linspace(-0.15, 0, 10)
         self.s2 = np.linspace(0, 0.15, 10)
-        self.fixdot = np.linspace(-np.pi/2, np.pi/2, 200)
+        self.fixdot = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.1
         self.cond = cond
         self.widget = None
@@ -690,28 +718,28 @@ class PosnerCueProtocolWidgetPainter(Painter):
     def left_cue(self):
         # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
         # self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
-        self.p1.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p3.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p2.setPen(pg.mkPen(color=(0,255,0,0), width=4))
-        self.p4.setPen(pg.mkPen(color=(0,255,0,0), width=4))
+        self.p1.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p3.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p2.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
+        self.p4.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
 
     def right_cue(self):
         # self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=(0, 255, 0), width=4)).curve
         # self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=(0, 255, 0), width=4)).curve
-        self.p2.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p4.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p1.setPen(pg.mkPen(color=(0,255,0,0), width=4))
-        self.p3.setPen(pg.mkPen(color=(0,255,0,0), width=4))
+        self.p2.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p4.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p1.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
+        self.p3.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
 
     def center_cue(self):
         # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
         # self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=(0,255,0), width=4)).curve
         # self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
         # self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=(0,255,0), width=4)).curve
-        self.p2.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p4.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p1.setPen(pg.mkPen(color=(0,255,0), width=4))
-        self.p3.setPen(pg.mkPen(color=(0,255,0), width=4))
+        self.p2.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p4.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p1.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p3.setPen(pg.mkPen(color=(0, 255, 0), width=4))
 
     def reset_cue(self):
         self.p1.clear()
@@ -755,6 +783,7 @@ class ParticipantInputWidgetPainter(Painter):
     """
     Protocol that waits for participant to press space to continue
     """
+
     def __init__(self, text='Relax', show_reward=False):
         super(ParticipantInputWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
@@ -763,7 +792,8 @@ class ParticipantInputWidgetPainter(Painter):
     def prepare_widget(self, widget):
         super(ParticipantInputWidgetPainter, self).prepare_widget(widget)
         score = widget.reward.toPlainText().split(":")[1]
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5">score:{score}<br>SPACE TO CONTINUE</font></center>')
+        self.text_item.setHtml(
+            f'<center><font size="7" color="#e5dfc5">score:{score}<br>SPACE TO CONTINUE</font></center>')
         self.text_item.setAnchor((0.5, 0.5))
         self.text_item.setTextWidth(500)
         widget.addItem(self.text_item)
@@ -776,12 +806,14 @@ class ParticipantInputWidgetPainter(Painter):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="#e5dfc5">{}</font></center>'.format(self.text))
 
+
 class ParticipantChoiceWidgetPainter(Painter):
     """
     Protocol for 2-alternative forced choice task (currently for gabor patch specifically)
     TODO: make this generic, i.e. not only for gabor patch
     """
-    def __init__(self, text='Relax', gabor_theta=45, fs = 0, show_reward=False, previous_score=None):
+
+    def __init__(self, text='Relax', gabor_theta=45, fs=0, show_reward=False, previous_score=None):
         super(ParticipantChoiceWidgetPainter, self).__init__(show_reward=show_reward)
         self.text = text
         self.text_item = pg.TextItem()
@@ -792,7 +824,6 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.fs = fs
         self.current_sample_idx = 0
         self.show_duration = 1.0
-
 
     def prepare_widget(self, widget):
         super(ParticipantChoiceWidgetPainter, self).prepare_widget(widget)
@@ -805,25 +836,26 @@ class ParticipantChoiceWidgetPainter(Painter):
         self.fill = pg.ImageItem(gabor)
         tr = QTransform()  # prepare ImageItem transformation:
         scale_factor = 20
-        x_off = gabor.shape[0]/(2*scale_factor)
-        y_off = gabor.shape[1]/(2*scale_factor)
+        x_off = gabor.shape[0] / (2 * scale_factor)
+        y_off = gabor.shape[1] / (2 * scale_factor)
         tr.translate(-x_off, -y_off)
-        tr.scale(1./scale_factor, 1./scale_factor)  # scale horizontal and vertical axes
+        tr.scale(1. / scale_factor, 1. / scale_factor)  # scale horizontal and vertical axes
         self.fill.setTransform(tr)
         self.widget.addItem(self.fill)
 
-        self.text_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Is this the orientation you saw? <br>Y (\u2191), N (\u2193)</p></font></center>')
+        self.text_item.setHtml(
+            f'<center><font size="7" color="#e5dfc5"><p>Is this the orientation you saw? <br>Y (\u2191), N (\u2193)</p></font></center>')
         self.text_item.setAnchor((0.5, -1.8))
         self.text_item.setTextWidth(500)
 
-        self.rtext_item.setHtml(f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
+        self.rtext_item.setHtml(
+            f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} </p></font></center>')
         self.rtext_item.setAnchor((0.5, 4))
         self.rtext_item.setTextWidth(500)
 
         self.widget.addItem(self.text_item)
         self.widget.addItem(self.rtext_item)
         self.plotItem = self.widget.plotItem
-
 
     def redraw_state(self, sample, m_sample):
         # Display reward
@@ -832,12 +864,13 @@ class ParticipantChoiceWidgetPainter(Painter):
                 f'<center><font size="7" color="#e5dfc5"><p>Score: {self.previous_score} % </p></font></center>')
 
         # turn the gabor patch off after 0.5 seconds
-        if self.current_sample_idx/self.fs > self.show_duration:
+        if self.current_sample_idx / self.fs > self.show_duration:
             self.fill.setOpts(update=True, opacity=0)
 
     def set_message(self, text, color="#e5dfc5"):
         self.text = text
         self.text_item.setHtml('<center><font size="7" color="{}">{}</font></center>'.format(color, self.text))
+
 
 class ExperimentStartWidgetPainter(Painter):
     def __init__(self, text='Relax', show_reward=False):
@@ -866,6 +899,7 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
     """
     Calibration for eye movements for both eye tracking tasks and eye movement rejection
     """
+
     def __init__(self, protocol_duration=0):
         super(EyeCalibrationProtocolWidgetPainter, self).__init__()
         self.x = np.linspace(-0.25, 0.25, 10)
@@ -882,9 +916,9 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         self.position_no = 0
         self.current_sample_idx = 0
         self.probe_radius = 10
-        self.position_time = self.protocol_duration/len(self.probe_loc)
-        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)
-        self.fudge_factor_x = 50 #TODO Figure out why this fudge factor is needed (seems similar for all screens)
+        self.position_time = self.protocol_duration / len(self.probe_loc)
+        self.probe_stim = np.linspace(-np.pi / 2, np.pi / 2, 100)
+        self.fudge_factor_x = 50  # TODO Figure out why this fudge factor is needed (seems similar for all screens)
         self.fudge_factor_y = 35
 
     def prepare_widget(self, widget):
@@ -893,16 +927,18 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         self.widget = widget
 
         self.screen = QDesktopWidget().screenGeometry(widget)
-        self.x = np.linspace(-self.screen.width()/75, self.screen.width()/75, 10)
-        self.probe_stim = np.linspace(-np.pi/2, np.pi/2, 100)
+        self.x = np.linspace(-self.screen.width() / 75, self.screen.width() / 75, 10)
+        self.probe_stim = np.linspace(-np.pi / 2, np.pi / 2, 100)
 
         # draw cross
-        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=(0,0,0), width=4)).curve
-        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=(0,0,0), width=4)).curve
+        self.p1 = widget.plot(self.x, np.zeros_like(self.x), pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
+        self.p2 = widget.plot(np.zeros_like(self.x), self.x, pen=pg.mkPen(color=(0, 0, 0), width=4)).curve
 
         # Draw probe stim
-        self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
-        self.p2_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim), self.probe_radius * -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p1_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim),
+                                     self.probe_radius * np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
+        self.p2_1 = self.widget.plot(self.probe_radius * np.sin(self.probe_stim),
+                                     self.probe_radius * -np.cos(self.probe_stim), pen=pg.mkPen(0, 0, 0, 0)).curve
         fill = pg.FillBetweenItem(self.p1_1, self.p2_1, brush=(0, 0, 0, 0))
         self.fill = fill
         widget.addItem(fill)
@@ -921,36 +957,35 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
         # for idx, a in enumerate(digits):
         #     calibration_scale_vline = widget.plot(np.zeros_like(vline) + digits_offsets[idx], vline+11, pen=pg.mkPen(color=(0,0,255), width=4)).curve
 
-
     def set_red_state(self, flag):
         pass
 
     def redraw_state(self, sample, m_sample):
-        if np.ndim(sample)>0:
+        if np.ndim(sample) > 0:
             sample = np.sum(sample)
 
         if self.probe_loc[self.position_no] != "CROSS":
             # Hide the cross
-            self.p1.setPen(color=(0,0,0, 0), width=4)
-            self.p2.setPen(color=(0,0,0, 0), width=4)
+            self.p1.setPen(color=(0, 0, 0, 0), width=4)
+            self.p2.setPen(color=(0, 0, 0, 0), width=4)
             tr = QTransform()
             self.fill.setBrush((0, 0, 0, 255))
             offsets = self.probe_offsets[self.probe_loc[self.position_no]]
-            x_off = (self.screen.width() + self.fudge_factor_x)/2 * offsets[0]
-            y_off = (self.screen.height() + self.fudge_factor_y)/2 * offsets[1]
+            x_off = (self.screen.width() + self.fudge_factor_x) / 2 * offsets[0]
+            y_off = (self.screen.height() + self.fudge_factor_y) / 2 * offsets[1]
             tr.translate(-x_off, -y_off)
             self.fill.setTransform(tr)
         else:
             # Show the cross
-            self.p1.setPen(color=(0,0,0, 255), width=4)
-            self.p2.setPen(color=(0,0,0, 255), width=4)
+            self.p1.setPen(color=(0, 0, 0, 255), width=4)
+            self.p2.setPen(color=(0, 0, 0, 255), width=4)
             # Hide probe
             self.fill.setBrush((0, 0, 0, 0))
 
         # Cycle through probe location. start with only cross at start and end (6 positions total)
-        if self.current_sample_idx > self.position_time * (1+self.position_no) and self.position_no < len(self.probe_loc)-1:
+        if self.current_sample_idx > self.position_time * (1 + self.position_no) and self.position_no < len(
+                self.probe_loc) - 1:
             self.position_no = self.position_no + 1
-
 
 
 class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
@@ -972,8 +1007,8 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
 
     def redraw_state(self, samples, m_sample):
         samples = np.abs(samples)
-        if np.ndim(samples)==0:
-            samples = samples.reshape((1, ))
+        if np.ndim(samples) == 0:
+            samples = samples.reshape((1,))
 
         previous_sample = self.previous_sample
         do_blink = False
@@ -990,7 +1025,6 @@ class ThresholdBlinkFeedbackProtocolWidgetPainter(Painter):
         else:
             self.blink_start_time = -1
             self.fill.setBrush((255, 255, 255, 10))
-
 
         self.previous_sample = previous_sample
         pass
@@ -1010,14 +1044,13 @@ class VideoProtocolWidgetPainter(Painter):
         if os.path.isfile(video_file_path):
             try:
                 import imageio as imageio
-                self.video = imageio.get_reader(video_file_path,  'ffmpeg')
+                self.video = imageio.get_reader(video_file_path, 'ffmpeg')
                 self.n_frames = self.video.get_length() - 1
             except ImportError as e:
                 print(e.msg)
                 self.err_msg += e.msg
         else:
             self.err_msg = "No file {}".format(video_file_path)
-
 
     def prepare_widget(self, widget):
         super(VideoProtocolWidgetPainter, self).prepare_widget(widget)
@@ -1026,7 +1059,7 @@ class VideoProtocolWidgetPainter(Painter):
             self.img.setScale(10 / self.video.get_data(0).shape[1])
             self.img.rotate(-90)
             self.img.setX(-5)
-            self.img.setY(5/self.video.get_data(0).shape[1]*self.video.get_data(0).shape[0])
+            self.img.setY(5 / self.video.get_data(0).shape[1] * self.video.get_data(0).shape[0])
             widget.addItem(self.img)
 
         else:
@@ -1063,7 +1096,6 @@ class ImageProtocolWidgetPainter(Painter):
         else:
             self.err_msg = "No file {}".format(image_file_path)
 
-
     def prepare_widget(self, widget):
         super(ImageProtocolWidgetPainter, self).prepare_widget(widget)
         if self.image is not None:
@@ -1072,11 +1104,13 @@ class ImageProtocolWidgetPainter(Painter):
             size = widget.geometry()
             screen = QDesktopWidget().screenGeometry(widget)
             margins = widget.contentsMargins()
-            print(f"MARGINS3 left: {margins.left()}, right: {margins.right()}, top: {margins.top()}, bottom: {margins.bottom()}")
+            print(
+                f"MARGINS3 left: {margins.left()}, right: {margins.right()}, top: {margins.top()}, bottom: {margins.bottom()}")
             print(f"SCREEN2 H: {screen.height()}, SCREEN2 W: {screen.width()}")
             print(f"IMAGE H: {self.image.shape[0]}, W: {self.image.shape[1]}")
-            scale_factor_h = self.image.shape[0]/(screen.height()+40+40) # THIS FUDGE FACTOR AT THE END GETS THE IMAGE MORE OR LESS TO THE EDGES - HAS TO BE CHECKED - WHERE DO THESE VALUES COME FROM?
-            scale_factor_w = self.image.shape[1]/(screen.width()+40+40)
+            scale_factor_h = self.image.shape[0] / (
+                        screen.height() + 40 + 40)  # THIS FUDGE FACTOR AT THE END GETS THE IMAGE MORE OR LESS TO THE EDGES - HAS TO BE CHECKED - WHERE DO THESE VALUES COME FROM?
+            scale_factor_w = self.image.shape[1] / (screen.width() + 40 + 40)
             print(f"H: {size.height()}, scalefh: {scale_factor_h}, scalefw: {scale_factor_w}")
             tr.rotate(-90)
             tr.scale(1. / scale_factor_h, 1. / scale_factor_w)  # scale horizontal and vertical axes
@@ -1098,18 +1132,18 @@ class ImageProtocolWidgetPainter(Painter):
         if self.image is not None:
             pass
 
+
 def GaborPatch(position=None,
-                 sigma=25,
-                 theta=35,
-                 lambda_=12.5,
-                 phase=0.5,
-                 psi=120,
-                 gamma=1,
-                 background_colour=(0, 0, 0)):
+               sigma=25,
+               theta=35,
+               lambda_=12.5,
+               phase=0.5,
+               psi=120,
+               gamma=1,
+               background_colour=(0, 0, 0)):
     """A class implementing a Gabor Patch.
     From expyriment: https://github.com/expyriment/expyriment-stash/blob/master/extras/expyriment_stimuli_extras/gaborpatch/_gaborpatch.py
     """
-
 
     """Create a Gabor Patch.
     Parameters
@@ -1137,7 +1171,6 @@ def GaborPatch(position=None,
     property `GaborPatch.background_colour`.
     """
 
-
     sigma_x = sigma
     sigma_y = float(sigma) / gamma
 
@@ -1158,13 +1191,13 @@ def GaborPatch(position=None,
     y_theta = -x * np.sin(theta) + y * np.cos(theta)
 
     pattern = np.exp(-.5 * (x_theta ** 2 / sigma_x ** 2 + y_theta ** 2 / sigma_y ** 2)) * np.cos(
-            2 * np.pi / lambda_ * x_theta + psi)
+        2 * np.pi / lambda_ * x_theta + psi)
 
     # make numpy pixel array
     bkg = np.ones((pattern.shape[0], pattern.shape[1], 3)) * \
-                                    (np.ones((pattern.shape[1], 3)) * background_colour) #background
+          (np.ones((pattern.shape[1], 3)) * background_colour)  # background
     modulation = np.ones((3, pattern.shape[1], pattern.shape[0])) * \
-                                    ((255/2.0) * phase * np.ones(pattern.shape) * pattern)  # alpha
+                 ((255 / 2.0) * phase * np.ones(pattern.shape) * pattern)  # alpha
 
     pixel_array = bkg + modulation.T
     # self._pixel_array[self._pixel_array<0] = 0
@@ -1174,23 +1207,22 @@ def GaborPatch(position=None,
     # Canvas.__init__(self, size=pattern.shape, position=position, colour=background_colour)
     # self._background_colour = background_colour
 
-
     return pixel_array
+
 
 if __name__ == '__main__':
     from PyQt5 import QtGui, QtWidgets
     from PyQt5 import QtCore, QtWidgets
+
     a = QtWidgets.QApplication([])
     w = ProtocolWidget()
     w.show()
     b = BarFeedbackProtocolWidgetPainter()
     b.prepare_widget(w)
     timer = QtCore.QTimer()
-    timer.start(1000/30)
+    timer.start(1000 / 30)
     timer.timeout.connect(lambda: b.redraw_state(np.random.normal(scale=3), np.random.normal(scale=0.1)))
     a.exec_()
-    #for k in range(10000):
+    # for k in range(10000):
     #    sleep(1/30)
     #    b.redraw_state(np.random.normal(size=1))
-
-
