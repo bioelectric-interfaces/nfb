@@ -242,6 +242,13 @@
 		</FeedbackProtocol>
 	</vProtocols>
 	<vPGroups>
+		<PGroup>
+			<sName>Group</sName>
+			<sList></sList>
+			<sNumberList></sNumberList>
+			<bShuffle>0</bShuffle>
+			<sSplitBy></sSplitBy>
+		</PGroup>
 	</vPGroups>
 	<vPSequence>
 		<s>start</s>
