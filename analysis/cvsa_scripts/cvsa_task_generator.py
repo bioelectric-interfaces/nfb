@@ -38,6 +38,9 @@ if __name__ == "__main__":
         # GENERATE the eye thresholds
         eye_centre, eye_range = eye_calibration(config['FILES']['eye_calibration'])
         eye_threshold = True
+    eye_centre = 0
+    eye_range = 500
+    eye_threshold = True
 
     aai_thresholds = False
     aai_threshold_mean = 0
@@ -133,7 +136,7 @@ if __name__ == "__main__":
                 elif task == "nfb_task":
                     number_nfb_tasks = 20
                     posner_test = 0
-                    stim_duration = 5
+                    stim_duration = 8
                     nfb_duration = 15
                     show_score = 1
                     enable_posner = 0
