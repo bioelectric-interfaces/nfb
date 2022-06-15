@@ -109,8 +109,51 @@ def read_log_file(logfile):
     file1.close()
     return score
 
-def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score={}):
+def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score={}, df1_bl=None):
     # TODO - refactor all this nicely (and use/ add to/ refactor the helper functions)
+
+    # BASELINE STUFF -----------------------
+    df1_bl['sample'] = df1_bl.index
+    # aai_df_bl  = df1_bl [['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'chunk_n']]
+    drop_cols = [x for x in df1_bl.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data_bl = df1_bl.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data_bl = eeg_data_bl * 1e-6
+    aai_duration_samps_bl = df1_bl.shape[0]#10000
+    alpha_band = (7.25, 11.25)
+    chunksize = df1_bl[df1_bl.chunk_n > 0]['chunk_n'].median()
+    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
+                                                                 channel_labels=eeg_data_bl.columns, chs=["PO7=1"],
+                                                                 fft_samps=fs, chunksize=chunksize)
+
+    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
+                                                                 channel_labels=eeg_data_bl.columns, chs=["PO8=1"],
+                                                                 fft_samps=fs, chunksize=chunksize)
+    aai_raw_left_bl = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
+
+    # Plot the median of the left and right alphas from the online AAI signal
+    aai_df_raw_bl = df1_bl[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'signal_AAI']]
+    aai_df_raw_bl['raw_aai'] = aai_raw_left_bl
+    aai_df_raw_bl['raw_aai'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
+    aai_df_raw_bl['raw_smoothed'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
+    aai_df_raw_bl['P08_pwr'] = pwr_raw_r
+    aai_df_raw_bl['P07_pwr'] = pwr_raw_l
+    aai_df_raw_bl = aai_df_raw_bl[(aai_df_raw_bl['block_name'] == "baseline_eo") | (aai_df_raw_bl['block_name'] == "baseline_ec")]
+
+    fig = px.violin(aai_df_raw_bl, x="block_name",  y="raw_aai", box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (raw_ref)")
+    fig.show()
+
+    fig1 = go.Figure()
+    fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P07_pwr'],
+                          line=dict(color='blue'),
+                          name='PO7_pwr'))
+    fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P08_pwr'],
+                          line=dict(color='red'),
+                          name='PO8_pwr')).show()
+
+
 
     # Plot reaction times for valid, invalid, and no training trials
     rt_df = df1[['signal_AAI', 'block_name', 'block_number', 'sample', "reaction_time", 'posner_time', "valid_cue", 'posner_stim', 'cue', 'cue_dir']]
@@ -573,6 +616,8 @@ if __name__ == "__main__":
         psychopy_csv = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/posner/1_posner_2022-06-14_16h54.47.522.csv"
         psychopy_rt(psychopy_csv)
 
+        baseline_h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-baseline_test_psychopy_06-14_16-35-47/experiment_data.h5"
+
         # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-13-14/experiment_data.h5" # Correct direction
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-13-14/06-14_17-13-14.log")
 
@@ -596,7 +641,11 @@ if __name__ == "__main__":
         # TODO - resampling to make everything faster?
         # plot_best_vs_worst_nfb_aai(df1, worst=58, best=43)
         df1["block_number"] = df1["block_number"] + idx * 100
-        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score)
+
+        # Get the baseline dataframe
+        df1_bl, fs_bl, channels_bl, p_names_bl = load_data(baseline_h5file)
+
+        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score, df1_bl=df1_bl)
         # epoch_analysis(eeg_data, alpha_band, f"NFB_{idx}", participant_id)
         nfb_data_dfs.append(df1)
 
