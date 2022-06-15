@@ -484,6 +484,19 @@ def plot_best_vs_worst_nfb_aai(df1, worst=0, best=0):
     fig.add_vline(np.mean(df1[(df1['block_number'] == best - 1)].shape[0]), annotation_text="best_start")
     fig.show()
 
+def psychopy_rt(csvfile):
+    """
+    plot rt data from psychopy posner task
+    """
+    df_rt = pd.read_csv(csvfile)
+    df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt']]
+    df_rt['valid_cue'] = np.where(df_rt['stim_side'] == 10, True, False)
+    df_rt = df_rt.iloc[1:, :] # remove the first row
+    df_rt = df_rt.reset_index(drop=True)
+    df_rt['key_resp.rt'] = df_rt['key_resp.rt'].apply(ast.literal_eval) # Convert to list vals
+    df_rt['key_resp.rt'] = df_rt["key_resp.rt"].apply(lambda x: x[0])
+    px.violin(df_rt, x="valid_cue", y="key_resp.rt", box=True, points='all', title=f"block:").show()#, range_y=[200, 800]).show()
+    print('done')
 
 if __name__ == "__main__":
     # TODO:
@@ -554,6 +567,23 @@ if __name__ == "__main__":
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-posner_task_PO0_06-01_17-02-59/experiment_data.h5"
         # score = {}
+
+        #-----------------------
+        # EPRIME PC TESTING
+        psychopy_csv = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/posner/1_posner_2022-06-14_16h54.47.522.csv"
+        psychopy_rt(psychopy_csv)
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-13-14/experiment_data.h5" # Correct direction
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-13-14/06-14_17-13-14.log")
+
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-41-40/experiment_data.h5" # wrong direction - left is normally lower here (looks like working)
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-41-40/06-14_17-41-40.log")
+
+        h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/experiment_data.h5" # pattern
+        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/06-14_17-27-31.log")
+
+        h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/experiment_data.h5" # nothing
+        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/06-14_17-53-44.log")
 
         #-----------------------
         # h1 = df1.groupby("block_number").first()
