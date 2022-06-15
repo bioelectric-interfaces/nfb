@@ -202,7 +202,7 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     task_dir = 0
     df1["task_dir"] = 0
     for idx, row in df1.copy().iterrows():
-        if row.EVENTS in [1, 2, 3, 5]:
+        if row.EVENTS in [1, 2, 3, 5, 55]:
             task_dir = row.EVENTS
         df1.at[idx, 'task_dir'] = task_dir
 
@@ -234,14 +234,14 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     # Get number of left and right events
     print(f"No. LEFT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
     print(f"No. RIGHT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
-    print(f"No. NFB EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[3]}")
+    print(f"No. NFB EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[55]}")
 
     # Replicate the moving average smoother
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
 
     # Extract all of the AAI blocks
     # df1 = df1[df1['block_name'].str.contains("nfb")]
-    df1 = df1[df1['task_dir'] == 3]
+    df1 = df1[df1['task_dir'] == 55]
 
     df1 = df1.reset_index()
     fig1 = go.Figure()
@@ -280,9 +280,9 @@ if __name__ == "__main__":
     task_data = {}
     # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
     # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
-    h5file = f"/Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5"
+    h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
 
-    # mu, std = cvsa_threshold(h5file, plot=True)
+    mu, std = cvsa_threshold(h5file, plot=True)
 
-    bv_file = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_marker_test2.vhdr"
+    bv_file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/brainvision_posner/posner_testing_20221614.vhdr"
     mu, std = cvsa_threshold_bv(bv_file, plot=True)
