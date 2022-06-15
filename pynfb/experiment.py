@@ -687,7 +687,7 @@ class Experiment():
                 # if using a baseline-corrected threshold
                 self.reward.threshold = bc_threshold
             else:
-                self.reward.threshold = current_protocol.reward_threshold
+                self.reward.threshold = self.params['dAAIThresholdMean']#current_protocol.reward_threshold
 
             logging.info(f"BC THRESHOLD: {bc_threshold}, RW THRESHOLD: {self.reward.threshold}")
             reward_signal_id = current_protocol.reward_signal_id

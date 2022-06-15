@@ -112,7 +112,8 @@ def read_log_file(logfile):
 def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score={}, df1_bl=None):
     # TODO - refactor all this nicely (and use/ add to/ refactor the helper functions)
 
-    # BASELINE STUFF -----------------------
+    #=============================================
+    # BASELINE STUFF -----------------------------
     df1_bl['sample'] = df1_bl.index
     # aai_df_bl  = df1_bl [['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'chunk_n']]
     drop_cols = [x for x in df1_bl.columns if x not in channels]
@@ -142,7 +143,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     aai_df_raw_bl['P07_pwr'] = pwr_raw_l
     aai_df_raw_bl = aai_df_raw_bl[(aai_df_raw_bl['block_name'] == "baseline_eo") | (aai_df_raw_bl['block_name'] == "baseline_ec")]
 
-    fig = px.violin(aai_df_raw_bl, x="block_name",  y="raw_aai", box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (raw_ref)")
+    fig = px.violin(aai_df_raw_bl, x="block_name",  y="raw_aai", box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (calc AAI)")
     fig.show()
 
     fig1 = go.Figure()
@@ -154,18 +155,8 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
                           name='PO8_pwr')).show()
 
 
-
-    # Plot reaction times for valid, invalid, and no training trials
-    rt_df = df1[['signal_AAI', 'block_name', 'block_number', 'sample', "reaction_time", 'posner_time', "valid_cue", 'posner_stim', 'cue', 'cue_dir']]
-    rt_df = rt_df[rt_df['block_name'].str.contains("nfb")]
-    rt_df = rt_df[rt_df['posner_stim'] != 0]
-    rt_df = rt_df.drop_duplicates(['block_number'], keep='first')
-
-
-    fig = px.violin(rt_df, x="valid_cue", y="reaction_time", box=True, points='all', title=f"block:{block_idx}_{participant}", range_y=[200, 800])
-    fig.show()
-
-
+    #=============================================
+    #---NFB STUFF---------------------------------
     # Get the AAI for the left, right, and centre trials from signal_AAI----------------------------
     cue_dirs = [1, 2, 3]
     cue_recode = ["left", "right", "centre"]
@@ -173,11 +164,27 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     df1['cue_dir'] = df1['cue_dir'].replace(cue_dirs, cue_recode)
     aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'cue_dir', 'chunk_n']]
     aai_df = aai_df[aai_df['block_name'].str.contains("nfb")]
+    fig = px.violin(aai_df, x="block_name",  y="signal_AAI", color='cue_dir', box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (online AAI)")
+    fig.show()
+
     grouped_aai_df = aai_df.groupby("block_number", as_index=False)
     median_aais = grouped_aai_df.median()
     median_aais['cue_dir'] = grouped_aai_df.first()['cue_dir']
-    fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (online AAI)")
+    fig = px.violin(median_aais, x="cue_dir", y="signal_AAI", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (median online AAIs)")
     fig.show()
+
+    fig2 = go.Figure()
+    print('starting...')
+    for i, row in median_aais.iterrows():
+        print(i)
+        colour = "red"
+        if row['cue_dir'] == 'left':
+            colour = 'blue'
+        plt_df = aai_df[aai_df['block_number'] == row['block_number']]
+        fig2.add_trace(go.Box(x=plt_df['block_number'], y=plt_df['signal_AAI'],
+                              line=dict(color=colour),
+                              name=f"{row['block_number']}-{row['cue_dir']}"))
+    fig2.show()
 
     # Plot time course of median AAIs
     figma = px.scatter(median_aais, x='block_number', y='signal_AAI', color='cue_dir')
@@ -235,6 +242,11 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     # look at scores
     if score:
         median_aais_raw['score'] = list(score.values())
+
+    calc_score = []
+    for b_no in median_aais_raw['block_number']:
+        calc_score.append(calculate_score(aai_df[aai_df['block_number'] == b_no], side=median_aais_raw[median_aais_raw['block_number'] == b_no]['cue_dir'].iloc[0], threshold=0.1))
+    median_aais_raw['calc_score'] = calc_score
 
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=aai_df_raw.index, y=aai_df_raw['raw_aai'],
@@ -541,6 +553,18 @@ def psychopy_rt(csvfile):
     px.violin(df_rt, x="valid_cue", y="key_resp.rt", box=True, points='all', title=f"block:").show()#, range_y=[200, 800]).show()
     print('done')
 
+def calculate_score(block_data, side, fs=1000, threshold=0.0):
+    nfb_duration = block_data.shape[0]
+    # rate_of_increase = 0.25
+    # max_reward = round(nfb_duration / fs / rate_of_increase)
+    # fb_score =
+    # self.percent_score = round((self.fb_score / max_reward) * 100)
+    reward_factor = 1
+    if side == "right":
+        reward_factor = -1
+    pos_points = block_data[(block_data['signal_AAI']) * reward_factor > threshold].shape[0]
+    return pos_points/nfb_duration
+
 if __name__ == "__main__":
     # TODO:
     # get all NFB and sham data files in participant directory
@@ -624,9 +648,9 @@ if __name__ == "__main__":
         # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-41-40/experiment_data.h5" # wrong direction - left is normally lower here (looks like working)
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-41-40/06-14_17-41-40.log")
 
-        h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/experiment_data.h5" # pattern
-        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/06-14_17-27-31.log")
-
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/experiment_data.h5" # pattern
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/06-14_17-27-31.log")
+        #
         h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/experiment_data.h5" # nothing
         score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/06-14_17-53-44.log")
 
