@@ -53,10 +53,15 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     # create and fill in the task_dir column (task_dir = 1: left, 2: right)
     task_dir = 0
     df1["task_dir"] = 0
+    df1["cue_dir"] = 0
+    cue_dir = 0
     for idx, row in df1.copy().iterrows():
         if row.EVENTS in [1, 2, 22, 55]:
             task_dir = row.EVENTS
+            if row.EVENTS in [1, 2]:
+                cue_dir = row.EVENTS
         df1.at[idx, 'task_dir'] = task_dir
+        df1.at[idx, 'cue_dir'] = cue_dir
 
     # Just get the actual task blocks
     # EVENT: 1,2 = start of LEFT/RIGHT cue block. 22 = start of task block
@@ -65,11 +70,17 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     # df1[df1.cue > 0].groupby("block_number", as_index=True).first()
 
     # Drop everthing not relevant
-    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n', 'task_dir']]
+    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n', 'task_dir', 'cue_dir']]
 
     # Extract all of the AAI blocks
     # df1_aai = df1_aai[df1_aai['block_name'].str.contains("nfb")]
     df1_aai = df1_aai[df1_aai['task_dir'] == 22]
+
+    # # Just look at the left cues
+    # df1_aai = df1_aai[df1_aai['cue_dir'] == 1]
+
+    # Just look at the left cues
+    # df1_aai = df1_aai[df1_aai['cue_dir'] == 2]
 
     # only include finite values
     df1_aai = df1_aai[np.isfinite(df1_aai.signal_AAI)]
@@ -93,7 +104,7 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     x = np.linspace(xmin, xmax, 100)
     p = norm.pdf(x, mu_online, std_online)
     plt.plot(x, p, 'k', linewidth=2)
-    title = "Fit results: mu_online = %.2f,  std _online= %.2f" % (mu_online, std_online)
+    title = "online AAI Fit results: mu_online = %.2f,  std _online= %.2f" % (mu_online, std_online)
     plt.title(title)
     if plot:
         plt.show()
@@ -170,7 +181,7 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     x = np.linspace(xmin, xmax, 100)
     p = norm.pdf(x, mu_raw, std_raw)
     plt.plot(x, p, 'k', linewidth=2)
-    title = "Fit results: mu_raw = %.2f,  std_raw = %.2f" % (mu_raw, std_raw)
+    title = "Calculated AAI Fit results: mu_raw = %.2f,  std_raw = %.2f" % (mu_raw, std_raw)
     plt.title(title)
     if plot:
         plt.show()
