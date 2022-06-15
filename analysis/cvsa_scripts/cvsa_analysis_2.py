@@ -245,7 +245,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
 
     calc_score = []
     for b_no in median_aais_raw['block_number']:
-        calc_score.append(calculate_score(aai_df[aai_df['block_number'] == b_no], side=median_aais_raw[median_aais_raw['block_number'] == b_no]['cue_dir'].iloc[0], threshold=0.1))
+        calc_score.append(calculate_score(aai_df[aai_df['block_number'] == b_no], side=median_aais_raw[median_aais_raw['block_number'] == b_no]['cue_dir'].iloc[0], threshold=0.0))
     median_aais_raw['calc_score'] = calc_score
 
     fig1 = go.Figure()
@@ -581,12 +581,12 @@ if __name__ == "__main__":
     for idx, data_dir in enumerate(nfb_data_dirs):
         h5file = os.path.join(participant_dir, data_dir, "experiment_data.h5")
         # h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_15-31-24/experiment_data.h5" # Test case with negative RT
-        h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_16-19-51/experiment_data.h5" # Test case with negative RT
+        # h5file = "/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_test3_05-11_16-19-51/experiment_data.h5" # Test case with negative RT
 
         #-----------------------
         # MAC - no online posner
-        h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5" # Correct dir
-        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/05-27_17-15-46.log") # TODO: automatically get this file
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5" # Correct dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/05-27_17-15-46.log") # TODO: automatically get this file
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/experiment_data.h5" # Opposite dir
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-27-36/05-27_17-27-36.log")
@@ -601,8 +601,8 @@ if __name__ == "__main__":
         # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_16-57-32/experiment_data.h5" #correct dir
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_16-57-32/05-26_16-57-32.log")
 
-        h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/experiment_data.h5" # opposite dir
-        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/05-26_17-12-29.log")
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/experiment_data.h5" # opposite dir
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-12-29/05-26_17-12-29.log")
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-26-10/experiment_data.h5" # Do nothing
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/posner_testing_20220526/0-nfb_task_posner_test_on_05-26_17-26-10/05-26_17-26-10.log")
@@ -653,6 +653,12 @@ if __name__ == "__main__":
         #
         h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/experiment_data.h5" # nothing
         score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/06-14_17-53-44.log")
+
+
+        #-----------------------
+        # DECENT LOOKING PILOT DATA
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-18-09/experiment_data.h5"
+        # score = None
 
         #-----------------------
         # h1 = df1.groupby("block_number").first()
