@@ -1,12 +1,16 @@
-
+"""
+Script to look at the difference in offsets between brain vision markers and lsl markers
+"""
 import mne
 from utils.load_results import load_data
 import numpy as np
 import pandas as pd
+import plotly_express as px
 import csv
 
 # get the brain vision stuff
-fname_raw = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_marker_test2.vhdr"
+# fname_raw = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_marker_test2.vhdr"
+fname_raw = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/brainvision_posner/posner_testing_20221614.vhdr"
 raw = mne.io.read_raw_brainvision(fname_raw)
 events_from_annot, event_dict = mne.events_from_annotations(raw)
 # split the data based on annotations
@@ -17,7 +21,8 @@ epochs.get_data()
 # epochs['3'][1].plot()
 
 # Get the nfblab lsl events
-h5file = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_test_markers_bv_06-10_13-19-09/experiment_data.h5"
+# h5file = "/Users/2354158T/Documents/EEG_Data/bv_stim_test/posner_test_markers_bv_06-10_13-19-09/experiment_data.h5"
+h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
 df1, fs, channels, p_names = load_data(h5file)
 df1['sample'] = df1.index
 
@@ -35,12 +40,16 @@ while x_nfb != 0:
     x_nfb = x_nfb-1
 
 diff.pop(0) # remove extra beginning event in BV in NFBLAB
+diff_nfb.pop(0) # remove extras at beginning and end in BV
+diff_nfb.pop(-1)
 subtracted = np.subtract(diff, diff_nfb) #[element1 - element2 for (element1, element2) in zip(diff, diff_nfb)]
-
+px.violin(subtracted, box=True, points='all',
+          title=f"block:").show()  # , range_y=[200, 800]).show()
 
 # read in the psychopy results
 pp_df = pd.DataFrame(dict(marker=[], time=[]))
-psychopy_results = pd.read_csv('/Users/2354158T/Documents/EEG_Data/bv_stim_test/2_posner_2022-06-10_13h18.45.421.csv', squeeze=True)
+# psychopy_results = pd.read_csv('/Users/2354158T/Documents/EEG_Data/bv_stim_test/2_posner_2022-06-10_13h18.45.421.csv', squeeze=True)
+psychopy_results = pd.read_csv('/Users/christopherturner/Documents/EEG_Data/testing_20220614/posner/1_posner_2022-06-14_16h54.47.522.csv', squeeze=True)
 for index, row in psychopy_results.iterrows():
     pp_df = pp_df.append({'marker':row['cue'], 'time': row['fc.started']}, ignore_index = True)
     pp_df = pp_df.append({'marker':3, 'time': row['fixation_cross.started']}, ignore_index = True)
