@@ -180,6 +180,8 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
         colour = "red"
         if row['cue_dir'] == 'left':
             colour = 'blue'
+        if row['cue_dir'] == 'centre':
+            colour = 'green'
         plt_df = aai_df[aai_df['block_number'] == row['block_number']]
         fig2.add_trace(go.Box(x=plt_df['block_number'], y=plt_df['signal_AAI'],
                               line=dict(color=colour),

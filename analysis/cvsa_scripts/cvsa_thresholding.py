@@ -276,12 +276,12 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     x = np.linspace(xmin, xmax, 100)
     p = norm.pdf(x, mu_raw, std_raw)
     plt.plot(x, p, 'k', linewidth=2)
-    title = "Fit results: mu_raw = %.2f,  std_raw = %.2f" % (mu_raw, std_raw)
+    title = "Fit results bv: mu_raw = %.2f,  std_raw = %.2f" % (mu_raw, std_raw)
     plt.title(title)
     if plot:
         plt.show()
 
-    print(f"RAW AAI MEAN: {mu_raw}, STD: {std_raw}")
+    print(f"RAW AAI MEAN (BV): {mu_raw}, STD: {std_raw}")
 
     return mu_raw, std_raw
 
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
     h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
 
-    mu, std = cvsa_threshold(h5file, plot=True)
+    # mu, std = cvsa_threshold(h5file, plot=True)
 
     bv_file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/brainvision_posner/posner_testing_20221614.vhdr"
     mu, std = cvsa_threshold_bv(bv_file, plot=True)
