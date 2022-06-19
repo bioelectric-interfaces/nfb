@@ -38,7 +38,7 @@ task_data = {}
 # --- pilot PO1 04/04/22
 # h5file = "../../pynfb/results/0-nfb_task_PO1_05-04_10-31-34/experiment_data.h5"
 
-def get_cue_dir(df1):
+def get_cue_dir(df1, channels):
     df1['sample'] = df1.index
     channels.append("signal_AAI")
 
@@ -249,6 +249,11 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     for b_no in median_aais_raw['block_number']:
         calc_score.append(calculate_score(aai_df[aai_df['block_number'] == b_no], side=median_aais_raw[median_aais_raw['block_number'] == b_no]['cue_dir'].iloc[0], threshold=0.0))
     median_aais_raw['calc_score'] = calc_score
+
+    print(f"mean: {median_aais_raw['calc_score'].mean()}")
+    print(f"median: {median_aais_raw['calc_score'].median()}")
+    print(f"std: {median_aais_raw['calc_score'].std()}")
+    print(f"rng: {median_aais_raw['calc_score'].min()} - {median_aais_raw['calc_score'].max()}")
 
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=aai_df_raw.index, y=aai_df_raw['raw_aai'],
@@ -557,6 +562,7 @@ def psychopy_rt(csvfile):
 
 def calculate_score(block_data, side, fs=1000, threshold=0.0):
     nfb_duration = block_data.shape[0]
+    threshold_extra = 0.2
     # rate_of_increase = 0.25
     # max_reward = round(nfb_duration / fs / rate_of_increase)
     # fb_score =
@@ -564,8 +570,8 @@ def calculate_score(block_data, side, fs=1000, threshold=0.0):
     reward_factor = 1
     if side == "right":
         reward_factor = -1
-    pos_points = block_data[(block_data['signal_AAI']) * reward_factor > threshold].shape[0]
-    return pos_points/nfb_duration
+    pos_points = block_data[(block_data['signal_AAI']) * reward_factor > (threshold + threshold_extra)].shape[0]
+    return int((pos_points/nfb_duration)*100)
 
 if __name__ == "__main__":
     # TODO:
@@ -621,8 +627,8 @@ if __name__ == "__main__":
 
         #-----------------------
         # AAI Testing
-        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/experiment_data.h5" # correct dir
-        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/06-01_17-27-12.log") # correct dir
+        h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/experiment_data.h5" # correct dir
+        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/06-01_17-27-12.log") # correct dir
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-15-17/experiment_data.h5" # pattern (LLRLRRRLRL)
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-15-17/06-01_18-15-17.log") # pattern
@@ -653,14 +659,14 @@ if __name__ == "__main__":
         # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/experiment_data.h5" # pattern
         # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-27-31/06-14_17-27-31.log")
         #
-        h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/experiment_data.h5" # nothing
-        score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/06-14_17-53-44.log")
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/experiment_data.h5" # nothing
+        # score = read_log_file("/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-nfb_task_test_psychopy_06-14_17-53-44/06-14_17-53-44.log")
 
 
         #-----------------------
         # DECENT LOOKING PILOT DATA
-        # h5file = "/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-18-09/experiment_data.h5"
-        # score = None
+        h5file = "/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-18-09/experiment_data.h5"
+        score = None
 
         #-----------------------
         # h1 = df1.groupby("block_number").first()
@@ -668,7 +674,7 @@ if __name__ == "__main__":
         # px.scatter(h1, x='sample', y='reaction_time').show()
 
         df1, fs, channels, p_names = load_data(h5file)
-        df1 = get_cue_dir(df1)
+        df1 = get_cue_dir(df1, channels=channels)
         df1 = get_posner_time(df1)
         # TODO - resampling to make everything faster?
         # plot_best_vs_worst_nfb_aai(df1, worst=58, best=43)

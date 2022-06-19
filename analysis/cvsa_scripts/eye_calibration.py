@@ -17,6 +17,16 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
+def butter_bandpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    # normal_cutoff = cutoff / nyq
+    normal_cutoff = [a/nyq for a in cutoff]
+    b, a = butter(order, normal_cutoff, btype='bandpass', analog=False)
+    return b, a
+def butter_bandpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
 
 def eye_calibration(h5file, plot=False):
     df1, fs, channels, p_names = load_data(h5file)
