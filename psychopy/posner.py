@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v2022.1.4),
-    on June 08, 2022, at 16:52
+    on June 09, 2022, at 13:02
 If you publish work using this script the most relevant publication is:
 
     Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, Kastman E, Lindeløv JK. (2019) 
@@ -171,7 +171,7 @@ fc = visual.ShapeStim(
     ori=0.0, pos=(0, 0), anchor='center',
     lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
     opacity=None, depth=-3.0, interpolate=True)
-p_port = parallel.ParallelPort(address='0x7DA')
+p_port = parallel.ParallelPort(address='0x2010')
 
 # Initialize components for Routine "trial"
 trialClock = core.Clock()
@@ -185,7 +185,7 @@ probe_l = visual.ShapeStim(
     win=win, name='probe_l',units='cm', 
     size=(2, 2), vertices='circle',
     ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=5.0,     colorSpace='rgb',  lineColor='white', fillColor=[0.0000, 0.0000, 0.0000],
+    lineWidth=8.0,     colorSpace='rgb',  lineColor='white', fillColor=[0.0000, 0.0000, 0.0000],
     opacity=None, depth=-2.0, interpolate=True)
 probe_r = visual.ShapeStim(
     win=win, name='probe_r',units='cm', 
@@ -204,30 +204,16 @@ probe_r_fill = visual.ShapeStim(
     size=(1.5, 1.5), vertices='circle',
     ori=0.0, pos=(10,-2.5), anchor='center',
     lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-5.0, interpolate=True)
+    opacity=None, depth=-5.0, interpolate=False)
 probe_l_fill = visual.ShapeStim(
     win=win, name='probe_l_fill',units='cm', 
     size=(1.5, 1.5), vertices='circle',
     ori=0.0, pos=(-10,-2.5), anchor='center',
     lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
     opacity=None, depth=-6.0, interpolate=True)
-text = visual.TextStim(win=win, name='text',
-    text='',
-    font='Open Sans',
-    units='cm', pos=(0, 4), height=1.0, wrapWidth=None, ori=0.0, 
-    color='white', colorSpace='rgb', opacity=None, 
-    languageStyle='LTR',
-    depth=-7.0);
 key_resp = keyboard.Keyboard()
-text2 = visual.TextStim(win=win, name='text2',
-    text='',
-    font='Open Sans',
-    units='cm', pos=(0, 3), height=1.0, wrapWidth=None, ori=0.0, 
-    color='white', colorSpace='rgb', opacity=None, 
-    languageStyle='LTR',
-    depth=-9.0);
 key_log = keyboard.Keyboard()
-p_port_2 = parallel.ParallelPort(address='0x7DA')
+p_port_2 = parallel.ParallelPort(address='0x2010')
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -492,10 +478,10 @@ for thisTrial in trials:
             p_port.tStartRefresh = tThisFlipGlobal  # on global time
             win.timeOnFlip(p_port, 'tStartRefresh')  # time at next scr refresh
             p_port.status = STARTED
-            win.callOnFlip(p_port.setData, int(2))
+            win.callOnFlip(p_port.setData, int(side))
         if p_port.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port.tStartRefresh + 2-frameTolerance:
+            if tThisFlipGlobal > p_port.tStartRefresh + 1.0-frameTolerance:
                 # keep track of stop time/frame for later
                 p_port.tStop = t  # not accounting for scr refresh
                 p_port.frameNStop = frameN  # exact frame index
@@ -552,7 +538,7 @@ for thisTrial in trials:
     key_log.rt = []
     _key_log_allKeys = []
     # keep track of which components have finished
-    trialComponents = [fixation_cross, probe_l, probe_r, colour_stim, probe_r_fill, probe_l_fill, text, key_resp, text2, key_log, p_port_2]
+    trialComponents = [fixation_cross, probe_l, probe_r, colour_stim, probe_r_fill, probe_l_fill, key_resp, key_log, p_port_2]
     for thisComponent in trialComponents:
         thisComponent.tStart = None
         thisComponent.tStop = None
@@ -715,25 +701,6 @@ for thisTrial in trials:
             probe_l_fill.setFillColor(l_fill_color, log=False)
             probe_l_fill.setLineColor(l_fill_color, log=False)
         
-        # *text* updates
-        if text.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            text.frameNStart = frameN  # exact frame index
-            text.tStart = t  # local t and not account for scr refresh
-            text.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(text, 'tStartRefresh')  # time at next scr refresh
-            text.setAutoDraw(True)
-        if text.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > text.tStartRefresh + 5-frameTolerance:
-                # keep track of stop time/frame for later
-                text.tStop = t  # not accounting for scr refresh
-                text.frameNStop = frameN  # exact frame index
-                win.timeOnFlip(text, 'tStopRefresh')  # time at next scr refresh
-                text.setAutoDraw(False)
-        if text.status == STARTED:  # only update if drawing
-            text.setText(aai_mean, log=False)
-        
         # *key_resp* updates
         waitOnFlip = False
         if key_resp.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
@@ -755,25 +722,6 @@ for thisTrial in trials:
                 key_resp.rt = [key.rt for key in _key_resp_allKeys]
                 # a response ends the routine
                 continueRoutine = False
-        
-        # *text2* updates
-        if text2.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            text2.frameNStart = frameN  # exact frame index
-            text2.tStart = t  # local t and not account for scr refresh
-            text2.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(text2, 'tStartRefresh')  # time at next scr refresh
-            text2.setAutoDraw(True)
-        if text2.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > text2.tStartRefresh + 5-frameTolerance:
-                # keep track of stop time/frame for later
-                text2.tStop = t  # not accounting for scr refresh
-                text2.frameNStop = frameN  # exact frame index
-                win.timeOnFlip(text2, 'tStopRefresh')  # time at next scr refresh
-                text2.setAutoDraw(False)
-        if text2.status == STARTED:  # only update if drawing
-            text2.setText(aai_chunk_scaled, log=False)
         
         # *key_log* updates
         waitOnFlip = False
@@ -802,7 +750,7 @@ for thisTrial in trials:
             p_port_2.tStartRefresh = tThisFlipGlobal  # on global time
             win.timeOnFlip(p_port_2, 'tStartRefresh')  # time at next scr refresh
             p_port_2.status = STARTED
-            win.callOnFlip(p_port_2.setData, int(1))
+            win.callOnFlip(p_port_2.setData, int(3))
         if p_port_2.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
             if tThisFlipGlobal > p_port_2.tStartRefresh + 1.0-frameTolerance:
@@ -846,8 +794,6 @@ for thisTrial in trials:
     trials.addData('probe_r_fill.stopped', probe_r_fill.tStopRefresh)
     trials.addData('probe_l_fill.started', probe_l_fill.tStartRefresh)
     trials.addData('probe_l_fill.stopped', probe_l_fill.tStopRefresh)
-    trials.addData('text.started', text.tStartRefresh)
-    trials.addData('text.stopped', text.tStopRefresh)
     # check responses
     if key_resp.keys in ['', [], None]:  # No response was made
         key_resp.keys = None
@@ -856,8 +802,6 @@ for thisTrial in trials:
         trials.addData('key_resp.rt', key_resp.rt)
     trials.addData('key_resp.started', key_resp.tStartRefresh)
     trials.addData('key_resp.stopped', key_resp.tStopRefresh)
-    trials.addData('text2.started', text2.tStartRefresh)
-    trials.addData('text2.stopped', text2.tStopRefresh)
     # check responses
     if key_log.keys in ['', [], None]:  # No response was made
         key_log.keys = None
