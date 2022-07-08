@@ -552,7 +552,17 @@ def psychopy_rt(csvfile):
     """
     df_rt = pd.read_csv(csvfile)
     df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt']]
-    df_rt['valid_cue'] = np.where(df_rt['stim_side'] == 10, True, False)
+
+    conditions = [
+        df_rt['stim_side'].eq(10) & df_rt['cue'].isin([1,2]),
+        df_rt['stim_side'].eq(11) & df_rt['cue'].isin([1,2]),
+        df_rt['cue'].isin([3]),
+    ]
+
+    choices = [True, False, 'N/A']
+
+    df_rt['valid_cue'] = np.select(conditions, choices, default=0)
+
     df_rt = df_rt.iloc[1:, :] # remove the first row
     df_rt = df_rt.reset_index(drop=True)
     df_rt['key_resp.rt'] = df_rt['key_resp.rt'].apply(ast.literal_eval) # Convert to list vals
@@ -646,6 +656,8 @@ if __name__ == "__main__":
         #-----------------------
         # EPRIME PC TESTING
         psychopy_csv = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/posner/1_posner_2022-06-14_16h54.47.522.csv"
+
+        psychopy_csv = "/Users/2354158T/Downloads/2_posner_2022-07-08_16h30.30.493.csv"
         psychopy_rt(psychopy_csv)
 
         baseline_h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-baseline_test_psychopy_06-14_16-35-47/experiment_data.h5"
