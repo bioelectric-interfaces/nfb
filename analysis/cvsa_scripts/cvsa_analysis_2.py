@@ -24,6 +24,8 @@ from mne.minimum_norm import make_inverse_operator, apply_inverse_raw, apply_inv
 from pynfb.helpers import roi_spatial_filter as rsf
 from philistine.mne import savgol_iaf
 
+from mne.time_frequency import tfr_morlet, psd_multitaper, psd_welch
+
 
 task_data = {}
 # h5file = f"/Users/{userdir}/Documents/EEG_Data/cvsa_test1/0-nfb_task_cvsa_test_04-06_17-35-45/experiment_data.h5"
@@ -335,7 +337,19 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     return eeg_data, alpha_band
 
 
-def epoch_analysis(eeg_data, alpha_band, block_idx, participant):
+def epoch_analysis(df1, alpha_band, block_idx, participant):
+
+    # Get EEG only data from the dataframe
+    cue_dirs = [1, 2, 3]
+    cue_recode = ["left", "right", "centre"]
+    df1['cue_dir'] = df1['cue_dir'].replace(cue_dirs, cue_recode)
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
+
     # Get AAI by calculating signals from MNE-------------------------------
     # (try with avg and no referencing (no ref should be the same))
 
@@ -359,64 +373,64 @@ def epoch_analysis(eeg_data, alpha_band, block_idx, participant):
     # set the reference to average
     # m_raw = m_raw.set_eeg_reference(projection=False) # Be careful about using a projection vs actual data referencing in the analysis
 
-    aai_duration_samps = eeg_data.shape[0]#10000
-    raw_ref_avg_df = pd.DataFrame(m_raw.get_data(stop=aai_duration_samps).T, columns=m_raw.info.ch_names)
-    mean_avg_l, std_avg_l, pwr_avg_l = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=fs,
-                                                                 channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
-                                                                 fft_samps=1000)
-    mean_avg_r, std_avg_r, pwr_avg_r = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=fs,
-                                                                 channel_labels=m_raw.info.ch_names, chs=["PO8=1"],
-                                                                 fft_samps=1000)
-    aai_avg_left = (pwr_avg_l - pwr_avg_r) / (pwr_avg_l + pwr_avg_r)
+    # aai_duration_samps = eeg_data.shape[0]#10000
+    # raw_ref_avg_df = pd.DataFrame(m_raw.get_data(stop=aai_duration_samps).T, columns=m_raw.info.ch_names)
+    # mean_avg_l, std_avg_l, pwr_avg_l = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=fs,
+    #                                                              channel_labels=m_raw.info.ch_names, chs=["PO7=1"],
+    #                                                              fft_samps=1000)
+    # mean_avg_r, std_avg_r, pwr_avg_r = af.get_nfblab_power_stats_pandas(raw_ref_avg_df, fband=alpha_band, fs=fs,
+    #                                                              channel_labels=m_raw.info.ch_names, chs=["PO8=1"],
+    #                                                              fft_samps=1000)
+    # aai_avg_left = (pwr_avg_l - pwr_avg_r) / (pwr_avg_l + pwr_avg_r)
     # fig1.add_trace(go.Scatter(x=eeg_data.index, y=aai_avg_left,
     #                     mode='lines',
     #                     name='AAI_avg'))
     # fig1.show()
 
     # Plot the median of the left and right alphas from the online AAI signal
-    df1['raw_aai'] = aai_avg_left
-    aai_df_avg = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir', 'raw_aai']]
-    aai_df_avg = aai_df_avg[aai_df_avg['block_name'].str.contains("nfb")]
-    grouped_aai_df_avg = aai_df_avg.groupby("block_number", as_index=False)
-    median_aais_avg = grouped_aai_df_avg.median()
-    median_aais_avg['cue_dir'] = grouped_aai_df_avg.first()['cue_dir']
-    fig = px.violin(median_aais_avg, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
-    fig.show()
-    # Plot the median of the left and right alphas from the online AAI signal
-    side_data_avg = pd.melt(median_aais_avg, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    fig = px.box(side_data_avg, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (avg_ref)")
-    fig.show()
+    # df1['raw_aai'] = aai_avg_left
+    # aai_df_avg = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir', 'raw_aai']]
+    # aai_df_avg = aai_df_avg[aai_df_avg['block_name'].str.contains("nfb")]
+    # grouped_aai_df_avg = aai_df_avg.groupby("block_number", as_index=False)
+    # median_aais_avg = grouped_aai_df_avg.median()
+    # median_aais_avg['cue_dir'] = grouped_aai_df_avg.first()['cue_dir']
+    # fig = px.violin(median_aais_avg, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
+    # fig.show()
+    # # Plot the median of the left and right alphas from the online AAI signal
+    # side_data_avg = pd.melt(median_aais_avg, id_vars=['cue_dir'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
+    # fig = px.box(side_data_avg, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (avg_ref)")
+    # fig.show()
 
 
-    # TODO:
-    #   Just use the already calculated AAI power for the whole experiment, Add a 'type' column and have '<x>_nfb', cue, fc'
-    conditions = [
-        (df1['cue_dir'] == 1) & (df1['block_name'] == "nfb"),
-        (df1['cue_dir'] == 2) & (df1['block_name'] == "nfb"),
-        (df1['cue_dir'] == 3) & (df1['block_name'] == "nfb"),
-        (df1['block_name'] == "fc"),
-        (df1['block_name'] == "cue")
-        ]
-
-    # create a list of the values we want to assign for each condition
-    values = ['left_nfb', 'right_nfb', 'centre_nfb', 'fc', 'cue']
-
-    # create a new column and use np.select to assign values to it using our lists as arguments
-    df1['block_type'] = np.select(conditions, values)
-
-    # Plot the different conditions
-    block_type_df = df1[['PO7', 'PO8', 'block_name', 'block_number', 'sample', 'cue_dir', 'raw_aai', 'block_type']]
-    grouped_block_type_df = block_type_df.groupby("block_number", as_index=False)
-    median_block_type = grouped_block_type_df.median(numeric_only=False)
-    median_block_type['block_type'] = grouped_block_type_df.first()['block_type']
-    fig = px.violin(median_block_type, x="block_type", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
-    fig.show()
-    fig = px.box(median_block_type, x="block_type", y="raw_aai", points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
-    fig.show()
-    # Plot the median of the left and right alphas from the online AAI signal
-    block_type_side_data = pd.melt(median_block_type, id_vars=['block_type'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
-    fig = px.box(block_type_side_data, x="block_type", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (avg_ref)")
-    fig.show()
+    # # TODO:
+    # #   Just use the already calculated AAI power for the whole experiment, Add a 'type' column and have '<x>_nfb', cue, fc'
+    # conditions = [
+    #     (df1['cue_dir'] == 1) & (df1['block_name'] == "nfb"),
+    #     (df1['cue_dir'] == 2) & (df1['block_name'] == "nfb"),
+    #     (df1['cue_dir'] == 3) & (df1['block_name'] == "nfb"),
+    #     (df1['block_name'] == "fc"),
+    #     (df1['block_name'] == "cue")
+    #     ]
+    #
+    # # create a list of the values we want to assign for each condition
+    # values = ['left_nfb', 'right_nfb', 'centre_nfb', 'fc', 'cue']
+    #
+    # # create a new column and use np.select to assign values to it using our lists as arguments
+    # df1['block_type'] = np.select(conditions, values)
+    #
+    # # Plot the different conditions
+    # block_type_df = df1[['PO7', 'PO8', 'block_name', 'block_number', 'sample', 'cue_dir', 'raw_aai', 'block_type']]
+    # grouped_block_type_df = block_type_df.groupby("block_number", as_index=False)
+    # median_block_type = grouped_block_type_df.median(numeric_only=False)
+    # median_block_type['block_type'] = grouped_block_type_df.first()['block_type']
+    # fig = px.violin(median_block_type, x="block_type", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
+    # fig.show()
+    # fig = px.box(median_block_type, x="block_type", y="raw_aai", points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (avg_ref)")
+    # fig.show()
+    # # Plot the median of the left and right alphas from the online AAI signal
+    # block_type_side_data = pd.melt(median_block_type, id_vars=['block_type'], value_vars=['PO7', 'PO8'], var_name='side', value_name='data')
+    # fig = px.box(block_type_side_data, x="block_type", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (avg_ref)")
+    # fig.show()
 
 
 
@@ -456,7 +470,144 @@ def epoch_analysis(eeg_data, alpha_band, block_idx, participant):
     left_chs = ['PO7=1']
     right_chs = ['PO8=1']
 
-    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=10, baseline=None,
+    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=14, baseline=(-2, 0),
+                        preload=True, detrend=1)#, reject=reject_criteria)
+    # epochs.drop([19,22,27,32]) # Drop bads for K's 1st dataset
+
+
+    # TimeFreq analysis
+    freqs = np.logspace(*np.log10([6, 35]), num=20)
+    n_cycles = freqs / 2.  # different number of cycle per frequency
+    power, itc = tfr_morlet(epochs['left_probe'], freqs=freqs, n_cycles=n_cycles, use_fft=True,
+                            return_itc=True, decim=3, n_jobs=1)
+    power.plot(['PO7'], mode='logratio', title='PO7')
+
+    # fig = epochs.plot(events=events)
+
+    probe_left = epochs['left_probe'].average()
+    probe_right = epochs['right_probe'].average()
+
+    dataframes = []
+    # ----Look at the power for the epochs in the left and right channels for left and right probes
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"left_probe"
+    dataframes.append(df_i)
+
+    dataframes_aai_cue = []
+    dataframes_aai = []
+    aai_nfb_left = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+    df_ix = pd.DataFrame(dict(aai=aai_nfb_left.mean(axis=0)[0]))
+    df_ix['probe'] = f"left"
+    dataframes_aai.append(df_ix[2000:9000])
+    dataframes_aai_cue.append(df_ix[0:2000])
+    fig2 = go.Figure()
+    af.plot_nfb_epoch_stats(fig2, aai_nfb_left.mean(axis=0)[0], aai_nfb_left.std(axis=0)[0], name=f"left probe aai",
+                         title=f"left probe aai",
+                         color=(230, 20, 20, 1), y_range=[-1, 1])
+
+
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"right_probe"
+    dataframes.append(df_i)
+
+    aai_nfb_right = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+    df_ix = pd.DataFrame(dict(aai=aai_nfb_right.mean(axis=0)[0]))
+    df_ix['probe'] = f"right"
+    dataframes_aai.append(df_ix[2000:9000])
+    dataframes_aai_cue.append(df_ix[0:2000])
+    af.plot_nfb_epoch_stats(fig2, aai_nfb_right.mean(axis=0)[0], aai_nfb_right.std(axis=0)[0], name=f"right probe aai",
+                         title=f"mean aai time course",
+                         color=(20, 20, 230, 1), y_range=[-1, 1])
+
+
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+
+    df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
+    df_i['section'] = f"centre_probe"
+    dataframes.append(df_i)
+
+    aai_nfb_centre = (epoch_pwr1 - epoch_pwr2) / (epoch_pwr1 + epoch_pwr2)
+    df_ix = pd.DataFrame(dict(aai=aai_nfb_centre.mean(axis=0)[0]))
+    df_ix['probe'] = f"centre"
+    dataframes_aai.append(df_ix[2000:9000])
+    dataframes_aai_cue.append(df_ix[0:2000])
+    af.plot_nfb_epoch_stats(fig2, aai_nfb_centre.mean(axis=0)[0], aai_nfb_centre.std(axis=0)[0], name=f"centre probe aai",
+                         title=f"mean aai time course",
+                         color=(20, 230, 20, 1), y_range=[-1, 1])
+    fig2.add_vline(x=2000, annotation_text="cvsa start")
+    fig2.show()
+
+def epoch_analysis_posner(df1, alpha_band, block_idx, participant):
+
+    # Get EEG only data from the dataframe
+    cue_dirs = [1, 2, 3]
+    cue_recode = ["left", "right", "centre"]
+    df1['cue_dir'] = df1['cue_dir'].replace(cue_dirs, cue_recode)
+    drop_cols = [x for x in df1.columns if x not in channels]
+    drop_cols.extend(['MKIDX', 'EVENTS', 'EOG', 'ECG', 'signal_AAI'])
+    eeg_data = df1.drop(columns=drop_cols)
+
+    # Rescale the data (units are microvolts - i.e. x10^-6
+    eeg_data = eeg_data * 1e-6
+
+    # Get AAI by calculating signals from MNE-------------------------------
+    # (try with avg and no referencing (no ref should be the same))
+
+    # create an MNE info
+    m_info = mne.create_info(ch_names=list(eeg_data.columns), sfreq=fs, ch_types=['eeg' for ch in list(eeg_data.columns)])
+
+    # Set the montage (THIS IS FROM roi_spatial_filter.py)
+    standard_montage = mne.channels.make_standard_montage(kind='standard_1020')
+    standard_montage_names = [name.upper() for name in standard_montage.ch_names]
+    for j, channel in enumerate(eeg_data.columns):
+        try:
+            # make montage names uppercase to match own data
+            standard_montage.ch_names[standard_montage_names.index(channel.upper())] = channel.upper()
+        except ValueError as e:
+            print(f"ERROR ENCOUNTERED: {e}")
+    m_info.set_montage(standard_montage, on_missing='ignore')
+
+    # Create the mne raw object with eeg data
+    m_raw = mne.io.RawArray(eeg_data.T, m_info, first_samp=0, copy='auto', verbose=None)
+
+    # Do the epoching and Add baseline and cue AAIs to the plot-----------------
+    # TODO:
+    #   2. look at epochs for all sections
+    #   3. plot against cues and fixation crosses
+
+    # Create the stim channel
+    # Create the events list for the protocol transitions
+    probe_events = df1[['EVENTS']].to_numpy()
+    left_probe= 1
+    right_probe = 2
+    # centre_probe = 3
+    cue = 22
+    # event_dict = {'right_probe': right_probe, 'left_probe': left_probe, 'centre_probe': centre_probe, 'cue': cue}
+    event_dict = {'right_probe': right_probe, 'left_probe': left_probe, 'cue': cue}
+    info = mne.create_info(['STI'], m_raw.info['sfreq'], ['stim'])
+    stim_raw = mne.io.RawArray(probe_events.T, info)
+    m_raw.add_channels([stim_raw], force_update_info=True)
+
+    # Get the epoch object
+    m_filt = m_raw.copy()
+    m_filt.filter(8, 14, n_jobs=1,  # use more jobs to speed up.
+                   l_trans_bandwidth=1,  # make sure filter params are the same
+                   h_trans_bandwidth=1)  # in each band and skip "auto" option.
+
+    events = mne.find_events(m_raw, stim_channel='STI')
+    reject_criteria = dict(eeg=100e-6)
+
+    left_chs = ['PO7=1']
+    right_chs = ['PO8=1']
+
+    epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=5, baseline=None,
                         preload=True, detrend=1)#, reject=reject_criteria)
     # epochs.drop([19,22,27,32]) # Drop bads for K's 1st dataset
 
@@ -657,8 +808,10 @@ if __name__ == "__main__":
         # EPRIME PC TESTING
         psychopy_csv = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/posner/1_posner_2022-06-14_16h54.47.522.csv"
 
-        psychopy_csv = "/Users/2354158T/Downloads/2_posner_2022-07-08_16h30.30.493.csv"
+        # psychopy_csv = "/Users/2354158T/Downloads/2_posner_2022-07-08_16h30.30.493.csv"
         psychopy_rt(psychopy_csv)
+
+        h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
 
         baseline_h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-baseline_test_psychopy_06-14_16-35-47/experiment_data.h5"
 
@@ -677,7 +830,10 @@ if __name__ == "__main__":
 
         #-----------------------
         # DECENT LOOKING PILOT DATA
-        h5file = "/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-18-09/experiment_data.h5"
+        # h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-00-26/experiment_data.h5'
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-18-09/experiment_data.h5"
+        h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-28-54/experiment_data.h5'
+        # h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-39-12/experiment_data.h5'
         score = None
 
         #-----------------------
@@ -693,10 +849,15 @@ if __name__ == "__main__":
         df1["block_number"] = df1["block_number"] + idx * 100
 
         # Get the baseline dataframe
-        df1_bl, fs_bl, channels_bl, p_names_bl = load_data(baseline_h5file)
+        # df1_bl, fs_bl, channels_bl, p_names_bl = load_data(baseline_h5file)
 
-        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score, df1_bl=df1_bl)
-        # epoch_analysis(eeg_data, alpha_band, f"NFB_{idx}", participant_id)
+        # eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score, df1_bl=df1_bl)
+
+        alpha_band = (7.25, 11.25)
+        # epoch_analysis_posner(df1, alpha_band, f"NFB_{idx}", participant_id)
+        epoch_analysis(df1, alpha_band, f"NFB_{idx}", participant_id)
+
+
         nfb_data_dfs.append(df1)
 
         # dd = df1.groupby('block_number').first()
