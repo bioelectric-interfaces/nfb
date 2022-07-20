@@ -81,7 +81,7 @@
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>ExperimentStart</sFb_type>
-			<cString>We will now record your eyes open baseline EEG for 1.5 minutes.
+			<cString>We will now record your eyes open baseline EEG for 2 minutes.
 &lt;br&gt;Please completely relax with your eyes open.
 &lt;br&gt;&lt;br&gt;Press SPACE to start.</cString>
 			<bVoiceover>0</bVoiceover>
@@ -119,7 +119,7 @@
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>{{composite_signal}}</fbSource>
 			<sFb_type>ExperimentStart</sFb_type>
-			<cString>We will now record your eyes closed baseline EEG for 1.5 minutes.
+			<cString>We will now record your eyes closed baseline EEG for 2 minutes.
 &lt;br&gt;Please completely relax with your eyes closed.
 &lt;br&gt;&lt;br&gt;Press SPACE to start.</cString>
 			<bVoiceover>0</bVoiceover>
