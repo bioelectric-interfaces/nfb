@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import platform
 
+from mne.time_frequency import tfr_morlet
+
 from pynfb.signal_processing.filters import ExponentialSmoother, FFTBandEnvelopeDetector
 from utils.load_results import load_data
 import pandas as pd
@@ -256,8 +258,13 @@ csp.fit_transform(epochs_data, labels)
 
 csp.plot_patterns(epochs.info, ch_type='eeg', units='Patterns (AU)', size=1.5)
 #########################################
-
-
+# TimeFreq analysis
+freqs = np.logspace(*np.log10([6, 35]), num=20)
+n_cycles = freqs / 2.  # different number of cycle per frequency
+power, itc = tfr_morlet(epochs['left_probe'], freqs=freqs, n_cycles=n_cycles, use_fft=True,
+                        return_itc=True, decim=3, n_jobs=1)
+power.plot(['PO7'], mode='logratio', title='PO7')
+#########################################
 
 
 probe_left = epochs['left_probe'].average()
