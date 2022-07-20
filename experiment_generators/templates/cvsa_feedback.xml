@@ -426,7 +426,6 @@
         {% for i in range(0, number_nfb_tasks) %}{{ i }}
 		<s>fb_group</s>
         {% endfor %}
-		<s>score</s>
 		<s>end</s>
 	</vPSequence>
 </NeurofeedbackSignalSpecs>
