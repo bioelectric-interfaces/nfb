@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 from datetime import datetime
 import logging
@@ -62,8 +63,8 @@ class Experiment():
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         # self.test_signal = (np.sin(2*np.pi*np.arange(1000*100)*0.5/1000)).astype(np.float32) #Test signal to be used for posner distractor colour
-        self.test_signal = self.Randomwalk1D(100000)[1] #self.get_aai_from_pickle() #
-        self.test_start = 0 # randomly start somewhere in the test signal
+        self.test_signal = self.get_aai_from_pickle()#self.Randomwalk1D(100000)[1] #self.get_aai_from_pickle() #
+        self.test_start = r.randint(0, int(len(self.test_signal)/2)) # randomly start somewhere in the test signal
         self.mean_reward_signal = 0
         self.median_eye_signal = 0
         self.fb_score = None
@@ -119,7 +120,11 @@ class Experiment():
         return [xposition, yposition]
 
     def get_aai_from_pickle(self):
-        return pd.read_pickle('/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/aai.pkl').to_list()
+        if platform.system() == "Windows":
+            userdir = "2354158T"
+        else:
+            userdir = "christopherturner"
+        return pd.read_pickle(f'/Users/{userdir}/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()
 
     def update(self):
         """
