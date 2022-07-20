@@ -117,7 +117,7 @@
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
 			<bSSDInTheEnd>0</bSSDInTheEnd>
-			<fDuration>36.0</fDuration>
+			<fDuration>18.0</fDuration>
 			<fRandomOverTime>0.0</fRandomOverTime>
 			<fbSource>EYE_TRACK</fbSource>
 			<sFb_type>EyeCalibration</sFb_type>
