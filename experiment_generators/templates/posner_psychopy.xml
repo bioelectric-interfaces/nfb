@@ -10,7 +10,8 @@
 	<sExperimentName>{{ experiment }}</sExperimentName>
 	<sInletType>lsl</sInletType>
 	<sStreamName>{{ stream_name }}</sStreamName>
-	<sEventsStreamName></sEventsStreamName>
+	<sEventsStreamName>PosnerMarkers</sEventsStreamName>
+	<bUseEvents>1</bUseEvents>
 	<sRawDataFilePath></sRawDataFilePath>
 	<sFTHostnamePort>localhost:1972</sFTHostnamePort>
 	<bPlotRaw>1</bPlotRaw>
@@ -252,6 +253,26 @@
 	</vPGroups>
 	<vPSequence>
 		<s>start</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
+		<s>data_record</s>
 		<s>data_record</s>
 		<s>data_record</s>
 		<s>data_record</s>
