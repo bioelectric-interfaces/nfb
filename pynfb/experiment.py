@@ -121,7 +121,7 @@ class Experiment():
 
     def get_aai_from_pickle(self):
         if platform.system() == "Windows":
-            userdir = "2354158T"
+            userdir = "Chris" #"2354158T"
         else:
             userdir = "christopherturner"
         return pd.read_pickle(f'/Users/{userdir}/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()
