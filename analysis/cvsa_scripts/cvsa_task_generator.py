@@ -21,7 +21,7 @@ if __name__ == "__main__":
     config.read(sys.argv[1])
 
     # if data is present, calculate the appropriate thresholds and generate the rest of the experiment files
-    iaf = False
+    iaf = True
     if config['FILES']['baseline']:
         # GENERATE the IAF
         iaf = True
@@ -61,7 +61,8 @@ if __name__ == "__main__":
 
     if platform.system() == "Windows":
         userdir = os.path.join("2354158T", "OneDrive - University of Glasgow")
-        mock_file_path = f'/Users/{userdir}/Documents/cvsa_pilot_testing/lab_test_20220428/0-nfb_task_ct_test_04-28_17-39-22/experiment_data.h5'
+        # mock_file_path = f'/Users/{userdir}/Documents/cvsa_pilot_testing/lab_test_20220428/0-nfb_task_ct_test_04-28_17-39-22/experiment_data.h5'
+        mock_file_path = f'/Users/Chris/Documents/mock_data/0-baseline_ct_test_04-28_16-49-26/experiment_data.h5'
     else:
         userdir = "christopherturner"
         mock_file_path = f'/Users/{userdir}/Documents/EEG_Data/pilot_202201/ct02/scalp/0-nfb_task_ct02_01-26_16-33-42/experiment_data.h5'
@@ -136,7 +137,7 @@ if __name__ == "__main__":
                 elif task == "nfb_task":
                     number_nfb_tasks = 20
                     posner_test = 0
-                    stim_duration = 8
+                    stim_duration = 10
                     nfb_duration = 15
                     show_score = 1
                     enable_posner = 0
