@@ -966,8 +966,8 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
 
         if self.probe_loc[self.position_no] != "CROSS":
             # Hide the cross
-            self.p1.setPen(color=(0, 0, 0, 0), width=4)
-            self.p2.setPen(color=(0, 0, 0, 0), width=4)
+            self.p1.setPen(pg.mkPen(color=(0, 0, 0, 0), width=4))
+            self.p2.setPen(pg.mkPen(color=(0, 0, 0, 0), width=4))
             tr = QTransform()
             self.fill.setBrush((0, 0, 0, 255))
             offsets = self.probe_offsets[self.probe_loc[self.position_no]]
@@ -977,8 +977,8 @@ class EyeCalibrationProtocolWidgetPainter(Painter):
             self.fill.setTransform(tr)
         else:
             # Show the cross
-            self.p1.setPen(color=(0, 0, 0, 255), width=4)
-            self.p2.setPen(color=(0, 0, 0, 255), width=4)
+            self.p1.setPen(pg.mkPen(color=(0, 0, 0, 255), width=4))
+            self.p2.setPen(pg.mkPen(color=(0, 0, 0, 255), width=4))
             # Hide probe
             self.fill.setBrush((0, 0, 0, 0))
 
