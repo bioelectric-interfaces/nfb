@@ -52,8 +52,9 @@ if __name__ == "__main__":
             mu, std = cvsa_threshold_bv(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
         else:
             mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
-        aai_threshold_mean = mu
         aai_threshold_max = 2 * std
+        threshold_extra = 0.25 * (aai_threshold_max - mu)
+        aai_threshold_mean = mu + threshold_extra
 
     nfb_template = None
     if eye_threshold and aai_thresholds and iaf:
