@@ -1,3 +1,4 @@
+import platform
 import string
 import time
 import warnings
@@ -604,7 +605,12 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.probe_radius = 0.1
         self.fixation_type = "dot"
         self.m_threshold = 0
-        self.send_tacs_trig = True # TODO: make this a param available on the protocol settings window
+
+        def get_aai_from_pickle(self):
+            if platform.system() == "Windows":
+                self.send_tacs_trig = True
+            else:
+                self.send_tacs_trig = False # TODO: make this a param available on the protocol settings window
         self.p_port = parallel.ParallelPort(address=0x2010)  # set up parallel port for sendign tACS triggers
 
     def prepare_widget(self, widget):
