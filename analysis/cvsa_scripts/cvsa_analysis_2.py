@@ -116,45 +116,46 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
 
     #=============================================
     # BASELINE STUFF -----------------------------
-    df1_bl['sample'] = df1_bl.index
-    # aai_df_bl  = df1_bl [['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'chunk_n']]
-    drop_cols = [x for x in df1_bl.columns if x not in channels]
-    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
-    eeg_data_bl = df1_bl.drop(columns=drop_cols)
+    if df1_bl:
+        df1_bl['sample'] = df1_bl.index
+        # aai_df_bl  = df1_bl [['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'chunk_n']]
+        drop_cols = [x for x in df1_bl.columns if x not in channels]
+        drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+        eeg_data_bl = df1_bl.drop(columns=drop_cols)
 
-    # Rescale the data (units are microvolts - i.e. x10^-6
-    eeg_data_bl = eeg_data_bl * 1e-6
-    aai_duration_samps_bl = df1_bl.shape[0]#10000
-    alpha_band = (7.25, 11.25)
-    chunksize = df1_bl[df1_bl.chunk_n > 0]['chunk_n'].median()
-    mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
-                                                                 channel_labels=eeg_data_bl.columns, chs=["PO7=1"],
-                                                                 fft_samps=fs, chunksize=chunksize)
+        # Rescale the data (units are microvolts - i.e. x10^-6
+        eeg_data_bl = eeg_data_bl * 1e-6
+        aai_duration_samps_bl = df1_bl.shape[0]#10000
+        alpha_band = (7.25, 11.25)
+        chunksize = df1_bl[df1_bl.chunk_n > 0]['chunk_n'].median()
+        mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
+                                                                     channel_labels=eeg_data_bl.columns, chs=["PO7=1"],
+                                                                     fft_samps=fs, chunksize=chunksize)
 
-    mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
-                                                                 channel_labels=eeg_data_bl.columns, chs=["PO8=1"],
-                                                                 fft_samps=fs, chunksize=chunksize)
-    aai_raw_left_bl = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
+        mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
+                                                                     channel_labels=eeg_data_bl.columns, chs=["PO8=1"],
+                                                                     fft_samps=fs, chunksize=chunksize)
+        aai_raw_left_bl = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
-    # Plot the median of the left and right alphas from the online AAI signal
-    aai_df_raw_bl = df1_bl[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'signal_AAI']]
-    aai_df_raw_bl['raw_aai'] = aai_raw_left_bl
-    aai_df_raw_bl['raw_aai'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
-    aai_df_raw_bl['raw_smoothed'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
-    aai_df_raw_bl['P08_pwr'] = pwr_raw_r
-    aai_df_raw_bl['P07_pwr'] = pwr_raw_l
-    aai_df_raw_bl = aai_df_raw_bl[(aai_df_raw_bl['block_name'] == "baseline_eo") | (aai_df_raw_bl['block_name'] == "baseline_ec")]
+        # Plot the median of the left and right alphas from the online AAI signal
+        aai_df_raw_bl = df1_bl[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'signal_AAI']]
+        aai_df_raw_bl['raw_aai'] = aai_raw_left_bl
+        aai_df_raw_bl['raw_aai'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
+        aai_df_raw_bl['raw_smoothed'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
+        aai_df_raw_bl['P08_pwr'] = pwr_raw_r
+        aai_df_raw_bl['P07_pwr'] = pwr_raw_l
+        aai_df_raw_bl = aai_df_raw_bl[(aai_df_raw_bl['block_name'] == "baseline_eo") | (aai_df_raw_bl['block_name'] == "baseline_ec")]
 
-    fig = px.violin(aai_df_raw_bl, x="block_name",  y="raw_aai", box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (calc AAI)")
-    fig.show()
+        fig = px.violin(aai_df_raw_bl, x="block_name",  y="raw_aai", box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (calc AAI)")
+        fig.show()
 
-    fig1 = go.Figure()
-    fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P07_pwr'],
-                          line=dict(color='blue'),
-                          name='PO7_pwr'))
-    fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P08_pwr'],
-                          line=dict(color='red'),
-                          name='PO8_pwr')).show()
+        fig1 = go.Figure()
+        fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P07_pwr'],
+                              line=dict(color='blue'),
+                              name='PO7_pwr'))
+        fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P08_pwr'],
+                              line=dict(color='red'),
+                              name='PO8_pwr')).show()
 
 
     #=============================================
@@ -544,6 +545,19 @@ def epoch_analysis(df1, alpha_band, block_idx, participant):
     fig2.add_vline(x=2000, annotation_text="cvsa start")
     fig2.show()
 
+    median_nfb_centre = np.median(aai_nfb_centre.mean(axis=0)[0][2000:10000])
+    median_nfb_right = np.median(aai_nfb_right.mean(axis=0)[0][2000:10000])
+    median_nfb_left = np.median(aai_nfb_left.mean(axis=0)[0][2000:10000])
+
+    median_cue_centre = np.median(aai_nfb_centre.mean(axis=0)[0][0:2000])
+    median_cue_right = np.median(aai_nfb_right.mean(axis=0)[0][0:2000])
+    median_cue_left = np.median(aai_nfb_left.mean(axis=0)[0][0:2000])
+
+    fig2.add_hline(y=median_nfb_centre, annotation_text="centre_med", line_color="green")
+    fig2.add_hline(y=median_nfb_right, annotation_text="right_med", line_color="blue")
+    fig2.add_hline(y=median_nfb_left, annotation_text="left_med", line_color="red")
+    fig2.add_hline(y=0.15, annotation_text="0.15",line_dash="dash", line_color="black")
+
 def epoch_analysis_posner(df1, alpha_band, block_idx, participant):
 
     # Get EEG only data from the dataframe
@@ -851,6 +865,7 @@ if __name__ == "__main__":
         # Get the baseline dataframe
         # df1_bl, fs_bl, channels_bl, p_names_bl = load_data(baseline_h5file)
 
+        # eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score)
         # eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score, df1_bl=df1_bl)
 
         alpha_band = (7.25, 11.25)
