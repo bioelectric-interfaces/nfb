@@ -56,6 +56,9 @@ def iaf_from_baseline(h5file):
         print("----------------------------------------------")
         print(f"BASELINE: {baseline_name}, IAF: {iaf_raw}")
         print("----------------------------------------------")
+        print("----------------------------------------------")
+        print(f"TACS CYCLES: {iaf_raw*8}, RAMP CYCLES: {iaf_raw*1}")
+        print("----------------------------------------------")
         if baseline_name == 'baseline_ec':
             iaf_ec = iaf_raw
     return iaf_data, iaf_ec
