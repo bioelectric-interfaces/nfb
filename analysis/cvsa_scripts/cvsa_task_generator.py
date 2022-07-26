@@ -125,9 +125,9 @@ if __name__ == "__main__":
                     number_nfb_tasks = 5
                     posner_test = 0
                     stim_duration = 1.5
-                    nfb_duration = 8
+                    nfb_duration = 10
                     show_score = 0
-                    enable_posner = 1
+                    enable_posner = 0
                 if task == "posner_task":
                     number_nfb_tasks = 75
                     posner_test = 1
@@ -140,7 +140,7 @@ if __name__ == "__main__":
                     posner_test = 0
                     stim_duration = 10
                     nfb_duration = 15
-                    show_score = 1
+                    show_score = 0
                     enable_posner = 0
 
 
