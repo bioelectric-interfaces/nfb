@@ -400,7 +400,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.r_threshold = r_threshold
         self.circle = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.06
-        self.stim_radius = 0.4
+        self.stim_radius = 0.47#0.4
         self.x = np.linspace(-self.stim_radius, self.stim_radius, 100)
         self.train_side = None
         self.stim_side = None
@@ -410,6 +410,11 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.max_th = max_th
         self.stim_onset_time = False
         self.kill = False  # flag to allow widget to be killed (after target is displayed)
+
+
+        self.s1 = np.linspace(-0.15, 0, 10)
+        self.s2 = np.linspace(0, 0.15, 10)
+        self.colour = (0, 0, 0)
 
     def prepare_widget(self, widget):
         super(PosnerFeedbackProtocolWidgetPainter, self).prepare_widget(widget)
@@ -426,11 +431,11 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         widget.addItem(fill_fd)
 
         # draw Left and right stim
-        xoffset = 4
-        yoffset = 1.5
+        xoffset = 2.04#4
+        yoffset = 0.75#1.5
         left_off_x = -xoffset
         left_off_y = -yoffset
-        curve_width = 8
+        curve_width = 10#8
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                       left_off_y + self.stim_radius * np.cos(self.circle),
                                       pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
@@ -460,6 +465,12 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
                                  pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
         self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x,
                                  pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+
+        # # Draw the cue outline
+        # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
+        # self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=self.colour, width=4)).curve
+        # self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
+        # self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=self.colour, width=4)).curve
 
     def set_red_state(self, flag):
         # TODO: make something alert the participant to eyes wandering
@@ -508,9 +519,9 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             scaled_test_sample = (((
                                                self.test_signal_sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min
             scaled_test_sample = np.clip(scaled_test_sample, 0, 255)
-            distractor_brush = (255, scaled_test_sample, scaled_test_sample)
+            distractor_brush = (0,0,0)#(255, scaled_test_sample, scaled_test_sample)
         else:
-            distractor_brush = (scaled_test_sample, scaled_test_sample, 255)
+            distractor_brush = (0,0,0)#(scaled_test_sample, scaled_test_sample, 255)
 
         if sample < self.r_threshold:
             un_scaled_range = (un_scaled_max - un_scaled_min)
@@ -568,6 +579,32 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             # self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
             self.fill_st_r.setBrush((0, 0, 0, 1))
 
+    def left_cue(self):
+        # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        # self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        self.p1.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p3.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p2.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
+        self.p4.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
+
+    def right_cue(self):
+        # self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=(0, 255, 0), width=4)).curve
+        # self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=(0, 255, 0), width=4)).curve
+        self.p2.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p4.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p1.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
+        self.p3.setPen(pg.mkPen(color=(0, 255, 0, 0), width=4))
+
+    def center_cue(self):
+        # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        # self.p2 = self.widget.plot(self.s2, self.s1, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        # self.p3 = self.widget.plot(self.s1, -self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        # self.p4 = self.widget.plot(self.s2, -self.s1, pen=pg.mkPen(color=(0,255,0), width=4)).curve
+        self.p2.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p4.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p1.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+        self.p3.setPen(pg.mkPen(color=(0, 255, 0), width=4))
+
 
 def scale_sample(sample, un_scaled_min, un_scaled_max):
     """
@@ -606,11 +643,9 @@ class FixationCrossProtocolWidgetPainter(Painter):
         self.fixation_type = "dot"
         self.m_threshold = 0
 
-        def get_aai_from_pickle(self):
-            if platform.system() == "Windows":
-                self.send_tacs_trig = True
-            else:
-                self.send_tacs_trig = False # TODO: make this a param available on the protocol settings window
+        self.send_tacs_trig = False  # TODO: make this a param available on the protocol settings window
+        if platform.system() == "Windows":
+            self.send_tacs_trig = True
         self.p_port = parallel.ParallelPort(address=0x2010)  # set up parallel port for sendign tACS triggers
 
     def prepare_widget(self, widget):
