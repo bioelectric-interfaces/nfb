@@ -9,7 +9,7 @@
     <Param val="True" valType="bool" updates="None" name="Enable Escape"/>
     <Param val="{'participant': '', 'session': '001'}" valType="code" updates="None" name="Experiment info"/>
     <Param val="True" valType="bool" updates="None" name="Force stereo"/>
-    <Param val="True" valType="bool" updates="None" name="Full-screen window"/>
+    <Param val="False" valType="bool" updates="None" name="Full-screen window"/>
     <Param val="" valType="str" updates="None" name="HTML path"/>
     <Param val="" valType="str" updates="None" name="Incomplete URL"/>
     <Param val="dell_laptop" valType="str" updates="None" name="Monitor"/>
@@ -189,14 +189,14 @@
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
-      <KeyboardComponent name="key_log">
+      <KeyboardComponent name="key_log2">
         <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="" valType="str" updates="constant" name="correctAns"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
-        <Param val="key_log" valType="code" updates="None" name="name"/>
+        <Param val="key_log2" valType="code" updates="None" name="name"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
@@ -207,11 +207,11 @@
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
       </KeyboardComponent>
-      <ParallelOutComponent name="p_port_2">
+      <ParallelOutComponent name="p_port_trial2">
         <Param val="0x2010" valType="str" updates="None" name="address"/>
         <Param val="True" valType="bool" updates="None" name="disabled"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
-        <Param val="p_port_2" valType="code" updates="None" name="name"/>
+        <Param val="p_port_trial2" valType="code" updates="None" name="name"/>
         <Param val="EIO" valType="str" updates="None" name="register"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="55" valType="code" updates="None" name="startData"/>
@@ -224,7 +224,7 @@
         <Param val="True" valType="bool" updates="constant" name="syncScreen"/>
         <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
       </ParallelOutComponent>
-      <cedrusButtonBoxComponent name="button_log">
+      <cedrusButtonBoxComponent name="button_log2">
         <Param val="" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="" valType="code" updates="constant" name="correctAns"/>
         <Param val="0" valType="int" updates="constant" name="deviceNumber"/>
@@ -232,7 +232,7 @@
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
-        <Param val="button_log" valType="code" updates="None" name="name"/>
+        <Param val="button_log2" valType="code" updates="None" name="name"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
@@ -437,15 +437,15 @@
     </Routine>
     <Routine name="cue">
       <CodeComponent name="code_2">
-        <Param val="from pylsl import StreamInlet, resolve_stream&amp;#10;from pylsl import StreamInfo, StreamOutlet&amp;#10;import xml.etree.ElementTree as ET&amp;#10;import numpy as np&amp;#10;import pandas as pd&amp;#10;&amp;#10;# read in the test signal for the colour changes&amp;#10;test_signal = pd.read_pickle(f'/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()&amp;#10;cir_color = &quot;blue&quot;&amp;#10;block_text = 0&amp;#10;&amp;#10;info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')&amp;#10;#info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'string', 'posner_marker')&amp;#10;&amp;#10;outlet = StreamOutlet(info)&amp;#10;#outlet.push_sample([f'start'])&amp;#10;outlet.push_sample([99])&amp;#10;#streams = resolve_stream('name', 'OutStream')&amp;#10;&amp;#10;# create a new inlet to read from the stream&amp;#10;#inlet = StreamInlet(streams[0])&amp;#10;#stream_info_xml = inlet.info().as_xml()&amp;#10;#rt = ET.fromstring(stream_info_xml)&amp;#10;#channels_tree = rt.find('desc').findall(&quot;channel&quot;) or rt.find('desc').find(&quot;channels&quot;).findall(&amp;#10;#    &quot;channel&quot;)&amp;#10;#labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text&amp;#10;#          for ch in channels_tree]&amp;#10;          &amp;#10;#aai_idx = labels.index('AAI')&amp;#10;#print(labels)&amp;#10;#print(aai_idx)&amp;#10;&amp;#10;#chunk, timestamps = inlet.pull_chunk()&amp;#10;#logging.log(level=logging.INFO, msg='CHUNK1')&amp;#10;#print(&quot;CHUNK1:&quot;)&amp;#10;#print(chunk)&amp;#10;&amp;#10;def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max=0):&amp;#10;    un_scaled_range = (un_scaled_max - un_scaled_min)&amp;#10;    scaled_range = (scaled_max - scaled_min)&amp;#10;    scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min&amp;#10;    scaled_sample = np.clip(scaled_sample, 0, 255)&amp;#10;    return scaled_sample&amp;#10;" valType="extendedCode" updates="constant" name="Before Experiment"/>
-        <Param val="import {StreamInlet, resolve_stream} from 'pylsl';&amp;#10;import {StreamInfo, StreamOutlet} from 'pylsl';&amp;#10;import * as ET from 'xml/etree/ElementTree';&amp;#10;import * as np from 'numpy';&amp;#10;import * as pd from 'pandas';&amp;#10;var block_text, cir_color, info, outlet, test_signal;&amp;#10;test_signal = pd.read_pickle(`/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl`).to_list();&amp;#10;cir_color = &quot;blue&quot;;&amp;#10;block_text = 0;&amp;#10;info = new StreamInfo(&quot;PosnerMarkers&quot;, &quot;Markers&quot;, 1, 0, &quot;float32&quot;, &quot;posner_marker&quot;);&amp;#10;outlet = new StreamOutlet(info);&amp;#10;outlet.push_sample([99]);&amp;#10;function rescale(sample, un_scaled_min = 0, un_scaled_max = 1, scaled_min = 255, scaled_max = 0) {&amp;#10;    var scaled_range, scaled_sample, un_scaled_range;&amp;#10;    un_scaled_range = (un_scaled_max - un_scaled_min);&amp;#10;    scaled_range = (scaled_max - scaled_min);&amp;#10;    scaled_sample = ((((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min);&amp;#10;    scaled_sample = np.clip(scaled_sample, 0, 255);&amp;#10;    return scaled_sample;&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
+        <Param val="from pylsl import StreamInlet, resolve_stream&amp;#10;from pylsl import StreamInfo, StreamOutlet&amp;#10;import xml.etree.ElementTree as ET&amp;#10;import numpy as np&amp;#10;import pandas as pd&amp;#10;import random &amp;#10;&amp;#10;# get the time the probe appears&amp;#10;probe_start = random.uniform(3, 4.5)&amp;#10;&amp;#10;# read in the test signal for the colour changes&amp;#10;test_signal = pd.read_pickle(f'/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()&amp;#10;cir_color = &quot;blue&quot;&amp;#10;block_text = 0&amp;#10;&amp;#10;info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')&amp;#10;#info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'string', 'posner_marker')&amp;#10;&amp;#10;outlet = StreamOutlet(info)&amp;#10;#outlet.push_sample([f'start'])&amp;#10;outlet.push_sample([99])&amp;#10;#streams = resolve_stream('name', 'OutStream')&amp;#10;&amp;#10;# create a new inlet to read from the stream&amp;#10;#inlet = StreamInlet(streams[0])&amp;#10;#stream_info_xml = inlet.info().as_xml()&amp;#10;#rt = ET.fromstring(stream_info_xml)&amp;#10;#channels_tree = rt.find('desc').findall(&quot;channel&quot;) or rt.find('desc').find(&quot;channels&quot;).findall(&amp;#10;#    &quot;channel&quot;)&amp;#10;#labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text&amp;#10;#          for ch in channels_tree]&amp;#10;          &amp;#10;#aai_idx = labels.index('AAI')&amp;#10;#print(labels)&amp;#10;#print(aai_idx)&amp;#10;&amp;#10;#chunk, timestamps = inlet.pull_chunk()&amp;#10;#logging.log(level=logging.INFO, msg='CHUNK1')&amp;#10;#print(&quot;CHUNK1:&quot;)&amp;#10;#print(chunk)&amp;#10;&amp;#10;def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max=0):&amp;#10;    un_scaled_range = (un_scaled_max - un_scaled_min)&amp;#10;    scaled_range = (scaled_max - scaled_min)&amp;#10;    scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min&amp;#10;    scaled_sample = np.clip(scaled_sample, 0, 255)&amp;#10;    return scaled_sample&amp;#10;" valType="extendedCode" updates="constant" name="Before Experiment"/>
+        <Param val="import {StreamInlet, resolve_stream} from 'pylsl';&amp;#10;import {StreamInfo, StreamOutlet} from 'pylsl';&amp;#10;import * as ET from 'xml/etree/ElementTree';&amp;#10;import * as np from 'numpy';&amp;#10;import * as pd from 'pandas';&amp;#10;import * as random from 'random';&amp;#10;var block_text, cir_color, info, outlet, probe_start, test_signal;&amp;#10;probe_start = random.uniform(3, 4.5);&amp;#10;test_signal = pd.read_pickle(`/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl`).to_list();&amp;#10;cir_color = &quot;blue&quot;;&amp;#10;block_text = 0;&amp;#10;info = new StreamInfo(&quot;PosnerMarkers&quot;, &quot;Markers&quot;, 1, 0, &quot;float32&quot;, &quot;posner_marker&quot;);&amp;#10;outlet = new StreamOutlet(info);&amp;#10;outlet.push_sample([99]);&amp;#10;function rescale(sample, un_scaled_min = 0, un_scaled_max = 1, scaled_min = 255, scaled_max = 0) {&amp;#10;    var scaled_range, scaled_sample, un_scaled_range;&amp;#10;    un_scaled_range = (un_scaled_max - un_scaled_min);&amp;#10;    scaled_range = (scaled_max - scaled_min);&amp;#10;    scaled_sample = ((((sample - un_scaled_min) * scaled_range) / un_scaled_range) + scaled_min);&amp;#10;    scaled_sample = np.clip(scaled_sample, 0, 255);&amp;#10;    return scaled_sample;&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Before JS Experiment"/>
         <Param val="import random, copy&amp;#10;from random import randint&amp;#10;from decimal import *&amp;#10;&amp;#10;# setup an array to store 6 locations to randomly allocate to our shapes &amp;#10;# (or select random locations between (-1,-1) and (1,1) if you want them completely &amp;#10;# random though you then need to factor in overlaying shapes)&amp;#10;master_positions=[[-5,0], [5,0]]&amp;#10;positions = copy.deepcopy(master_positions)" valType="extendedCode" updates="constant" name="Begin Experiment"/>
         <Param val="import * as random from 'random';&amp;#10;import * as copy from 'copy';&amp;#10;import {randint} from 'random';&amp;#10;import {*} from 'decimal';&amp;#10;var master_positions, positions;&amp;#10;master_positions = [[(- 5), 0], [5, 0]];&amp;#10;positions = copy.deepcopy(master_positions);&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Experiment"/>
         <Param val="import * as random from 'random';&amp;#10;var c_cue_color, l_cue_color, l_fill_color, neutral_side, positions, probe_location, r_cue_color, r_fill_color, side, stim_side, valid_cue_weight;&amp;#10;side = random.choice([1, 2, 3]);&amp;#10;neutral_side = random.choice([1, 2]);&amp;#10;outlet.push_sample([side]);&amp;#10;probe_location = [random.choice([(- 5), 5]), 0];&amp;#10;positions = copy.deepcopy(master_positions);&amp;#10;random.shuffle(positions);&amp;#10;if ((side === 1)) {&amp;#10;    r_cue_color = [0, 0, 0, 0];&amp;#10;    l_cue_color = [255, 255, 255];&amp;#10;    c_cue_color = [0, 0, 0, 0];&amp;#10;} else {&amp;#10;    if ((side === 2)) {&amp;#10;        r_cue_color = [255, 255, 255];&amp;#10;        l_cue_color = [0, 0, 0, 0];&amp;#10;        c_cue_color = [0, 0, 0, 0];&amp;#10;    } else {&amp;#10;        if ((side === 3)) {&amp;#10;            r_cue_color = [0, 0, 0, 0];&amp;#10;            l_cue_color = [0, 0, 0, 0];&amp;#10;            c_cue_color = [255, 255, 255];&amp;#10;        }&amp;#10;    }&amp;#10;}&amp;#10;valid_cue_weight = 70;&amp;#10;stim_side = random.choices([10, 11], {&quot;weights&quot;: [valid_cue_weight, (100 - valid_cue_weight)]})[0];&amp;#10;if ((stim_side === 10)) {&amp;#10;    if ((side === 1)) {&amp;#10;        r_fill_color = [0, 0, 0, 0];&amp;#10;        l_fill_color = [255, 255, 255];&amp;#10;    } else {&amp;#10;        if ((side === 2)) {&amp;#10;            r_fill_color = [255, 255, 255];&amp;#10;            l_fill_color = [0, 0, 0, 0];&amp;#10;        } else {&amp;#10;            if ((side === 3)) {&amp;#10;                if ((neutral_side === 1)) {&amp;#10;                    r_fill_color = [0, 0, 0, 0];&amp;#10;                    l_fill_color = [255, 255, 255];&amp;#10;                } else {&amp;#10;                    if ((neutral_side === 2)) {&amp;#10;                        r_fill_color = [255, 255, 255];&amp;#10;                        l_fill_color = [0, 0, 0, 0];&amp;#10;                    }&amp;#10;                }&amp;#10;            }&amp;#10;        }&amp;#10;    }&amp;#10;} else {&amp;#10;    if ((stim_side === 11)) {&amp;#10;        if ((side === 1)) {&amp;#10;            l_fill_color = [0, 0, 0, 0];&amp;#10;            r_fill_color = [255, 255, 255];&amp;#10;        } else {&amp;#10;            if ((side === 2)) {&amp;#10;                l_fill_color = [255, 255, 255];&amp;#10;                r_fill_color = [0, 0, 0, 0];&amp;#10;            } else {&amp;#10;                if ((side === 3)) {&amp;#10;                    if ((neutral_side === 1)) {&amp;#10;                        r_fill_color = [0, 0, 0, 0];&amp;#10;                        l_fill_color = [255, 255, 255];&amp;#10;                    } else {&amp;#10;                        if ((neutral_side === 2)) {&amp;#10;                            r_fill_color = [255, 255, 255];&amp;#10;                            l_fill_color = [0, 0, 0, 0];&amp;#10;                        }&amp;#10;                    }&amp;#10;                }&amp;#10;            }&amp;#10;        }&amp;#10;    }&amp;#10;}&amp;#10;" valType="extendedCode" updates="constant" name="Begin JS Routine"/>
         <Param val="import random &amp;#10;&amp;#10;side = random.choice([1,2,3]) # 1=l, 2=r, 3=n&amp;#10;neutral_side = random.choice([1,2])&amp;#10;&amp;#10;# push the start of the cue&amp;#10;#outlet.push_sample([f'cue_{side}'])&amp;#10;outlet.push_sample([side])&amp;#10;&amp;#10;&amp;#10;probe_location = (random.choice([-5, 5]), 0)&amp;#10;# reset 'positions' &amp;#10;positions = copy.deepcopy(master_positions) &amp;#10;&amp;#10;#randomise this for each trial&amp;#10;random.shuffle(positions)&amp;#10;&amp;#10;&amp;#10;if side == 1:&amp;#10;    r_cue_color = (0,0,0,0)&amp;#10;    l_cue_color = (255,255,255)&amp;#10;    c_cue_color = (0,0,0,0)&amp;#10;elif side == 2:&amp;#10;    r_cue_color = (255,255,255)&amp;#10;    l_cue_color = (0,0,0,0)&amp;#10;    c_cue_color = (0,0,0,0)&amp;#10;elif side == 3:&amp;#10;    r_cue_color = (0,0,0,0)&amp;#10;    l_cue_color = (0,0,0,0)&amp;#10;    c_cue_color = (255,255,255)&amp;#10;    &amp;#10;valid_cue_weight = 70&amp;#10;stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100-valid_cue_weight))[0]&amp;#10;if stim_side == 10:&amp;#10;    # valid cue&amp;#10;    if side == 1:&amp;#10;        r_fill_color = (0,0,0,0)&amp;#10;        l_fill_color = (255,255,255)&amp;#10;    elif side == 2:&amp;#10;        r_fill_color = (255,255,255)&amp;#10;        l_fill_color = (0,0,0,0)&amp;#10;    elif side == 3:&amp;#10;        # 50% chance left or right&amp;#10;        if neutral_side == 1:&amp;#10;            r_fill_color = (0,0,0,0)&amp;#10;            l_fill_color = (255,255,255)&amp;#10;        elif neutral_side == 2:&amp;#10;            r_fill_color = (255,255,255)&amp;#10;            l_fill_color = (0,0,0,0)    &amp;#10;elif stim_side == 11:&amp;#10;    # invalid cue&amp;#10;    if side == 1:&amp;#10;        l_fill_color = (0,0,0,0)&amp;#10;        r_fill_color = (255,255,255)&amp;#10;    elif side == 2:&amp;#10;        l_fill_color = (255,255,255)&amp;#10;        r_fill_color = (0,0,0,0)&amp;#10;    elif side == 3:&amp;#10;        # 50% chance left or right&amp;#10;        if neutral_side == 1:&amp;#10;            r_fill_color = (0,0,0,0)&amp;#10;            l_fill_color = (255,255,255)&amp;#10;        elif neutral_side == 2:&amp;#10;            r_fill_color = (255,255,255)&amp;#10;            l_fill_color = (0,0,0,0)    " valType="extendedCode" updates="constant" name="Begin Routine"/>
         <Param val="Auto-&gt;JS" valType="str" updates="None" name="Code Type"/>
-        <Param val="import random &amp;#10;import numpy as np&amp;#10;&amp;#10;&amp;#10;r = random.randrange(0, 255)&amp;#10;#g = random.randrange(0, 255)&amp;#10;#b = random.randrange(0, 255)&amp;#10;#print(f&quot;colour = {g}&quot;)&amp;#10;&amp;#10;#r = 127* np.sin(t*2*pi)+127&amp;#10;r = np.sin(t*2*pi)&amp;#10;#r = 100+50*sin(t)**4&amp;#10;print(f&quot;{r} :- {frameN}: {cir_color}&quot;)&amp;#10;cir_pos = ( sin(t*2*pi), cos(t*2*pi) )&amp;#10;y_pos = 5* np.sin(t)&amp;#10;cir_color = (r,0,0)&amp;#10;&amp;#10;" valType="extendedCode" updates="constant" name="Each Frame"/>
-        <Param val="import * as random from 'random';&amp;#10;import * as np from 'numpy';&amp;#10;var cir_color, cir_pos, r, y_pos;&amp;#10;r = random.randrange(0, 255);&amp;#10;r = np.sin(((t * 2) * pi));&amp;#10;console.log(`${r} :- ${frameN}: ${cir_color}`);&amp;#10;cir_pos = [Math.sin(((t * 2) * pi)), Math.cos(((t * 2) * pi))];&amp;#10;y_pos = (5 * np.sin(t));&amp;#10;cir_color = [r, 0, 0];&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
+        <Param val="&amp;#10;import numpy as np&amp;#10;&amp;#10;&amp;#10;r = random.randrange(0, 255)&amp;#10;#g = random.randrange(0, 255)&amp;#10;#b = random.randrange(0, 255)&amp;#10;#print(f&quot;colour = {g}&quot;)&amp;#10;&amp;#10;#r = 127* np.sin(t*2*pi)+127&amp;#10;r = np.sin(t*2*pi)&amp;#10;#r = 100+50*sin(t)**4&amp;#10;print(f&quot;{r} :- {frameN}: {cir_color}&quot;)&amp;#10;cir_pos = ( sin(t*2*pi), cos(t*2*pi) )&amp;#10;y_pos = 5* np.sin(t)&amp;#10;cir_color = (r,0,0)&amp;#10;&amp;#10;" valType="extendedCode" updates="constant" name="Each Frame"/>
+        <Param val="import * as np from 'numpy';&amp;#10;var cir_color, cir_pos, r, y_pos;&amp;#10;r = random.randrange(0, 255);&amp;#10;r = np.sin(((t * 2) * pi));&amp;#10;console.log(`${r} :- ${frameN}: ${cir_color}`);&amp;#10;cir_pos = [Math.sin(((t * 2) * pi)), Math.cos(((t * 2) * pi))];&amp;#10;y_pos = (5 * np.sin(t));&amp;#10;cir_color = [r, 0, 0];&amp;#10;" valType="extendedCode" updates="constant" name="Each JS Frame"/>
         <Param val="" valType="extendedCode" updates="constant" name="End Experiment"/>
         <Param val="" valType="extendedCode" updates="constant" name="End JS Experiment"/>
         <Param val="psychoJS.experiment.addData(&quot;cue&quot;, side);&amp;#10;psychoJS.experiment.addData(&quot;stim_side&quot;, stim_side);&amp;#10;probe_start = 0;&amp;#10;" valType="extendedCode" updates="constant" name="End JS Routine"/>
@@ -475,7 +475,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="2" valType="code" updates="constant" name="stopVal"/>
+        <Param val="3" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="4" valType="list" updates="constant" name="vertices"/>
@@ -502,7 +502,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="2" valType="code" updates="constant" name="stopVal"/>
+        <Param val="3" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="4" valType="list" updates="constant" name="vertices"/>
@@ -573,7 +573,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="2" valType="code" updates="constant" name="stopVal"/>
+        <Param val="3" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -600,7 +600,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="2" valType="code" updates="constant" name="stopVal"/>
+        <Param val="3" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -619,15 +619,15 @@
         <Param val="probe_l_cue" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="(-3.5, -1)" valType="list" updates="set every frame" name="pos"/>
+        <Param val="(-4, -1)" valType="list" updates="set every frame" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="circle" valType="str" updates="None" name="shape"/>
-        <Param val="(1.5, 1.5)" valType="list" updates="constant" name="size"/>
+        <Param val="(2, 2)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="3" valType="code" updates="constant" name="stopVal"/>
+        <Param val="4" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -646,15 +646,15 @@
         <Param val="probe_r_cue" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="(3.5, -1)" valType="list" updates="set every repeat" name="pos"/>
+        <Param val="(4, -1)" valType="list" updates="set every repeat" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="circle" valType="str" updates="None" name="shape"/>
-        <Param val="(1.5, 1.5)" valType="list" updates="constant" name="size"/>
+        <Param val="(2, 2)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="3" valType="code" updates="constant" name="stopVal"/>
+        <Param val="4" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -684,6 +684,153 @@
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="num" updates="constant" name="wrapWidth"/>
       </TextComponent>
+      <ParallelOutComponent name="p_port_trial">
+        <Param val="0x2010" valType="str" updates="None" name="address"/>
+        <Param val="True" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="p_port_trial" valType="code" updates="None" name="name"/>
+        <Param val="EIO" valType="str" updates="None" name="register"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="55" valType="code" updates="None" name="startData"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="3" valType="code" updates="None" name="startVal"/>
+        <Param val="0" valType="code" updates="None" name="stopData"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="1.0" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreen"/>
+        <Param val="False" valType="bool" updates="None" name="syncScreenRefresh"/>
+      </ParallelOutComponent>
+      <cedrusButtonBoxComponent name="button_log">
+        <Param val="" valType="list" updates="constant" name="allowedKeys"/>
+        <Param val="" valType="code" updates="constant" name="correctAns"/>
+        <Param val="0" valType="int" updates="constant" name="deviceNumber"/>
+        <Param val="True" valType="bool" updates="None" name="disabled"/>
+        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="button_log" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="time (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="$probe_start" valType="code" updates="constant" name="stopVal"/>
+        <Param val="all keys" valType="str" updates="constant" name="store"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
+        <Param val="False" valType="bool" updates="constant" name="useBoxTimer"/>
+      </cedrusButtonBoxComponent>
+      <KeyboardComponent name="key_log">
+        <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
+        <Param val="" valType="str" updates="constant" name="correctAns"/>
+        <Param val="False" valType="bool" updates="None" name="disabled"/>
+        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="key_log" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="0.0" valType="code" updates="None" name="startVal"/>
+        <Param val="time (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="$probe_start" valType="code" updates="constant" name="stopVal"/>
+        <Param val="all keys" valType="str" updates="constant" name="store"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
+      </KeyboardComponent>
+      <PolygonComponent name="probe_r_fill">
+        <Param val="center" valType="str" updates="constant" name="anchor"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="True" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="$r_fill_color" valType="color" updates="set every frame" name="fillColor"/>
+        <Param val="nearest" valType="str" updates="constant" name="interpolate"/>
+        <Param val="$r_fill_color" valType="color" updates="set every frame" name="lineColor"/>
+        <Param val="1" valType="num" updates="constant" name="lineWidth"/>
+        <Param val="4" valType="int" updates="constant" name="nVertices"/>
+        <Param val="probe_r_fill" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="(3.5,-1)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="circle" valType="str" updates="None" name="shape"/>
+        <Param val="(1, 1)" valType="list" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="$probe_start" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="0.1" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
+        <Param val="" valType="list" updates="constant" name="vertices"/>
+      </PolygonComponent>
+      <PolygonComponent name="probe_l_fill">
+        <Param val="center" valType="str" updates="constant" name="anchor"/>
+        <Param val="rgb" valType="str" updates="constant" name="colorSpace"/>
+        <Param val="1" valType="num" updates="constant" name="contrast"/>
+        <Param val="True" valType="bool" updates="None" name="disabled"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="$l_fill_color" valType="color" updates="set every frame" name="fillColor"/>
+        <Param val="linear" valType="str" updates="constant" name="interpolate"/>
+        <Param val="$l_fill_color" valType="color" updates="set every frame" name="lineColor"/>
+        <Param val="1" valType="num" updates="constant" name="lineWidth"/>
+        <Param val="4" valType="int" updates="constant" name="nVertices"/>
+        <Param val="probe_l_fill" valType="code" updates="None" name="name"/>
+        <Param val="" valType="num" updates="constant" name="opacity"/>
+        <Param val="0" valType="num" updates="constant" name="ori"/>
+        <Param val="(-3.5,-1)" valType="list" updates="constant" name="pos"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="circle" valType="str" updates="None" name="shape"/>
+        <Param val="(1, 1)" valType="list" updates="constant" name="size"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="$probe_start" valType="code" updates="None" name="startVal"/>
+        <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="0.1" valType="code" updates="constant" name="stopVal"/>
+        <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
+        <Param val="deg" valType="str" updates="None" name="units"/>
+        <Param val="" valType="list" updates="constant" name="vertices"/>
+      </PolygonComponent>
+      <KeyboardComponent name="key_resp">
+        <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
+        <Param val="" valType="str" updates="constant" name="correctAns"/>
+        <Param val="True" valType="bool" updates="None" name="disabled"/>
+        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="key_resp" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="$probe_start" valType="code" updates="None" name="startVal"/>
+        <Param val="time (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="1.1" valType="code" updates="constant" name="stopVal"/>
+        <Param val="all keys" valType="str" updates="constant" name="store"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
+      </KeyboardComponent>
+      <cedrusButtonBoxComponent name="button_resp">
+        <Param val="[3]" valType="list" updates="constant" name="allowedKeys"/>
+        <Param val="" valType="code" updates="constant" name="correctAns"/>
+        <Param val="0" valType="int" updates="constant" name="deviceNumber"/>
+        <Param val="True" valType="bool" updates="None" name="disabled"/>
+        <Param val="True" valType="bool" updates="constant" name="discard previous"/>
+        <Param val="" valType="code" updates="None" name="durationEstim"/>
+        <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
+        <Param val="button_resp" valType="code" updates="None" name="name"/>
+        <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
+        <Param val="" valType="code" updates="None" name="startEstim"/>
+        <Param val="time (s)" valType="str" updates="None" name="startType"/>
+        <Param val="$probe_start" valType="code" updates="None" name="startVal"/>
+        <Param val="time (s)" valType="str" updates="None" name="stopType"/>
+        <Param val="1.1" valType="code" updates="constant" name="stopVal"/>
+        <Param val="all keys" valType="str" updates="constant" name="store"/>
+        <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
+        <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
+        <Param val="False" valType="bool" updates="constant" name="useBoxTimer"/>
+      </cedrusButtonBoxComponent>
     </Routine>
     <Routine name="end">
       <TextComponent name="end_text">
@@ -789,10 +936,10 @@
         <Param val="probe_l_2" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="(-3.5, -1)" valType="list" updates="set every repeat" name="pos"/>
+        <Param val="(-4, -1)" valType="list" updates="set every repeat" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="circle" valType="str" updates="None" name="shape"/>
-        <Param val="(1.5, 1.5)" valType="list" updates="constant" name="size"/>
+        <Param val="(2, 2)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
@@ -816,10 +963,10 @@
         <Param val="probe_r_2" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="(3.5, -1)" valType="list" updates="set every repeat" name="pos"/>
+        <Param val="(4, -1)" valType="list" updates="set every repeat" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="circle" valType="str" updates="None" name="shape"/>
-        <Param val="(1.5, 1.5)" valType="list" updates="constant" name="size"/>
+        <Param val="(2, 2)" valType="list" updates="constant" name="size"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
@@ -843,7 +990,7 @@
         <Param val="probe_r_fill_2" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="(3.5,-1)" valType="list" updates="constant" name="pos"/>
+        <Param val="(4,-1)" valType="list" updates="constant" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="circle" valType="str" updates="None" name="shape"/>
         <Param val="(1, 1)" valType="list" updates="constant" name="size"/>
@@ -870,7 +1017,7 @@
         <Param val="probe_l_fill_2" valType="code" updates="None" name="name"/>
         <Param val="" valType="num" updates="constant" name="opacity"/>
         <Param val="0" valType="num" updates="constant" name="ori"/>
-        <Param val="(-3.5,-1)" valType="list" updates="constant" name="pos"/>
+        <Param val="(-4,-1)" valType="list" updates="constant" name="pos"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="circle" valType="str" updates="None" name="shape"/>
         <Param val="(1, 1)" valType="list" updates="constant" name="size"/>
@@ -883,14 +1030,14 @@
         <Param val="deg" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
       </PolygonComponent>
-      <KeyboardComponent name="key_resp">
+      <KeyboardComponent name="key_resp2">
         <Param val="'space'" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="" valType="str" updates="constant" name="correctAns"/>
         <Param val="False" valType="bool" updates="None" name="disabled"/>
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
-        <Param val="key_resp" valType="code" updates="None" name="name"/>
+        <Param val="key_resp2" valType="code" updates="None" name="name"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
@@ -901,7 +1048,7 @@
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
       </KeyboardComponent>
-      <cedrusButtonBoxComponent name="button_response">
+      <cedrusButtonBoxComponent name="button_response2">
         <Param val="[3]" valType="list" updates="constant" name="allowedKeys"/>
         <Param val="" valType="code" updates="constant" name="correctAns"/>
         <Param val="0" valType="int" updates="constant" name="deviceNumber"/>
@@ -909,7 +1056,7 @@
         <Param val="True" valType="bool" updates="constant" name="discard previous"/>
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="False" valType="bool" updates="constant" name="forceEndRoutine"/>
-        <Param val="button_response" valType="code" updates="None" name="name"/>
+        <Param val="button_response2" valType="code" updates="None" name="name"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
@@ -1152,7 +1299,6 @@
       <Param name="random seed" updates="None" val="" valType="code"/>
     </LoopInitiator>
     <Routine name="cue"/>
-    <Routine name="trial"/>
     <Routine name="response"/>
     <LoopTerminator name="trials"/>
     <Routine name="continue_2"/>
@@ -1168,7 +1314,6 @@
       <Param name="random seed" updates="None" val="" valType="code"/>
     </LoopInitiator>
     <Routine name="cue"/>
-    <Routine name="trial"/>
     <Routine name="response"/>
     <LoopTerminator name="trials_2"/>
     <Routine name="continue_2"/>
@@ -1184,7 +1329,6 @@
       <Param name="random seed" updates="None" val="" valType="code"/>
     </LoopInitiator>
     <Routine name="cue"/>
-    <Routine name="trial"/>
     <Routine name="response"/>
     <LoopTerminator name="trials_3"/>
     <Routine name="continue_2"/>
@@ -1200,7 +1344,6 @@
       <Param name="random seed" updates="None" val="" valType="code"/>
     </LoopInitiator>
     <Routine name="cue"/>
-    <Routine name="trial"/>
     <Routine name="response"/>
     <LoopTerminator name="trials_4"/>
     <Routine name="end"/>
