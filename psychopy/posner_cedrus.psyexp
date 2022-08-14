@@ -502,7 +502,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="4" valType="list" updates="constant" name="vertices"/>
@@ -529,7 +529,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="4" valType="list" updates="constant" name="vertices"/>
@@ -556,7 +556,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -583,7 +583,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="1" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="cm" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -610,7 +610,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -637,7 +637,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
         <Param val="duration (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="True" valType="bool" updates="None" name="syncScreenRefresh"/>
         <Param val="deg" valType="str" updates="None" name="units"/>
         <Param val="" valType="list" updates="constant" name="vertices"/>
@@ -743,7 +743,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="$probe_start" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="all keys" valType="str" updates="constant" name="store"/>
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
@@ -761,7 +761,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0.0" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="all keys" valType="str" updates="constant" name="store"/>
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
@@ -800,7 +800,7 @@
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="$probe_start" valType="code" updates="None" name="startVal"/>
         <Param val="time (s)" valType="str" updates="None" name="stopType"/>
-        <Param val="6.5" valType="code" updates="constant" name="stopVal"/>
+        <Param val="6.6" valType="code" updates="constant" name="stopVal"/>
         <Param val="all keys" valType="str" updates="constant" name="store"/>
         <Param val="False" valType="bool" updates="constant" name="storeCorrect"/>
         <Param val="True" valType="bool" updates="constant" name="syncScreenRefresh"/>
