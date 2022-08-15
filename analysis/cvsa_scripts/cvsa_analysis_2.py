@@ -40,6 +40,9 @@ task_data = {}
 # --- pilot PO1 04/04/22
 # h5file = "../../pynfb/results/0-nfb_task_PO1_05-04_10-31-34/experiment_data.h5"
 
+
+LEFT_ELECTRODE = "P3"#"PO7"
+RIGHT_ELECTRODE = "P4"#"PO8"
 def get_cue_dir(df1, channels):
     df1['sample'] = df1.index
     channels.append("signal_AAI")
@@ -129,33 +132,33 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
         alpha_band = (7.25, 11.25)
         chunksize = df1_bl[df1_bl.chunk_n > 0]['chunk_n'].median()
         mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
-                                                                     channel_labels=eeg_data_bl.columns, chs=["PO7=1"],
+                                                                     channel_labels=eeg_data_bl.columns, chs=[f"{LEFT_ELECTRODE}=1"],
                                                                      fft_samps=fs, chunksize=chunksize)
 
         mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data_bl[0:aai_duration_samps_bl], fband=alpha_band, fs=fs,
-                                                                     channel_labels=eeg_data_bl.columns, chs=["PO8=1"],
+                                                                     channel_labels=eeg_data_bl.columns, chs=[f"{RIGHT_ELECTRODE}=1"],
                                                                      fft_samps=fs, chunksize=chunksize)
         aai_raw_left_bl = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
         # Plot the median of the left and right alphas from the online AAI signal
-        aai_df_raw_bl = df1_bl[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'signal_AAI']]
+        aai_df_raw_bl = df1_bl[[RIGHT_ELECTRODE, LEFT_ELECTRODE, 'block_name', 'block_number', 'sample', 'signal_AAI']]
         aai_df_raw_bl['raw_aai'] = aai_raw_left_bl
         aai_df_raw_bl['raw_aai'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
         aai_df_raw_bl['raw_smoothed'] = aai_df_raw_bl['raw_aai'].rolling(window=int(fs / 10)).mean()
-        aai_df_raw_bl['P08_pwr'] = pwr_raw_r
-        aai_df_raw_bl['P07_pwr'] = pwr_raw_l
+        aai_df_raw_bl[f'{LEFT_ELECTRODE}_pwr'] = pwr_raw_r
+        aai_df_raw_bl[f'{RIGHT_ELECTRODE}_pwr'] = pwr_raw_l
         aai_df_raw_bl = aai_df_raw_bl[(aai_df_raw_bl['block_name'] == "baseline_eo") | (aai_df_raw_bl['block_name'] == "baseline_ec")]
 
         fig = px.violin(aai_df_raw_bl, x="block_name",  y="raw_aai", box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (calc AAI)")
         fig.show()
 
         fig1 = go.Figure()
-        fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P07_pwr'],
+        fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl[f'{LEFT_ELECTRODE}_pwr'],
                               line=dict(color='blue'),
-                              name='PO7_pwr'))
-        fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl['P08_pwr'],
+                              name=f'{LEFT_ELECTRODE}_pwr'))
+        fig1.add_trace(go.Box(x=aai_df_raw_bl['block_name'], y=aai_df_raw_bl[f'{RIGHT_ELECTRODE}_pwr'],
                               line=dict(color='red'),
-                              name='PO8_pwr')).show()
+                              name=f'{RIGHT_ELECTRODE}_pwr')).show()
 
 
     #=============================================
@@ -165,7 +168,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     cue_recode = ["left", "right", "centre"]
 
     df1['cue_dir'] = df1['cue_dir'].replace(cue_dirs, cue_recode)
-    aai_df = df1[['PO8', 'PO7', 'signal_AAI', 'block_name', 'block_number', 'sample', 'cue_dir', 'chunk_n']]
+    aai_df = df1[[RIGHT_ELECTRODE, LEFT_ELECTRODE, 'signal_AAI', 'block_name', 'block_number', 'sample', 'cue_dir', 'chunk_n']]
     aai_df = aai_df[aai_df['block_name'].str.contains("nfb")]
     fig = px.violin(aai_df, x="block_name",  y="signal_AAI", color='cue_dir', box=True, range_y=[-1, 1], title=f"block:{block_idx}_{participant} (online AAI)")
     fig.show()
@@ -210,21 +213,21 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     alpha_band = (7.25, 11.25)
     chunksize = aai_df[aai_df.chunk_n > 0]['chunk_n'].median()
     mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
-                                                                 channel_labels=eeg_data.columns, chs=["PO7=1"],
+                                                                 channel_labels=eeg_data.columns, chs=[f"{LEFT_ELECTRODE}=1"],
                                                                  fft_samps=fs, chunksize=chunksize)
 
     mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
-                                                                 channel_labels=eeg_data.columns, chs=["PO8=1"],
+                                                                 channel_labels=eeg_data.columns, chs=[f"{RIGHT_ELECTRODE}=1"],
                                                                  fft_samps=fs, chunksize=chunksize)
     aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
     # Plot the median of the left and right alphas from the online AAI signal
-    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir', 'signal_AAI']]
+    aai_df_raw = df1[[RIGHT_ELECTRODE, LEFT_ELECTRODE, 'block_name', 'block_number', 'sample', 'cue_dir', 'signal_AAI']]
     aai_df_raw['raw_aai'] = aai_raw_left
     aai_df_raw['raw_aai'] = aai_df_raw['raw_aai'].rolling(window=int(fs / 10)).mean()
     aai_df_raw['raw_smoothed'] = aai_df_raw['raw_aai'].rolling(window=int(fs / 10)).mean()
-    aai_df_raw['P08_pwr'] = pwr_raw_r
-    aai_df_raw['P07_pwr'] = pwr_raw_l
+    aai_df_raw[f'{RIGHT_ELECTRODE}_pwr'] = pwr_raw_r
+    aai_df_raw[f'{LEFT_ELECTRODE}_pwr'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("nfb")]
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
@@ -232,6 +235,21 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     median_aais['raw_aai'] = median_aais_raw['raw_aai']
     fig = px.violin(median_aais_raw, x="cue_dir", y="raw_aai", box=True, points='all', range_y=[-0.3, 0.2], title=f"block:{block_idx}_{participant} (raw_ref)")
     fig.show()
+
+    fig21 = go.Figure()
+    print('starting...')
+    for i, row in median_aais_raw.iterrows():
+        print(i)
+        colour = "red"
+        if row['cue_dir'] == 'left':
+            colour = 'blue'
+        if row['cue_dir'] == 'centre':
+            colour = 'green'
+        plt_df = aai_df_raw[aai_df_raw['block_number'] == row['block_number']]
+        fig21.add_trace(go.Box(x=plt_df['block_number'], y=plt_df['raw_aai'],
+                              line=dict(color=colour),
+                              name=f"{row['block_number']}-{row['cue_dir']}"))
+    fig21.show()
 
     # Plot time course of median AAIs
     m_a_r = median_aais_raw.copy()
@@ -275,7 +293,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     # fig = px.line(aai_df_raw, x='sample', y='raw_aai', color='cue_dir').show()
 
     # Plot the median of the left and right alphas from the online AAI signal
-    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['P07_pwr', 'P08_pwr'], var_name='side', value_name='data')
+    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=[f'{LEFT_ELECTRODE}_pwr', f'{RIGHT_ELECTRODE}_pwr'], var_name='side', value_name='data')
     figx = px.box(side_data_raw, x="cue_dir", y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)")
     # figx.show()
 
@@ -286,10 +304,10 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
                           name='nfb'))
 
     # TODO - fix this code so the names don't copy from above
-    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
+    aai_df_raw = df1[[RIGHT_ELECTRODE, LEFT_ELECTRODE, 'block_name', 'block_number', 'sample', 'cue_dir']]
     aai_df_raw['raw_aai'] = aai_raw_left
-    aai_df_raw['P08_pwr_fc'] = pwr_raw_r
-    aai_df_raw['P07_pwr_fc'] = pwr_raw_l
+    aai_df_raw[f'{RIGHT_ELECTRODE}_pwr_fc'] = pwr_raw_r
+    aai_df_raw[f'{LEFT_ELECTRODE}_pwr_fc'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("fc")]
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
@@ -298,17 +316,17 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
                           line=dict(color='green'),
                           name='fc'))
 
-    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['P07_pwr_fc', 'P08_pwr_fc'], var_name='side', value_name='data')
+    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=[f'{LEFT_ELECTRODE}_pwr_fc', f'{RIGHT_ELECTRODE}_pwr_fc'], var_name='side', value_name='data')
     side_data_raw['cue_dir'] = 'fc'
     figx.add_traces(
         list(px.box(side_data_raw, x='cue_dir', y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)", color_discrete_sequence=px.colors.qualitative.Dark2).select_traces())
     )
 
     # TODO - fix this code so the names don't copy from above
-    aai_df_raw = df1[['PO8', 'PO7', 'block_name', 'block_number', 'sample', 'cue_dir']]
+    aai_df_raw = df1[[RIGHT_ELECTRODE, LEFT_ELECTRODE, 'block_name', 'block_number', 'sample', 'cue_dir']]
     aai_df_raw['raw_aai'] = aai_raw_left
-    aai_df_raw['P08_pwr_cue'] = pwr_raw_r
-    aai_df_raw['P07_pwr_cue'] = pwr_raw_l
+    aai_df_raw[f'{RIGHT_ELECTRODE}_pwr_cue'] = pwr_raw_r
+    aai_df_raw[f'{LEFT_ELECTRODE}_pwr_cue'] = pwr_raw_l
     aai_df_raw = aai_df_raw[aai_df_raw['block_name'].str.contains("cue")]
     grouped_aai_df_raw = aai_df_raw.groupby("block_number", as_index=False)
     median_aais_raw = grouped_aai_df_raw.median()
@@ -324,7 +342,7 @@ def cvsa_analysis(df1, fs, channels, p_names, block_idx=0, participant="", score
     figb.show()
 
     # Plot left and right power for each block
-    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=['P07_pwr_cue', 'P08_pwr_cue'], var_name='side', value_name='data')
+    side_data_raw = pd.melt(median_aais_raw, id_vars=['cue_dir'], value_vars=[f'{LEFT_ELECTRODE}_pwr_cue', f'{RIGHT_ELECTRODE}_pwr_cue'], var_name='side', value_name='data')
     side_data_raw['cue_dir'] = 'cue'
     figx.add_traces(
         list(px.box(side_data_raw, x='cue_dir', y="data", color='side', points='all', title=f"block:{block_idx}_{participant} (raw_ref)", color_discrete_sequence=px.colors.qualitative.Bold).select_traces())
@@ -468,8 +486,8 @@ def epoch_analysis(df1, alpha_band, block_idx, participant):
     events = mne.find_events(m_raw, stim_channel='STI')
     reject_criteria = dict(eeg=100e-6)
 
-    left_chs = ['PO7=1']
-    right_chs = ['PO8=1']
+    left_chs = [f'{LEFT_ELECTRODE}=1']
+    right_chs = [f'{RIGHT_ELECTRODE}=1']
 
     epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=14, baseline=(-2, 0),
                         preload=True, detrend=1)#, reject=reject_criteria)
@@ -481,7 +499,7 @@ def epoch_analysis(df1, alpha_band, block_idx, participant):
     n_cycles = freqs / 2.  # different number of cycle per frequency
     power, itc = tfr_morlet(epochs['left_probe'], freqs=freqs, n_cycles=n_cycles, use_fft=True,
                             return_itc=True, decim=3, n_jobs=1)
-    power.plot(['PO7'], mode='logratio', title='PO7')
+    power.plot([LEFT_ELECTRODE], mode='logratio', title=LEFT_ELECTRODE)
 
     # fig = epochs.plot(events=events)
 
@@ -490,8 +508,8 @@ def epoch_analysis(df1, alpha_band, block_idx, participant):
 
     dataframes = []
     # ----Look at the power for the epochs in the left and right channels for left and right probes
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names, chs=[f"{LEFT_ELECTRODE}=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names,  chs=[f"{RIGHT_ELECTRODE}=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"left_probe"
@@ -510,8 +528,8 @@ def epoch_analysis(df1, alpha_band, block_idx, participant):
                          color=(230, 20, 20, 1), y_range=[-1, 1])
 
 
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=[f"{LEFT_ELECTRODE}=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=[f"{RIGHT_ELECTRODE}=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"right_probe"
@@ -527,8 +545,8 @@ def epoch_analysis(df1, alpha_band, block_idx, participant):
                          color=(20, 20, 230, 1), y_range=[-1, 1])
 
 
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=[f"{LEFT_ELECTRODE}=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=[f"{RIGHT_ELECTRODE}=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"centre_probe"
@@ -618,8 +636,8 @@ def epoch_analysis_posner(df1, alpha_band, block_idx, participant):
     events = mne.find_events(m_raw, stim_channel='STI')
     reject_criteria = dict(eeg=100e-6)
 
-    left_chs = ['PO7=1']
-    right_chs = ['PO8=1']
+    left_chs = [f'{LEFT_ELECTRODE}=1']
+    right_chs = [f'{RIGHT_ELECTRODE}=1']
 
     epochs = mne.Epochs(m_filt, events, event_id=event_dict, tmin=-2, tmax=5, baseline=None,
                         preload=True, detrend=1)#, reject=reject_criteria)
@@ -632,8 +650,8 @@ def epoch_analysis_posner(df1, alpha_band, block_idx, participant):
 
     dataframes = []
     # ----Look at the power for the epochs in the left and right channels for left and right probes
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names, chs=[f"{LEFT_ELECTRODE}=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['left_probe'], fband=alpha_band, fs=fs, channel_labels=epochs.info.ch_names,  chs=[f"{RIGHT_ELECTRODE}=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"left_probe"
@@ -652,8 +670,8 @@ def epoch_analysis_posner(df1, alpha_band, block_idx, participant):
                          color=(230, 20, 20, 1), y_range=[-1, 1])
 
 
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=[f"{LEFT_ELECTRODE}=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['right_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=[f"{RIGHT_ELECTRODE}=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"right_probe"
@@ -669,8 +687,8 @@ def epoch_analysis_posner(df1, alpha_band, block_idx, participant):
                          color=(20, 20, 230, 1), y_range=[-1, 1])
 
 
-    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=["PO7=1"])
-    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=["PO8=1"])
+    e_mean1, e_std1, epoch_pwr1 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names, chs=[f"{LEFT_ELECTRODE}=1"])
+    e_mean2, e_std2, epoch_pwr2 = af.get_nfb_epoch_power_stats(epochs['centre_probe'], fband=alpha_band, fs=1000, channel_labels=epochs.info.ch_names,  chs=[f"{RIGHT_ELECTRODE}=1"])
 
     df_i = pd.DataFrame(dict(left=e_mean1, right=e_mean2))
     df_i['section'] = f"centre_probe"
