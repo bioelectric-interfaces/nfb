@@ -716,7 +716,8 @@ def psychopy_rt(csvfile):
     plot rt data from psychopy posner task
     """
     df_rt = pd.read_csv(csvfile)
-    df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt']]
+    # df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt']]
+    df_rt = df_rt[['cue', 'stim_side', 'button_response2.rt']]
 
     conditions = [
         df_rt['stim_side'].eq(10) & df_rt['cue'].isin([1,2]),
@@ -730,9 +731,10 @@ def psychopy_rt(csvfile):
 
     df_rt = df_rt.iloc[1:, :] # remove the first row
     df_rt = df_rt.reset_index(drop=True)
-    df_rt['key_resp.rt'] = df_rt['key_resp.rt'].apply(ast.literal_eval) # Convert to list vals
-    df_rt['key_resp.rt'] = df_rt["key_resp.rt"].apply(lambda x: x[0])
-    px.violin(df_rt, x="valid_cue", y="key_resp.rt", box=True, points='all', title=f"block:").show()#, range_y=[200, 800]).show()
+    df_rt = df_rt.dropna()
+    df_rt['button_response2.rt'] = df_rt['button_response2.rt'].apply(ast.literal_eval) # Convert to list vals
+    df_rt['button_response2.rt'] = df_rt["button_response2.rt"].apply(lambda x: x[0])
+    px.violin(df_rt, x="valid_cue", y="button_response2.rt", box=True, points='all', title=f"block:").show()#, range_y=[200, 800]).show()
     print('done')
 
 def calculate_score(block_data, side, fs=1000, threshold=0.0):
@@ -755,7 +757,7 @@ if __name__ == "__main__":
         userdir = "2354158T"
     else:
         userdir = "christopherturner"
-    participant_id = 'PO2'
+    participant_id = 'PO5'
     participant_dir = os.path.join(os.sep, "Users", userdir,"Documents","EEG_Data","pilot2_COPY",participant_id)
     nfb_data_dirs = [x for x in os.listdir(participant_dir) if '0-nfb' in x]
     sham_data_dirs = [x for x in os.listdir(participant_dir) if '1-nfb' in x]
@@ -802,7 +804,7 @@ if __name__ == "__main__":
 
         #-----------------------
         # AAI Testing
-        h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/experiment_data.h5" # correct dir
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/experiment_data.h5" # correct dir
         score = read_log_file("/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_17-27-12/06-01_17-27-12.log") # correct dir
 
         # h5file = "/Users/christopherturner/Documents/EEG_Data/aai_testing_20220601/0-nfb_task_PO0_1_06-01_18-15-17/experiment_data.h5" # pattern (LLRLRRRLRL)
@@ -823,9 +825,9 @@ if __name__ == "__main__":
         psychopy_csv = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/posner/1_posner_2022-06-14_16h54.47.522.csv"
 
         # psychopy_csv = "/Users/2354158T/Downloads/2_posner_2022-07-08_16h30.30.493.csv"
-        psychopy_rt(psychopy_csv)
+        # psychopy_rt(psychopy_csv)
 
-        h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
+        # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
 
         baseline_h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-baseline_test_psychopy_06-14_16-35-47/experiment_data.h5"
 
@@ -846,9 +848,16 @@ if __name__ == "__main__":
         # DECENT LOOKING PILOT DATA
         # h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-00-26/experiment_data.h5'
         # h5file = "/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-18-09/experiment_data.h5"
-        h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-28-54/experiment_data.h5'
+        # h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-28-54/experiment_data.h5'
         # h5file = '/Users/christopherturner/Documents/EEG_Data/pilot2_COPY/PO5/0-nfb_task_PO2_05-10_11-39-12/experiment_data.h5'
         score = None
+
+
+        #-----------------------
+        # TACS CHECKING
+        psychopy_csv = "/Users/christopherturner/Downloads/1_posner_cedrus_2022-08-12_16h57.51.767.csv"
+        psychopy_rt(psychopy_csv)
+        h5file = '/Users/christopherturner/Downloads/0-nfb_task_ksenia_test_08-09_14-07-09/experiment_data.h5'
 
         #-----------------------
         # h1 = df1.groupby("block_number").first()
@@ -865,12 +874,12 @@ if __name__ == "__main__":
         # Get the baseline dataframe
         # df1_bl, fs_bl, channels_bl, p_names_bl = load_data(baseline_h5file)
 
-        # eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score)
+        alpha_band = (7.25, 11.25)
+        eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score)
         # eeg_data, alpha_band = cvsa_analysis(df1, fs, channels, p_names, block_idx=f"NFB_{idx}", participant=participant_id, score=score, df1_bl=df1_bl)
 
-        alpha_band = (7.25, 11.25)
         # epoch_analysis_posner(df1, alpha_band, f"NFB_{idx}", participant_id)
-        epoch_analysis(df1, alpha_band, f"NFB_{idx}", participant_id)
+        # epoch_analysis(df1, alpha_band, f"NFB_{idx}", participant_id)
 
 
         nfb_data_dfs.append(df1)
@@ -896,8 +905,8 @@ if __name__ == "__main__":
     # Add all NFB together and all SHAm and look at RTs and AAIs in total
     if nfb_data_dirs:
         nfb_data_all = pd.concat(nfb_data_dfs)
-        nfb_data_all = get_cue_dir(nfb_data_all)
-        nfb_data_all = get_posner_time(nfb_data_all)
+        # nfb_data_all = get_cue_dir(nfb_data_all)
+        # nfb_data_all = get_posner_time(nfb_data_all)
         cvsa_analysis(nfb_data_all, fs, channels, p_names, "NFB_ALL")
 
     if sham_data_dirs:
