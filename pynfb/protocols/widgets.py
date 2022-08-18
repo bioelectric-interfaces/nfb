@@ -400,7 +400,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.r_threshold = r_threshold
         self.circle = np.linspace(-np.pi / 2, np.pi / 2, 200)
         self.fixdot_radius = 0.06
-        self.stim_radius = 0.47#0.4
+        self.stim_radius = 1.0#0.4
         self.x = np.linspace(-self.stim_radius, self.stim_radius, 100)
         self.train_side = None
         self.stim_side = None
@@ -431,11 +431,11 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         widget.addItem(fill_fd)
 
         # draw Left and right stim
-        xoffset = 2.04#4
+        xoffset = 2.75#4
         yoffset = 0.75#1.5
         left_off_x = -xoffset
         left_off_y = -yoffset
-        curve_width = 10#8
+        curve_width = 20#8
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                       left_off_y + self.stim_radius * np.cos(self.circle),
                                       pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
@@ -550,7 +550,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             right_brush = distractor_brush
             left_brush = distractor_brush
 
-        curve_width = 8
+        curve_width = 20
         self.st_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
         self.st_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
         if self.stim and self.stim_side == 1:
