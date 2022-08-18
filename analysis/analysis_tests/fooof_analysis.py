@@ -1,4 +1,9 @@
-# Import required code for visualizing example models
+"""
+Check some pilot data to see if alpha is modulated specifically, or if the 1/f changes
+i.e.
+    - compare the baseline alpha power before NFB to the baseline alpha power after NFB
+    - can also compare alpha power DURING the nfb task (ones that definitely get modulated) to the cue before the task
+"""
 import mne
 from fooof import FOOOF
 from fooof.sim.gen import gen_power_spectrum
