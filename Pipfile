@@ -21,6 +21,9 @@ pyqtgraph = "*"
 pyopengl = "*"
 pooch = "*"
 plotly = "*"
+plotly-express = "*"
+philistine = "*"
+pandas = "==1.4.3"
 
 [dev-packages]
 
