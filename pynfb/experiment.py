@@ -55,7 +55,7 @@ class Experiment():
         self.rn_offset = r.choice([-5, 5, 0, 0]) # Init Random offset between +/- 5 degrees and 0 for Gabor orientation
         self.probe_loc = r.choice(["RIGHT", "LEFT"])
         self.probe_vis = r.choices([1,0], weights=[0.8, 0.2], k=1)[0] # 80% chance to show the probe
-        self.cue_cond = r.choice([1, 2, 3]) # Even choice of 1=left, 2=right, 3=centre cue
+        self.cue_cond = r.choice([1])#[1, 2, 3]) # Even choice of 1=left, 2=right, 3=centre cue
         self.cue_random_start = 1 + r.uniform(0, 1) # random start between 1 and 2 seconds
         self.cue_duration = 1 # Duration of the cue (s)
         self.posner_stim = r.choice([1, 2]) # 1=left, 2=right
@@ -596,9 +596,9 @@ class Experiment():
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
                 if current_protocol.posner_test:
-                    self.cue_cond = r.choice([1, 2, 3]) # Only have the middle condition for the test blocks
+                    self.cue_cond = r.choice([1])#, 2, 3]) # Only have the middle condition for the test blocks
                 else:
-                    self.cue_cond = r.choice([1, 2])
+                    self.cue_cond = r.choice([1])#, 2])
                 self.cue_random_start = 1 + r.uniform(0, 1)  # random start between 1 and 2 seconds
                 cue_dict = {1:"LEFT", 2:"RIGHT", 3:"CENTER"}
                 logging.info(f"CUE CONDITION: {cue_dict[self.cue_cond]}")
