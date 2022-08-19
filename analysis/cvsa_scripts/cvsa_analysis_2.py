@@ -735,7 +735,7 @@ def psychopy_rt(csvfile):
     """
     df_rt = pd.read_csv(csvfile)
     # df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt']]
-    df_rt = df_rt[['cue', 'stim_side', 'button_response2.rt']]
+    df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt', 'key_resp.keys', 'key_log.keys']]
 
     conditions = [
         df_rt['stim_side'].eq(10) & df_rt['cue'].isin([1,2]),
@@ -750,10 +750,30 @@ def psychopy_rt(csvfile):
     df_rt = df_rt.iloc[1:, :] # remove the first row
     df_rt = df_rt.reset_index(drop=True)
     df_rt = df_rt.dropna()
-    df_rt['button_response2.rt'] = df_rt['button_response2.rt'].apply(ast.literal_eval) # Convert to list vals
-    df_rt['button_response2.rt'] = df_rt["button_response2.rt"].apply(lambda x: x[0])
-    px.violin(df_rt, x="valid_cue", y="button_response2.rt", box=True, points='all', title=f"block:").show()#, range_y=[200, 800]).show()
+    df_rt['key_resp.rt'] = df_rt['key_resp.rt'].apply(ast.literal_eval) # Convert to list vals
+    df_rt['key_resp.rt'] = df_rt["key_resp.rt"].apply(lambda x: x[0])
+
+    # check correct key press
+    df_rt['valid_response'] = df_rt.apply(check_correct_key_response, axis=1)
+    px.violin(df_rt, x="valid_cue", y="key_resp.rt", box=True, points='all', title=f"block:").show()#, range_y=[200, 800]).show()
     print('done')
+
+def check_correct_key_response(row):
+    if row['valid_cue'] == 'True':
+        if row['cue'] == 1 and ast.literal_eval(row['key_resp.keys'])[0] == 'left':
+            return True
+        elif row['cue'] == 2 and ast.literal_eval(row['key_resp.keys'])[0] == 'right':
+            return True
+        else:
+            return False
+    elif row['valid_cue'] == 'False':
+        if row['cue'] == 2 and ast.literal_eval(row['key_resp.keys'])[0] == 'left':
+            return True
+        elif row['cue'] == 1 and ast.literal_eval(row['key_resp.keys'])[0] == 'right':
+            return True
+        else:
+            return False
+
 
 def calculate_score(block_data, side, fs=1000, threshold=0.0):
     nfb_duration = block_data.shape[0]
@@ -771,6 +791,9 @@ def calculate_score(block_data, side, fs=1000, threshold=0.0):
 if __name__ == "__main__":
     # TODO:
     # get all NFB and sham data files in participant directory
+
+    psychopy_csv = "/Users/Chris/Documents/GitHub/nfb/psychopy/data/2_posner_task_2022-08-19_14h50.27.575.csv"
+    psychopy_rt(psychopy_csv)
     if platform.system() == "Windows":
         userdir = "2354158T"
     else:
