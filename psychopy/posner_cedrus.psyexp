@@ -720,7 +720,7 @@
         <Param val="p_port_trial" valType="code" updates="None" name="name"/>
         <Param val="EIO" valType="str" updates="None" name="register"/>
         <Param val="True" valType="bool" updates="None" name="saveStartStop"/>
-        <Param val="55" valType="code" updates="None" name="startData"/>
+        <Param val="side" valType="code" updates="None" name="startData"/>
         <Param val="" valType="code" updates="None" name="startEstim"/>
         <Param val="time (s)" valType="str" updates="None" name="startType"/>
         <Param val="0" valType="code" updates="None" name="startVal"/>
