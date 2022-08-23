@@ -1,8 +1,8 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 This experiment was created using PsychoPy3 Experiment Builder (v2022.2.1),
-    on August 23, 2022, at 13:03
+    on August 23, 2022, at 15:13
 If you publish work using this script the most relevant publication is:
 
     Peirce J, Gray JR, Simpson S, MacAskill M, Höchenberger R, Sogo H, Kastman E, Lindeløv JK. (2019) 
@@ -35,6 +35,17 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 import random 
+import pylink
+from string import ascii_letters, digits
+
+#-------EYELINK PARAMS -------
+# from C:\Program Files (x86)\SR Research\EyeLink\SampleExperiments\Python\examples\Psychopy_examples\picture\picture.py
+
+dummy_mode = False
+edf_fname = 'TEST'
+#time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
+#session_identifier = edf_fname + time_str
+#============================
 
 # get the time the probe appears
 probe_start = random.uniform(4, 5.5)
