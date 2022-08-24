@@ -345,6 +345,605 @@ el_tracker.sendCommand(draw_cmd)
 
 # ==============================================================================    
     
+#--DEFINE THE TRIALS FUNCTION---------------------------------------------------
+def run_trials(thisTrial, trials):
+    if thisTrial != None:
+        for paramName in thisTrial:
+            exec('{} = thisTrial[paramName]'.format(paramName))
+
+    for thisTrial in trials:
+        currentLoop = trials
+        # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
+        if thisTrial != None:
+            for paramName in thisTrial:
+                exec('{} = thisTrial[paramName]'.format(paramName))
+        
+        # --- Prepare to start Routine "cue" ---
+        continueRoutine = True
+        # update component parameters for each repeat
+        probe_r_cue.setPos((5, -1))
+        # Run 'Begin Routine' code from code_2
+        import random 
+        
+        probe_start = random.uniform(4, 5.5)
+        side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
+        neutral_side = random.choice([1,2])
+        
+        # push the start of the cue
+        #outlet.push_sample([f'cue_{side}'])
+        outlet.push_sample([side])
+        
+        
+        probe_location = (random.choice([-5, 5]), 0)
+        # reset 'positions' 
+        positions = copy.deepcopy(master_positions) 
+        
+        #randomise this for each trial
+        random.shuffle(positions)
+        
+        
+        if side == 1:
+            r_cue_color = (0,0,0,0)
+            l_cue_color = (255,255,255)
+            c_cue_color = (0,0,0,0)
+        elif side == 2:
+            r_cue_color = (255,255,255)
+            l_cue_color = (0,0,0,0)
+            c_cue_color = (0,0,0,0)
+        elif side == 3:
+            r_cue_color = (0,0,0,0)
+            l_cue_color = (0,0,0,0)
+            c_cue_color = (255,255,255)
+            
+        valid_cue_weight = 70
+        stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100-valid_cue_weight))[0]
+        if stim_side == 10:
+            # valid cue
+            if side == 1:
+                r_fill_color = (0,0,0,0)
+                l_fill_color = (255,255,255)
+            elif side == 2:
+                r_fill_color = (255,255,255)
+                l_fill_color = (0,0,0,0)
+            elif side == 3:
+                # 50% chance left or right
+                if neutral_side == 1:
+                    r_fill_color = (0,0,0,0)
+                    l_fill_color = (255,255,255)
+                elif neutral_side == 2:
+                    r_fill_color = (255,255,255)
+                    l_fill_color = (0,0,0,0)    
+        elif stim_side == 11:
+            # invalid cue
+            if side == 1:
+                l_fill_color = (0,0,0,0)
+                r_fill_color = (255,255,255)
+            elif side == 2:
+                l_fill_color = (255,255,255)
+                r_fill_color = (0,0,0,0)
+            elif side == 3:
+                # 50% chance left or right
+                if neutral_side == 1:
+                    r_fill_color = (0,0,0,0)
+                    l_fill_color = (255,255,255)
+                elif neutral_side == 2:
+                    r_fill_color = (255,255,255)
+                    l_fill_color = (0,0,0,0)    
+        key_resp.keys = []
+        key_resp.rt = []
+        _key_resp_allKeys = []
+        key_log.keys = []
+        key_log.rt = []
+        _key_log_allKeys = []
+        # keep track of which components have finished
+        cueComponents = [probe_l_cue, probe_r_cue, fc, left_cue, right_cue, centre_cue1, centre_cue2, probe_l_fill, probe_r_fill, p_port_cue, p_port_trial, key_resp, key_log]
+        for thisComponent in cueComponents:
+            thisComponent.tStart = None
+            thisComponent.tStop = None
+            thisComponent.tStartRefresh = None
+            thisComponent.tStopRefresh = None
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
+        # reset timers
+        t = 0
+        _timeToFirstFrame = win.getFutureFlipTime(clock="now")
+        frameN = -1
+        
+        # --- Run Routine "cue" ---
+        while continueRoutine:
+            # get current time
+            t = routineTimer.getTime()
+            tThisFlip = win.getFutureFlipTime(clock=routineTimer)
+            tThisFlipGlobal = win.getFutureFlipTime(clock=None)
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *probe_l_cue* updates
+            if probe_l_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
+                # keep track of start time/frame for later
+                probe_l_cue.frameNStart = frameN  # exact frame index
+                probe_l_cue.tStart = t  # local t and not account for scr refresh
+                probe_l_cue.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(probe_l_cue, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'probe_l_cue.started')
+                probe_l_cue.setAutoDraw(True)
+            if probe_l_cue.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    probe_l_cue.tStop = t  # not accounting for scr refresh
+                    probe_l_cue.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'probe_l_cue.stopped')
+                    probe_l_cue.setAutoDraw(False)
+            if probe_l_cue.status == STARTED:  # only update if drawing
+                probe_l_cue.setFillColor('blue', log=False)
+                probe_l_cue.setPos((-5, -1), log=False)
+                probe_l_cue.setLineColor('black', log=False)
+            
+            # *probe_r_cue* updates
+            if probe_r_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
+                # keep track of start time/frame for later
+                probe_r_cue.frameNStart = frameN  # exact frame index
+                probe_r_cue.tStart = t  # local t and not account for scr refresh
+                probe_r_cue.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(probe_r_cue, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'probe_r_cue.started')
+                probe_r_cue.setAutoDraw(True)
+            if probe_r_cue.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    probe_r_cue.tStop = t  # not accounting for scr refresh
+                    probe_r_cue.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'probe_r_cue.stopped')
+                    probe_r_cue.setAutoDraw(False)
+            # Run 'Each Frame' code from code_2
+            
+            import numpy as np
+            
+            
+            r = random.randrange(0, 255)
+            #g = random.randrange(0, 255)
+            #b = random.randrange(0, 255)
+            #print(f"colour = {g}")
+            
+            #r = 127* np.sin(t*2*pi)+127
+            r = np.sin(t*2*pi)
+            #r = 100+50*sin(t)**4
+    #        print(f"{r} :- {frameN}: {cir_color}")
+            cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
+            y_pos = 5* np.sin(t)
+            cir_color = (r,0,0)
+            
+            
+            
+            # *fc* updates
+            if fc.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
+                # keep track of start time/frame for later
+                fc.frameNStart = frameN  # exact frame index
+                fc.tStart = t  # local t and not account for scr refresh
+                fc.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(fc, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'fc.started')
+                fc.setAutoDraw(True)
+            if fc.status == STARTED:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
+                    # keep track of stop time/frame for later
+                    fc.tStop = t  # not accounting for scr refresh
+                    fc.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'fc.stopped')
+                    fc.setAutoDraw(False)
+            
+            # *left_cue* updates
+            if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
+                # keep track of start time/frame for later
+                left_cue.frameNStart = frameN  # exact frame index
+                left_cue.tStart = t  # local t and not account for scr refresh
+                left_cue.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(left_cue, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'left_cue.started')
+                left_cue.setAutoDraw(True)
+            if left_cue.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    left_cue.tStop = t  # not accounting for scr refresh
+                    left_cue.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'left_cue.stopped')
+                    left_cue.setAutoDraw(False)
+            if left_cue.status == STARTED:  # only update if drawing
+                left_cue.setFillColor(l_cue_color, log=False)
+                left_cue.setLineColor(l_cue_color, log=False)
+            
+            # *right_cue* updates
+            if right_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
+                # keep track of start time/frame for later
+                right_cue.frameNStart = frameN  # exact frame index
+                right_cue.tStart = t  # local t and not account for scr refresh
+                right_cue.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(right_cue, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'right_cue.started')
+                right_cue.setAutoDraw(True)
+            if right_cue.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    right_cue.tStop = t  # not accounting for scr refresh
+                    right_cue.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'right_cue.stopped')
+                    right_cue.setAutoDraw(False)
+            if right_cue.status == STARTED:  # only update if drawing
+                right_cue.setFillColor(r_cue_color, log=False)
+                right_cue.setLineColor(r_cue_color, log=False)
+            
+            # *centre_cue1* updates
+            if centre_cue1.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
+                # keep track of start time/frame for later
+                centre_cue1.frameNStart = frameN  # exact frame index
+                centre_cue1.tStart = t  # local t and not account for scr refresh
+                centre_cue1.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(centre_cue1, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'centre_cue1.started')
+                centre_cue1.setAutoDraw(True)
+            if centre_cue1.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    centre_cue1.tStop = t  # not accounting for scr refresh
+                    centre_cue1.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
+                    centre_cue1.setAutoDraw(False)
+            if centre_cue1.status == STARTED:  # only update if drawing
+                centre_cue1.setFillColor(c_cue_color, log=False)
+                centre_cue1.setLineColor(c_cue_color, log=False)
+            
+            # *centre_cue2* updates
+            if centre_cue2.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
+                # keep track of start time/frame for later
+                centre_cue2.frameNStart = frameN  # exact frame index
+                centre_cue2.tStart = t  # local t and not account for scr refresh
+                centre_cue2.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(centre_cue2, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'centre_cue2.started')
+                centre_cue2.setAutoDraw(True)
+            if centre_cue2.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    centre_cue2.tStop = t  # not accounting for scr refresh
+                    centre_cue2.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'centre_cue2.stopped')
+                    centre_cue2.setAutoDraw(False)
+            if centre_cue2.status == STARTED:  # only update if drawing
+                centre_cue2.setFillColor(c_cue_color, log=False)
+                centre_cue2.setLineColor(c_cue_color, log=False)
+            
+            # *probe_l_fill* updates
+            if probe_l_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
+                # keep track of start time/frame for later
+                probe_l_fill.frameNStart = frameN  # exact frame index
+                probe_l_fill.tStart = t  # local t and not account for scr refresh
+                probe_l_fill.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(probe_l_fill, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'probe_l_fill.started')
+                probe_l_fill.setAutoDraw(True)
+            if probe_l_fill.status == STARTED:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
+                    # keep track of stop time/frame for later
+                    probe_l_fill.tStop = t  # not accounting for scr refresh
+                    probe_l_fill.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
+                    probe_l_fill.setAutoDraw(False)
+            if probe_l_fill.status == STARTED:  # only update if drawing
+                probe_l_fill.setFillColor(l_fill_color, log=False)
+                probe_l_fill.setLineColor(l_fill_color, log=False)
+            
+            # *probe_r_fill* updates
+            if probe_r_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
+                # keep track of start time/frame for later
+                probe_r_fill.frameNStart = frameN  # exact frame index
+                probe_r_fill.tStart = t  # local t and not account for scr refresh
+                probe_r_fill.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(probe_r_fill, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'probe_r_fill.started')
+                probe_r_fill.setAutoDraw(True)
+            if probe_r_fill.status == STARTED:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
+                    # keep track of stop time/frame for later
+                    probe_r_fill.tStop = t  # not accounting for scr refresh
+                    probe_r_fill.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
+                    probe_r_fill.setAutoDraw(False)
+            if probe_r_fill.status == STARTED:  # only update if drawing
+                probe_r_fill.setFillColor(r_fill_color, log=False)
+                probe_r_fill.setLineColor(r_fill_color, log=False)
+            # *p_port_cue* updates
+            if p_port_cue.status == NOT_STARTED and t >= 1-frameTolerance:
+                # keep track of start time/frame for later
+                p_port_cue.frameNStart = frameN  # exact frame index
+                p_port_cue.tStart = t  # local t and not account for scr refresh
+                p_port_cue.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(p_port_cue, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.addData('p_port_cue.started', t)
+                p_port_cue.status = STARTED
+                win.callOnFlip(p_port_cue.setData, int(side))
+            if p_port_cue.status == STARTED:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > p_port_cue.tStartRefresh + 1.0-frameTolerance:
+                    # keep track of stop time/frame for later
+                    p_port_cue.tStop = t  # not accounting for scr refresh
+                    p_port_cue.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.addData('p_port_cue.stopped', t)
+                    p_port_cue.status = FINISHED
+                    win.callOnFlip(p_port_cue.setData, int(0))
+            # *p_port_trial* updates
+            if p_port_trial.status == NOT_STARTED and t >= 0-frameTolerance:
+                # keep track of start time/frame for later
+                p_port_trial.frameNStart = frameN  # exact frame index
+                p_port_trial.tStart = t  # local t and not account for scr refresh
+                p_port_trial.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(p_port_trial, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.addData('p_port_trial.started', t)
+                p_port_trial.status = STARTED
+                win.callOnFlip(p_port_trial.setData, int(side))
+            if p_port_trial.status == STARTED:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > p_port_trial.tStartRefresh + 1.0-frameTolerance:
+                    # keep track of stop time/frame for later
+                    p_port_trial.tStop = t  # not accounting for scr refresh
+                    p_port_trial.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.addData('p_port_trial.stopped', t)
+                    p_port_trial.status = FINISHED
+                    win.callOnFlip(p_port_trial.setData, int(0))
+            
+            # *key_resp* updates
+            waitOnFlip = False
+            if key_resp.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
+                # keep track of start time/frame for later
+                key_resp.frameNStart = frameN  # exact frame index
+                key_resp.tStart = t  # local t and not account for scr refresh
+                key_resp.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(key_resp, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'key_resp.started')
+                key_resp.status = STARTED
+                # keyboard checking is just starting
+                waitOnFlip = True
+                win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
+                win.callOnFlip(key_resp.clearEvents, eventType='keyboard')  # clear events on next screen flip
+            if key_resp.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    key_resp.tStop = t  # not accounting for scr refresh
+                    key_resp.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'key_resp.stopped')
+                    key_resp.status = FINISHED
+            if key_resp.status == STARTED and not waitOnFlip:
+                theseKeys = key_resp.getKeys(keyList=['right', 'left'], waitRelease=False)
+                _key_resp_allKeys.extend(theseKeys)
+                if len(_key_resp_allKeys):
+                    key_resp.keys = [key.name for key in _key_resp_allKeys]  # storing all keys
+                    key_resp.rt = [key.rt for key in _key_resp_allKeys]
+            
+            # *key_log* updates
+            waitOnFlip = False
+            if key_log.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
+                # keep track of start time/frame for later
+                key_log.frameNStart = frameN  # exact frame index
+                key_log.tStart = t  # local t and not account for scr refresh
+                key_log.tStartRefresh = tThisFlipGlobal  # on global time
+                win.timeOnFlip(key_log, 'tStartRefresh')  # time at next scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'key_log.started')
+                key_log.status = STARTED
+                # keyboard checking is just starting
+                waitOnFlip = True
+                win.callOnFlip(key_log.clock.reset)  # t=0 on next screen flip
+                win.callOnFlip(key_log.clearEvents, eventType='keyboard')  # clear events on next screen flip
+            if key_log.status == STARTED:
+                # is it time to stop? (based on local clock)
+                if tThisFlip > 6.6-frameTolerance:
+                    # keep track of stop time/frame for later
+                    key_log.tStop = t  # not accounting for scr refresh
+                    key_log.frameNStop = frameN  # exact frame index
+                    # add timestamp to datafile
+                    thisExp.timestampOnFlip(win, 'key_log.stopped')
+                    key_log.status = FINISHED
+            if key_log.status == STARTED and not waitOnFlip:
+                theseKeys = key_log.getKeys(keyList=['right', 'left'], waitRelease=False)
+                _key_log_allKeys.extend(theseKeys)
+                if len(_key_log_allKeys):
+                    key_log.keys = [key.name for key in _key_log_allKeys]  # storing all keys
+                    key_log.rt = [key.rt for key in _key_log_allKeys]
+            
+            # check for quit (typically the Esc key)
+            if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
+                core.quit()
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in cueComponents:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+                win.flip()
+        
+        # --- Ending Routine "cue" ---
+        for thisComponent in cueComponents:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+        # Run 'End Routine' code from code_2
+        thisExp.addData('cue', side)
+        thisExp.addData('stim_side', stim_side)
+        probe_start = 0
+        if p_port_cue.status == STARTED:
+            win.callOnFlip(p_port_cue.setData, int(0))
+        if p_port_trial.status == STARTED:
+            win.callOnFlip(p_port_trial.setData, int(0))
+        # check responses
+        if key_resp.keys in ['', [], None]:  # No response was made
+            key_resp.keys = None
+        trials.addData('key_resp.keys',key_resp.keys)
+        if key_resp.keys != None:  # we had a response
+            trials.addData('key_resp.rt', key_resp.rt)
+        # check responses
+        if key_log.keys in ['', [], None]:  # No response was made
+            key_log.keys = None
+        trials.addData('key_log.keys',key_log.keys)
+        if key_log.keys != None:  # we had a response
+            trials.addData('key_log.rt', key_log.rt)
+        # the Routine "cue" was not non-slip safe, so reset the non-slip timer
+        routineTimer.reset()
+        thisExp.nextEntry()
+        
+    # completed 25.0 repeats of 'trials'
+
+def run_continue(block_no):
+    # --- Prepare to start Routine "continue_2" ---
+    continueRoutine = True
+    # update component parameters for each repeat
+    continue_response.keys = []
+    continue_response.rt = []
+    _continue_response_allKeys = []
+    # Run 'Begin Routine' code from code_4
+#    block_no = block_no + 1
+
+    block_text = f"block {block_no}/4 completed"
+    text_2.setText(block_text
+    )
+    # keep track of which components have finished
+    continue_2Components = [continue_instructions, continue_response, text_2]
+    for thisComponent in continue_2Components:
+        thisComponent.tStart = None
+        thisComponent.tStop = None
+        thisComponent.tStartRefresh = None
+        thisComponent.tStopRefresh = None
+        if hasattr(thisComponent, 'status'):
+            thisComponent.status = NOT_STARTED
+    # reset timers
+    t = 0
+    _timeToFirstFrame = win.getFutureFlipTime(clock="now")
+    frameN = -1
+
+    # --- Run Routine "continue_2" ---
+    while continueRoutine:
+        # get current time
+        t = routineTimer.getTime()
+        tThisFlip = win.getFutureFlipTime(clock=routineTimer)
+        tThisFlipGlobal = win.getFutureFlipTime(clock=None)
+        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+        # update/draw components on each frame
+        
+        # *continue_instructions* updates
+        if continue_instructions.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
+            # keep track of start time/frame for later
+            continue_instructions.frameNStart = frameN  # exact frame index
+            continue_instructions.tStart = t  # local t and not account for scr refresh
+            continue_instructions.tStartRefresh = tThisFlipGlobal  # on global time
+            win.timeOnFlip(continue_instructions, 'tStartRefresh')  # time at next scr refresh
+            # add timestamp to datafile
+            thisExp.timestampOnFlip(win, 'continue_instructions.started')
+            continue_instructions.setAutoDraw(True)
+        
+        # *continue_response* updates
+        waitOnFlip = False
+        if continue_response.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
+            # keep track of start time/frame for later
+            continue_response.frameNStart = frameN  # exact frame index
+            continue_response.tStart = t  # local t and not account for scr refresh
+            continue_response.tStartRefresh = tThisFlipGlobal  # on global time
+            win.timeOnFlip(continue_response, 'tStartRefresh')  # time at next scr refresh
+            # add timestamp to datafile
+            thisExp.timestampOnFlip(win, 'continue_response.started')
+            continue_response.status = STARTED
+            # keyboard checking is just starting
+            waitOnFlip = True
+            win.callOnFlip(continue_response.clock.reset)  # t=0 on next screen flip
+            win.callOnFlip(continue_response.clearEvents, eventType='keyboard')  # clear events on next screen flip
+        if continue_response.status == STARTED and not waitOnFlip:
+            theseKeys = continue_response.getKeys(keyList=['return', 'down'], waitRelease=False)
+            _continue_response_allKeys.extend(theseKeys)
+            if len(_continue_response_allKeys):
+                continue_response.keys = _continue_response_allKeys[-1].name  # just the last key pressed
+                continue_response.rt = _continue_response_allKeys[-1].rt
+                # a response ends the routine
+                continueRoutine = False
+        
+        # *text_2* updates
+        if text_2.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
+            # keep track of start time/frame for later
+            text_2.frameNStart = frameN  # exact frame index
+            text_2.tStart = t  # local t and not account for scr refresh
+            text_2.tStartRefresh = tThisFlipGlobal  # on global time
+            win.timeOnFlip(text_2, 'tStartRefresh')  # time at next scr refresh
+            # add timestamp to datafile
+            thisExp.timestampOnFlip(win, 'text_2.started')
+            text_2.setAutoDraw(True)
+        
+        # check for quit (typically the Esc key)
+        if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
+            core.quit()
+        
+        # check if all components have finished
+        if not continueRoutine:  # a component has requested a forced-end of Routine
+            break
+        continueRoutine = False  # will revert to True if at least one component still running
+        for thisComponent in continue_2Components:
+            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                continueRoutine = True
+                break  # at least one component has not yet finished
+        
+        # refresh the screen
+        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+            win.flip()
+
+    # --- Ending Routine "continue_2" ---
+    for thisComponent in continue_2Components:
+        if hasattr(thisComponent, "setAutoDraw"):
+            thisComponent.setAutoDraw(False)
+    # check responses
+    if continue_response.keys in ['', [], None]:  # No response was made
+        continue_response.keys = None
+    thisExp.addData('continue_response.keys',continue_response.keys)
+    if continue_response.keys != None:  # we had a response
+        thisExp.addData('continue_response.rt', continue_response.rt)
+    thisExp.nextEntry()
+    # the Routine "continue_2" was not non-slip safe, so reset the non-slip timer
+    routineTimer.reset()
+#===============================================================================
+
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
@@ -525,6 +1124,7 @@ routineTimer = core.Clock()  # to track time remaining of each (possibly non-sli
 
 # --- Prepare to start Routine "start" ---
 continueRoutine = True
+block_no = 0
 # update component parameters for each repeat
 start_resp.keys = []
 start_resp.rt = []
@@ -621,2308 +1221,51 @@ thisExp.nextEntry()
 routineTimer.reset()
 
 # set up handler to look after randomisation of conditions etc
-trials = data.TrialHandler(nReps=25.0, method='random', 
+trials_ = data.TrialHandler(nReps=1.0, method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials')
-thisExp.addLoop(trials)  # add the loop to the experiment
-thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
+thisExp.addLoop(trials_)  # add the loop to the experiment
+thisTrial_ = trials_.trialList[0]  # so we can initialise stimuli with some values
 # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
-if thisTrial != None:
-    for paramName in thisTrial:
-        exec('{} = thisTrial[paramName]'.format(paramName))
 
-for thisTrial in trials:
-    currentLoop = trials
-    # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
-    if thisTrial != None:
-        for paramName in thisTrial:
-            exec('{} = thisTrial[paramName]'.format(paramName))
-    
-    # --- Prepare to start Routine "cue" ---
-    continueRoutine = True
-    # update component parameters for each repeat
-    probe_r_cue.setPos((5, -1))
-    # Run 'Begin Routine' code from code_2
-    import random 
-    
-    probe_start = random.uniform(4, 5.5)
-    side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
-    neutral_side = random.choice([1,2])
-    
-    # push the start of the cue
-    #outlet.push_sample([f'cue_{side}'])
-    outlet.push_sample([side])
-    
-    
-    probe_location = (random.choice([-5, 5]), 0)
-    # reset 'positions' 
-    positions = copy.deepcopy(master_positions) 
-    
-    #randomise this for each trial
-    random.shuffle(positions)
-    
-    
-    if side == 1:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (255,255,255)
-        c_cue_color = (0,0,0,0)
-    elif side == 2:
-        r_cue_color = (255,255,255)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (0,0,0,0)
-    elif side == 3:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (255,255,255)
-        
-    valid_cue_weight = 70
-    stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100-valid_cue_weight))[0]
-    if stim_side == 10:
-        # valid cue
-        if side == 1:
-            r_fill_color = (0,0,0,0)
-            l_fill_color = (255,255,255)
-        elif side == 2:
-            r_fill_color = (255,255,255)
-            l_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    elif stim_side == 11:
-        # invalid cue
-        if side == 1:
-            l_fill_color = (0,0,0,0)
-            r_fill_color = (255,255,255)
-        elif side == 2:
-            l_fill_color = (255,255,255)
-            r_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    key_resp.keys = []
-    key_resp.rt = []
-    _key_resp_allKeys = []
-    key_log.keys = []
-    key_log.rt = []
-    _key_log_allKeys = []
-    # keep track of which components have finished
-    cueComponents = [probe_l_cue, probe_r_cue, fc, left_cue, right_cue, centre_cue1, centre_cue2, probe_l_fill, probe_r_fill, p_port_cue, p_port_trial, key_resp, key_log]
-    for thisComponent in cueComponents:
-        thisComponent.tStart = None
-        thisComponent.tStop = None
-        thisComponent.tStartRefresh = None
-        thisComponent.tStopRefresh = None
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    # reset timers
-    t = 0
-    _timeToFirstFrame = win.getFutureFlipTime(clock="now")
-    frameN = -1
-    
-    # --- Run Routine "cue" ---
-    while continueRoutine:
-        # get current time
-        t = routineTimer.getTime()
-        tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-        tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
-        
-        # *probe_l_cue* updates
-        if probe_l_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_cue.frameNStart = frameN  # exact frame index
-            probe_l_cue.tStart = t  # local t and not account for scr refresh
-            probe_l_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_cue.started')
-            probe_l_cue.setAutoDraw(True)
-        if probe_l_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_cue.tStop = t  # not accounting for scr refresh
-                probe_l_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_cue.stopped')
-                probe_l_cue.setAutoDraw(False)
-        if probe_l_cue.status == STARTED:  # only update if drawing
-            probe_l_cue.setFillColor('blue', log=False)
-            probe_l_cue.setPos((-5, -1), log=False)
-            probe_l_cue.setLineColor('black', log=False)
-        
-        # *probe_r_cue* updates
-        if probe_r_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_cue.frameNStart = frameN  # exact frame index
-            probe_r_cue.tStart = t  # local t and not account for scr refresh
-            probe_r_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_cue.started')
-            probe_r_cue.setAutoDraw(True)
-        if probe_r_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_cue.tStop = t  # not accounting for scr refresh
-                probe_r_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_cue.stopped')
-                probe_r_cue.setAutoDraw(False)
-        # Run 'Each Frame' code from code_2
-        
-        import numpy as np
-        
-        
-        r = random.randrange(0, 255)
-        #g = random.randrange(0, 255)
-        #b = random.randrange(0, 255)
-        #print(f"colour = {g}")
-        
-        #r = 127* np.sin(t*2*pi)+127
-        r = np.sin(t*2*pi)
-        #r = 100+50*sin(t)**4
-#        print(f"{r} :- {frameN}: {cir_color}")
-        cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
-        y_pos = 5* np.sin(t)
-        cir_color = (r,0,0)
-        
-        
-        
-        # *fc* updates
-        if fc.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            fc.frameNStart = frameN  # exact frame index
-            fc.tStart = t  # local t and not account for scr refresh
-            fc.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(fc, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'fc.started')
-            fc.setAutoDraw(True)
-        if fc.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                fc.tStop = t  # not accounting for scr refresh
-                fc.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'fc.stopped')
-                fc.setAutoDraw(False)
-        
-        # *left_cue* updates
-        if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            left_cue.frameNStart = frameN  # exact frame index
-            left_cue.tStart = t  # local t and not account for scr refresh
-            left_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(left_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'left_cue.started')
-            left_cue.setAutoDraw(True)
-        if left_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                left_cue.tStop = t  # not accounting for scr refresh
-                left_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'left_cue.stopped')
-                left_cue.setAutoDraw(False)
-        if left_cue.status == STARTED:  # only update if drawing
-            left_cue.setFillColor(l_cue_color, log=False)
-            left_cue.setLineColor(l_cue_color, log=False)
-        
-        # *right_cue* updates
-        if right_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            right_cue.frameNStart = frameN  # exact frame index
-            right_cue.tStart = t  # local t and not account for scr refresh
-            right_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(right_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'right_cue.started')
-            right_cue.setAutoDraw(True)
-        if right_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                right_cue.tStop = t  # not accounting for scr refresh
-                right_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'right_cue.stopped')
-                right_cue.setAutoDraw(False)
-        if right_cue.status == STARTED:  # only update if drawing
-            right_cue.setFillColor(r_cue_color, log=False)
-            right_cue.setLineColor(r_cue_color, log=False)
-        
-        # *centre_cue1* updates
-        if centre_cue1.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue1.frameNStart = frameN  # exact frame index
-            centre_cue1.tStart = t  # local t and not account for scr refresh
-            centre_cue1.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue1, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue1.started')
-            centre_cue1.setAutoDraw(True)
-        if centre_cue1.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue1.tStop = t  # not accounting for scr refresh
-                centre_cue1.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
-                centre_cue1.setAutoDraw(False)
-        if centre_cue1.status == STARTED:  # only update if drawing
-            centre_cue1.setFillColor(c_cue_color, log=False)
-            centre_cue1.setLineColor(c_cue_color, log=False)
-        
-        # *centre_cue2* updates
-        if centre_cue2.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue2.frameNStart = frameN  # exact frame index
-            centre_cue2.tStart = t  # local t and not account for scr refresh
-            centre_cue2.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue2, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue2.started')
-            centre_cue2.setAutoDraw(True)
-        if centre_cue2.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue2.tStop = t  # not accounting for scr refresh
-                centre_cue2.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue2.stopped')
-                centre_cue2.setAutoDraw(False)
-        if centre_cue2.status == STARTED:  # only update if drawing
-            centre_cue2.setFillColor(c_cue_color, log=False)
-            centre_cue2.setLineColor(c_cue_color, log=False)
-        
-        # *probe_l_fill* updates
-        if probe_l_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_fill.frameNStart = frameN  # exact frame index
-            probe_l_fill.tStart = t  # local t and not account for scr refresh
-            probe_l_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_fill.started')
-            probe_l_fill.setAutoDraw(True)
-        if probe_l_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_fill.tStop = t  # not accounting for scr refresh
-                probe_l_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
-                probe_l_fill.setAutoDraw(False)
-        if probe_l_fill.status == STARTED:  # only update if drawing
-            probe_l_fill.setFillColor(l_fill_color, log=False)
-            probe_l_fill.setLineColor(l_fill_color, log=False)
-        
-        # *probe_r_fill* updates
-        if probe_r_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_fill.frameNStart = frameN  # exact frame index
-            probe_r_fill.tStart = t  # local t and not account for scr refresh
-            probe_r_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_fill.started')
-            probe_r_fill.setAutoDraw(True)
-        if probe_r_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_fill.tStop = t  # not accounting for scr refresh
-                probe_r_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
-                probe_r_fill.setAutoDraw(False)
-        if probe_r_fill.status == STARTED:  # only update if drawing
-            probe_r_fill.setFillColor(r_fill_color, log=False)
-            probe_r_fill.setLineColor(r_fill_color, log=False)
-        # *p_port_cue* updates
-        if p_port_cue.status == NOT_STARTED and t >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_cue.frameNStart = frameN  # exact frame index
-            p_port_cue.tStart = t  # local t and not account for scr refresh
-            p_port_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_cue.started', t)
-            p_port_cue.status = STARTED
-            win.callOnFlip(p_port_cue.setData, int(side))
-        if p_port_cue.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_cue.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_cue.tStop = t  # not accounting for scr refresh
-                p_port_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_cue.stopped', t)
-                p_port_cue.status = FINISHED
-                win.callOnFlip(p_port_cue.setData, int(0))
-        # *p_port_trial* updates
-        if p_port_trial.status == NOT_STARTED and t >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_trial.frameNStart = frameN  # exact frame index
-            p_port_trial.tStart = t  # local t and not account for scr refresh
-            p_port_trial.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_trial, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_trial.started', t)
-            p_port_trial.status = STARTED
-            win.callOnFlip(p_port_trial.setData, int(side))
-        if p_port_trial.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_trial.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_trial.tStop = t  # not accounting for scr refresh
-                p_port_trial.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_trial.stopped', t)
-                p_port_trial.status = FINISHED
-                win.callOnFlip(p_port_trial.setData, int(0))
-        
-        # *key_resp* updates
-        waitOnFlip = False
-        if key_resp.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            key_resp.frameNStart = frameN  # exact frame index
-            key_resp.tStart = t  # local t and not account for scr refresh
-            key_resp.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_resp, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_resp.started')
-            key_resp.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_resp.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_resp.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_resp.tStop = t  # not accounting for scr refresh
-                key_resp.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_resp.stopped')
-                key_resp.status = FINISHED
-        if key_resp.status == STARTED and not waitOnFlip:
-            theseKeys = key_resp.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_resp_allKeys.extend(theseKeys)
-            if len(_key_resp_allKeys):
-                key_resp.keys = [key.name for key in _key_resp_allKeys]  # storing all keys
-                key_resp.rt = [key.rt for key in _key_resp_allKeys]
-        
-        # *key_log* updates
-        waitOnFlip = False
-        if key_log.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            key_log.frameNStart = frameN  # exact frame index
-            key_log.tStart = t  # local t and not account for scr refresh
-            key_log.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_log, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_log.started')
-            key_log.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_log.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_log.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_log.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_log.tStop = t  # not accounting for scr refresh
-                key_log.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_log.stopped')
-                key_log.status = FINISHED
-        if key_log.status == STARTED and not waitOnFlip:
-            theseKeys = key_log.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_log_allKeys.extend(theseKeys)
-            if len(_key_log_allKeys):
-                key_log.keys = [key.name for key in _key_log_allKeys]  # storing all keys
-                key_log.rt = [key.rt for key in _key_log_allKeys]
-        
-        # check for quit (typically the Esc key)
-        if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-            core.quit()
-        
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
-        for thisComponent in cueComponents:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
-        
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # --- Ending Routine "cue" ---
-    for thisComponent in cueComponents:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # Run 'End Routine' code from code_2
-    thisExp.addData('cue', side)
-    thisExp.addData('stim_side', stim_side)
-    probe_start = 0
-    if p_port_cue.status == STARTED:
-        win.callOnFlip(p_port_cue.setData, int(0))
-    if p_port_trial.status == STARTED:
-        win.callOnFlip(p_port_trial.setData, int(0))
-    # check responses
-    if key_resp.keys in ['', [], None]:  # No response was made
-        key_resp.keys = None
-    trials.addData('key_resp.keys',key_resp.keys)
-    if key_resp.keys != None:  # we had a response
-        trials.addData('key_resp.rt', key_resp.rt)
-    # check responses
-    if key_log.keys in ['', [], None]:  # No response was made
-        key_log.keys = None
-    trials.addData('key_log.keys',key_log.keys)
-    if key_log.keys != None:  # we had a response
-        trials.addData('key_log.rt', key_log.rt)
-    # the Routine "cue" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset()
-    thisExp.nextEntry()
-    
-# completed 25.0 repeats of 'trials'
-
-
-# --- Prepare to start Routine "continue_2" ---
-continueRoutine = True
-# update component parameters for each repeat
-continue_response.keys = []
-continue_response.rt = []
-_continue_response_allKeys = []
-# Run 'Begin Routine' code from code_4
+run_trials(thisTrial=thisTrial_, trials=trials_)
 block_no = block_no + 1
-
-block_text = f"block {block_no}/4 completed"
-text_2.setText(block_text
-)
-# keep track of which components have finished
-continue_2Components = [continue_instructions, continue_response, text_2]
-for thisComponent in continue_2Components:
-    thisComponent.tStart = None
-    thisComponent.tStop = None
-    thisComponent.tStartRefresh = None
-    thisComponent.tStopRefresh = None
-    if hasattr(thisComponent, 'status'):
-        thisComponent.status = NOT_STARTED
-# reset timers
-t = 0
-_timeToFirstFrame = win.getFutureFlipTime(clock="now")
-frameN = -1
-
-# --- Run Routine "continue_2" ---
-while continueRoutine:
-    # get current time
-    t = routineTimer.getTime()
-    tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-    tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-    
-    # *continue_instructions* updates
-    if continue_instructions.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        continue_instructions.frameNStart = frameN  # exact frame index
-        continue_instructions.tStart = t  # local t and not account for scr refresh
-        continue_instructions.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(continue_instructions, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'continue_instructions.started')
-        continue_instructions.setAutoDraw(True)
-    
-    # *continue_response* updates
-    waitOnFlip = False
-    if continue_response.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        continue_response.frameNStart = frameN  # exact frame index
-        continue_response.tStart = t  # local t and not account for scr refresh
-        continue_response.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(continue_response, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'continue_response.started')
-        continue_response.status = STARTED
-        # keyboard checking is just starting
-        waitOnFlip = True
-        win.callOnFlip(continue_response.clock.reset)  # t=0 on next screen flip
-        win.callOnFlip(continue_response.clearEvents, eventType='keyboard')  # clear events on next screen flip
-    if continue_response.status == STARTED and not waitOnFlip:
-        theseKeys = continue_response.getKeys(keyList=['return', 'down'], waitRelease=False)
-        _continue_response_allKeys.extend(theseKeys)
-        if len(_continue_response_allKeys):
-            continue_response.keys = _continue_response_allKeys[-1].name  # just the last key pressed
-            continue_response.rt = _continue_response_allKeys[-1].rt
-            # a response ends the routine
-            continueRoutine = False
-    
-    # *text_2* updates
-    if text_2.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        text_2.frameNStart = frameN  # exact frame index
-        text_2.tStart = t  # local t and not account for scr refresh
-        text_2.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(text_2, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'text_2.started')
-        text_2.setAutoDraw(True)
-    
-    # check for quit (typically the Esc key)
-    if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-        core.quit()
-    
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in continue_2Components:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-    
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-# --- Ending Routine "continue_2" ---
-for thisComponent in continue_2Components:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-# check responses
-if continue_response.keys in ['', [], None]:  # No response was made
-    continue_response.keys = None
-thisExp.addData('continue_response.keys',continue_response.keys)
-if continue_response.keys != None:  # we had a response
-    thisExp.addData('continue_response.rt', continue_response.rt)
-thisExp.nextEntry()
-# the Routine "continue_2" was not non-slip safe, so reset the non-slip timer
-routineTimer.reset()
+run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_2 = data.TrialHandler(nReps=25.0, method='random', 
+trials_2 = data.TrialHandler(nReps=2.0, method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_2')
 thisExp.addLoop(trials_2)  # add the loop to the experiment
 thisTrial_2 = trials_2.trialList[0]  # so we can initialise stimuli with some values
-# abbreviate parameter names if possible (e.g. rgb = thisTrial_2.rgb)
-if thisTrial_2 != None:
-    for paramName in thisTrial_2:
-        exec('{} = thisTrial_2[paramName]'.format(paramName))
 
-for thisTrial_2 in trials_2:
-    currentLoop = trials_2
-    # abbreviate parameter names if possible (e.g. rgb = thisTrial_2.rgb)
-    if thisTrial_2 != None:
-        for paramName in thisTrial_2:
-            exec('{} = thisTrial_2[paramName]'.format(paramName))
-    
-    # --- Prepare to start Routine "cue" ---
-    continueRoutine = True
-    # update component parameters for each repeat
-    probe_r_cue.setPos((5, -1))
-    # Run 'Begin Routine' code from code_2
-    import random 
-    
-    probe_start = random.uniform(4, 5.5)
-    side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
-    neutral_side = random.choice([1,2])
-    
-    # push the start of the cue
-    #outlet.push_sample([f'cue_{side}'])
-    outlet.push_sample([side])
-    
-    
-    probe_location = (random.choice([-5, 5]), 0)
-    # reset 'positions' 
-    positions = copy.deepcopy(master_positions) 
-    
-    #randomise this for each trial
-    random.shuffle(positions)
-    
-    
-    if side == 1:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (255,255,255)
-        c_cue_color = (0,0,0,0)
-    elif side == 2:
-        r_cue_color = (255,255,255)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (0,0,0,0)
-    elif side == 3:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (255,255,255)
-        
-    valid_cue_weight = 70
-    stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100-valid_cue_weight))[0]
-    if stim_side == 10:
-        # valid cue
-        if side == 1:
-            r_fill_color = (0,0,0,0)
-            l_fill_color = (255,255,255)
-        elif side == 2:
-            r_fill_color = (255,255,255)
-            l_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    elif stim_side == 11:
-        # invalid cue
-        if side == 1:
-            l_fill_color = (0,0,0,0)
-            r_fill_color = (255,255,255)
-        elif side == 2:
-            l_fill_color = (255,255,255)
-            r_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    key_resp.keys = []
-    key_resp.rt = []
-    _key_resp_allKeys = []
-    key_log.keys = []
-    key_log.rt = []
-    _key_log_allKeys = []
-    # keep track of which components have finished
-    cueComponents = [probe_l_cue, probe_r_cue, fc, left_cue, right_cue, centre_cue1, centre_cue2, probe_l_fill, probe_r_fill, p_port_cue, p_port_trial, key_resp, key_log]
-    for thisComponent in cueComponents:
-        thisComponent.tStart = None
-        thisComponent.tStop = None
-        thisComponent.tStartRefresh = None
-        thisComponent.tStopRefresh = None
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    # reset timers
-    t = 0
-    _timeToFirstFrame = win.getFutureFlipTime(clock="now")
-    frameN = -1
-    
-    # --- Run Routine "cue" ---
-    while continueRoutine:
-        # get current time
-        t = routineTimer.getTime()
-        tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-        tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
-        
-        # *probe_l_cue* updates
-        if probe_l_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_cue.frameNStart = frameN  # exact frame index
-            probe_l_cue.tStart = t  # local t and not account for scr refresh
-            probe_l_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_cue.started')
-            probe_l_cue.setAutoDraw(True)
-        if probe_l_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_cue.tStop = t  # not accounting for scr refresh
-                probe_l_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_cue.stopped')
-                probe_l_cue.setAutoDraw(False)
-        if probe_l_cue.status == STARTED:  # only update if drawing
-            probe_l_cue.setFillColor('blue', log=False)
-            probe_l_cue.setPos((-5, -1), log=False)
-            probe_l_cue.setLineColor('black', log=False)
-        
-        # *probe_r_cue* updates
-        if probe_r_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_cue.frameNStart = frameN  # exact frame index
-            probe_r_cue.tStart = t  # local t and not account for scr refresh
-            probe_r_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_cue.started')
-            probe_r_cue.setAutoDraw(True)
-        if probe_r_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_cue.tStop = t  # not accounting for scr refresh
-                probe_r_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_cue.stopped')
-                probe_r_cue.setAutoDraw(False)
-        # Run 'Each Frame' code from code_2
-        
-        import numpy as np
-        
-        
-        r = random.randrange(0, 255)
-        #g = random.randrange(0, 255)
-        #b = random.randrange(0, 255)
-        #print(f"colour = {g}")
-        
-        #r = 127* np.sin(t*2*pi)+127
-        r = np.sin(t*2*pi)
-        #r = 100+50*sin(t)**4
-#        print(f"{r} :- {frameN}: {cir_color}")
-        cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
-        y_pos = 5* np.sin(t)
-        cir_color = (r,0,0)
-        
-        
-        
-        # *fc* updates
-        if fc.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            fc.frameNStart = frameN  # exact frame index
-            fc.tStart = t  # local t and not account for scr refresh
-            fc.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(fc, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'fc.started')
-            fc.setAutoDraw(True)
-        if fc.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                fc.tStop = t  # not accounting for scr refresh
-                fc.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'fc.stopped')
-                fc.setAutoDraw(False)
-        
-        # *left_cue* updates
-        if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            left_cue.frameNStart = frameN  # exact frame index
-            left_cue.tStart = t  # local t and not account for scr refresh
-            left_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(left_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'left_cue.started')
-            left_cue.setAutoDraw(True)
-        if left_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                left_cue.tStop = t  # not accounting for scr refresh
-                left_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'left_cue.stopped')
-                left_cue.setAutoDraw(False)
-        if left_cue.status == STARTED:  # only update if drawing
-            left_cue.setFillColor(l_cue_color, log=False)
-            left_cue.setLineColor(l_cue_color, log=False)
-        
-        # *right_cue* updates
-        if right_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            right_cue.frameNStart = frameN  # exact frame index
-            right_cue.tStart = t  # local t and not account for scr refresh
-            right_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(right_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'right_cue.started')
-            right_cue.setAutoDraw(True)
-        if right_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                right_cue.tStop = t  # not accounting for scr refresh
-                right_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'right_cue.stopped')
-                right_cue.setAutoDraw(False)
-        if right_cue.status == STARTED:  # only update if drawing
-            right_cue.setFillColor(r_cue_color, log=False)
-            right_cue.setLineColor(r_cue_color, log=False)
-        
-        # *centre_cue1* updates
-        if centre_cue1.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue1.frameNStart = frameN  # exact frame index
-            centre_cue1.tStart = t  # local t and not account for scr refresh
-            centre_cue1.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue1, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue1.started')
-            centre_cue1.setAutoDraw(True)
-        if centre_cue1.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue1.tStop = t  # not accounting for scr refresh
-                centre_cue1.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
-                centre_cue1.setAutoDraw(False)
-        if centre_cue1.status == STARTED:  # only update if drawing
-            centre_cue1.setFillColor(c_cue_color, log=False)
-            centre_cue1.setLineColor(c_cue_color, log=False)
-        
-        # *centre_cue2* updates
-        if centre_cue2.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue2.frameNStart = frameN  # exact frame index
-            centre_cue2.tStart = t  # local t and not account for scr refresh
-            centre_cue2.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue2, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue2.started')
-            centre_cue2.setAutoDraw(True)
-        if centre_cue2.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue2.tStop = t  # not accounting for scr refresh
-                centre_cue2.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue2.stopped')
-                centre_cue2.setAutoDraw(False)
-        if centre_cue2.status == STARTED:  # only update if drawing
-            centre_cue2.setFillColor(c_cue_color, log=False)
-            centre_cue2.setLineColor(c_cue_color, log=False)
-        
-        # *probe_l_fill* updates
-        if probe_l_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_fill.frameNStart = frameN  # exact frame index
-            probe_l_fill.tStart = t  # local t and not account for scr refresh
-            probe_l_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_fill.started')
-            probe_l_fill.setAutoDraw(True)
-        if probe_l_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_fill.tStop = t  # not accounting for scr refresh
-                probe_l_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
-                probe_l_fill.setAutoDraw(False)
-        if probe_l_fill.status == STARTED:  # only update if drawing
-            probe_l_fill.setFillColor(l_fill_color, log=False)
-            probe_l_fill.setLineColor(l_fill_color, log=False)
-        
-        # *probe_r_fill* updates
-        if probe_r_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_fill.frameNStart = frameN  # exact frame index
-            probe_r_fill.tStart = t  # local t and not account for scr refresh
-            probe_r_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_fill.started')
-            probe_r_fill.setAutoDraw(True)
-        if probe_r_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_fill.tStop = t  # not accounting for scr refresh
-                probe_r_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
-                probe_r_fill.setAutoDraw(False)
-        if probe_r_fill.status == STARTED:  # only update if drawing
-            probe_r_fill.setFillColor(r_fill_color, log=False)
-            probe_r_fill.setLineColor(r_fill_color, log=False)
-        # *p_port_cue* updates
-        if p_port_cue.status == NOT_STARTED and t >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_cue.frameNStart = frameN  # exact frame index
-            p_port_cue.tStart = t  # local t and not account for scr refresh
-            p_port_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_cue.started', t)
-            p_port_cue.status = STARTED
-            win.callOnFlip(p_port_cue.setData, int(side))
-        if p_port_cue.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_cue.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_cue.tStop = t  # not accounting for scr refresh
-                p_port_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_cue.stopped', t)
-                p_port_cue.status = FINISHED
-                win.callOnFlip(p_port_cue.setData, int(0))
-        # *p_port_trial* updates
-        if p_port_trial.status == NOT_STARTED and t >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_trial.frameNStart = frameN  # exact frame index
-            p_port_trial.tStart = t  # local t and not account for scr refresh
-            p_port_trial.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_trial, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_trial.started', t)
-            p_port_trial.status = STARTED
-            win.callOnFlip(p_port_trial.setData, int(side))
-        if p_port_trial.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_trial.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_trial.tStop = t  # not accounting for scr refresh
-                p_port_trial.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_trial.stopped', t)
-                p_port_trial.status = FINISHED
-                win.callOnFlip(p_port_trial.setData, int(0))
-        
-        # *key_resp* updates
-        waitOnFlip = False
-        if key_resp.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            key_resp.frameNStart = frameN  # exact frame index
-            key_resp.tStart = t  # local t and not account for scr refresh
-            key_resp.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_resp, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_resp.started')
-            key_resp.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_resp.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_resp.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_resp.tStop = t  # not accounting for scr refresh
-                key_resp.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_resp.stopped')
-                key_resp.status = FINISHED
-        if key_resp.status == STARTED and not waitOnFlip:
-            theseKeys = key_resp.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_resp_allKeys.extend(theseKeys)
-            if len(_key_resp_allKeys):
-                key_resp.keys = [key.name for key in _key_resp_allKeys]  # storing all keys
-                key_resp.rt = [key.rt for key in _key_resp_allKeys]
-        
-        # *key_log* updates
-        waitOnFlip = False
-        if key_log.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            key_log.frameNStart = frameN  # exact frame index
-            key_log.tStart = t  # local t and not account for scr refresh
-            key_log.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_log, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_log.started')
-            key_log.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_log.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_log.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_log.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_log.tStop = t  # not accounting for scr refresh
-                key_log.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_log.stopped')
-                key_log.status = FINISHED
-        if key_log.status == STARTED and not waitOnFlip:
-            theseKeys = key_log.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_log_allKeys.extend(theseKeys)
-            if len(_key_log_allKeys):
-                key_log.keys = [key.name for key in _key_log_allKeys]  # storing all keys
-                key_log.rt = [key.rt for key in _key_log_allKeys]
-        
-        # check for quit (typically the Esc key)
-        if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-            core.quit()
-        
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
-        for thisComponent in cueComponents:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
-        
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # --- Ending Routine "cue" ---
-    for thisComponent in cueComponents:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # Run 'End Routine' code from code_2
-    thisExp.addData('cue', side)
-    thisExp.addData('stim_side', stim_side)
-    probe_start = 0
-    if p_port_cue.status == STARTED:
-        win.callOnFlip(p_port_cue.setData, int(0))
-    if p_port_trial.status == STARTED:
-        win.callOnFlip(p_port_trial.setData, int(0))
-    # check responses
-    if key_resp.keys in ['', [], None]:  # No response was made
-        key_resp.keys = None
-    trials_2.addData('key_resp.keys',key_resp.keys)
-    if key_resp.keys != None:  # we had a response
-        trials_2.addData('key_resp.rt', key_resp.rt)
-    # check responses
-    if key_log.keys in ['', [], None]:  # No response was made
-        key_log.keys = None
-    trials_2.addData('key_log.keys',key_log.keys)
-    if key_log.keys != None:  # we had a response
-        trials_2.addData('key_log.rt', key_log.rt)
-    # the Routine "cue" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset()
-    thisExp.nextEntry()
-    
-# completed 25.0 repeats of 'trials_2'
-
-
-# --- Prepare to start Routine "continue_2" ---
-continueRoutine = True
-# update component parameters for each repeat
-continue_response.keys = []
-continue_response.rt = []
-_continue_response_allKeys = []
-# Run 'Begin Routine' code from code_4
+run_trials(thisTrial=thisTrial_2, trials=trials_2)
 block_no = block_no + 1
-
-block_text = f"block {block_no}/4 completed"
-text_2.setText(block_text
-)
-# keep track of which components have finished
-continue_2Components = [continue_instructions, continue_response, text_2]
-for thisComponent in continue_2Components:
-    thisComponent.tStart = None
-    thisComponent.tStop = None
-    thisComponent.tStartRefresh = None
-    thisComponent.tStopRefresh = None
-    if hasattr(thisComponent, 'status'):
-        thisComponent.status = NOT_STARTED
-# reset timers
-t = 0
-_timeToFirstFrame = win.getFutureFlipTime(clock="now")
-frameN = -1
-
-# --- Run Routine "continue_2" ---
-while continueRoutine:
-    # get current time
-    t = routineTimer.getTime()
-    tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-    tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-    
-    # *continue_instructions* updates
-    if continue_instructions.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        continue_instructions.frameNStart = frameN  # exact frame index
-        continue_instructions.tStart = t  # local t and not account for scr refresh
-        continue_instructions.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(continue_instructions, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'continue_instructions.started')
-        continue_instructions.setAutoDraw(True)
-    
-    # *continue_response* updates
-    waitOnFlip = False
-    if continue_response.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        continue_response.frameNStart = frameN  # exact frame index
-        continue_response.tStart = t  # local t and not account for scr refresh
-        continue_response.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(continue_response, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'continue_response.started')
-        continue_response.status = STARTED
-        # keyboard checking is just starting
-        waitOnFlip = True
-        win.callOnFlip(continue_response.clock.reset)  # t=0 on next screen flip
-        win.callOnFlip(continue_response.clearEvents, eventType='keyboard')  # clear events on next screen flip
-    if continue_response.status == STARTED and not waitOnFlip:
-        theseKeys = continue_response.getKeys(keyList=['return', 'down'], waitRelease=False)
-        _continue_response_allKeys.extend(theseKeys)
-        if len(_continue_response_allKeys):
-            continue_response.keys = _continue_response_allKeys[-1].name  # just the last key pressed
-            continue_response.rt = _continue_response_allKeys[-1].rt
-            # a response ends the routine
-            continueRoutine = False
-    
-    # *text_2* updates
-    if text_2.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        text_2.frameNStart = frameN  # exact frame index
-        text_2.tStart = t  # local t and not account for scr refresh
-        text_2.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(text_2, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'text_2.started')
-        text_2.setAutoDraw(True)
-    
-    # check for quit (typically the Esc key)
-    if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-        core.quit()
-    
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in continue_2Components:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-    
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-# --- Ending Routine "continue_2" ---
-for thisComponent in continue_2Components:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-# check responses
-if continue_response.keys in ['', [], None]:  # No response was made
-    continue_response.keys = None
-thisExp.addData('continue_response.keys',continue_response.keys)
-if continue_response.keys != None:  # we had a response
-    thisExp.addData('continue_response.rt', continue_response.rt)
-thisExp.nextEntry()
-# the Routine "continue_2" was not non-slip safe, so reset the non-slip timer
-routineTimer.reset()
+run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_3 = data.TrialHandler(nReps=25.0, method='random', 
+trials_3 = data.TrialHandler(nReps=1.0, method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_3')
 thisExp.addLoop(trials_3)  # add the loop to the experiment
 thisTrial_3 = trials_3.trialList[0]  # so we can initialise stimuli with some values
-# abbreviate parameter names if possible (e.g. rgb = thisTrial_3.rgb)
-if thisTrial_3 != None:
-    for paramName in thisTrial_3:
-        exec('{} = thisTrial_3[paramName]'.format(paramName))
 
-for thisTrial_3 in trials_3:
-    currentLoop = trials_3
-    # abbreviate parameter names if possible (e.g. rgb = thisTrial_3.rgb)
-    if thisTrial_3 != None:
-        for paramName in thisTrial_3:
-            exec('{} = thisTrial_3[paramName]'.format(paramName))
-    
-    # --- Prepare to start Routine "cue" ---
-    continueRoutine = True
-    # update component parameters for each repeat
-    probe_r_cue.setPos((5, -1))
-    # Run 'Begin Routine' code from code_2
-    import random 
-    
-    probe_start = random.uniform(4, 5.5)
-    side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
-    neutral_side = random.choice([1,2])
-    
-    # push the start of the cue
-    #outlet.push_sample([f'cue_{side}'])
-    outlet.push_sample([side])
-    
-    
-    probe_location = (random.choice([-5, 5]), 0)
-    # reset 'positions' 
-    positions = copy.deepcopy(master_positions) 
-    
-    #randomise this for each trial
-    random.shuffle(positions)
-    
-    
-    if side == 1:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (255,255,255)
-        c_cue_color = (0,0,0,0)
-    elif side == 2:
-        r_cue_color = (255,255,255)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (0,0,0,0)
-    elif side == 3:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (255,255,255)
-        
-    valid_cue_weight = 70
-    stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100-valid_cue_weight))[0]
-    if stim_side == 10:
-        # valid cue
-        if side == 1:
-            r_fill_color = (0,0,0,0)
-            l_fill_color = (255,255,255)
-        elif side == 2:
-            r_fill_color = (255,255,255)
-            l_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    elif stim_side == 11:
-        # invalid cue
-        if side == 1:
-            l_fill_color = (0,0,0,0)
-            r_fill_color = (255,255,255)
-        elif side == 2:
-            l_fill_color = (255,255,255)
-            r_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    key_resp.keys = []
-    key_resp.rt = []
-    _key_resp_allKeys = []
-    key_log.keys = []
-    key_log.rt = []
-    _key_log_allKeys = []
-    # keep track of which components have finished
-    cueComponents = [probe_l_cue, probe_r_cue, fc, left_cue, right_cue, centre_cue1, centre_cue2, probe_l_fill, probe_r_fill, p_port_cue, p_port_trial, key_resp, key_log]
-    for thisComponent in cueComponents:
-        thisComponent.tStart = None
-        thisComponent.tStop = None
-        thisComponent.tStartRefresh = None
-        thisComponent.tStopRefresh = None
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    # reset timers
-    t = 0
-    _timeToFirstFrame = win.getFutureFlipTime(clock="now")
-    frameN = -1
-    
-    # --- Run Routine "cue" ---
-    while continueRoutine:
-        # get current time
-        t = routineTimer.getTime()
-        tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-        tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
-        
-        # *probe_l_cue* updates
-        if probe_l_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_cue.frameNStart = frameN  # exact frame index
-            probe_l_cue.tStart = t  # local t and not account for scr refresh
-            probe_l_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_cue.started')
-            probe_l_cue.setAutoDraw(True)
-        if probe_l_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_cue.tStop = t  # not accounting for scr refresh
-                probe_l_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_cue.stopped')
-                probe_l_cue.setAutoDraw(False)
-        if probe_l_cue.status == STARTED:  # only update if drawing
-            probe_l_cue.setFillColor('blue', log=False)
-            probe_l_cue.setPos((-5, -1), log=False)
-            probe_l_cue.setLineColor('black', log=False)
-        
-        # *probe_r_cue* updates
-        if probe_r_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_cue.frameNStart = frameN  # exact frame index
-            probe_r_cue.tStart = t  # local t and not account for scr refresh
-            probe_r_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_cue.started')
-            probe_r_cue.setAutoDraw(True)
-        if probe_r_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_cue.tStop = t  # not accounting for scr refresh
-                probe_r_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_cue.stopped')
-                probe_r_cue.setAutoDraw(False)
-        # Run 'Each Frame' code from code_2
-        
-        import numpy as np
-        
-        
-        r = random.randrange(0, 255)
-        #g = random.randrange(0, 255)
-        #b = random.randrange(0, 255)
-        #print(f"colour = {g}")
-        
-        #r = 127* np.sin(t*2*pi)+127
-        r = np.sin(t*2*pi)
-        #r = 100+50*sin(t)**4
-#        print(f"{r} :- {frameN}: {cir_color}")
-        cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
-        y_pos = 5* np.sin(t)
-        cir_color = (r,0,0)
-        
-        
-        
-        # *fc* updates
-        if fc.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            fc.frameNStart = frameN  # exact frame index
-            fc.tStart = t  # local t and not account for scr refresh
-            fc.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(fc, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'fc.started')
-            fc.setAutoDraw(True)
-        if fc.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                fc.tStop = t  # not accounting for scr refresh
-                fc.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'fc.stopped')
-                fc.setAutoDraw(False)
-        
-        # *left_cue* updates
-        if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            left_cue.frameNStart = frameN  # exact frame index
-            left_cue.tStart = t  # local t and not account for scr refresh
-            left_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(left_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'left_cue.started')
-            left_cue.setAutoDraw(True)
-        if left_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                left_cue.tStop = t  # not accounting for scr refresh
-                left_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'left_cue.stopped')
-                left_cue.setAutoDraw(False)
-        if left_cue.status == STARTED:  # only update if drawing
-            left_cue.setFillColor(l_cue_color, log=False)
-            left_cue.setLineColor(l_cue_color, log=False)
-        
-        # *right_cue* updates
-        if right_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            right_cue.frameNStart = frameN  # exact frame index
-            right_cue.tStart = t  # local t and not account for scr refresh
-            right_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(right_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'right_cue.started')
-            right_cue.setAutoDraw(True)
-        if right_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                right_cue.tStop = t  # not accounting for scr refresh
-                right_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'right_cue.stopped')
-                right_cue.setAutoDraw(False)
-        if right_cue.status == STARTED:  # only update if drawing
-            right_cue.setFillColor(r_cue_color, log=False)
-            right_cue.setLineColor(r_cue_color, log=False)
-        
-        # *centre_cue1* updates
-        if centre_cue1.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue1.frameNStart = frameN  # exact frame index
-            centre_cue1.tStart = t  # local t and not account for scr refresh
-            centre_cue1.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue1, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue1.started')
-            centre_cue1.setAutoDraw(True)
-        if centre_cue1.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue1.tStop = t  # not accounting for scr refresh
-                centre_cue1.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
-                centre_cue1.setAutoDraw(False)
-        if centre_cue1.status == STARTED:  # only update if drawing
-            centre_cue1.setFillColor(c_cue_color, log=False)
-            centre_cue1.setLineColor(c_cue_color, log=False)
-        
-        # *centre_cue2* updates
-        if centre_cue2.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue2.frameNStart = frameN  # exact frame index
-            centre_cue2.tStart = t  # local t and not account for scr refresh
-            centre_cue2.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue2, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue2.started')
-            centre_cue2.setAutoDraw(True)
-        if centre_cue2.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue2.tStop = t  # not accounting for scr refresh
-                centre_cue2.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue2.stopped')
-                centre_cue2.setAutoDraw(False)
-        if centre_cue2.status == STARTED:  # only update if drawing
-            centre_cue2.setFillColor(c_cue_color, log=False)
-            centre_cue2.setLineColor(c_cue_color, log=False)
-        
-        # *probe_l_fill* updates
-        if probe_l_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_fill.frameNStart = frameN  # exact frame index
-            probe_l_fill.tStart = t  # local t and not account for scr refresh
-            probe_l_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_fill.started')
-            probe_l_fill.setAutoDraw(True)
-        if probe_l_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_fill.tStop = t  # not accounting for scr refresh
-                probe_l_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
-                probe_l_fill.setAutoDraw(False)
-        if probe_l_fill.status == STARTED:  # only update if drawing
-            probe_l_fill.setFillColor(l_fill_color, log=False)
-            probe_l_fill.setLineColor(l_fill_color, log=False)
-        
-        # *probe_r_fill* updates
-        if probe_r_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_fill.frameNStart = frameN  # exact frame index
-            probe_r_fill.tStart = t  # local t and not account for scr refresh
-            probe_r_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_fill.started')
-            probe_r_fill.setAutoDraw(True)
-        if probe_r_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_fill.tStop = t  # not accounting for scr refresh
-                probe_r_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
-                probe_r_fill.setAutoDraw(False)
-        if probe_r_fill.status == STARTED:  # only update if drawing
-            probe_r_fill.setFillColor(r_fill_color, log=False)
-            probe_r_fill.setLineColor(r_fill_color, log=False)
-        # *p_port_cue* updates
-        if p_port_cue.status == NOT_STARTED and t >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_cue.frameNStart = frameN  # exact frame index
-            p_port_cue.tStart = t  # local t and not account for scr refresh
-            p_port_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_cue.started', t)
-            p_port_cue.status = STARTED
-            win.callOnFlip(p_port_cue.setData, int(side))
-        if p_port_cue.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_cue.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_cue.tStop = t  # not accounting for scr refresh
-                p_port_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_cue.stopped', t)
-                p_port_cue.status = FINISHED
-                win.callOnFlip(p_port_cue.setData, int(0))
-        # *p_port_trial* updates
-        if p_port_trial.status == NOT_STARTED and t >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_trial.frameNStart = frameN  # exact frame index
-            p_port_trial.tStart = t  # local t and not account for scr refresh
-            p_port_trial.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_trial, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_trial.started', t)
-            p_port_trial.status = STARTED
-            win.callOnFlip(p_port_trial.setData, int(side))
-        if p_port_trial.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_trial.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_trial.tStop = t  # not accounting for scr refresh
-                p_port_trial.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_trial.stopped', t)
-                p_port_trial.status = FINISHED
-                win.callOnFlip(p_port_trial.setData, int(0))
-        
-        # *key_resp* updates
-        waitOnFlip = False
-        if key_resp.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            key_resp.frameNStart = frameN  # exact frame index
-            key_resp.tStart = t  # local t and not account for scr refresh
-            key_resp.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_resp, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_resp.started')
-            key_resp.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_resp.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_resp.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_resp.tStop = t  # not accounting for scr refresh
-                key_resp.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_resp.stopped')
-                key_resp.status = FINISHED
-        if key_resp.status == STARTED and not waitOnFlip:
-            theseKeys = key_resp.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_resp_allKeys.extend(theseKeys)
-            if len(_key_resp_allKeys):
-                key_resp.keys = [key.name for key in _key_resp_allKeys]  # storing all keys
-                key_resp.rt = [key.rt for key in _key_resp_allKeys]
-        
-        # *key_log* updates
-        waitOnFlip = False
-        if key_log.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            key_log.frameNStart = frameN  # exact frame index
-            key_log.tStart = t  # local t and not account for scr refresh
-            key_log.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_log, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_log.started')
-            key_log.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_log.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_log.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_log.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_log.tStop = t  # not accounting for scr refresh
-                key_log.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_log.stopped')
-                key_log.status = FINISHED
-        if key_log.status == STARTED and not waitOnFlip:
-            theseKeys = key_log.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_log_allKeys.extend(theseKeys)
-            if len(_key_log_allKeys):
-                key_log.keys = [key.name for key in _key_log_allKeys]  # storing all keys
-                key_log.rt = [key.rt for key in _key_log_allKeys]
-        
-        # check for quit (typically the Esc key)
-        if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-            core.quit()
-        
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
-        for thisComponent in cueComponents:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
-        
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # --- Ending Routine "cue" ---
-    for thisComponent in cueComponents:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # Run 'End Routine' code from code_2
-    thisExp.addData('cue', side)
-    thisExp.addData('stim_side', stim_side)
-    probe_start = 0
-    if p_port_cue.status == STARTED:
-        win.callOnFlip(p_port_cue.setData, int(0))
-    if p_port_trial.status == STARTED:
-        win.callOnFlip(p_port_trial.setData, int(0))
-    # check responses
-    if key_resp.keys in ['', [], None]:  # No response was made
-        key_resp.keys = None
-    trials_3.addData('key_resp.keys',key_resp.keys)
-    if key_resp.keys != None:  # we had a response
-        trials_3.addData('key_resp.rt', key_resp.rt)
-    # check responses
-    if key_log.keys in ['', [], None]:  # No response was made
-        key_log.keys = None
-    trials_3.addData('key_log.keys',key_log.keys)
-    if key_log.keys != None:  # we had a response
-        trials_3.addData('key_log.rt', key_log.rt)
-    # the Routine "cue" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset()
-    thisExp.nextEntry()
-    
-# completed 25.0 repeats of 'trials_3'
-
-
-# --- Prepare to start Routine "continue_2" ---
-continueRoutine = True
-# update component parameters for each repeat
-continue_response.keys = []
-continue_response.rt = []
-_continue_response_allKeys = []
-# Run 'Begin Routine' code from code_4
+run_trials(thisTrial=thisTrial_3, trials=trials_3)
 block_no = block_no + 1
-
-block_text = f"block {block_no}/4 completed"
-text_2.setText(block_text
-)
-# keep track of which components have finished
-continue_2Components = [continue_instructions, continue_response, text_2]
-for thisComponent in continue_2Components:
-    thisComponent.tStart = None
-    thisComponent.tStop = None
-    thisComponent.tStartRefresh = None
-    thisComponent.tStopRefresh = None
-    if hasattr(thisComponent, 'status'):
-        thisComponent.status = NOT_STARTED
-# reset timers
-t = 0
-_timeToFirstFrame = win.getFutureFlipTime(clock="now")
-frameN = -1
-
-# --- Run Routine "continue_2" ---
-while continueRoutine:
-    # get current time
-    t = routineTimer.getTime()
-    tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-    tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-    
-    # *continue_instructions* updates
-    if continue_instructions.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        continue_instructions.frameNStart = frameN  # exact frame index
-        continue_instructions.tStart = t  # local t and not account for scr refresh
-        continue_instructions.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(continue_instructions, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'continue_instructions.started')
-        continue_instructions.setAutoDraw(True)
-    
-    # *continue_response* updates
-    waitOnFlip = False
-    if continue_response.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        continue_response.frameNStart = frameN  # exact frame index
-        continue_response.tStart = t  # local t and not account for scr refresh
-        continue_response.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(continue_response, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'continue_response.started')
-        continue_response.status = STARTED
-        # keyboard checking is just starting
-        waitOnFlip = True
-        win.callOnFlip(continue_response.clock.reset)  # t=0 on next screen flip
-        win.callOnFlip(continue_response.clearEvents, eventType='keyboard')  # clear events on next screen flip
-    if continue_response.status == STARTED and not waitOnFlip:
-        theseKeys = continue_response.getKeys(keyList=['return', 'down'], waitRelease=False)
-        _continue_response_allKeys.extend(theseKeys)
-        if len(_continue_response_allKeys):
-            continue_response.keys = _continue_response_allKeys[-1].name  # just the last key pressed
-            continue_response.rt = _continue_response_allKeys[-1].rt
-            # a response ends the routine
-            continueRoutine = False
-    
-    # *text_2* updates
-    if text_2.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-        # keep track of start time/frame for later
-        text_2.frameNStart = frameN  # exact frame index
-        text_2.tStart = t  # local t and not account for scr refresh
-        text_2.tStartRefresh = tThisFlipGlobal  # on global time
-        win.timeOnFlip(text_2, 'tStartRefresh')  # time at next scr refresh
-        # add timestamp to datafile
-        thisExp.timestampOnFlip(win, 'text_2.started')
-        text_2.setAutoDraw(True)
-    
-    # check for quit (typically the Esc key)
-    if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-        core.quit()
-    
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in continue_2Components:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-    
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-# --- Ending Routine "continue_2" ---
-for thisComponent in continue_2Components:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-# check responses
-if continue_response.keys in ['', [], None]:  # No response was made
-    continue_response.keys = None
-thisExp.addData('continue_response.keys',continue_response.keys)
-if continue_response.keys != None:  # we had a response
-    thisExp.addData('continue_response.rt', continue_response.rt)
-thisExp.nextEntry()
-# the Routine "continue_2" was not non-slip safe, so reset the non-slip timer
-routineTimer.reset()
+run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_4 = data.TrialHandler(nReps=25.0, method='sequential', 
+trials_4 = data.TrialHandler(nReps=2.0, method='sequential', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_4')
 thisExp.addLoop(trials_4)  # add the loop to the experiment
 thisTrial_4 = trials_4.trialList[0]  # so we can initialise stimuli with some values
-# abbreviate parameter names if possible (e.g. rgb = thisTrial_4.rgb)
-if thisTrial_4 != None:
-    for paramName in thisTrial_4:
-        exec('{} = thisTrial_4[paramName]'.format(paramName))
 
-for thisTrial_4 in trials_4:
-    currentLoop = trials_4
-    # abbreviate parameter names if possible (e.g. rgb = thisTrial_4.rgb)
-    if thisTrial_4 != None:
-        for paramName in thisTrial_4:
-            exec('{} = thisTrial_4[paramName]'.format(paramName))
-    
-    # --- Prepare to start Routine "cue" ---
-    continueRoutine = True
-    # update component parameters for each repeat
-    probe_r_cue.setPos((5, -1))
-    # Run 'Begin Routine' code from code_2
-    import random 
-    
-    probe_start = random.uniform(4, 5.5)
-    side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
-    neutral_side = random.choice([1,2])
-    
-    # push the start of the cue
-    #outlet.push_sample([f'cue_{side}'])
-    outlet.push_sample([side])
-    
-    
-    probe_location = (random.choice([-5, 5]), 0)
-    # reset 'positions' 
-    positions = copy.deepcopy(master_positions) 
-    
-    #randomise this for each trial
-    random.shuffle(positions)
-    
-    
-    if side == 1:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (255,255,255)
-        c_cue_color = (0,0,0,0)
-    elif side == 2:
-        r_cue_color = (255,255,255)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (0,0,0,0)
-    elif side == 3:
-        r_cue_color = (0,0,0,0)
-        l_cue_color = (0,0,0,0)
-        c_cue_color = (255,255,255)
-        
-    valid_cue_weight = 70
-    stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100-valid_cue_weight))[0]
-    if stim_side == 10:
-        # valid cue
-        if side == 1:
-            r_fill_color = (0,0,0,0)
-            l_fill_color = (255,255,255)
-        elif side == 2:
-            r_fill_color = (255,255,255)
-            l_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    elif stim_side == 11:
-        # invalid cue
-        if side == 1:
-            l_fill_color = (0,0,0,0)
-            r_fill_color = (255,255,255)
-        elif side == 2:
-            l_fill_color = (255,255,255)
-            r_fill_color = (0,0,0,0)
-        elif side == 3:
-            # 50% chance left or right
-            if neutral_side == 1:
-                r_fill_color = (0,0,0,0)
-                l_fill_color = (255,255,255)
-            elif neutral_side == 2:
-                r_fill_color = (255,255,255)
-                l_fill_color = (0,0,0,0)    
-    key_resp.keys = []
-    key_resp.rt = []
-    _key_resp_allKeys = []
-    key_log.keys = []
-    key_log.rt = []
-    _key_log_allKeys = []
-    # keep track of which components have finished
-    cueComponents = [probe_l_cue, probe_r_cue, fc, left_cue, right_cue, centre_cue1, centre_cue2, probe_l_fill, probe_r_fill, p_port_cue, p_port_trial, key_resp, key_log]
-    for thisComponent in cueComponents:
-        thisComponent.tStart = None
-        thisComponent.tStop = None
-        thisComponent.tStartRefresh = None
-        thisComponent.tStopRefresh = None
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    # reset timers
-    t = 0
-    _timeToFirstFrame = win.getFutureFlipTime(clock="now")
-    frameN = -1
-    
-    # --- Run Routine "cue" ---
-    while continueRoutine:
-        # get current time
-        t = routineTimer.getTime()
-        tThisFlip = win.getFutureFlipTime(clock=routineTimer)
-        tThisFlipGlobal = win.getFutureFlipTime(clock=None)
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
-        
-        # *probe_l_cue* updates
-        if probe_l_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_cue.frameNStart = frameN  # exact frame index
-            probe_l_cue.tStart = t  # local t and not account for scr refresh
-            probe_l_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_cue.started')
-            probe_l_cue.setAutoDraw(True)
-        if probe_l_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_cue.tStop = t  # not accounting for scr refresh
-                probe_l_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_cue.stopped')
-                probe_l_cue.setAutoDraw(False)
-        if probe_l_cue.status == STARTED:  # only update if drawing
-            probe_l_cue.setFillColor('blue', log=False)
-            probe_l_cue.setPos((-5, -1), log=False)
-            probe_l_cue.setLineColor('black', log=False)
-        
-        # *probe_r_cue* updates
-        if probe_r_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_cue.frameNStart = frameN  # exact frame index
-            probe_r_cue.tStart = t  # local t and not account for scr refresh
-            probe_r_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_cue.started')
-            probe_r_cue.setAutoDraw(True)
-        if probe_r_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_cue.tStop = t  # not accounting for scr refresh
-                probe_r_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_cue.stopped')
-                probe_r_cue.setAutoDraw(False)
-        # Run 'Each Frame' code from code_2
-        
-        import numpy as np
-        
-        
-        r = random.randrange(0, 255)
-        #g = random.randrange(0, 255)
-        #b = random.randrange(0, 255)
-        #print(f"colour = {g}")
-        
-        #r = 127* np.sin(t*2*pi)+127
-        r = np.sin(t*2*pi)
-        #r = 100+50*sin(t)**4
-#        print(f"{r} :- {frameN}: {cir_color}")
-        cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
-        y_pos = 5* np.sin(t)
-        cir_color = (r,0,0)
-        
-        
-        
-        # *fc* updates
-        if fc.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            fc.frameNStart = frameN  # exact frame index
-            fc.tStart = t  # local t and not account for scr refresh
-            fc.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(fc, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'fc.started')
-            fc.setAutoDraw(True)
-        if fc.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                fc.tStop = t  # not accounting for scr refresh
-                fc.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'fc.stopped')
-                fc.setAutoDraw(False)
-        
-        # *left_cue* updates
-        if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            left_cue.frameNStart = frameN  # exact frame index
-            left_cue.tStart = t  # local t and not account for scr refresh
-            left_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(left_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'left_cue.started')
-            left_cue.setAutoDraw(True)
-        if left_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                left_cue.tStop = t  # not accounting for scr refresh
-                left_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'left_cue.stopped')
-                left_cue.setAutoDraw(False)
-        if left_cue.status == STARTED:  # only update if drawing
-            left_cue.setFillColor(l_cue_color, log=False)
-            left_cue.setLineColor(l_cue_color, log=False)
-        
-        # *right_cue* updates
-        if right_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            right_cue.frameNStart = frameN  # exact frame index
-            right_cue.tStart = t  # local t and not account for scr refresh
-            right_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(right_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'right_cue.started')
-            right_cue.setAutoDraw(True)
-        if right_cue.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                right_cue.tStop = t  # not accounting for scr refresh
-                right_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'right_cue.stopped')
-                right_cue.setAutoDraw(False)
-        if right_cue.status == STARTED:  # only update if drawing
-            right_cue.setFillColor(r_cue_color, log=False)
-            right_cue.setLineColor(r_cue_color, log=False)
-        
-        # *centre_cue1* updates
-        if centre_cue1.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue1.frameNStart = frameN  # exact frame index
-            centre_cue1.tStart = t  # local t and not account for scr refresh
-            centre_cue1.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue1, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue1.started')
-            centre_cue1.setAutoDraw(True)
-        if centre_cue1.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue1.tStop = t  # not accounting for scr refresh
-                centre_cue1.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
-                centre_cue1.setAutoDraw(False)
-        if centre_cue1.status == STARTED:  # only update if drawing
-            centre_cue1.setFillColor(c_cue_color, log=False)
-            centre_cue1.setLineColor(c_cue_color, log=False)
-        
-        # *centre_cue2* updates
-        if centre_cue2.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            centre_cue2.frameNStart = frameN  # exact frame index
-            centre_cue2.tStart = t  # local t and not account for scr refresh
-            centre_cue2.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(centre_cue2, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'centre_cue2.started')
-            centre_cue2.setAutoDraw(True)
-        if centre_cue2.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                centre_cue2.tStop = t  # not accounting for scr refresh
-                centre_cue2.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'centre_cue2.stopped')
-                centre_cue2.setAutoDraw(False)
-        if centre_cue2.status == STARTED:  # only update if drawing
-            centre_cue2.setFillColor(c_cue_color, log=False)
-            centre_cue2.setLineColor(c_cue_color, log=False)
-        
-        # *probe_l_fill* updates
-        if probe_l_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_l_fill.frameNStart = frameN  # exact frame index
-            probe_l_fill.tStart = t  # local t and not account for scr refresh
-            probe_l_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_l_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_l_fill.started')
-            probe_l_fill.setAutoDraw(True)
-        if probe_l_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_l_fill.tStop = t  # not accounting for scr refresh
-                probe_l_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
-                probe_l_fill.setAutoDraw(False)
-        if probe_l_fill.status == STARTED:  # only update if drawing
-            probe_l_fill.setFillColor(l_fill_color, log=False)
-            probe_l_fill.setLineColor(l_fill_color, log=False)
-        
-        # *probe_r_fill* updates
-        if probe_r_fill.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            probe_r_fill.frameNStart = frameN  # exact frame index
-            probe_r_fill.tStart = t  # local t and not account for scr refresh
-            probe_r_fill.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(probe_r_fill, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'probe_r_fill.started')
-            probe_r_fill.setAutoDraw(True)
-        if probe_r_fill.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
-                # keep track of stop time/frame for later
-                probe_r_fill.tStop = t  # not accounting for scr refresh
-                probe_r_fill.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
-                probe_r_fill.setAutoDraw(False)
-        if probe_r_fill.status == STARTED:  # only update if drawing
-            probe_r_fill.setFillColor(r_fill_color, log=False)
-            probe_r_fill.setLineColor(r_fill_color, log=False)
-        # *p_port_cue* updates
-        if p_port_cue.status == NOT_STARTED and t >= 1-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_cue.frameNStart = frameN  # exact frame index
-            p_port_cue.tStart = t  # local t and not account for scr refresh
-            p_port_cue.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_cue, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_cue.started', t)
-            p_port_cue.status = STARTED
-            win.callOnFlip(p_port_cue.setData, int(side))
-        if p_port_cue.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_cue.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_cue.tStop = t  # not accounting for scr refresh
-                p_port_cue.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_cue.stopped', t)
-                p_port_cue.status = FINISHED
-                win.callOnFlip(p_port_cue.setData, int(0))
-        # *p_port_trial* updates
-        if p_port_trial.status == NOT_STARTED and t >= 0-frameTolerance:
-            # keep track of start time/frame for later
-            p_port_trial.frameNStart = frameN  # exact frame index
-            p_port_trial.tStart = t  # local t and not account for scr refresh
-            p_port_trial.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(p_port_trial, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.addData('p_port_trial.started', t)
-            p_port_trial.status = STARTED
-            win.callOnFlip(p_port_trial.setData, int(side))
-        if p_port_trial.status == STARTED:
-            # is it time to stop? (based on global clock, using actual start)
-            if tThisFlipGlobal > p_port_trial.tStartRefresh + 1.0-frameTolerance:
-                # keep track of stop time/frame for later
-                p_port_trial.tStop = t  # not accounting for scr refresh
-                p_port_trial.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.addData('p_port_trial.stopped', t)
-                p_port_trial.status = FINISHED
-                win.callOnFlip(p_port_trial.setData, int(0))
-        
-        # *key_resp* updates
-        waitOnFlip = False
-        if key_resp.status == NOT_STARTED and tThisFlip >= probe_start-frameTolerance:
-            # keep track of start time/frame for later
-            key_resp.frameNStart = frameN  # exact frame index
-            key_resp.tStart = t  # local t and not account for scr refresh
-            key_resp.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_resp, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_resp.started')
-            key_resp.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_resp.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_resp.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_resp.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_resp.tStop = t  # not accounting for scr refresh
-                key_resp.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_resp.stopped')
-                key_resp.status = FINISHED
-        if key_resp.status == STARTED and not waitOnFlip:
-            theseKeys = key_resp.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_resp_allKeys.extend(theseKeys)
-            if len(_key_resp_allKeys):
-                key_resp.keys = [key.name for key in _key_resp_allKeys]  # storing all keys
-                key_resp.rt = [key.rt for key in _key_resp_allKeys]
-        
-        # *key_log* updates
-        waitOnFlip = False
-        if key_log.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
-            # keep track of start time/frame for later
-            key_log.frameNStart = frameN  # exact frame index
-            key_log.tStart = t  # local t and not account for scr refresh
-            key_log.tStartRefresh = tThisFlipGlobal  # on global time
-            win.timeOnFlip(key_log, 'tStartRefresh')  # time at next scr refresh
-            # add timestamp to datafile
-            thisExp.timestampOnFlip(win, 'key_log.started')
-            key_log.status = STARTED
-            # keyboard checking is just starting
-            waitOnFlip = True
-            win.callOnFlip(key_log.clock.reset)  # t=0 on next screen flip
-            win.callOnFlip(key_log.clearEvents, eventType='keyboard')  # clear events on next screen flip
-        if key_log.status == STARTED:
-            # is it time to stop? (based on local clock)
-            if tThisFlip > 6.6-frameTolerance:
-                # keep track of stop time/frame for later
-                key_log.tStop = t  # not accounting for scr refresh
-                key_log.frameNStop = frameN  # exact frame index
-                # add timestamp to datafile
-                thisExp.timestampOnFlip(win, 'key_log.stopped')
-                key_log.status = FINISHED
-        if key_log.status == STARTED and not waitOnFlip:
-            theseKeys = key_log.getKeys(keyList=['right', 'left'], waitRelease=False)
-            _key_log_allKeys.extend(theseKeys)
-            if len(_key_log_allKeys):
-                key_log.keys = [key.name for key in _key_log_allKeys]  # storing all keys
-                key_log.rt = [key.rt for key in _key_log_allKeys]
-        
-        # check for quit (typically the Esc key)
-        if endExpNow or defaultKeyboard.getKeys(keyList=["escape"]):
-            core.quit()
-        
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
-        for thisComponent in cueComponents:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
-        
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # --- Ending Routine "cue" ---
-    for thisComponent in cueComponents:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # Run 'End Routine' code from code_2
-    thisExp.addData('cue', side)
-    thisExp.addData('stim_side', stim_side)
-    probe_start = 0
-    if p_port_cue.status == STARTED:
-        win.callOnFlip(p_port_cue.setData, int(0))
-    if p_port_trial.status == STARTED:
-        win.callOnFlip(p_port_trial.setData, int(0))
-    # check responses
-    if key_resp.keys in ['', [], None]:  # No response was made
-        key_resp.keys = None
-    trials_4.addData('key_resp.keys',key_resp.keys)
-    if key_resp.keys != None:  # we had a response
-        trials_4.addData('key_resp.rt', key_resp.rt)
-    # check responses
-    if key_log.keys in ['', [], None]:  # No response was made
-        key_log.keys = None
-    trials_4.addData('key_log.keys',key_log.keys)
-    if key_log.keys != None:  # we had a response
-        trials_4.addData('key_log.rt', key_log.rt)
-    # the Routine "cue" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset()
-    thisExp.nextEntry()
-    
-# completed 25.0 repeats of 'trials_4'
-
+run_trials(thisTrial=thisTrial_4, trials=trials_4)
 
 # --- Prepare to start Routine "end" ---
 continueRoutine = True
