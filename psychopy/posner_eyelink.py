@@ -36,50 +36,284 @@ import numpy as np
 import pandas as pd
 import random 
 import pylink
+import time
 from string import ascii_letters, digits
 
-#-------EYELINK PARAMS -------
+from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
+
+#-------EYELINK PARAMS ---------------------------------------------------------
 # from C:\Program Files (x86)\SR Research\EyeLink\SampleExperiments\Python\examples\Psychopy_examples\picture\picture.py
+def show_msg(win, text, wait_for_keypress=True):
+    """ Show task instructions on screen"""
 
-dummy_mode = False
+    msg = visual.TextStim(win, text,
+                          color=genv.getForegroundColor(),
+                          wrapWidth=scn_width/2)
+    clear_screen(win)
+    msg.draw()
+    win.flip()
+
+    # wait indefinitely, terminates upon any key press
+    if wait_for_keypress:
+        event.waitKeys()
+        clear_screen(win)
+        
+def clear_screen(win):
+    """ clear up the PsychoPy window"""
+
+    win.fillColor = genv.getBackgroundColor()
+    win.flip()
+dummy_mode = True
 edf_fname = 'TEST'
-#time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
-#session_identifier = edf_fname + time_str
-#============================
+results_folder = 'results'
+eyelink_ip = "100.1.1.1"
+if not os.path.exists(results_folder):
+    os.makedirs(results_folder)
+time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
+session_identifier = edf_fname + time_str
+session_folder = os.path.join(results_folder, session_identifier)
+if not os.path.exists(session_folder):
+    os.makedirs(session_folder)
+    
+def terminate_task():
+    """ Terminate the task gracefully and retrieve the EDF data file
+
+    file_to_retrieve: The EDF on the Host that we would like to download
+    win: the current window used by the experimental script
+    """
+
+    el_tracker = pylink.getEYELINK()
+
+    if el_tracker.isConnected():
+        # Terminate the current trial first if the task terminated prematurely
+        error = el_tracker.isRecording()
+        if error == pylink.TRIAL_OK:
+            abort_trial()
+
+        # Put tracker in Offline mode
+        el_tracker.setOfflineMode()
+
+        # Clear the Host PC screen and wait for 500 ms
+        el_tracker.sendCommand('clear_screen 0')
+        pylink.msecDelay(500)
+
+        # Close the edf data file on the Host
+        el_tracker.closeDataFile()
+
+        # Show a file transfer message on the screen
+        msg = 'EDF data is transferring from EyeLink Host PC...'
+        show_msg(win, msg, wait_for_keypress=False)
+
+        # Download the EDF data file from the Host PC to a local data folder
+        # parameters: source_file_on_the_host, destination_file_on_local_drive
+        local_edf = os.path.join(session_folder, session_identifier + '.EDF')
+        try:
+            el_tracker.receiveDataFile(edf_file, local_edf)
+        except RuntimeError as error:
+            print('ERROR:', error)
+
+        # Close the link to the tracker.
+        el_tracker.close()
+
+    # close the PsychoPy window
+    win.close()
+
+    # quit PsychoPy
+    core.quit()
+    sys.exit()   
+    
+def abort_trial():
+    """Ends recording """
+
+    el_tracker = pylink.getEYELINK()
+
+    # Stop recording
+    if el_tracker.isRecording():
+        # add 100 ms to catch final trial events
+        pylink.pumpDelay(100)
+        el_tracker.stopRecording()
+
+    # clear the screen
+    clear_screen(win)
+    # Send a message to clear the Data Viewer screen
+    bgcolor_RGB = (116, 116, 116)
+    el_tracker.sendMessage('!V CLEAR %d %d %d' % bgcolor_RGB)
+
+    # send a message to mark trial end
+    el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_ERROR)
+
+    return pylink.TRIAL_ERROR   
+    
+#...............................................................................    
+# Step 1: Connect to the EyeLink Host PC
+#
+# The Host IP address, by default, is "100.1.1.1".
+# the "el_tracker" objected created here can be accessed through the Pylink
+# Set the Host PC address to "None" (without quotes) to run the script
+# in "Dummy Mode"
+if dummy_mode:
+    el_tracker = pylink.EyeLink(None)
+else:
+    try:
+        el_tracker = pylink.EyeLink(eyelink_ip)
+    except RuntimeError as error:
+        print('ERROR:', error)
+        core.quit()
+        sys.exit()
+        
+# Step 2: Open an EDF data file on the Host PC
+edf_file = edf_fname + ".EDF"
+try:
+    el_tracker.openDataFile(edf_file)
+except RuntimeError as err:
+    print('ERROR:', err)
+    # close the link if we have one open
+    if el_tracker.isConnected():
+        el_tracker.close()
+    core.quit()
+    sys.exit()
+
+preamble_text = 'RECORDED BY %s' % os.path.basename(__file__)
+el_tracker.sendCommand("add_file_preamble_text '%s'" % preamble_text)
+
+# Step 3: Configure the tracker
+#
+# Put the tracker in offline mode before we change tracking parameters
+el_tracker.setOfflineMode()
+
+# Get the software version:  1-EyeLink I, 2-EyeLink II, 3/4-EyeLink 1000,
+# 5-EyeLink 1000 Plus, 6-Portable DUO
+eyelink_ver = 0  # set version to 0, in case running in Dummy mode
+if not dummy_mode:
+    vstr = el_tracker.getTrackerVersionString()
+    eyelink_ver = int(vstr.split()[-1].split('.')[0])
+    # print out some version info in the shell
+    print('Running experiment on %s, version %d' % (vstr, eyelink_ver))
+else:
+    print(f'Running experiment in dummy mode')
+    
+# File and Link data control
+# what eye events to save in the EDF file, include everything by default
+file_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT'
+# what eye events to make available over the link, include everything by default
+link_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,BUTTON,FIXUPDATE,INPUT'
+# what sample data to save in the EDF data file and to make available
+# over the link, include the 'HTARGET' flag to save head target sticker
+# data for supported eye trackers
+if eyelink_ver > 3:
+    file_sample_flags = 'LEFT,RIGHT,GAZE,HREF,RAW,AREA,HTARGET,GAZERES,BUTTON,STATUS,INPUT'
+    link_sample_flags = 'LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT'
+else:
+    file_sample_flags = 'LEFT,RIGHT,GAZE,HREF,RAW,AREA,GAZERES,BUTTON,STATUS,INPUT'
+    link_sample_flags = 'LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT'
+el_tracker.sendCommand("file_event_filter = %s" % file_event_flags)
+el_tracker.sendCommand("file_sample_data = %s" % file_sample_flags)
+el_tracker.sendCommand("link_event_filter = %s" % link_event_flags)
+el_tracker.sendCommand("link_sample_data = %s" % link_sample_flags)
+
+# calibration type
+el_tracker.sendCommand("calibration_type = HV9")
+# Set a gamepad button to accept calibration/drift check target
+# You need a supported gamepad/button box that is connected to the Host PC
+#el_tracker.sendCommand("button_function 5 'accept_target_fixation'")
+
+# Open a window, be sure to specify monitor parameters
+#mon = monitors.Monitor('myMonitor', width=53.0, distance=70.0)
+win = visual.Window(
+    size=[1280, 1024], fullscr=True, screen=1, 
+    winType='pyglet', allowStencil=False,
+    monitor='eprime', color=[0,0,0], colorSpace='rgb',
+    blendMode='avg', useFBO=True, 
+    units='pix')
+#win = visual.Window(fullscr=True,
+#                    screen=1,
+#                    monitor='eprime',
+#                    winType='pyglet',
+#                    units='pix')
+# get the native screen resolution used by PsychoPy
+scn_width, scn_height = win.size
+
+# Pass the display pixel coordinates (left, top, right, bottom) to the tracker
+# see the EyeLink Installation Guide, "Customizing Screen Settings"
+el_coords = "screen_pixel_coords = 0 0 %d %d" % (scn_width - 1, scn_height - 1)
+el_tracker.sendCommand(el_coords)
+
+# Write a DISPLAY_COORDS message to the EDF file
+# Data Viewer needs this piece of info for proper visualization, see Data
+# Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
+dv_coords = "DISPLAY_COORDS  0 0 %d %d" % (scn_width - 1, scn_height - 1)
+el_tracker.sendMessage(dv_coords)
+
+# Configure a graphics environment (genv) for tracker calibration
+genv = EyeLinkCoreGraphicsPsychoPy(el_tracker, win)
+print(genv)  # print out the version number of the CoreGraphics library
+
+# Set background and foreground colors for the calibration target
+# in PsychoPy, (-1, -1, -1)=black, (1, 1, 1)=white, (0, 0, 0)=mid-gray
+foreground_color = (-1, -1, -1)
+background_color = win.color
+genv.setCalibrationColors(foreground_color, background_color)
+
+# Set up the calibration target
+#
+# The target could be a "circle" (default), a "picture", a "movie" clip,
+# or a rotating "spiral". To configure the type of calibration target, set
+# genv.setTargetType to "circle", "picture", "movie", or "spiral", e.g.,
+# genv.setTargetType('picture')
+# Use a picture as the calibration target
+genv.setTargetType('circle')
+
+# Configure the size of the calibration target (in pixels)
+# this option applies only to "circle" and "spiral" targets
+# genv.setTargetSize(24)
+
+# Beeps to play during calibration, validation and drift correction
+# parameters: target, good, error
+#     target -- sound to play when target moves
+#     good -- sound to play on successful operation
+#     error -- sound to play on failure or interruption
+# Each parameter could be ''--default sound, 'off'--no sound, or a wav file
+genv.setCalibrationSounds('off', 'off', 'off')
+
+# Request Pylink to use the PsychoPy window we opened above for calibration
+print(f"STARTING CALIBRARION")
+pylink.openGraphicsEx(genv)
+
+# Step 5: Set up the camera and calibrate the tracker
+
+# Show the task instructions
+task_msg = 'In the task, you may press the SPACEBAR to end a trial\n' + \
+    '\nPress Ctrl-C to if you need to quit the task early\n'
+if dummy_mode:
+    task_msg = task_msg + '\nNow, press ENTER to start the task'
+else:
+    task_msg = task_msg + '\nNow, press ENTER twice to calibrate tracker'
+show_msg(win, task_msg)
+
+# skip this step if running the script in Dummy Mode
+if not dummy_mode:
+    try:
+        el_tracker.doTrackerSetup()
+    except RuntimeError as err:
+        print('ERROR:', err)
+        el_tracker.exitCalibration()
+print(f"CALIBRARION DONE")
+        
+win.close()
+#===============================================================================
 
 # get the time the probe appears
 probe_start = random.uniform(4, 5.5)
 
 # read in the test signal for the colour changes
-# test_signal = pd.read_pickle(f'/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()
 cir_color = "blue"
 block_text = 0
 
 info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')
-#info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'string', 'posner_marker')
 
 outlet = StreamOutlet(info)
-#outlet.push_sample([f'start'])
 outlet.push_sample([99])
 #streams = resolve_stream('name', 'OutStream')
-
-# create a new inlet to read from the stream
-#inlet = StreamInlet(streams[0])
-#stream_info_xml = inlet.info().as_xml()
-#rt = ET.fromstring(stream_info_xml)
-#channels_tree = rt.find('desc').findall("channel") or rt.find('desc').find("channels").findall(
-#    "channel")
-#labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
-#          for ch in channels_tree]
-          
-#aai_idx = labels.index('AAI')
-#print(labels)
-#print(aai_idx)
-
-#chunk, timestamps = inlet.pull_chunk()
-#logging.log(level=logging.INFO, msg='CHUNK1')
-#print("CHUNK1:")
-#print(chunk)
 
 def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max=0):
     un_scaled_range = (un_scaled_max - un_scaled_min)
@@ -88,161 +322,29 @@ def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max
     scaled_sample = np.clip(scaled_sample, 0, 255)
     return scaled_sample
 
-# Run 'Before Experiment' code from code_4
-block_no = 0
-# Run 'Before Experiment' code from code_2
-from pylsl import StreamInlet, resolve_stream
-from pylsl import StreamInfo, StreamOutlet
-import xml.etree.ElementTree as ET
-import numpy as np
-import pandas as pd
-import random 
+# ------------- MORE EYE TRACKER STUFF -----------------------------------------
+# get a reference to the currently active EyeLink connection
+el_tracker = pylink.getEYELINK()
 
-# get the time the probe appears
-probe_start = random.uniform(4, 5.5)
+# put the tracker in the offline mode first
+el_tracker.setOfflineMode()
 
-# read in the test signal for the colour changes
-# test_signal = pd.read_pickle(f'/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()
-cir_color = "blue"
-block_text = 0
+# clear the host screen before we draw the backdrop
+el_tracker.sendCommand('clear_screen 0')
+# OPTIONAL: draw landmarks and texts on the Host screen
+# In addition to backdrop image, You may draw simples on the Host PC to use
+# as landmarks. For illustration purpose, here we draw some texts and a box
+# For a list of supported draw commands, see the "COMMANDS.INI" file on the
+# Host PC (under /elcl/exe)
+left = int(scn_width/2.0) - 60
+top = int(scn_height/2.0) - 60
+right = int(scn_width/2.0) + 60
+bottom = int(scn_height/2.0) + 60
+draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+el_tracker.sendCommand(draw_cmd)
 
-info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')
-#info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'string', 'posner_marker')
-
-outlet = StreamOutlet(info)
-#outlet.push_sample([f'start'])
-outlet.push_sample([99])
-#streams = resolve_stream('name', 'OutStream')
-
-# create a new inlet to read from the stream
-#inlet = StreamInlet(streams[0])
-#stream_info_xml = inlet.info().as_xml()
-#rt = ET.fromstring(stream_info_xml)
-#channels_tree = rt.find('desc').findall("channel") or rt.find('desc').find("channels").findall(
-#    "channel")
-#labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
-#          for ch in channels_tree]
-          
-#aai_idx = labels.index('AAI')
-#print(labels)
-#print(aai_idx)
-
-#chunk, timestamps = inlet.pull_chunk()
-#logging.log(level=logging.INFO, msg='CHUNK1')
-#print("CHUNK1:")
-#print(chunk)
-
-def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max=0):
-    un_scaled_range = (un_scaled_max - un_scaled_min)
-    scaled_range = (scaled_max - scaled_min)
-    scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
-    scaled_sample = np.clip(scaled_sample, 0, 255)
-    return scaled_sample
-
-# Run 'Before Experiment' code from code_4
-block_no = 0
-# Run 'Before Experiment' code from code_2
-from pylsl import StreamInlet, resolve_stream
-from pylsl import StreamInfo, StreamOutlet
-import xml.etree.ElementTree as ET
-import numpy as np
-import pandas as pd
-import random 
-
-# get the time the probe appears
-probe_start = random.uniform(4, 5.5)
-
-# read in the test signal for the colour changes
-# test_signal = pd.read_pickle(f'/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()
-cir_color = "blue"
-block_text = 0
-
-info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')
-#info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'string', 'posner_marker')
-
-outlet = StreamOutlet(info)
-#outlet.push_sample([f'start'])
-outlet.push_sample([99])
-#streams = resolve_stream('name', 'OutStream')
-
-# create a new inlet to read from the stream
-#inlet = StreamInlet(streams[0])
-#stream_info_xml = inlet.info().as_xml()
-#rt = ET.fromstring(stream_info_xml)
-#channels_tree = rt.find('desc').findall("channel") or rt.find('desc').find("channels").findall(
-#    "channel")
-#labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
-#          for ch in channels_tree]
-          
-#aai_idx = labels.index('AAI')
-#print(labels)
-#print(aai_idx)
-
-#chunk, timestamps = inlet.pull_chunk()
-#logging.log(level=logging.INFO, msg='CHUNK1')
-#print("CHUNK1:")
-#print(chunk)
-
-def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max=0):
-    un_scaled_range = (un_scaled_max - un_scaled_min)
-    scaled_range = (scaled_max - scaled_min)
-    scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
-    scaled_sample = np.clip(scaled_sample, 0, 255)
-    return scaled_sample
-
-# Run 'Before Experiment' code from code_4
-block_no = 0
-# Run 'Before Experiment' code from code_2
-from pylsl import StreamInlet, resolve_stream
-from pylsl import StreamInfo, StreamOutlet
-import xml.etree.ElementTree as ET
-import numpy as np
-import pandas as pd
-import random 
-
-# get the time the probe appears
-probe_start = random.uniform(4, 5.5)
-
-# read in the test signal for the colour changes
-# test_signal = pd.read_pickle(f'/Users/2354158T/Documents/GitHub/nfb/analysis/cvsa_scripts/aai.pkl').to_list()
-cir_color = "blue"
-block_text = 0
-
-info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')
-#info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'string', 'posner_marker')
-
-outlet = StreamOutlet(info)
-#outlet.push_sample([f'start'])
-outlet.push_sample([99])
-#streams = resolve_stream('name', 'OutStream')
-
-# create a new inlet to read from the stream
-#inlet = StreamInlet(streams[0])
-#stream_info_xml = inlet.info().as_xml()
-#rt = ET.fromstring(stream_info_xml)
-#channels_tree = rt.find('desc').findall("channel") or rt.find('desc').find("channels").findall(
-#    "channel")
-#labels = [(ch.find('label') if ch.find('label') is not None else ch.find('name')).text
-#          for ch in channels_tree]
-          
-#aai_idx = labels.index('AAI')
-#print(labels)
-#print(aai_idx)
-
-#chunk, timestamps = inlet.pull_chunk()
-#logging.log(level=logging.INFO, msg='CHUNK1')
-#print("CHUNK1:")
-#print(chunk)
-
-def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max=0):
-    un_scaled_range = (un_scaled_max - un_scaled_min)
-    scaled_range = (scaled_max - scaled_min)
-    scaled_sample =(((sample-un_scaled_min) * scaled_range)/un_scaled_range) + scaled_min
-    scaled_sample = np.clip(scaled_sample, 0, 255)
-    return scaled_sample
-
-
-
+# ==============================================================================    
+    
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(_thisDir)
@@ -253,6 +355,7 @@ expInfo = {
     'participant': '',
     'session': '001',
 }
+
 # --- Show participant info dialog --
 dlg = gui.DlgFromDict(dictionary=expInfo, sortKeys=False, title=expName)
 if dlg.OK == False:
@@ -404,250 +507,6 @@ text_2 = visual.TextStim(win=win, name='text_2',
     color='white', colorSpace='rgb', opacity=None, 
     languageStyle='LTR',
     depth=-3.0);
-
-# --- Initialize components for Routine "cue" ---
-probe_l_cue = visual.ShapeStim(
-    win=win, name='probe_l_cue',units='deg', 
-    size=(3.5, 3.5), vertices='circle',
-    ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=0.0, interpolate=True)
-probe_r_cue = visual.ShapeStim(
-    win=win, name='probe_r_cue',units='deg', 
-    size=(3.5, 3.5), vertices='circle',
-    ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='black', fillColor='blue',
-    opacity=None, depth=-1.0, interpolate=True)
-# Run 'Begin Experiment' code from code_2
-import random, copy
-from random import randint
-from decimal import *
-
-# setup an array to store 6 locations to randomly allocate to our shapes 
-# (or select random locations between (-1,-1) and (1,1) if you want them completely 
-# random though you then need to factor in overlaying shapes)
-master_positions=[[-5,0], [5,0]]
-positions = copy.deepcopy(master_positions)
-fc = visual.ShapeStim(
-    win=win, name='fc',units='cm', 
-    size=(0.25, 0.25), vertices='circle',
-    ori=0.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-3.0, interpolate=True)
-left_cue = visual.ShapeStim(
-    win=win, name='left_cue',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=-90.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-4.0, interpolate=True)
-right_cue = visual.ShapeStim(
-    win=win, name='right_cue',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=90.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-5.0, interpolate=True)
-centre_cue1 = visual.ShapeStim(
-    win=win, name='centre_cue1',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=90.0, pos=(0.375, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-6.0, interpolate=True)
-centre_cue2 = visual.ShapeStim(
-    win=win, name='centre_cue2',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=-90.0, pos=(-0.375, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-7.0, interpolate=True)
-probe_l_fill = visual.ShapeStim(
-    win=win, name='probe_l_fill',units='deg', 
-    size=(1, 1), vertices='circle',
-    ori=0.0, pos=(-5,-1), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-8.0, interpolate=True)
-probe_r_fill = visual.ShapeStim(
-    win=win, name='probe_r_fill',units='deg', 
-    size=(1, 1), vertices='circle',
-    ori=0.0, pos=(5,-1), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-9.0, interpolate=False)
-p_port_cue = parallel.ParallelPort(address='0x2010')
-p_port_trial = parallel.ParallelPort(address='0x2010')
-key_resp = keyboard.Keyboard()
-key_log = keyboard.Keyboard()
-
-# --- Initialize components for Routine "continue_2" ---
-continue_instructions = visual.TextStim(win=win, name='continue_instructions',
-    text='have a break. Press the down arrow to continue when ready.',
-    font='Open Sans',
-    units='cm', pos=(0, 0), height=1.5, wrapWidth=None, ori=0.0, 
-    color='white', colorSpace='rgb', opacity=None, 
-    languageStyle='LTR',
-    depth=0.0);
-continue_response = keyboard.Keyboard()
-text_2 = visual.TextStim(win=win, name='text_2',
-    text='',
-    font='Open Sans',
-    units='cm', pos=(0, -4.5), height=1.5, wrapWidth=None, ori=0.0, 
-    color='white', colorSpace='rgb', opacity=None, 
-    languageStyle='LTR',
-    depth=-3.0);
-
-# --- Initialize components for Routine "cue" ---
-probe_l_cue = visual.ShapeStim(
-    win=win, name='probe_l_cue',units='deg', 
-    size=(3.5, 3.5), vertices='circle',
-    ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=0.0, interpolate=True)
-probe_r_cue = visual.ShapeStim(
-    win=win, name='probe_r_cue',units='deg', 
-    size=(3.5, 3.5), vertices='circle',
-    ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='black', fillColor='blue',
-    opacity=None, depth=-1.0, interpolate=True)
-# Run 'Begin Experiment' code from code_2
-import random, copy
-from random import randint
-from decimal import *
-
-# setup an array to store 6 locations to randomly allocate to our shapes 
-# (or select random locations between (-1,-1) and (1,1) if you want them completely 
-# random though you then need to factor in overlaying shapes)
-master_positions=[[-5,0], [5,0]]
-positions = copy.deepcopy(master_positions)
-fc = visual.ShapeStim(
-    win=win, name='fc',units='cm', 
-    size=(0.25, 0.25), vertices='circle',
-    ori=0.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-3.0, interpolate=True)
-left_cue = visual.ShapeStim(
-    win=win, name='left_cue',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=-90.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-4.0, interpolate=True)
-right_cue = visual.ShapeStim(
-    win=win, name='right_cue',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=90.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-5.0, interpolate=True)
-centre_cue1 = visual.ShapeStim(
-    win=win, name='centre_cue1',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=90.0, pos=(0.375, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-6.0, interpolate=True)
-centre_cue2 = visual.ShapeStim(
-    win=win, name='centre_cue2',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=-90.0, pos=(-0.375, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-7.0, interpolate=True)
-probe_l_fill = visual.ShapeStim(
-    win=win, name='probe_l_fill',units='deg', 
-    size=(1, 1), vertices='circle',
-    ori=0.0, pos=(-5,-1), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-8.0, interpolate=True)
-probe_r_fill = visual.ShapeStim(
-    win=win, name='probe_r_fill',units='deg', 
-    size=(1, 1), vertices='circle',
-    ori=0.0, pos=(5,-1), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-9.0, interpolate=False)
-p_port_cue = parallel.ParallelPort(address='0x2010')
-p_port_trial = parallel.ParallelPort(address='0x2010')
-key_resp = keyboard.Keyboard()
-key_log = keyboard.Keyboard()
-
-# --- Initialize components for Routine "continue_2" ---
-continue_instructions = visual.TextStim(win=win, name='continue_instructions',
-    text='have a break. Press the down arrow to continue when ready.',
-    font='Open Sans',
-    units='cm', pos=(0, 0), height=1.5, wrapWidth=None, ori=0.0, 
-    color='white', colorSpace='rgb', opacity=None, 
-    languageStyle='LTR',
-    depth=0.0);
-continue_response = keyboard.Keyboard()
-text_2 = visual.TextStim(win=win, name='text_2',
-    text='',
-    font='Open Sans',
-    units='cm', pos=(0, -4.5), height=1.5, wrapWidth=None, ori=0.0, 
-    color='white', colorSpace='rgb', opacity=None, 
-    languageStyle='LTR',
-    depth=-3.0);
-
-# --- Initialize components for Routine "cue" ---
-probe_l_cue = visual.ShapeStim(
-    win=win, name='probe_l_cue',units='deg', 
-    size=(3.5, 3.5), vertices='circle',
-    ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=0.0, interpolate=True)
-probe_r_cue = visual.ShapeStim(
-    win=win, name='probe_r_cue',units='deg', 
-    size=(3.5, 3.5), vertices='circle',
-    ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='black', fillColor='blue',
-    opacity=None, depth=-1.0, interpolate=True)
-# Run 'Begin Experiment' code from code_2
-import random, copy
-from random import randint
-from decimal import *
-
-# setup an array to store 6 locations to randomly allocate to our shapes 
-# (or select random locations between (-1,-1) and (1,1) if you want them completely 
-# random though you then need to factor in overlaying shapes)
-master_positions=[[-5,0], [5,0]]
-positions = copy.deepcopy(master_positions)
-fc = visual.ShapeStim(
-    win=win, name='fc',units='cm', 
-    size=(0.25, 0.25), vertices='circle',
-    ori=0.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-3.0, interpolate=True)
-left_cue = visual.ShapeStim(
-    win=win, name='left_cue',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=-90.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-4.0, interpolate=True)
-right_cue = visual.ShapeStim(
-    win=win, name='right_cue',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=90.0, pos=(0, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-5.0, interpolate=True)
-centre_cue1 = visual.ShapeStim(
-    win=win, name='centre_cue1',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=90.0, pos=(0.375, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-6.0, interpolate=True)
-centre_cue2 = visual.ShapeStim(
-    win=win, name='centre_cue2',units='cm', 
-    size=(0.75, 0.75), vertices='triangle',
-    ori=-90.0, pos=(-0.375, 0), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-7.0, interpolate=True)
-probe_l_fill = visual.ShapeStim(
-    win=win, name='probe_l_fill',units='deg', 
-    size=(1, 1), vertices='circle',
-    ori=0.0, pos=(-5,-1), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-8.0, interpolate=True)
-probe_r_fill = visual.ShapeStim(
-    win=win, name='probe_r_fill',units='deg', 
-    size=(1, 1), vertices='circle',
-    ori=0.0, pos=(5,-1), anchor='center',
-    lineWidth=1.0,     colorSpace='rgb',  lineColor='white', fillColor='white',
-    opacity=None, depth=-9.0, interpolate=False)
-p_port_cue = parallel.ParallelPort(address='0x2010')
-p_port_trial = parallel.ParallelPort(address='0x2010')
-key_resp = keyboard.Keyboard()
-key_log = keyboard.Keyboard()
 
 # --- Initialize components for Routine "end" ---
 end_text = visual.TextStim(win=win, name='end_text',
@@ -936,7 +795,7 @@ for thisTrial in trials:
         #r = 127* np.sin(t*2*pi)+127
         r = np.sin(t*2*pi)
         #r = 100+50*sin(t)**4
-        print(f"{r} :- {frameN}: {cir_color}")
+#        print(f"{r} :- {frameN}: {cir_color}")
         cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
         y_pos = 5* np.sin(t)
         cir_color = (r,0,0)
@@ -1540,7 +1399,7 @@ for thisTrial_2 in trials_2:
         #r = 127* np.sin(t*2*pi)+127
         r = np.sin(t*2*pi)
         #r = 100+50*sin(t)**4
-        print(f"{r} :- {frameN}: {cir_color}")
+#        print(f"{r} :- {frameN}: {cir_color}")
         cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
         y_pos = 5* np.sin(t)
         cir_color = (r,0,0)
@@ -2144,7 +2003,7 @@ for thisTrial_3 in trials_3:
         #r = 127* np.sin(t*2*pi)+127
         r = np.sin(t*2*pi)
         #r = 100+50*sin(t)**4
-        print(f"{r} :- {frameN}: {cir_color}")
+#        print(f"{r} :- {frameN}: {cir_color}")
         cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
         y_pos = 5* np.sin(t)
         cir_color = (r,0,0)
@@ -2748,7 +2607,7 @@ for thisTrial_4 in trials_4:
         #r = 127* np.sin(t*2*pi)+127
         r = np.sin(t*2*pi)
         #r = 100+50*sin(t)**4
-        print(f"{r} :- {frameN}: {cir_color}")
+#        print(f"{r} :- {frameN}: {cir_color}")
         cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
         y_pos = 5* np.sin(t)
         cir_color = (r,0,0)
@@ -3196,5 +3055,10 @@ logging.flush()
 if eyetracker:
     eyetracker.setConnectionState(False)
 thisExp.abort()  # or data files will save again on exit
+
+# Terminate the eye tracking stuff
+terminate_task()
+
+#Close up
 win.close()
 core.quit()
