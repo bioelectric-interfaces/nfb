@@ -322,42 +322,78 @@ def rescale(sample, un_scaled_min=0, un_scaled_max=1, scaled_min=255, scaled_max
     scaled_sample = np.clip(scaled_sample, 0, 255)
     return scaled_sample
 
-# ------------- MORE EYE TRACKER STUFF -----------------------------------------
-# get a reference to the currently active EyeLink connection
-el_tracker = pylink.getEYELINK()
-
-# put the tracker in the offline mode first
-el_tracker.setOfflineMode()
-
-# clear the host screen before we draw the backdrop
-el_tracker.sendCommand('clear_screen 0')
-# OPTIONAL: draw landmarks and texts on the Host screen
-# In addition to backdrop image, You may draw simples on the Host PC to use
-# as landmarks. For illustration purpose, here we draw some texts and a box
-# For a list of supported draw commands, see the "COMMANDS.INI" file on the
-# Host PC (under /elcl/exe)
-left = int(scn_width/2.0) - 60
-top = int(scn_height/2.0) - 60
-right = int(scn_width/2.0) + 60
-bottom = int(scn_height/2.0) + 60
-draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
-el_tracker.sendCommand(draw_cmd)
-
-# ==============================================================================    
+  
     
 #--DEFINE THE TRIALS FUNCTION---------------------------------------------------
-def run_trials(thisTrial, trials):
+def run_trials(thisTrial, trials, block=0):
+    # ------------- MORE EYE TRACKER STUFF -----------------------------------------
+    # get a reference to the currently active EyeLink connection
+    el_tracker = pylink.getEYELINK()
+
+    # put the tracker in the offline mode first
+    el_tracker.setOfflineMode()
+
+    # clear the host screen before we draw the backdrop
+    el_tracker.sendCommand('clear_screen 0')
+    # OPTIONAL: draw landmarks and texts on the Host screen
+    # In addition to backdrop image, You may draw simples on the Host PC to use
+    # as landmarks. For illustration purpose, here we draw some texts and a box
+    # For a list of supported draw commands, see the "COMMANDS.INI" file on the
+    # Host PC (under /elcl/exe)
+    left = int(scn_width/2.0) - 60
+    top = int(scn_height/2.0) - 60
+    right = int(scn_width/2.0) + 60
+    bottom = int(scn_height/2.0) + 60
+    draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+    el_tracker.sendCommand(draw_cmd)
+
+    # ==============================================================================  
     if thisTrial != None:
         for paramName in thisTrial:
             exec('{} = thisTrial[paramName]'.format(paramName))
 
-    for thisTrial in trials:
+    for trial_index, thisTrial in enumerate(trials):
         currentLoop = trials
         # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
         if thisTrial != None:
             for paramName in thisTrial:
                 exec('{} = thisTrial[paramName]'.format(paramName))
+            # send a "TRIALID" message to mark the start of a trial, see Data
+            
+        # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
+        el_tracker.sendMessage(f'TRIALID {block}-{trial_index}')  
         
+        # record_status_message : show some info on the Host PC
+        # here we show how many trial has been tested
+        status_msg = f'TRIAL number %d {block}-{trial_index}'
+        el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+            # drift check
+        # we recommend drift-check at the beginning of each trial
+        
+        # !!! MAYBE THIS DRIFT CORRECTION (along with the above eyelink stuff) SHOULD BE DONE BEFORE EACH BLOCK OF TRIALS RATHER THAN EACH TRIAL?
+        # the doDriftCorrect() function requires target position in integers
+        # the last two arguments:
+        # draw_target (1-default, 0-draw the target then call doDriftCorrect)
+        # allow_setup (1-press ESCAPE to recalibrate, 0-not allowed)
+        #
+        # Skip drift-check if running the script in Dummy Mode
+        while not dummy_mode:
+            # terminate the task if no longer connected to the tracker or
+            # user pressed Ctrl-C to terminate the task
+            if (not el_tracker.isConnected()) or el_tracker.breakPressed():
+                terminate_task()
+                return pylink.ABORT_EXPT
+
+            # drift-check and re-do camera setup if ESCAPE is pressed
+            try:
+                error = el_tracker.doDriftCorrect(int(scn_width/2.0),
+                                                  int(scn_height/2.0), 1, 1)
+                # break following a success drift-check
+                if error is not pylink.ESC_KEY:
+                    break
+            except:
+                pass
+            
         # --- Prepare to start Routine "cue" ---
         continueRoutine = True
         # update component parameters for each repeat
