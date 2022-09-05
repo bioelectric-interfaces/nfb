@@ -78,6 +78,7 @@ if __name__ == "__main__":
     nfb_type = nfb_types['posner']
     # nfb_template = "nfb_template_graph.xml" #"nfb_template_gabor.xml"
     test_template = "cvsa_feedback.xml"
+    test_template = "cvsa_feedback_nocue.xml"
     use_baseline_correction = 0
     baseline_cor_threshold = 0.2
     smooth_window = 100 # THIS IS AAI SMOOTHING

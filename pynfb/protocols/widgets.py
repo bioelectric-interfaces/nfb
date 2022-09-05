@@ -399,7 +399,7 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         self.m_threshold = m_threshold
         self.r_threshold = r_threshold
         self.circle = np.linspace(-np.pi / 2, np.pi / 2, 200)
-        self.fixdot_radius = 0.06
+        self.fixdot_radius = 0.075
         self.stim_radius = 0.9#0.4
         self.x = np.linspace(-self.stim_radius, self.stim_radius, 100)
         self.train_side = None
