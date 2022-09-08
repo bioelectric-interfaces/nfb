@@ -13,12 +13,23 @@ import platform
 import configparser
 import os
 import sys
+import logging
+from datetime import datetime
 
 if __name__ == "__main__":
     # read in the config
     config = configparser.ConfigParser()
     # config.read('example.ini')
     config.read(sys.argv[1])
+
+    participant_no = config['EXPERIMENT']['participant_id']
+    output_dir = os.path.join("experiment_config_output", str(participant_no))
+    if not os.path.exists(output_dir):
+        # Create a new directory because it does not exist
+        os.makedirs(output_dir)
+    logging.basicConfig(filename=os.path.join(output_dir, f"{participant_no}.log"), level=logging.INFO, filemode='w')
+    timestamp_str = datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M-%S')
+    logging.info(f"log created at: {timestamp_str}")
 
     # if data is present, calculate the appropriate thresholds and generate the rest of the experiment files
     iaf = True
@@ -71,7 +82,6 @@ if __name__ == "__main__":
     nfb_types = {"circle": 1, "bar": 2, "gabor": 3, "plot": 4, "posner":5}
 
     # Common settings
-    participant_no = config['EXPERIMENT']['participant_id']
     stream_name = "BrainVision RDA"
     t_filt_type = 'fft'
     composite_signal = "AAI"

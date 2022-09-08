@@ -34,6 +34,7 @@ import pandas as pd
 from scipy.stats import norm
 import plotly.graph_objs as go
 import matplotlib.pyplot as plt
+import logging
 
 import analysis.analysis_functions as af
 
@@ -142,6 +143,8 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     # Get number of left and right events
     print(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
     print(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
+    logging.info(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
+    logging.info(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
     # print(f"No. NFB EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[22]}")
 
     # Replicate the moving average smoother
@@ -188,6 +191,7 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
         plt.show()
 
     print(f"RAW AAI MEAN: {mu_raw}, STD: {std_raw}")
+    logging.info(f"RAW AAI MEAN: {mu_raw}, STD: {std_raw}")
 
     return mu_raw, std_raw
 
@@ -247,6 +251,9 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     print(f"No. LEFT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
     print(f"No. RIGHT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
     print(f"No. NFB EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[55]}")
+    logging.info(f"No. LEFT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
+    logging.info(f"No. RIGHT EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
+    logging.info(f"No. NFB EVENTS (BV): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[55]}")
 
     # Replicate the moving average smoother
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
@@ -283,6 +290,7 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
         plt.show()
 
     print(f"RAW AAI MEAN (BV): {mu_raw}, STD: {std_raw}")
+    logging.info(f"RAW AAI MEAN (BV): {mu_raw}, STD: {std_raw}")
 
     return mu_raw, std_raw
 

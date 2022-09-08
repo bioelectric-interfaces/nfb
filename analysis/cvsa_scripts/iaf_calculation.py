@@ -5,6 +5,7 @@ from philistine.mne import savgol_iaf
 from utils.load_results import load_data
 import mne
 import pandas as pd
+import logging
 
 
 def iaf_from_baseline(h5file):
@@ -59,6 +60,8 @@ def iaf_from_baseline(h5file):
         print("----------------------------------------------")
         print(f"TACS CYCLES: {iaf_raw*8}, RAMP CYCLES: {iaf_raw*1}")
         print("----------------------------------------------")
+        logging.info(f"BASELINE: {baseline_name}, IAF: {iaf_raw}")
+        logging.info(f"TACS CYCLES: {iaf_raw*8}, RAMP CYCLES: {iaf_raw*1}")
         if baseline_name == 'baseline_ec':
             iaf_ec = iaf_raw
     return iaf_data, iaf_ec

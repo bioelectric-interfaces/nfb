@@ -3,6 +3,7 @@ Script to get the screen witdh from the eye calibration
 """
 from utils.load_results import load_data
 from scipy.signal import butter, lfilter, freqz
+import logging
 
 import plotly.graph_objs as go
 
@@ -51,6 +52,7 @@ def eye_calibration(h5file, plot=False):
     eye_range = left_calib_mean - right_calib_mean
 
     print(f"EYE CENTRE: {eye_centre}, EYE RANGE: {eye_range}")
+    logging.info(f"EYE CENTRE: {eye_centre}, EYE RANGE: {eye_range}")
 
     if plot:
         fig1 = go.Figure()
