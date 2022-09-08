@@ -63,7 +63,7 @@ class Experiment():
         # self.probe_dur = 0.05#32 # seconds # TODO: make this depend on screen refresh rate
         self.probe_random_start = 1 + r.uniform(0, 1) # TODO change the start of the probe
         # self.test_signal = (np.sin(2*np.pi*np.arange(1000*100)*0.5/1000)).astype(np.float32) #Test signal to be used for posner distractor colour
-        self.test_signal = self.get_aai_from_pickle()#self.Randomwalk1D(100000)[1] #self.get_aai_from_pickle() #
+        self.test_signal = self.Randomwalk1D(100000)[1] #self.get_aai_from_pickle() #
         self.test_start = r.randint(0, int(len(self.test_signal)/2)) # randomly start somewhere in the test signal
         self.mean_reward_signal = 0
         self.median_eye_signal = 0
