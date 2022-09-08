@@ -58,7 +58,8 @@ if __name__ == "__main__":
 
     nfb_template = None
     if eye_threshold and aai_thresholds and iaf:
-        nfb_template = "cvsa_feedback.xml"
+        # nfb_template = "cvsa_feedback.xml"
+        nfb_template = "cvsa_feedback_nocue.xml"
 
     if platform.system() == "Windows":
         userdir = os.path.join("2354158T", "OneDrive - University of Glasgow")
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     number_nfb_tasks = 10
     nfb_type = nfb_types['posner']
     # nfb_template = "nfb_template_graph.xml" #"nfb_template_gabor.xml"
-    test_template = "cvsa_feedback.xml"
+    # test_template = "cvsa_feedback.xml"
     test_template = "cvsa_feedback_nocue.xml"
     use_baseline_correction = 0
     baseline_cor_threshold = 0.2
@@ -97,6 +98,7 @@ if __name__ == "__main__":
     tasks = {"baseline": "baseline.xml",
              "eye_calibration": "eye_calibration.xml",
              "nfb_task": nfb_template,
+             "test_task": nfb_template,
              "posner_task": "posner_psychopy.xml"}
 
     task_info = {}
@@ -123,10 +125,10 @@ if __name__ == "__main__":
         for task, template in tasks.items():
             if template:
                 if task == "test_task":
-                    number_nfb_tasks = 5
+                    number_nfb_tasks = 3
                     posner_test = 0
-                    stim_duration = 1.5
-                    nfb_duration = 10
+                    stim_duration = 10
+                    nfb_duration = 15
                     show_score = 0
                     enable_posner = 0
                 if task == "posner_task":
