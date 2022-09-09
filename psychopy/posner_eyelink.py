@@ -63,7 +63,7 @@ def clear_screen(win):
 
     win.fillColor = genv.getBackgroundColor()
     win.flip()
-dummy_mode = True
+dummy_mode = False
 edf_fname = 'TEST'
 results_folder = 'results'
 eyelink_ip = "100.1.1.1"
