@@ -516,7 +516,7 @@ def run_trials(thisTrial, trials, block=0):
             if probe_l_cue.status == STARTED:  # only update if drawing
                 probe_l_cue.setFillColor('blue', log=False)
                 probe_l_cue.setPos((-5, -1), log=False)
-                probe_l_cue.setLineColor('black', log=False)
+                probe_l_cue.setLineColor('white', log=False)
             
             # *probe_r_cue* updates
             if probe_r_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
@@ -1067,7 +1067,7 @@ probe_r_cue = visual.ShapeStim(
     win=win, name='probe_r_cue',units='deg', 
     size=(3.5, 3.5), vertices='circle',
     ori=0.0, pos=[0,0], anchor='center',
-    lineWidth=8.0,     colorSpace='rgb',  lineColor='black', fillColor='blue',
+    lineWidth=8.0,     colorSpace='rgb',  lineColor='white', fillColor='blue',
     opacity=None, depth=-1.0, interpolate=True)
 # Run 'Begin Experiment' code from code_2
 import random, copy
