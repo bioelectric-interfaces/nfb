@@ -230,6 +230,8 @@ def run_trials(thisTrial, trials, block=0):
         
         probe_start = random.uniform(4, 5.5)
         side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
+        
+        el_tracker.sendMessage(f'CUE_DIR-{side}')
         neutral_side = random.choice([1,2])
         
         # push the start of the cue
@@ -394,6 +396,7 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'fc.started')
                 fc.setAutoDraw(True)
+                el_tracker.sendMessage(f'FC_START')
             if fc.status == STARTED:
                 # is it time to stop? (based on global clock, using actual start)
                 if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
@@ -403,6 +406,7 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'fc.stopped')
                     fc.setAutoDraw(False)
+                    el_tracker.sendMessage(f'FC_STOP')
             
             # *left_cue* updates
             if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
@@ -414,6 +418,8 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'left_cue.started')
                 left_cue.setAutoDraw(True)
+                if l_cue_color ==(255,255,255):
+                    el_tracker.sendMessage(f'LEFT_CUE_START')
             if left_cue.status == STARTED:
                 # is it time to stop? (based on local clock)
                 if tThisFlip > 6.6-frameTolerance:
@@ -423,6 +429,8 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'left_cue.stopped')
                     left_cue.setAutoDraw(False)
+                    if l_cue_color ==(255,255,255):
+                        el_tracker.sendMessage(f'LEFT_CUE_STOP')
             if left_cue.status == STARTED:  # only update if drawing
                 left_cue.setFillColor(l_cue_color, log=False)
                 left_cue.setLineColor(l_cue_color, log=False)
@@ -437,6 +445,8 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'right_cue.started')
                 right_cue.setAutoDraw(True)
+                if r_cue_color ==(255,255,255):
+                    el_tracker.sendMessage(f'RIGHT_CUE_START')
             if right_cue.status == STARTED:
                 # is it time to stop? (based on local clock)
                 if tThisFlip > 6.6-frameTolerance:
@@ -446,6 +456,8 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'right_cue.stopped')
                     right_cue.setAutoDraw(False)
+                    if r_cue_color ==(255,255,255):
+                        el_tracker.sendMessage(f'RIGHT_CUE_STOP')
             if right_cue.status == STARTED:  # only update if drawing
                 right_cue.setFillColor(r_cue_color, log=False)
                 right_cue.setLineColor(r_cue_color, log=False)
@@ -460,6 +472,8 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'centre_cue1.started')
                 centre_cue1.setAutoDraw(True)
+                if c_cue_color ==(255,255,255):
+                    el_tracker.sendMessage(f'CENTRE_CUE_START')
             if centre_cue1.status == STARTED:
                 # is it time to stop? (based on local clock)
                 if tThisFlip > 6.6-frameTolerance:
@@ -469,6 +483,8 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
                     centre_cue1.setAutoDraw(False)
+                    if c_cue_color ==(255,255,255):
+                        el_tracker.sendMessage(f'CENTRE_CUE_STOP')
             if centre_cue1.status == STARTED:  # only update if drawing
                 centre_cue1.setFillColor(c_cue_color, log=False)
                 centre_cue1.setLineColor(c_cue_color, log=False)
@@ -506,6 +522,8 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'probe_l_fill.started')
                 probe_l_fill.setAutoDraw(True)
+                if l_fill_color == (255,255,255):
+                    el_tracker.sendMessage(f'LEFT_STIM_START')
             if probe_l_fill.status == STARTED:
                 # is it time to stop? (based on global clock, using actual start)
                 if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
@@ -515,6 +533,8 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
                     probe_l_fill.setAutoDraw(False)
+                    if l_fill_color == (255,255,255):
+                        el_tracker.sendMessage(f'LEFT_STIM_STOP')
             if probe_l_fill.status == STARTED:  # only update if drawing
                 probe_l_fill.setFillColor(l_fill_color, log=False)
                 probe_l_fill.setLineColor(l_fill_color, log=False)
@@ -529,6 +549,8 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'probe_r_fill.started')
                 probe_r_fill.setAutoDraw(True)
+                if r_fill_color == (255,255,255):
+                    el_tracker.sendMessage(f'RIGHT_STIM_START')
             if probe_r_fill.status == STARTED:
                 # is it time to stop? (based on global clock, using actual start)
                 if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
@@ -538,6 +560,8 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
                     probe_r_fill.setAutoDraw(False)
+                    if r_fill_color == (255,255,255):
+                        el_tracker.sendMessage(f'RIGHT_STIM_STOP')
             if probe_r_fill.status == STARTED:  # only update if drawing
                 probe_r_fill.setFillColor(r_fill_color, log=False)
                 probe_r_fill.setLineColor(r_fill_color, log=False)
