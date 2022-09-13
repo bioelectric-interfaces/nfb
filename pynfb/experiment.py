@@ -34,6 +34,7 @@ from ._titles import WAIT_BAR_MESSAGES
 import pandas as pd
 import mne
 
+import pylink
 
 # helpers
 def int_or_none(string):
@@ -76,9 +77,100 @@ class Experiment():
         self.block_score = {}
         self.block_score_left = {}
         self.block_score_right = {}
+        self.dir_name = "results_data"
         self.restart()
+        self.el_tracker = self.init_eyelink()
         logging.info(f"{__name__}: ")
         pass
+
+    def init_eyelink(self):
+        # Set this variable to True to run the script in "Dummy Mode"
+        dummy_mode = False
+
+        # get the screen resolution natively supported by the monitor
+        scn_width, scn_height = 0, 0
+
+        edf_fname = 'eye_nfb'
+
+        # Set up a folder to store the EDF data files and the associated resources
+        # e.g., files defining the interest areas used in each trial
+        # results_folder = 'results'
+        # if not os.path.exists(results_folder): #TODO: make a dialog to get the results path to use here (same as with posner task)
+        #     os.makedirs(results_folder)
+        results_folder = self.dir_name
+
+        # We download EDF data file from the EyeLink Host PC to the local hard
+        # drive at the end of each testing session, here we rename the EDF to
+        # include session start date/time
+        time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
+        session_identifier = edf_fname + time_str
+
+        # create a folder for the current testing session in the "results" folder
+        session_folder = os.path.join(results_folder, session_identifier)
+        print(f"ATTEMPTING TO CREATE SESSION FOLDER: {session_folder}")
+        if not os.path.exists(session_folder):
+            os.makedirs(session_folder)
+            print(f"CREATED SESSION FOLDER")
+
+        if dummy_mode:
+            el_tracker = pylink.EyeLink(None)
+        else:
+            try:
+                el_tracker = pylink.EyeLink("100.1.1.1")
+            except RuntimeError as error:
+                print('ERROR:', error)
+
+        # Step 2: Open an EDF data file on the Host PC
+        edf_file = edf_fname + ".EDF"
+        try:
+            el_tracker.openDataFile(edf_file)
+        except RuntimeError as err:
+            print('ERROR:', err)
+            # close the link if we have one open
+            if el_tracker.isConnected():
+                el_tracker.close()
+
+        preamble_text = 'RECORDED BY %s' % os.path.basename(__file__)
+        el_tracker.sendCommand("add_file_preamble_text '%s'" % preamble_text)
+
+        el_tracker.setOfflineMode()
+        eyelink_ver = 0  # set version to 0, in case running in Dummy mode
+        if not dummy_mode:
+            vstr = el_tracker.getTrackerVersionString()
+            eyelink_ver = int(vstr.split()[-1].split('.')[0])
+            # print out some version info in the shell
+            print('Running experiment on %s, version %d' % (vstr, eyelink_ver))
+        # File and Link data control
+        # what eye events to save in the EDF file, include everything by default
+        file_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT'
+        # what eye events to make available over the link, include everything by default
+        link_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,BUTTON,FIXUPDATE,INPUT'
+        # what sample data to save in the EDF data file and to make available
+        # over the link, include the 'HTARGET' flag to save head target sticker
+        # data for supported eye trackers
+        if eyelink_ver > 3:
+            file_sample_flags = 'LEFT,RIGHT,GAZE,HREF,RAW,AREA,HTARGET,GAZERES,BUTTON,STATUS,INPUT'
+            link_sample_flags = 'LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT'
+        else:
+            file_sample_flags = 'LEFT,RIGHT,GAZE,HREF,RAW,AREA,GAZERES,BUTTON,STATUS,INPUT'
+            link_sample_flags = 'LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT'
+        el_tracker.sendCommand("file_event_filter = %s" % file_event_flags)
+        el_tracker.sendCommand("file_sample_data = %s" % file_sample_flags)
+        el_tracker.sendCommand("link_event_filter = %s" % link_event_flags)
+        el_tracker.sendCommand("link_sample_data = %s" % link_sample_flags)
+
+        print('EYETRACKER TRIAL SETUP')
+        # get a reference to the currently active EyeLink connection
+        el_tracker = pylink.getEYELINK()
+
+        # put the tracker in the offline mode first
+        el_tracker.setOfflineMode()
+
+        # clear the host screen before we draw the backdrop
+        el_tracker.sendCommand('clear_screen 0')
+        
+        return el_tracker
+
 
     def Randomwalk1D(self, n):  # n here is the no. of steps that we require
         # ADAPTED FROM: https://www.geeksforgeeks.org/random-walk-implementation-python/
@@ -474,6 +566,52 @@ class Experiment():
         """
         # save raw and signals samples asynchronously
         protocol_number_str = 'protocol' + str(self.current_protocol_index + 1)
+
+        # ------------- MORE EYE TRACKER STUFF -----------------------------------------
+        print('EYETRACKER TRIAL SETUP')
+        # get a reference to the currently active EyeLink connection
+        el_tracker = pylink.getEYELINK()
+
+        # put the tracker in the offline mode first
+        el_tracker.setOfflineMode()
+
+        # clear the host screen before we draw the backdrop
+        el_tracker.sendCommand('clear_screen 0')
+        # OPTIONAL: draw landmarks and texts on the Host screen
+        # In addition to backdrop image, You may draw simples on the Host PC to use
+        # as landmarks. For illustration purpose, here we draw some texts and a box
+        # For a list of supported draw commands, see the "COMMANDS.INI" file on the
+        # Host PC (under /elcl/exe)
+        # left = int(scn_width / 2.0) - 60
+        # top = int(scn_height / 2.0) - 60
+        # right = int(scn_width / 2.0) + 60
+        # bottom = int(scn_height / 2.0) + 60
+        # draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        # el_tracker.sendCommand(draw_cmd)
+
+        el_tracker.sendMessage(f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}')
+
+        # record_status_message : show some info on the Host PC
+        # here we show how many trial has been tested
+        # status_msg = f'TRIAL number {block}-{trial_index}'
+        # el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+
+        # put tracker in idle/offline mode before recording
+        el_tracker.setOfflineMode()
+
+        # Start recording
+        # arguments: sample_to_file, events_to_file, sample_over_link,
+        # event_over_link (1-yes, 0-no)
+        try:
+            el_tracker.startRecording(1, 1, 1, 1)
+        except RuntimeError as error:
+            print("ERROR:", error)
+            # abort_trial()
+            return pylink.TRIAL_ERROR
+
+        # Allocate some time for the tracker to cache some samples
+        pylink.pumpDelay(100)
+        # ------------------------------------------------------------------------------
 
         # descale signals:
         signals_recordings = np.array([signal.descale_recording(data)
