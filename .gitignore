@@ -164,7 +164,7 @@ fsaverage/
 *.zip
 .surf
 
-psychopy/data
+psychopy_tasks/data
 
 # Generated experiment config files
 experiment_config_output/
