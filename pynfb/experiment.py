@@ -168,7 +168,7 @@ class Experiment():
 
         # clear the host screen before we draw the backdrop
         el_tracker.sendCommand('clear_screen 0')
-        
+
         return el_tracker
 
 
@@ -593,8 +593,8 @@ class Experiment():
 
         # record_status_message : show some info on the Host PC
         # here we show how many trial has been tested
-        # status_msg = f'TRIAL number {block}-{trial_index}'
-        # el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+        status_msg = f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}'
+        el_tracker.sendCommand("record_status_message '%s'" % status_msg)
 
         # put tracker in idle/offline mode before recording
         el_tracker.setOfflineMode()
