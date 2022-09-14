@@ -257,6 +257,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.experiment.restart()
 
     def closeEvent(self, event):
+        logging.info('CLOSING EXPERIMENT WINDOW')
+        print('CLOSING EXPERIMENT WINDOW')
+        self.experiment.terminate_eyelink()
         self._subject_window_want_to_close = True
         if self.show_subject_window and self.subject_window:
             self.subject_window.close()
