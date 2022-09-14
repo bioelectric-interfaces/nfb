@@ -443,7 +443,7 @@ class Experiment():
                     stim_response_period = 2 # time allowed for the participant to react to the stimulus
                     if not current_protocol.widget_painter.kill:
                         current_protocol.widget_painter.kill = True
-                        self.current_protocol_n_samples = self.samples_counter + (self.freq * stim_response_period) # Allow the protocol to end after the stimulus is displayed
+                        # self.current_protocol_n_samples = self.samples_counter + (self.freq * stim_response_period) # Allow the protocol to end after the stimulus is displayed
                     if self.samples_counter >= self.current_protocol_n_samples:
                         # end the protocol if the participant hasn't responded in time
                         # NOTE: Must have the max experiment samples larger than the posner feedback + 2 otherwise can get stuck todo: fix this
@@ -614,7 +614,7 @@ class Experiment():
         :return: None
         """
         # save raw and signals samples asynchronously
-        protocol_number_str = 'protocol' + str(self.current_protocol_index + 1)
+        protocol_number_str = 'protocol' + str(self.current_protocol_index+1)
 
         # ------------- MORE EYE TRACKER STUFF -----------------------------------------
         print('EYETRACKER TRIAL SETUP')
@@ -638,11 +638,11 @@ class Experiment():
         # draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
         # el_tracker.sendCommand(draw_cmd)
 
-        el_tracker.sendMessage(f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index+1].name}')
+        el_tracker.sendMessage(f'PROTOCOL END {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}')
 
         # record_status_message : show some info on the Host PC
         # here we show how many trial has been tested
-        status_msg = f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index+1].name}'
+        status_msg = f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}'
         el_tracker.sendCommand("record_status_message '%s'" % status_msg)
 
         # put tracker in idle/offline mode before recording
@@ -891,6 +891,7 @@ class Experiment():
                 self.reward.signal = self.signals[reward_signal_id]  # TODO: REward for MOCK
             self.reward.set_enabled(isinstance(current_protocol, FeedbackProtocol))
 
+            el_tracker.sendMessage(f'PROTOCOL START {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}')
         else:
             # status
             self.main.status.finish()
