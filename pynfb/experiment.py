@@ -78,12 +78,14 @@ class Experiment():
         self.block_score_left = {}
         self.block_score_right = {}
         self.dir_name = "results_data"
+        self.eye_session_folder = "eye_data"
         self.restart()
         self.el_tracker = self.init_eyelink()
         logging.info(f"{__name__}: ")
         pass
 
     def init_eyelink(self):
+        print(f'INIT EYELINK')
         # Set this variable to True to run the script in "Dummy Mode"
         dummy_mode = False
 
@@ -106,10 +108,10 @@ class Experiment():
         session_identifier = edf_fname + time_str
 
         # create a folder for the current testing session in the "results" folder
-        session_folder = os.path.join(results_folder, session_identifier)
-        print(f"ATTEMPTING TO CREATE SESSION FOLDER: {session_folder}")
-        if not os.path.exists(session_folder):
-            os.makedirs(session_folder)
+        self.eye_session_folder = os.path.join(results_folder, session_identifier)
+        print(f"ATTEMPTING TO CREATE SESSION FOLDER: {self.eye_session_folder}")
+        if not os.path.exists(self.eye_session_folder):
+            os.makedirs(self.eye_session_folder)
             print(f"CREATED SESSION FOLDER")
 
         if dummy_mode:
@@ -121,9 +123,9 @@ class Experiment():
                 print('ERROR:', error)
 
         # Step 2: Open an EDF data file on the Host PC
-        edf_file = edf_fname + ".EDF"
+        self.edf_file = edf_fname + ".EDF"
         try:
-            el_tracker.openDataFile(edf_file)
+            el_tracker.openDataFile(self.edf_file)
         except RuntimeError as err:
             print('ERROR:', err)
             # close the link if we have one open
@@ -170,6 +172,53 @@ class Experiment():
         el_tracker.sendCommand('clear_screen 0')
 
         return el_tracker
+
+    def terminate_eyelink(self):
+        """ Terminate the task gracefully and retrieve the EDF data file
+
+        file_to_retrieve: The EDF on the Host that we would like to download
+        win: the current window used by the experimental script
+        """
+
+        el_tracker = pylink.getEYELINK()
+
+        if el_tracker.isConnected():
+            # Terminate the current trial first if the task terminated prematurely
+            error = el_tracker.isRecording()
+            if error == pylink.TRIAL_OK:
+                if el_tracker.isRecording():
+                    # add 100 ms to catch final trial events
+                    pylink.pumpDelay(100)
+                    el_tracker.stopRecording()
+                # send a message to mark trial end
+                el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_ERROR)
+
+            # Put tracker in Offline mode
+            el_tracker.setOfflineMode()
+
+            # Clear the Host PC screen and wait for 500 ms
+            el_tracker.sendCommand('clear_screen 0')
+            pylink.msecDelay(500)
+
+            # Close the edf data file on the Host
+            el_tracker.closeDataFile()
+
+            # Show a file transfer message on the screen
+            msg = 'EDF data is transferring from EyeLink Host PC...'
+            logging.info(msg)
+            print(msg)
+
+            # Download the EDF data file from the Host PC to a local data folder
+            # parameters: source_file_on_the_host, destination_file_on_local_drive
+            local_edf = os.path.join(self.eye_session_folder, 'eye_data' + '.EDF')
+            print(f'EDF FILE PATH: {local_edf}')
+            try:
+                el_tracker.receiveDataFile(self.edf_file, local_edf)
+            except RuntimeError as error:
+                print('ERROR:', error)
+
+            # Close the link to the tracker.
+            el_tracker.close()
 
 
     def Randomwalk1D(self, n):  # n here is the no. of steps that we require
@@ -589,11 +638,11 @@ class Experiment():
         # draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
         # el_tracker.sendCommand(draw_cmd)
 
-        el_tracker.sendMessage(f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}')
+        el_tracker.sendMessage(f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index+1].name}')
 
         # record_status_message : show some info on the Host PC
         # here we show how many trial has been tested
-        status_msg = f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}'
+        status_msg = f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index+1].name}'
         el_tracker.sendCommand("record_status_message '%s'" % status_msg)
 
         # put tracker in idle/offline mode before recording
@@ -852,6 +901,7 @@ class Experiment():
                 self.subject.close()
             if self.params['bPlotSourceSpace']:
                 self.source_space_window.close()
+            self.terminate_eyelink()
             print("FINISHED!!")
             # plot_fb_dynamic(self.dir_name + 'experiment_data.h5', self.dir_name)
             # np.save('results/raw', self.main.raw_recorder)
