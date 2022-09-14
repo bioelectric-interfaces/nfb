@@ -171,6 +171,42 @@ class Experiment():
         # clear the host screen before we draw the backdrop
         el_tracker.sendCommand('clear_screen 0')
 
+        # EYE TRACKER STUFF
+        print('EYETRACKER TRIAL SETUP')
+        # get a reference to the currently active EyeLink connection
+        el_tracker = pylink.getEYELINK()
+
+        # put the tracker in the offline mode first
+        el_tracker.setOfflineMode()
+
+        # clear the host screen before we draw the backdrop
+        el_tracker.sendCommand('clear_screen 0')
+        # OPTIONAL: draw landmarks and texts on the Host screen
+        # In addition to backdrop image, You may draw simples on the Host PC to use
+        # as landmarks. For illustration purpose, here we draw some texts and a box
+        # For a list of supported draw commands, see the "COMMANDS.INI" file on the
+        # Host PC (under /elcl/exe)
+        # left = int(scn_width / 2.0) - 60
+        # top = int(scn_height / 2.0) - 60
+        # right = int(scn_width / 2.0) + 60
+        # bottom = int(scn_height / 2.0) + 60
+        # draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        # el_tracker.sendCommand(draw_cmd)
+        # put tracker in idle/offline mode before recording
+        el_tracker.setOfflineMode()
+
+        # Start recording
+        # arguments: sample_to_file, events_to_file, sample_over_link,
+        # event_over_link (1-yes, 0-no)
+        try:
+            el_tracker.startRecording(1, 1, 1, 1)
+        except RuntimeError as error:
+            print("ERROR:", error)
+            # abort_trial()
+            return pylink.TRIAL_ERROR
+
+        # Allocate some time for the tracker to cache some samples
+        pylink.pumpDelay(100)
         return el_tracker
 
     def terminate_eyelink(self):
@@ -288,6 +324,17 @@ class Experiment():
 
             # record data
             if self.main.player_panel.start.isChecked():
+                if self.samples_counter == 0:
+                    # ------------- MORE EYE TRACKER STUFF -----------------------------------------
+                    self.el_tracker.sendMessage(
+                        f'PROTOCOL START {self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}')
+
+                    # record_status_message : show some info on the Host PC
+                    # here we show how many trial has been tested
+                    status_msg = f'PROTOCOL {self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}'
+                    self.el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+
+                    # ------------------------------------------------------------------------------
                 if self.params['bShowSubjectWindow']:
                     self.subject.figure.update_reward(self.reward.get_score())
                 if self.samples_counter < self.experiment_n_samples:
@@ -575,6 +622,8 @@ class Experiment():
                     self.cum_score = self.reward.get_score()
                     logging.debug(
                         f"!! END !! - SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
+                    self.el_tracker.sendMessage(
+                        f'PROTOCOL END {self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}')
                     self.next_protocol()
 
     def enable_trouble_catching(self, widget):
@@ -615,52 +664,6 @@ class Experiment():
         """
         # save raw and signals samples asynchronously
         protocol_number_str = 'protocol' + str(self.current_protocol_index+1)
-
-        # ------------- MORE EYE TRACKER STUFF -----------------------------------------
-        print('EYETRACKER TRIAL SETUP')
-        # get a reference to the currently active EyeLink connection
-        el_tracker = pylink.getEYELINK()
-
-        # put the tracker in the offline mode first
-        el_tracker.setOfflineMode()
-
-        # clear the host screen before we draw the backdrop
-        el_tracker.sendCommand('clear_screen 0')
-        # OPTIONAL: draw landmarks and texts on the Host screen
-        # In addition to backdrop image, You may draw simples on the Host PC to use
-        # as landmarks. For illustration purpose, here we draw some texts and a box
-        # For a list of supported draw commands, see the "COMMANDS.INI" file on the
-        # Host PC (under /elcl/exe)
-        # left = int(scn_width / 2.0) - 60
-        # top = int(scn_height / 2.0) - 60
-        # right = int(scn_width / 2.0) + 60
-        # bottom = int(scn_height / 2.0) + 60
-        # draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
-        # el_tracker.sendCommand(draw_cmd)
-
-        el_tracker.sendMessage(f'PROTOCOL END {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}')
-
-        # record_status_message : show some info on the Host PC
-        # here we show how many trial has been tested
-        status_msg = f'PROTOCOL {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}'
-        el_tracker.sendCommand("record_status_message '%s'" % status_msg)
-
-        # put tracker in idle/offline mode before recording
-        el_tracker.setOfflineMode()
-
-        # Start recording
-        # arguments: sample_to_file, events_to_file, sample_over_link,
-        # event_over_link (1-yes, 0-no)
-        try:
-            el_tracker.startRecording(1, 1, 1, 1)
-        except RuntimeError as error:
-            print("ERROR:", error)
-            # abort_trial()
-            return pylink.TRIAL_ERROR
-
-        # Allocate some time for the tracker to cache some samples
-        pylink.pumpDelay(100)
-        # ------------------------------------------------------------------------------
 
         # descale signals:
         signals_recordings = np.array([signal.descale_recording(data)
@@ -891,7 +894,6 @@ class Experiment():
                 self.reward.signal = self.signals[reward_signal_id]  # TODO: REward for MOCK
             self.reward.set_enabled(isinstance(current_protocol, FeedbackProtocol))
 
-            el_tracker.sendMessage(f'PROTOCOL START {protocol_number_str}-{self.protocols_sequence[self.current_protocol_index].name}')
         else:
             # status
             self.main.status.finish()
