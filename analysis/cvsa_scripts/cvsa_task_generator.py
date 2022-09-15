@@ -108,14 +108,14 @@ if __name__ == "__main__":
     for session in [0, 1]:
         if session == 0:
             # scalp
-            left_spatial_filter_scalp = "PO7=1"#"PO7=1;P5=1;O1=1"
-            right_spatial_filter_scalp = "PO8=1"#"PO8=1;P6=1;O2=1"
+            left_spatial_filter_scalp = "P5=1"#"PO7=1;P5=1;O1=1"
+            right_spatial_filter_scalp = "P6=1"#"PO8=1;P6=1;O2=1"
             mock_file = ''
             muscle_signal = 'EYE_TRACK'
         elif session == 1:
             # sham
-            left_spatial_filter_scalp = "PO7=1"#;P5=1;01=1"
-            right_spatial_filter_scalp = "PO8=1"#;P6=1;02=1"
+            left_spatial_filter_scalp = "P5=1"#;P5=1;01=1"
+            right_spatial_filter_scalp = "P6=1"#;P6=1;02=1"
             mock_file = mock_file_path
             muscle_signal = ''
         for task, template in tasks.items():
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 if task == "test_task":
                     number_nfb_tasks = 3
                     posner_test = 0
-                    stim_duration = 10
+                    stim_duration = 11
                     nfb_duration = 15
                     show_score = 0
                     enable_posner = 0
@@ -137,7 +137,7 @@ if __name__ == "__main__":
                 elif task == "nfb_task":
                     number_nfb_tasks = 20
                     posner_test = 0
-                    stim_duration = 10
+                    stim_duration = 11
                     nfb_duration = 15
                     show_score = 0
                     enable_posner = 0
