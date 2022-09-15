@@ -41,6 +41,8 @@ from string import ascii_letters, digits
 
 from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
 
+TRIAL_REPS = [25, 25, 25, 25]
+#TRIAL_REPS = [5, 2, 2, 2]
 #-------EYELINK PARAMS ---------------------------------------------------------
 # from C:\Program Files (x86)\SR Research\EyeLink\SampleExperiments\Python\examples\Psychopy_examples\picture\picture.py
 def show_msg(win, text, wait_for_keypress=True):
@@ -1279,7 +1281,7 @@ thisExp.nextEntry()
 routineTimer.reset()
 
 # set up handler to look after randomisation of conditions etc
-trials_ = data.TrialHandler(nReps=1.0, method='random', 
+trials_ = data.TrialHandler(nReps=TRIAL_REPS[0], method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials')
@@ -1292,7 +1294,7 @@ block_no = block_no + 1
 run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_2 = data.TrialHandler(nReps=2.0, method='random', 
+trials_2 = data.TrialHandler(nReps=TRIAL_REPS[1], method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_2')
@@ -1304,7 +1306,7 @@ block_no = block_no + 1
 run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_3 = data.TrialHandler(nReps=1.0, method='random', 
+trials_3 = data.TrialHandler(nReps=TRIAL_REPS[2], method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_3')
@@ -1316,7 +1318,7 @@ block_no = block_no + 1
 run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_4 = data.TrialHandler(nReps=2.0, method='sequential', 
+trials_4 = data.TrialHandler(nReps=TRIAL_REPS[3], method='sequential', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_4')
