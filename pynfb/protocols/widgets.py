@@ -435,36 +435,36 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         yoffset = 0.75#1.5
         left_off_x = -xoffset
         left_off_y = -yoffset
-        curve_width = 20#8
+        self.curve_width = 10
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                       left_off_y + self.stim_radius * np.cos(self.circle),
-                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
         self.st_l2 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                       left_off_y + self.stim_radius * -np.cos(self.circle),
-                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
-        fill_st_l = pg.FillBetweenItem(self.st_l1, self.st_l2, brush=(0, 0, 0, 1))
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
+        fill_st_l = pg.FillBetweenItem(self.st_l1, self.st_l2, brush=(0, 0, 0, 0))
         self.fill_st_l = fill_st_l
         self.widget.addItem(fill_st_l)
         self.cr_l1 = widget.plot(left_off_x + self.x, left_off_y + np.zeros_like(self.x),
-                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
         self.cr_l2 = widget.plot(left_off_x + np.zeros_like(self.x), left_off_y + self.x,
-                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
 
         right_off_x = xoffset
         right_off_y = -yoffset
         self.st_r1 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                       right_off_y + self.stim_radius * np.cos(self.circle),
-                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
         self.st_r2 = self.widget.plot(right_off_x + self.stim_radius * np.sin(self.circle),
                                       right_off_y + self.stim_radius * -np.cos(self.circle),
-                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
-        fill_st_r = pg.FillBetweenItem(self.st_r1, self.st_r2, brush=(0, 0, 0, 1))
+                                      pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
+        fill_st_r = pg.FillBetweenItem(self.st_r1, self.st_r2, brush=(0, 0, 0, 0))
         self.fill_st_r = fill_st_r
         self.widget.addItem(fill_st_r)
         self.cr_r1 = widget.plot(right_off_x + self.x, right_off_y + np.zeros_like(self.x),
-                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
         self.cr_r2 = widget.plot(right_off_x + np.zeros_like(self.x), right_off_y + self.x,
-                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=curve_width)).curve
+                                 pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
 
         # # Draw the cue outline
         # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=self.colour, width=4)).curve
@@ -550,9 +550,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
             right_brush = distractor_brush
             left_brush = distractor_brush
 
-        curve_width = 20
-        self.st_l1.setPen(pg.mkPen(color=left_brush, width=curve_width))
-        self.st_l2.setPen(pg.mkPen(color=left_brush, width=curve_width))
+        self.st_l1.setPen(pg.mkPen(color='white', width=self.curve_width))
+        self.st_l2.setPen(pg.mkPen(color='white', width=self.curve_width))
         if self.stim and self.stim_side == 1:
             logging.debug(f"LEFT STIM: {time.time() * 1000}")
             if not self.stim_onset_time:
@@ -563,10 +562,11 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         else:
             # self.cr_l1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
             # self.cr_l2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
-            self.fill_st_l.setBrush((0, 0, 0, 1))
+            # self.fill_st_l.setBrush((0, 0, 0, 1)) #This one was for the posner stuff
+            self.fill_st_l.setBrush(left_brush)
 
-        self.st_r1.setPen(pg.mkPen(color=right_brush, width=curve_width))
-        self.st_r2.setPen(pg.mkPen(color=right_brush, width=curve_width))
+        self.st_r1.setPen(pg.mkPen(color='white', width=self.curve_width))
+        self.st_r2.setPen(pg.mkPen(color='white', width=self.curve_width))
         if self.stim and self.stim_side == 2:
             logging.debug(f"RIGHT STIM: {time.time() * 1000}")
             if not self.stim_onset_time:
@@ -577,7 +577,8 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
         else:
             # self.cr_r1.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
             # self.cr_r2.setPen(pg.mkPen(color=(0,0,0,0), width=curve_width))
-            self.fill_st_r.setBrush((0, 0, 0, 1))
+            # self.fill_st_r.setBrush((0, 0, 0, 1))
+            self.fill_st_r.setBrush(right_brush)
 
     def left_cue(self):
         # self.p1 = self.widget.plot(self.s1, self.s2, pen=pg.mkPen(color=(0,255,0), width=4)).curve
