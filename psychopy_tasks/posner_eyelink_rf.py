@@ -1047,13 +1047,12 @@ pylink.openGraphicsEx(genv)
 # Step 5: Set up the camera and calibrate the tracker
 
 ## Show the task instructions
-#task_msg = 'In the task, you may press the SPACEBAR to end a trial\n' + \
-#    '\nPress Ctrl-C to if you need to quit the task early\n'
-#if dummy_mode:
-#    task_msg = task_msg + '\nNow, press ENTER to start the task'
-#else:
-#    task_msg = task_msg + '\nNow, press ENTER twice to calibrate tracker'
-#show_msg(win, task_msg)
+task_msg = 'Eyelink Calibration\n'
+if dummy_mode:
+    task_msg = task_msg + '\nEyelink Dummy mode ON'
+else:
+    task_msg = task_msg + '\nPress ENTER to calibrate tracker'
+show_msg(win, task_msg)
 
 # skip this step if running the script in Dummy Mode
 if not dummy_mode:
