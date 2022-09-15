@@ -7,7 +7,6 @@ It then generates the rest of the experiment scripts
 
 from experiment_generators.participant_generator import ParticipantTaskGenerator
 from iaf_calculation import iaf_from_baseline
-from eye_calibration import eye_calibration
 from cvsa_thresholding import cvsa_threshold, cvsa_threshold_bv
 import platform
 import configparser
@@ -43,16 +42,6 @@ if __name__ == "__main__":
         band_low = 8
         band_high = 12
 
-    eye_threshold = False
-    eye_range = 500
-    if config['FILES']['eye_calibration']:
-        # GENERATE the eye thresholds
-        eye_centre, eye_range = eye_calibration(config['FILES']['eye_calibration'])
-        eye_threshold = True
-    eye_centre = 0
-    eye_range = 500
-    eye_threshold = True
-
     aai_thresholds = False
     aai_threshold_mean = 0
     aai_threshold_max = 1
@@ -68,7 +57,7 @@ if __name__ == "__main__":
         aai_threshold_mean = mu + threshold_extra
 
     nfb_template = None
-    if eye_threshold and aai_thresholds and iaf:
+    if aai_thresholds and iaf:
         # nfb_template = "cvsa_feedback.xml"
         nfb_template = "cvsa_feedback_nocue.xml"
 
@@ -96,8 +85,6 @@ if __name__ == "__main__":
     enable_smoothing = 1 # THIS IS AAI SMOOTHING
     fft_window = 1000
     mock_reward_threshold = 0.089
-    eye_threshold = int(eye_threshold)
-    eye_range = eye_range
     stim_duration = 5 # TODO - make this random?
     baseline_duration = 120
     use_aai_threshold = int(aai_thresholds)
@@ -106,7 +93,6 @@ if __name__ == "__main__":
     # Generate the settings for each session
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
     tasks = {"baseline": "baseline.xml",
-             "eye_calibration": "eye_calibration.xml",
              "nfb_task": nfb_template,
              "test_task": nfb_template,
              "posner_task": "posner_psychopy.xml"}
@@ -178,8 +164,6 @@ if __name__ == "__main__":
                                                mock_reward_threshold=mock_reward_threshold,
                                                nfb_type=nfb_type,
                                                posner_test=posner_test,
-                                               eye_range=eye_range,
-                                               eye_threshold=eye_threshold,
                                                stim_duration=stim_duration,
                                                baseline_duration=baseline_duration,
                                                muscle_signal=muscle_signal,
