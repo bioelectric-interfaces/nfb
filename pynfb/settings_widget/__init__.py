@@ -287,17 +287,17 @@ class SettingsWidget(QtWidgets.QWidget):
         # Step 5: Run the experimental trials
         # define a few helper functions for trial handling
         # Show the task instructions
-        task_msg = 'In the task, you may press the SPACEBAR to end a trial\n' + \
-                   '\nPress Ctrl-C to if you need to quit the task early\n'
+        task_msg = 'Eyelink Calibration\n'
         if dummy_mode:
-            task_msg = task_msg + '\nNow, press ENTER to start the task'
+            task_msg = task_msg + '\nEyelink Dummy mode ON'
         else:
-            task_msg = task_msg + '\nNow, press ENTER to calibrate tracker'
+            task_msg = task_msg + '\nPress ENTER to calibrate tracker'
 
         # Pygame bug warning
         pygame_warning = '\n\nDue to a bug in Pygame 2, the window may have lost' + \
                          '\nfocus and stopped accepting keyboard inputs.' + \
-                         '\nClicking the mouse helps get around this issue.'
+                         '\nClicking the mouse helps get around this issue.' + \
+                         '\nPress Ctrl+C to exit after calibration complete'
         if pygame.__version__.split('.')[0] == '2':
             task_msg = task_msg + pygame_warning
 
