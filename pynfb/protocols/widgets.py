@@ -432,10 +432,10 @@ class PosnerFeedbackProtocolWidgetPainter(Painter):
 
         # draw Left and right stim
         xoffset = 2.75#4
-        yoffset = 0.75#1.5
+        yoffset = 0.72#1.5
         left_off_x = -xoffset
         left_off_y = -yoffset
-        self.curve_width = 10
+        self.curve_width = 8
         self.st_l1 = self.widget.plot(left_off_x + self.stim_radius * np.sin(self.circle),
                                       left_off_y + self.stim_radius * np.cos(self.circle),
                                       pen=pg.mkPen(color=(0, 0, 0, 0), width=self.curve_width)).curve
