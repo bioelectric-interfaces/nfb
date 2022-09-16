@@ -41,7 +41,7 @@ from string import ascii_letters, digits
 
 from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
 
-TRIAL_REPS = [25, 25, 25, 25]
+TRIAL_REPS = [20, 0, 0, 0]
 #TRIAL_REPS = [5, 2, 2, 2]
 #-------EYELINK PARAMS ---------------------------------------------------------
 # from C:\Program Files (x86)\SR Research\EyeLink\SampleExperiments\Python\examples\Psychopy_examples\picture\picture.py
@@ -191,37 +191,14 @@ def run_trials(thisTrial, trials, block=0):
 
     for trial_index, thisTrial in enumerate(trials):
         print(f'STARTING TRIAL: {trials.thisN}')
-        print(f'TRIALID {block}-{trial_index}')
+        trial_id = f'{block}-{trial_index}'
+        print(trial_id)
         currentLoop = trials
         # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
         if thisTrial != None:
             for paramName in thisTrial:
                 exec('{} = thisTrial[paramName]'.format(paramName))
-            # send a "TRIALID" message to mark the start of a trial, see Data
-            
-        # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
-        el_tracker.sendMessage(f'TRIALID {block}-{trial_index}')  
-        
-        # record_status_message : show some info on the Host PC
-        # here we show how many trial has been tested
-        status_msg = f'TRIAL number {block}-{trial_index}'
-        el_tracker.sendCommand("record_status_message '%s'" % status_msg)
-        
-        # put tracker in idle/offline mode before recording
-        el_tracker.setOfflineMode()
 
-        # Start recording
-        # arguments: sample_to_file, events_to_file, sample_over_link,
-        # event_over_link (1-yes, 0-no)
-        try:
-            el_tracker.startRecording(1, 1, 1, 1)
-        except RuntimeError as error:
-            print("ERROR:", error)
-            abort_trial()
-            return pylink.TRIAL_ERROR
-
-        # Allocate some time for the tracker to cache some samples
-        pylink.pumpDelay(100)
     
         # --- Prepare to start Routine "cue" ---
         continueRoutine = True
@@ -233,13 +210,12 @@ def run_trials(thisTrial, trials, block=0):
         probe_start = random.uniform(4, 5.5)
         side = random.choice([1,2,3]) # 1=l, 2=r, 3=n
         
-        el_tracker.sendMessage(f'CUE_DIR-{side}')
         neutral_side = random.choice([1,2])
         
         # push the start of the cue
         #outlet.push_sample([f'cue_{side}'])
         outlet.push_sample([side])
-        
+
         
         probe_location = (random.choice([-5, 5]), 0)
         # reset 'positions' 
@@ -311,10 +287,35 @@ def run_trials(thisTrial, trials, block=0):
             thisComponent.tStopRefresh = None
             if hasattr(thisComponent, 'status'):
                 thisComponent.status = NOT_STARTED
+                
+        # START RECORDING AND SEND MESSAGE FOR BEGINNING OF TRIAL--------------
+        # send a "TRIALID" message to mark the start of a trial, see Data
+        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_START')  
+        # put tracker in idle/offline mode before recording
+        el_tracker.setOfflineMode()
+
+        # Start recording
+        # arguments: sample_to_file, events_to_file, sample_over_link,
+        # event_over_link (1-yes, 0-no)
+        try:
+            el_tracker.startRecording(1, 1, 1, 1)
+        except RuntimeError as error:
+            print("ERROR:", error)
+            abort_trial()
+            return pylink.TRIAL_ERROR        
+        # record_status_message : show some info on the Host PC
+        # here we show how many trial has been tested
+        cue_dict = {1: 'LEFT', 2: 'RIGHT', 3: 'CENTRE'}
+        status_msg = f'TRIAL {block}-{trial_index}: {cue_dict[side]}'
+        el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+
+        # Allocate some time for the tracker to cache some samples
+        pylink.pumpDelay(100)
         # reset timers
         t = 0
         _timeToFirstFrame = win.getFutureFlipTime(clock="now")
         frameN = -1
+        routineTimer.reset()
         
         # --- Run Routine "cue" ---
         while continueRoutine:
@@ -325,6 +326,7 @@ def run_trials(thisTrial, trials, block=0):
             frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
             # update/draw components on each frame
             
+            win.callOnFlip(el_tracker.sendMessage, f'FT_{trial_id}_{tThisFlip}')
             # *probe_l_cue* updates
             if probe_l_cue.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
                 # keep track of start time/frame for later
@@ -336,8 +338,10 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'probe_l_cue.started')
                 probe_l_cue.setAutoDraw(True)
             if probe_l_cue.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > probe_l_cue.tStartRefresh + 6.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     probe_l_cue.tStop = t  # not accounting for scr refresh
                     probe_l_cue.frameNStop = frameN  # exact frame index
@@ -360,34 +364,17 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'probe_r_cue.started')
                 probe_r_cue.setAutoDraw(True)
             if probe_r_cue.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > probe_r_cue.tStartRefresh + 6.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     probe_r_cue.tStop = t  # not accounting for scr refresh
                     probe_r_cue.frameNStop = frameN  # exact frame index
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'probe_r_cue.stopped')
                     probe_r_cue.setAutoDraw(False)
-            # Run 'Each Frame' code from code_2
-            
-            import numpy as np
-            
-            
-            r = random.randrange(0, 255)
-            #g = random.randrange(0, 255)
-            #b = random.randrange(0, 255)
-            #print(f"colour = {g}")
-            
-            #r = 127* np.sin(t*2*pi)+127
-            r = np.sin(t*2*pi)
-            #r = 100+50*sin(t)**4
-    #        print(f"{r} :- {frameN}: {cir_color}")
-            cir_pos = ( sin(t*2*pi), cos(t*2*pi) )
-            y_pos = 5* np.sin(t)
-            cir_color = (r,0,0)
-            
-            
-            
+
             # *fc* updates
             if fc.status == NOT_STARTED and tThisFlip >= 0.0-frameTolerance:
                 # keep track of start time/frame for later
@@ -398,7 +385,7 @@ def run_trials(thisTrial, trials, block=0):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'fc.started')
                 fc.setAutoDraw(True)
-                el_tracker.sendMessage(f'FC_START')
+                win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_FC_START')
             if fc.status == STARTED:
                 # is it time to stop? (based on global clock, using actual start)
                 if tThisFlipGlobal > fc.tStartRefresh + 1.0-frameTolerance:
@@ -408,7 +395,7 @@ def run_trials(thisTrial, trials, block=0):
                     # add timestamp to datafile
                     thisExp.timestampOnFlip(win, 'fc.stopped')
                     fc.setAutoDraw(False)
-                    el_tracker.sendMessage(f'FC_STOP')
+                    win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_FC_STOP')
             
             # *left_cue* updates
             if left_cue.status == NOT_STARTED and tThisFlip >= 1-frameTolerance:
@@ -421,10 +408,12 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'left_cue.started')
                 left_cue.setAutoDraw(True)
                 if l_cue_color ==(255,255,255):
-                    el_tracker.sendMessage(f'LEFT_CUE_START')
+                    win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_CUELEFT_START')
             if left_cue.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > left_cue.tStartRefresh + 5.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     left_cue.tStop = t  # not accounting for scr refresh
                     left_cue.frameNStop = frameN  # exact frame index
@@ -432,7 +421,7 @@ def run_trials(thisTrial, trials, block=0):
                     thisExp.timestampOnFlip(win, 'left_cue.stopped')
                     left_cue.setAutoDraw(False)
                     if l_cue_color ==(255,255,255):
-                        el_tracker.sendMessage(f'LEFT_CUE_STOP')
+                        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_CUELEFT_STOP')
             if left_cue.status == STARTED:  # only update if drawing
                 left_cue.setFillColor(l_cue_color, log=False)
                 left_cue.setLineColor(l_cue_color, log=False)
@@ -448,10 +437,12 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'right_cue.started')
                 right_cue.setAutoDraw(True)
                 if r_cue_color ==(255,255,255):
-                    el_tracker.sendMessage(f'RIGHT_CUE_START')
+                    win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_CUERIGHT_START')
             if right_cue.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > right_cue.tStartRefresh + 5.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     right_cue.tStop = t  # not accounting for scr refresh
                     right_cue.frameNStop = frameN  # exact frame index
@@ -459,7 +450,7 @@ def run_trials(thisTrial, trials, block=0):
                     thisExp.timestampOnFlip(win, 'right_cue.stopped')
                     right_cue.setAutoDraw(False)
                     if r_cue_color ==(255,255,255):
-                        el_tracker.sendMessage(f'RIGHT_CUE_STOP')
+                        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_CUERIGHT_STOP')
             if right_cue.status == STARTED:  # only update if drawing
                 right_cue.setFillColor(r_cue_color, log=False)
                 right_cue.setLineColor(r_cue_color, log=False)
@@ -475,10 +466,12 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'centre_cue1.started')
                 centre_cue1.setAutoDraw(True)
                 if c_cue_color ==(255,255,255):
-                    el_tracker.sendMessage(f'CENTRE_CUE_START')
+                    win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_CUECENTRE_START')
             if centre_cue1.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > centre_cue1.tStartRefresh + 5.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     centre_cue1.tStop = t  # not accounting for scr refresh
                     centre_cue1.frameNStop = frameN  # exact frame index
@@ -486,7 +479,7 @@ def run_trials(thisTrial, trials, block=0):
                     thisExp.timestampOnFlip(win, 'centre_cue1.stopped')
                     centre_cue1.setAutoDraw(False)
                     if c_cue_color ==(255,255,255):
-                        el_tracker.sendMessage(f'CENTRE_CUE_STOP')
+                        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_CUECENTRE_STOP')
             if centre_cue1.status == STARTED:  # only update if drawing
                 centre_cue1.setFillColor(c_cue_color, log=False)
                 centre_cue1.setLineColor(c_cue_color, log=False)
@@ -502,8 +495,10 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'centre_cue2.started')
                 centre_cue2.setAutoDraw(True)
             if centre_cue2.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > centre_cue2.tStartRefresh + 5.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     centre_cue2.tStop = t  # not accounting for scr refresh
                     centre_cue2.frameNStop = frameN  # exact frame index
@@ -525,7 +520,7 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'probe_l_fill.started')
                 probe_l_fill.setAutoDraw(True)
                 if l_fill_color == (255,255,255):
-                    el_tracker.sendMessage(f'LEFT_STIM_START')
+                    win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_STIMLEFT_START')
             if probe_l_fill.status == STARTED:
                 # is it time to stop? (based on global clock, using actual start)
                 if tThisFlipGlobal > probe_l_fill.tStartRefresh + 0.1-frameTolerance:
@@ -536,7 +531,7 @@ def run_trials(thisTrial, trials, block=0):
                     thisExp.timestampOnFlip(win, 'probe_l_fill.stopped')
                     probe_l_fill.setAutoDraw(False)
                     if l_fill_color == (255,255,255):
-                        el_tracker.sendMessage(f'LEFT_STIM_STOP')
+                        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_STIMLEFT_STOP')
             if probe_l_fill.status == STARTED:  # only update if drawing
                 probe_l_fill.setFillColor(l_fill_color, log=False)
                 probe_l_fill.setLineColor(l_fill_color, log=False)
@@ -552,7 +547,7 @@ def run_trials(thisTrial, trials, block=0):
                 thisExp.timestampOnFlip(win, 'probe_r_fill.started')
                 probe_r_fill.setAutoDraw(True)
                 if r_fill_color == (255,255,255):
-                    el_tracker.sendMessage(f'RIGHT_STIM_START')
+                    win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_STIMRIGHT_START')
             if probe_r_fill.status == STARTED:
                 # is it time to stop? (based on global clock, using actual start)
                 if tThisFlipGlobal > probe_r_fill.tStartRefresh + 0.1-frameTolerance:
@@ -563,7 +558,7 @@ def run_trials(thisTrial, trials, block=0):
                     thisExp.timestampOnFlip(win, 'probe_r_fill.stopped')
                     probe_r_fill.setAutoDraw(False)
                     if r_fill_color == (255,255,255):
-                        el_tracker.sendMessage(f'RIGHT_STIM_STOP')
+                        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_STIMRIGHT_STOP')
             if probe_r_fill.status == STARTED:  # only update if drawing
                 probe_r_fill.setFillColor(r_fill_color, log=False)
                 probe_r_fill.setLineColor(r_fill_color, log=False)
@@ -657,8 +652,10 @@ def run_trials(thisTrial, trials, block=0):
                 win.callOnFlip(key_log.clock.reset)  # t=0 on next screen flip
                 win.callOnFlip(key_log.clearEvents, eventType='keyboard')  # clear events on next screen flip
             if key_log.status == STARTED:
-                # is it time to stop? (based on local clock)
-                if tThisFlip > 6.6-frameTolerance:
+                # is it time to stop? (based on global clock, using actual start)
+                if tThisFlipGlobal > key_log.tStartRefresh + 5.6-frameTolerance:
+#                # is it time to stop? (based on local clock)
+#                if tThisFlip > 6.6-frameTolerance:
                     # keep track of stop time/frame for later
                     key_log.tStop = t  # not accounting for scr refresh
                     key_log.frameNStop = frameN  # exact frame index
@@ -715,6 +712,8 @@ def run_trials(thisTrial, trials, block=0):
         if key_log.keys != None:  # we had a response
             trials.addData('key_log.rt', key_log.rt)
         # the Routine "cue" was not non-slip safe, so reset the non-slip timer
+        
+        win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_STOP')  
         routineTimer.reset()
         thisExp.nextEntry()
         
@@ -758,6 +757,7 @@ def run_continue(block_no):
     t = 0
     _timeToFirstFrame = win.getFutureFlipTime(clock="now")
     frameN = -1
+    routineTimer.reset()
 
     # --- Run Routine "continue_2" ---
     while continueRoutine:
@@ -1281,7 +1281,7 @@ thisExp.nextEntry()
 routineTimer.reset()
 
 # set up handler to look after randomisation of conditions etc
-trials_ = data.TrialHandler(nReps=TRIAL_REPS[0], method='random', 
+trials_ = data.TrialHandler(nReps=TRIAL_REPS[0], method='sequential', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials')
@@ -1294,7 +1294,7 @@ block_no = block_no + 1
 run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_2 = data.TrialHandler(nReps=TRIAL_REPS[1], method='random', 
+trials_2 = data.TrialHandler(nReps=TRIAL_REPS[1], method='sequential', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_2')
@@ -1306,7 +1306,7 @@ block_no = block_no + 1
 run_continue(block_no)
 
 # set up handler to look after randomisation of conditions etc
-trials_3 = data.TrialHandler(nReps=TRIAL_REPS[2], method='random', 
+trials_3 = data.TrialHandler(nReps=TRIAL_REPS[2], method='sequential', 
     extraInfo=expInfo, originPath=-1,
     trialList=[None],
     seed=None, name='trials_3')
