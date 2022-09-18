@@ -73,6 +73,7 @@ welcome_txt_stim.setAutoDraw(True)
 # Init the trial components
 fc = circle.Circle(
     win=win,
+    name='fc',
     units="deg",
     radius=0.1,
     fillColor='black',
@@ -81,6 +82,7 @@ fc = circle.Circle(
 
 left_probe = circle.Circle(
     win=win,
+    name='left_probe',
     units="deg",
     radius=3.5,
     fillColor='blue',
@@ -91,12 +93,13 @@ left_probe = circle.Circle(
 )
 right_probe = circle.Circle(
     win=win,
+    name='right_probe',
     units="deg",
     radius=3.5,
     fillColor='blue',
     lineColor='white',
     lineWidth=8,
-    edges=128,
+    edges=256,
     pos=[5, -1]
 )
 
@@ -162,6 +165,24 @@ for trial_index, thisTrial in enumerate(trials_1):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'probe_l_cue.stopped')
                 left_probe.setAutoDraw(False)
+                left_probe.status = FINISHED
+
+        if right_probe.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
+            # keep track of start time/frame for later
+            right_probe.tStart = t  # local t and not account for scr refresh
+            right_probe.tStartRefresh = tThisFlipGlobal  # on global time
+            win.timeOnFlip(right_probe, 'tStartRefresh')  # time at next scr refresh
+            # add timestamp to datafile
+            thisExp.timestampOnFlip(win, 'right_probe.started')
+            right_probe.setAutoDraw(True)
+        if right_probe.status == STARTED:
+            # is it time to stop? (based on global clock, using actual start)
+            if tThisFlipGlobal > right_probe.tStartRefresh + 6.6-frameTolerance:
+                right_probe.tStop = t  # not accounting for scr refresh
+                # add timestamp to datafile
+                thisExp.timestampOnFlip(win, 'right_probe.stopped')
+                right_probe.setAutoDraw(False)
+                right_probe.status = FINISHED
 
         # Handle the fixation circle
         if fc.status == NOT_STARTED and tThisFlip >= 0-frameTolerance:
@@ -179,10 +200,11 @@ for trial_index, thisTrial in enumerate(trials_1):
                 # add timestamp to datafile
                 thisExp.timestampOnFlip(win, 'fc.stopped')
                 fc.setAutoDraw(False)
+                fc.status = FINISHED
 
-            # check for quit (typically the Esc key)
-            if kb.getKeys(keyList=["escape"]):
-                quit()
+        # check for quit (typically the Esc key)
+        if kb.getKeys(keyList=["escape"]):
+            quit()
 
         continueRoutine = False  # will revert to True if at least one component still running
         for thisComponent in cueComponents:
