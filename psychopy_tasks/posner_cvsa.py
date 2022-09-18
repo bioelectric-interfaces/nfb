@@ -40,6 +40,9 @@ class PosnerTask:
         self.continue_components = []
         self.end_components = []
 
+        # init the global keyboard
+        self.kb = Keyboard()
+
         # Initialize clocks
         self.global_clock = Clock()
         self.trial_clock = Clock()
@@ -61,8 +64,7 @@ class PosnerTask:
                                          savePickle=True, saveWideText=True,
                                          dataFileName=filename)
 
-    def init_components(self):
-        self.kb = Keyboard()  # Keyboard to use throughout
+    def init_start_components(self):
         self.start_text = PosnerComponent(
             TextStim(self.win, text="""Welcome to this experiment!
                                                  Press SPACE to start"""),
@@ -70,6 +72,22 @@ class PosnerTask:
             blocking=True)
         self.start_components = [self.start_text]
 
+    def init_continue_components(self):
+        self.continue_text = PosnerComponent(
+            TextStim(self.win, text="""you've finished X blocks
+                                                 Press SPACE to continue"""),
+            duration=0.0,
+            blocking=True)
+        self.continue_components = [self.continue_text]
+
+    def init_end_components(self):
+        self.end_text = PosnerComponent(
+            TextStim(self.win, text="""you've finished!"""),
+            duration=0.0,
+            blocking=True)
+        self.end_components = [self.end_text]
+
+    def init_trial_components(self):
         self.fc = PosnerComponent(
             circle.Circle(
                 win=self.win,
@@ -230,9 +248,15 @@ class PosnerTask:
         self.show_start_dialog()
         self.update_exp_info()
         self.set_experiment()
-        self.init_components()
+        self.init_start_components()
+        self.init_continue_components()
+        self.init_end_components()
+        self.init_trial_components()
         self.run_block(self.start_components, 1, name='start')
         self.run_block(self.trial_components, self.trial_reps[0], name='trials1')
+        self.run_block(self.continue_components, 1, name='continue')
+        self.run_block(self.trial_components, self.trial_reps[1], name='trials2')
+        self.run_block(self.end_components, 1, name='end')
 
 
 if __name__ == '__main__':
