@@ -544,7 +544,7 @@ class PosnerTask:
             self.start_eye_tracker_recording(el_tracker)
             # send a "TRIALID" message to mark the start of a trial, see Data
             # el_tracker.sendMessage(f'TRIAL_{block_name}_{trial_id}_START (no flipwait)')
-            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{block_name}_{trial_id}_START')
+            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_START')
 
             # Reset the trial clock
             self.trial_clock.reset()
@@ -590,7 +590,7 @@ class PosnerTask:
 
             self.thisExp.nextEntry()
 
-            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{block_name}_{trial_id}_END')
+            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_END')
 
     def show_start_dialog(self):
         dlg = DlgFromDict(self.exp_info)
