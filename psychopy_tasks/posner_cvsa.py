@@ -36,6 +36,7 @@ class PosnerTask:
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
         self.thisExp = None
+
         # init the monitor
         self.mon = Monitor('eprime',
                            width=40,
@@ -44,6 +45,8 @@ class PosnerTask:
         self.mon.setSizePix((1280, 1024))
         self.win = Window(fullscr=False, monitor=self.mon)
         self.scn_width, self.scn_height = self.win.size
+
+        # init the trial component lists
         self.start_components = []
         self.trial_components = []
         self.continue_components = []
@@ -63,6 +66,10 @@ class PosnerTask:
         self.stim_duration = 0.1
         self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
 
+        # init the results paths
+        self.session_folder = "results"
+        self.edf_file = 'eye_data'
+
     def init_eye_link(self):
         dummy_mode = False
         edf_fname = f"{self.exp_info['participant']}_psnr"
@@ -72,9 +79,9 @@ class PosnerTask:
             os.makedirs(results_folder)
         time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
         session_identifier = edf_fname + time_str
-        session_folder = os.path.join(results_folder, session_identifier)
-        if not os.path.exists(session_folder):
-            os.makedirs(session_folder)
+        self.session_folder = os.path.join(results_folder, session_identifier)
+        if not os.path.exists(self.session_folder):
+            os.makedirs(self.session_folder)
 
         # Step 1: Connect to the EyeLink Host PC
         if dummy_mode:
@@ -88,9 +95,9 @@ class PosnerTask:
                 sys.exit()
 
         # Step 2: Open an EDF data file on the Host PC
-        edf_file = edf_fname + ".EDF"
+        self.edf_file = edf_fname + ".EDF"
         try:
-            self.el_tracker.openDataFile(edf_file)
+            self.el_tracker.openDataFile(self.edf_file)
         except RuntimeError as err:
             print('ERROR:', err)
             # close the link if we have one open
@@ -433,7 +440,61 @@ class PosnerTask:
                     pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
 
-    def run_block(self, component_list, trial_reps, block_name='block'):
+    def eye_tracker_trial_setup(self):
+        # get a reference to the currently active EyeLink connection
+        el_tracker = pylink.getEYELINK()
+
+        # put the tracker in the offline mode first
+        el_tracker.setOfflineMode()
+
+        # clear the host screen before we draw the backdrop
+        el_tracker.sendCommand('clear_screen 0')
+
+        # OPTIONAL: draw landmarks and texts on the Host screen
+        left = int(self.scn_width / 2.0) - 60 #TODO: make this appropriate to the posner task
+        top = int(self.scn_height / 2.0) - 60
+        right = int(self.scn_width / 2.0) + 60
+        bottom = int(self.scn_height / 2.0) + 60
+        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        el_tracker.sendCommand(draw_cmd)
+        return el_tracker
+
+    def start_eye_tracker_recording(self, el_tracker):
+        # put tracker in idle/offline mode before recording
+        el_tracker.setOfflineMode()
+
+        # Start recording
+        # arguments: sample_to_file, events_to_file, sample_over_link,
+        # event_over_link (1-yes, 0-no)
+        try:
+            el_tracker.startRecording(1, 1, 1, 1)
+        except RuntimeError as error:
+            print("ERROR:", error)
+            self.abort_trial(el_tracker)
+            return pylink.TRIAL_ERROR
+        # Allocate some time for the tracker to cache some samples
+        pylink.pumpDelay(100)
+
+    def abort_trial(self, el_tracker):
+        """Ends eyetracker recording """
+        el_tracker = pylink.getEYELINK()
+
+        # Stop recording
+        if el_tracker.isRecording():
+            # add 100 ms to catch final trial events
+            pylink.pumpDelay(100)
+            el_tracker.stopRecording()
+
+        # Send a message to clear the Data Viewer screen
+        bgcolor_RGB = (116, 116, 116)
+        el_tracker.sendMessage('!V CLEAR %d %d %d' % bgcolor_RGB)
+
+        # send a message to mark trial end
+        el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_ERROR)
+
+        return pylink.TRIAL_ERROR
+
+    def run_block(self, component_list, trial_reps, block_name='block', block_id=0):
         trials = TrialHandler(nReps=trial_reps, method='sequential',
                               extraInfo=self.exp_info, originPath=-1,
                               trialList=[None],
@@ -441,13 +502,22 @@ class PosnerTask:
         self.thisExp.addLoop(trials)  # add the loop to the experiment
         thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
 
+        el_tracker = self.eye_tracker_trial_setup()
+
         # Do the trials
         for trial_index, thisTrial in enumerate(trials):
+            trial_id = f'{block_id}-{trial_index}'
             print(f'STARTING TRIAL: {trials.thisN} OF BLOCK: {block_name}')
 
             # Calculate the side of the cue and stim validity
             cue_dir = self.calculate_cue_side()
             valid_cue = self.calculate_stim_validity(cue_dir=cue_dir)
+
+            # record_status_message : show some info on the Host PC
+            # here we show how many trial has been tested
+            cue_dict = {1: 'LEFT', 2: 'RIGHT', 3: 'CENTRE'}
+            status_msg = f'TRIAL {block_name}_{trial_id}: {cue_dict[cue_dir]}'
+            el_tracker.sendCommand("record_status_message '%s'" % status_msg)
 
             currentLoop = trials
             # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
@@ -468,13 +538,18 @@ class PosnerTask:
                 if hasattr(thisComponent.component, 'status'):
                     thisComponent.component.status = NOT_STARTED
 
+            self.start_eye_tracker_recording(el_tracker)
+            # send a "TRIALID" message to mark the start of a trial, see Data
+            el_tracker.sendMessage(f'TRIAL_{block_name}_{trial_id}_START (no flipwait)')
+            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{block_name}_{trial_id}_START')
+
             while continueRoutine:
                 # get current time
                 t = self.trial_clock.getTime()
                 tThisFlip = self.win.getFutureFlipTime(clock=self.trial_clock)
                 tThisFlipGlobal = self.win.getFutureFlipTime(clock=None)
 
-                # Handle both the probes
+                # Handle the components
                 for thisComponent in component_list:
                     self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t,
                                           duration=thisComponent.duration)
@@ -484,7 +559,7 @@ class PosnerTask:
 
                 # check for quit (typically the Esc key)
                 if self.kb.getKeys(keyList=["escape"]):
-                    quit()
+                    self.end_experiment()
 
                 continueRoutine = False  # will revert to True if at least one component still running
                 for thisComponent in component_list:
@@ -503,10 +578,13 @@ class PosnerTask:
 
             # Save extra data
             self.thisExp.addData('block_name', block_name)
+            self.thisExp.addData('bloack_id', block_id)
             self.thisExp.addData('cue_dir', cue_dir)
             self.thisExp.addData('valid_cue', valid_cue)
 
             self.thisExp.nextEntry()
+
+            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{block_name}_{trial_id}_END')
 
     def show_start_dialog(self):
         dlg = DlgFromDict(self.exp_info)
@@ -523,6 +601,44 @@ class PosnerTask:
                       f"in session {self.exp_info['session']}.")
 
     def end_experiment(self):
+        """ Terminate the task gracefully and retrieve the EDF data file
+
+        file_to_retrieve: The EDF on the Host that we would like to download
+        win: the current window used by the experimental script
+        """
+        el_tracker = pylink.getEYELINK()
+        if el_tracker.isConnected():
+            # Terminate the current trial first if the task terminated prematurely
+            error = el_tracker.isRecording()
+            if error == pylink.TRIAL_OK:
+                self.abort_trial(el_tracker)
+            # Put tracker in Offline mode
+            el_tracker.setOfflineMode()
+            # Clear the Host PC screen and wait for 500 ms
+            el_tracker.sendCommand('clear_screen 0')
+            pylink.msecDelay(500)
+            # Close the edf data file on the Host
+            el_tracker.closeDataFile()
+
+            # Show a file transfer message on the screen
+            msg = 'EDF data is transferring from EyeLink Host PC...'
+            print(msg)
+
+            # Download the EDF data file from the Host PC to a local data folder
+            # parameters: source_file_on_the_host, destination_file_on_local_drive
+            local_edf = os.path.join(self.session_folder + '.EDF') # TODO: make sure this filename is ok (without the session_identifier)
+            print(f'EDF FILE PATH: {local_edf}')
+            try:
+                el_tracker.receiveDataFile(self.edf_file, local_edf)
+            except RuntimeError as error:
+                print('ERROR:', error)
+
+            # Close the link to the tracker.
+            el_tracker.close()
+
+        # close the PsychoPy window
+        self.win.close()
+
         # Finish experiment by closing window and quitting
         self.win.close()
         quit()
@@ -538,14 +654,15 @@ class PosnerTask:
         self.init_eye_link()
         self.calibrate_eyelink()
         self.run_block(self.start_components, 1, block_name='start')
-        self.run_block(self.trial_components, self.trial_reps[0], block_name='trials1')
+        self.run_block(self.trial_components, self.trial_reps[0], block_name='trials', block_id=0)
         self.run_block(self.continue_components, 1, block_name='continue')
-        self.run_block(self.trial_components, self.trial_reps[1], block_name='trials2')
+        self.run_block(self.trial_components, self.trial_reps[1], block_name='trials', block_id=1)
         self.run_block(self.continue_components, 1, block_name='continue')
-        self.run_block(self.trial_components, self.trial_reps[2], block_name='trials3')
+        self.run_block(self.trial_components, self.trial_reps[2], block_name='trials', block_id=2)
         self.run_block(self.continue_components, 1, block_name='continue')
-        self.run_block(self.trial_components, self.trial_reps[3], block_name='trials4')
+        self.run_block(self.trial_components, self.trial_reps[3], block_name='trials', block_id=3)
         self.run_block(self.end_components, 1, block_name='end')
+        self.end_experiment()
 
 
 if __name__ == '__main__':
