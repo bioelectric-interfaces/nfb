@@ -43,7 +43,7 @@ class PosnerTask:
                            distance=60,
                            autoLog=True)
         self.mon.setSizePix((1280, 1024))
-        self.win = Window(fullscr=False, monitor=self.mon)
+        self.win = Window(fullscr=True, monitor=self.mon, screen=1)
         self.scn_width, self.scn_height = self.win.size
 
         # init the trial component lists
@@ -284,6 +284,7 @@ class PosnerTask:
         self.start_text = PosnerComponent(
             TextStim(self.win, text="""Welcome to this experiment!
                                                  Press SPACE to start"""),
+            name='start_text',
             duration=0.0,
             blocking=True)
         self.start_components = [self.start_text]
@@ -292,6 +293,7 @@ class PosnerTask:
         self.continue_text = PosnerComponent(
             TextStim(self.win, text="""you've finished X blocks
                                                  Press SPACE to continue"""),
+            name='continue_text',
             duration=0.0,
             blocking=True)
         self.continue_components = [self.continue_text]
@@ -299,6 +301,7 @@ class PosnerTask:
     def init_end_components(self):
         self.end_text = PosnerComponent(
             TextStim(self.win, text="""you've finished!"""),
+            name='end_text',
             duration=0.0,
             blocking=True)
         self.end_components = [self.end_text]
@@ -420,9 +423,10 @@ class PosnerTask:
                                  self.stim]#,
                                  # self.key_resp]
 
-    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, duration=1):
+    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, start_time, el_tracker, trial_id, duration=1):
         # Handle both the probes
-        if pcomp.component.status == NOT_STARTED and tThisFlip >= pcomp.start_time - self.frameTolerance:
+        # el_tracker.sendMessage( f'TTHISFLIP {tThisFlip}, TTHISFLIPGLOBAL {tThisFlipGlobal} {pcomp.name}_START_TIME {pcomp.start_time}')
+        if pcomp.component.status == NOT_STARTED and tThisFlip >= start_time + pcomp.start_time - self.frameTolerance:
             # keep track of start time/frame for later
             pcomp.component.tStart = t  # local t and not account for scr refresh
             pcomp.component.tStartRefresh = tThisFlipGlobal  # on global time
@@ -430,6 +434,7 @@ class PosnerTask:
             # add timestamp to datafile
             self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.started')
             pcomp.component.setAutoDraw(True)
+            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_START')
         if pcomp.component.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
             if tThisFlipGlobal > pcomp.component.tStartRefresh + duration - self.frameTolerance:
@@ -439,6 +444,7 @@ class PosnerTask:
                     self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.stopped')
                     pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
+                    self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_END')
 
     def eye_tracker_trial_setup(self):
         # get a reference to the currently active EyeLink connection
@@ -527,9 +533,6 @@ class PosnerTask:
 
             continueRoutine = True
 
-            # Reset the trial clock
-            self.trial_clock.reset()
-
             for thisComponent in component_list:
                 thisComponent.component.tStart = None
                 thisComponent.component.tStop = None
@@ -540,9 +543,12 @@ class PosnerTask:
 
             self.start_eye_tracker_recording(el_tracker)
             # send a "TRIALID" message to mark the start of a trial, see Data
-            el_tracker.sendMessage(f'TRIAL_{block_name}_{trial_id}_START (no flipwait)')
+            # el_tracker.sendMessage(f'TRIAL_{block_name}_{trial_id}_START (no flipwait)')
             self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{block_name}_{trial_id}_START')
 
+            # Reset the trial clock
+            self.trial_clock.reset()
+            tThisFlipStart = self.win.getFutureFlipTime(clock=self.trial_clock)
             while continueRoutine:
                 # get current time
                 t = self.trial_clock.getTime()
@@ -551,7 +557,7 @@ class PosnerTask:
 
                 # Handle the components
                 for thisComponent in component_list:
-                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t,
+                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t, start_time=tThisFlipStart, el_tracker=el_tracker, trial_id=trial_id,
                                           duration=thisComponent.duration)
                     # check for blocking end (typically the Space key)
                     if self.kb.getKeys(keyList=["space"]):
