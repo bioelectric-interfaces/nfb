@@ -13,6 +13,17 @@ fc_start = 0
 first = False
 offset = 0
 
+# def parse_component(line, component_name, offset):
+#     start = 0
+#     end = 0
+#     id = 0
+#     if 'fc' in line and 'START' in line:
+#         start = int(line.split(' ')[0].split('\t')[1])
+#     elif 'fc' in line and 'END' in line:
+#         end = int(line.split(' ')[0].split('\t')[1])
+#         length = int(end) - int(start)
+#         print(f'{id} fc start: {start - offset}, end: {end - offset}, length: {length}')
+
 count = 0
 # Strips the newline character
 for line in Lines:
@@ -45,3 +56,10 @@ for line in Lines:
             left_cue_end = int(line.split(' ')[0].split('\t')[1])
             left_cue_length = int(left_cue_end) - int(left_cue_start)
             print(f'{trial_id} left_cue start: {left_cue_start-offset}, end: {left_cue_end-offset}, length: {left_cue_length}')
+
+        if 'stim' in line and 'START' in line:
+            stim_start = int(line.split(' ')[0].split('\t')[1])
+        elif 'stim' in line and 'END' in line:
+            stim_end = int(line.split(' ')[0].split('\t')[1])
+            stim_length = int(stim_end) - int(stim_start)
+            print(f'{trial_id} stim start: {stim_start-offset}, end: {stim_end-offset}, length: {stim_length}')
