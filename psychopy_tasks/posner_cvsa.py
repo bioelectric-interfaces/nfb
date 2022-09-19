@@ -7,13 +7,17 @@ from psychopy.monitors import Monitor
 from psychopy.data import TrialHandler, getDateStr, ExperimentHandler
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
+from psychopy.visual.shape import ShapeStim
 import psychopy
 import os
 import typing
 import random
+import time
 from dataclasses import dataclass
+import pylink
+import sys
 
-from psychopy.visual.shape import ShapeStim
+from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
 
 
 @dataclass
@@ -22,6 +26,7 @@ class PosnerComponent:
     start_time: float = 0.0
     duration: float = 1.0
     blocking: bool = False
+    name: str = 'component'
 
 
 class PosnerTask:
@@ -38,6 +43,7 @@ class PosnerTask:
                            autoLog=True)
         self.mon.setSizePix((1280, 1024))
         self.win = Window(fullscr=False, monitor=self.mon)
+        self.scn_width, self.scn_height = self.win.size
         self.start_components = []
         self.trial_components = []
         self.continue_components = []
@@ -56,6 +62,142 @@ class PosnerTask:
         self.cue_duration = self.trial_duration - self.fc_duration
         self.stim_duration = 0.1
         self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
+
+    def init_eye_link(self):
+        dummy_mode = False
+        edf_fname = f"{self.exp_info['participant']}_psnr"
+        results_folder = 'eye_track_data'
+        eyelink_ip = "100.1.1.1"
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
+        session_identifier = edf_fname + time_str
+        session_folder = os.path.join(results_folder, session_identifier)
+        if not os.path.exists(session_folder):
+            os.makedirs(session_folder)
+
+        # Step 1: Connect to the EyeLink Host PC
+        if dummy_mode:
+            self.el_tracker = pylink.EyeLink(None)
+        else:
+            try:
+                self.el_tracker = pylink.EyeLink(eyelink_ip)
+            except RuntimeError as error:
+                print('ERROR:', error)
+                quit()
+                sys.exit()
+
+        # Step 2: Open an EDF data file on the Host PC
+        edf_file = edf_fname + ".EDF"
+        try:
+            self.el_tracker.openDataFile(edf_file)
+        except RuntimeError as err:
+            print('ERROR:', err)
+            # close the link if we have one open
+            if self.el_tracker.isConnected():
+                self.el_tracker.close()
+            quit()
+            sys.exit()
+        preamble_text = 'RECORDED BY %s' % os.path.basename(__file__)
+        self.el_tracker.sendCommand("add_file_preamble_text '%s'" % preamble_text)
+
+        # Step 3: Configure the tracker
+        self.el_tracker.setOfflineMode()
+        eyelink_ver = 0  # set version to 0, in case running in Dummy mode
+        if not dummy_mode:
+            vstr = self.el_tracker.getTrackerVersionString()
+            eyelink_ver = int(vstr.split()[-1].split('.')[0])
+            # print out some version info in the shell
+            print('Running experiment on %s, version %d' % (vstr, eyelink_ver))
+        else:
+            print(f'Running experiment in dummy mode')
+
+        # File and Link data control
+        # what eye events to save in the EDF file, include everything by default
+        file_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,MESSAGE,BUTTON,INPUT'
+        # what eye events to make available over the link, include everything by default
+        link_event_flags = 'LEFT,RIGHT,FIXATION,SACCADE,BLINK,BUTTON,FIXUPDATE,INPUT'
+        # what sample data to save in the EDF data file and to make available
+        # over the link, include the 'HTARGET' flag to save head target sticker
+        # data for supported eye trackers
+        if eyelink_ver > 3:
+            file_sample_flags = 'LEFT,RIGHT,GAZE,HREF,RAW,AREA,HTARGET,GAZERES,BUTTON,STATUS,INPUT'
+            link_sample_flags = 'LEFT,RIGHT,GAZE,GAZERES,AREA,HTARGET,STATUS,INPUT'
+        else:
+            file_sample_flags = 'LEFT,RIGHT,GAZE,HREF,RAW,AREA,GAZERES,BUTTON,STATUS,INPUT'
+            link_sample_flags = 'LEFT,RIGHT,GAZE,GAZERES,AREA,STATUS,INPUT'
+        self.el_tracker.sendCommand("file_event_filter = %s" % file_event_flags)
+        self.el_tracker.sendCommand("file_sample_data = %s" % file_sample_flags)
+        self.el_tracker.sendCommand("link_event_filter = %s" % link_event_flags)
+        self.el_tracker.sendCommand("link_sample_data = %s" % link_sample_flags)
+
+        # calibration type
+        self.el_tracker.sendCommand("calibration_type = HV5")
+
+        # Pass the display pixel coordinates (left, top, right, bottom) to the tracker
+        el_coords = "screen_pixel_coords = 0 0 %d %d" % (self.scn_width - 1, self.scn_height - 1)
+        self.el_tracker.sendCommand(el_coords)
+
+        # Write a DISPLAY_COORDS message to the EDF file
+        # Data Viewer needs this piece of info for proper visualization, see Data
+        # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
+        dv_coords = "DISPLAY_COORDS  0 0 %d %d" % (self.scn_width - 1, self.scn_height - 1)
+        self.el_tracker.sendMessage(dv_coords)
+
+        # Configure a graphics environment (genv) for tracker calibration
+        genv = EyeLinkCoreGraphicsPsychoPy(self.el_tracker, self.win)
+        print(genv)  # print out the version number of the CoreGraphics library
+
+        # Set background and foreground colors for the calibration target
+        foreground_color = (-1, -1, -1)
+        background_color = self.win.color
+        genv.setCalibrationColors(foreground_color, background_color)
+
+        # Set up the calibration target
+        genv.setTargetType('circle')
+        genv.setCalibrationSounds('off', 'off', 'off')
+
+        # Request Pylink to use the PsychoPy window we opened above for calibration
+        print(f"STARTING CALIBRARION")
+        pylink.openGraphicsEx(genv)
+
+        # Step 5: Set up the camera and calibrate the tracker
+        ## Show the task instructions
+        task_msg = 'Eyelink Calibration\n'
+        if dummy_mode:
+            task_msg = task_msg + '\nEyelink Dummy mode ON'
+        else:
+            task_msg = task_msg + '\nPress ENTER to calibrate tracker'
+        self.show_msg(self.win, task_msg, genv)
+
+    def calibrate_eyelink(self, dummy_mode=False):
+        if not dummy_mode:
+            try:
+                self.el_tracker.doTrackerSetup()
+            except RuntimeError as err:
+                print('ERROR:', err)
+                self.el_tracker.exitCalibration()
+        print(f"CALIBRARION DONE")
+
+    def show_msg(self, win, text, genv, wait_for_keypress=True):
+        """ Show task instructions on screen"""
+
+        msg = TextStim(win, text,
+                              color=genv.getForegroundColor(),
+                              wrapWidth=self.scn_width / 2)
+        self.clear_screen(win, genv)
+        msg.draw()
+        win.flip()
+
+        # wait indefinitely, terminates upon any key press
+        if wait_for_keypress:
+            psychopy.event.waitKeys()
+            self.clear_screen(win, genv)
+
+    def clear_screen(self, win, genv):
+        """ clear up the PsychoPy window"""
+        win.fillColor = genv.getBackgroundColor()
+        win.flip()
 
     def update_exp_info(self):
         self.exp_info['date'] = getDateStr()  # add a simple timestamp
@@ -158,19 +300,18 @@ class PosnerTask:
         self.fc = PosnerComponent(
             circle.Circle(
                 win=self.win,
-                name='fc',
                 units="deg",
                 radius=0.1,
                 fillColor='black',
                 lineColor='black'
             ),
+            name='fc',
             duration=self.fc_duration,
             start_time=0.0)
 
         self.left_probe = PosnerComponent(
             circle.Circle(
                 win=self.win,
-                name='left_probe',
                 units="deg",
                 radius=3.5/2,
                 fillColor='blue',
@@ -179,13 +320,13 @@ class PosnerTask:
                 edges=128,
                 pos=[-5, -1],
             ),
+            name='left_probe',
             duration=self.trial_duration,
             start_time=0.0)
 
         self.right_probe = PosnerComponent(
             circle.Circle(
                 win=self.win,
-                name='right_probe',
                 units="deg",
                 radius=3.5/2,
                 fillColor='blue',
@@ -194,13 +335,13 @@ class PosnerTask:
                 edges=256,
                 pos=[5, -1],
             ),
+            name='right_probe',
             duration=self.trial_duration,
             start_time=0.0)
 
         self.stim = PosnerComponent(
             circle.Circle(
                 win=self.win,
-                name='stim',
                 units="deg",
                 radius=0.5,
                 fillColor='white',
@@ -208,50 +349,59 @@ class PosnerTask:
                 edges=256,
                 pos=[-5, -1],
             ),
+            name='stim',
             duration=self.stim_duration,
             start_time=self.probe_start_time)
 
         self.left_cue = PosnerComponent(
             ShapeStim(
-            win=self.win, name='left_cue', units='deg',
+            win=self.win, units='deg',
             size=(0.75, 0.75), vertices='triangle',
             ori=-90.0, pos=(0, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=1.0, interpolate=True),
+            name='left_cue',
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
         self.right_cue = PosnerComponent(
             ShapeStim(
-            win=self.win, name='right_cue', units='deg',
+            win=self.win, units='deg',
             size=(0.75, 0.75), vertices='triangle',
             ori=90.0, pos=(0, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=0.0, interpolate=True),
             duration=self.cue_duration,
+            name = 'right_cue',
             start_time=self.fc_duration)
 
         self.centre_cue1 = PosnerComponent(
             ShapeStim(
-            win=self.win, name='centre_cue1', units='deg',
+            win=self.win, units='deg',
             size=(0.75, 0.75), vertices='triangle',
             ori=90.0, pos=(0.375, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=0.0, interpolate=True),
+            name='centre_cue1',
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
         self.centre_cue2 = PosnerComponent(
             ShapeStim(
-            win=self.win, name='centre_cue2', units='deg',
+            win=self.win, units='deg',
             size=(0.75, 0.75), vertices='triangle',
             ori=-90.0, pos=(-0.375, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=0.0, interpolate=True),
+            name='centre_cue2',
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
-        self.key_resp = Keyboard()
+        self.key_resp = PosnerComponent(
+            Keyboard(),
+            name='key_resp',
+            duration=self.trial_duration,
+            start_time=0.0) # TODO: fix this duration and start time
 
         self.trial_components = [self.fc,
                                  self.left_probe,
@@ -260,8 +410,8 @@ class PosnerTask:
                                  self.right_cue,
                                  self.centre_cue1,
                                  self.centre_cue2,
-                                 self.stim,
-                                 self.key_resp]
+                                 self.stim]#,
+                                 # self.key_resp]
 
     def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, duration=1):
         # Handle both the probes
@@ -271,7 +421,7 @@ class PosnerTask:
             pcomp.component.tStartRefresh = tThisFlipGlobal  # on global time
             self.win.timeOnFlip(pcomp.component, 'tStartRefresh')  # time at next scr refresh
             # add timestamp to datafile
-            self.thisExp.timestampOnFlip(self.win, f'{pcomp.component.name}.started')
+            self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.started')
             pcomp.component.setAutoDraw(True)
         if pcomp.component.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
@@ -279,7 +429,7 @@ class PosnerTask:
                 if not pcomp.blocking:
                     pcomp.component.tStop = t  # not accounting for scr refresh
                     # add timestamp to datafile
-                    self.thisExp.timestampOnFlip(self.win, f'{pcomp.component.name}.stopped')
+                    self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.stopped')
                     pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
 
@@ -385,6 +535,8 @@ class PosnerTask:
         self.init_continue_components()
         self.init_end_components()
         self.init_trial_components()
+        self.init_eye_link()
+        self.calibrate_eyelink()
         self.run_block(self.start_components, 1, block_name='start')
         self.run_block(self.trial_components, self.trial_reps[0], block_name='trials1')
         self.run_block(self.continue_components, 1, block_name='continue')
