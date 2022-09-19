@@ -10,6 +10,7 @@ from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
 import psychopy
 import os
 import typing
+import random
 from dataclasses import dataclass
 
 from psychopy.visual.shape import ShapeStim
@@ -49,6 +50,13 @@ class PosnerTask:
         self.global_clock = Clock()
         self.trial_clock = Clock()
 
+        # init component start times
+        self.trial_duration = 6.5
+        self.fc_duration = 1.0
+        self.cue_duration = self.trial_duration - self.fc_duration
+        self.stim_duration = 0.1
+        self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
+
     def update_exp_info(self):
         self.exp_info['date'] = getDateStr()  # add a simple timestamp
         self.exp_info['expName'] = self.expName
@@ -65,6 +73,71 @@ class PosnerTask:
                                          originPath='C:\\Users\\2354158T\\Documents\\GitHub\\nfb\\psychopy\\posner_eyelink.py',
                                          savePickle=True, saveWideText=True,
                                          dataFileName=filename)
+
+    def calculate_cue_side(self):
+        """
+        Calculate the direction the cue will be
+        side: direction of the cue (1 = left, 2 = right, 3 = centre
+        cue probability is equal for left, right, and centre
+        """
+        self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
+        side = random.choice([1, 2, 3])  # 1=l, 2=r, 3=n
+
+        self.left_cue.component.opacity = 0.0
+        self.right_cue.component.opacity = 0.0
+        self.centre_cue1.component.opacity = 0.0
+        self.centre_cue2.component.opacity = 0.0
+        if side == 1:
+            self.left_cue.component.opacity = 1.0
+        elif side == 2:
+            self.right_cue.component.opacity = 1.0
+        elif side == 3:
+            self.centre_cue1.component.opacity = 1.0
+            self.centre_cue2.component.opacity = 1.0
+
+
+        # neutral_side = random.choice([1, 2])
+        # valid_cue_weight = 70
+        # stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100 - valid_cue_weight))[0]
+        # if stim_side == 10:
+        #     # valid cue
+        #     if side == 1:
+        #         r_fill_color = (0, 0, 0, 0)
+        #         l_fill_color = (255, 255, 255)
+        #     elif side == 2:
+        #         r_fill_color = (255, 255, 255)
+        #         l_fill_color = (0, 0, 0, 0)
+        #     elif side == 3:
+        #         # 50% chance left or right
+        #         if neutral_side == 1:
+        #             r_fill_color = (0, 0, 0, 0)
+        #             l_fill_color = (255, 255, 255)
+        #         elif neutral_side == 2:
+        #             r_fill_color = (255, 255, 255)
+        #             l_fill_color = (0, 0, 0, 0)
+        # elif stim_side == 11:
+        #     # invalid cue
+        #     if side == 1:
+        #         l_fill_color = (0, 0, 0, 0)
+        #         r_fill_color = (255, 255, 255)
+        #     elif side == 2:
+        #         l_fill_color = (255, 255, 255)
+        #         r_fill_color = (0, 0, 0, 0)
+        #     elif side == 3:
+        #         # 50% chance left or right
+        #         if neutral_side == 1:
+        #             r_fill_color = (0, 0, 0, 0)
+        #             l_fill_color = (255, 255, 255)
+        #         elif neutral_side == 2:
+        #             r_fill_color = (255, 255, 255)
+        #             l_fill_color = (0, 0, 0, 0)
+
+        # probe_location = (random.choice([-5, 5]), 0)
+        # # reset 'positions'
+        # positions = copy.deepcopy(master_positions)
+        #
+        # # randomise this for each trial
+        # random.shuffle(positions)
 
     def init_start_components(self):
         self.start_text = PosnerComponent(
@@ -90,10 +163,6 @@ class PosnerTask:
         self.end_components = [self.end_text]
 
     def init_trial_components(self):
-        trial_duration = 6.6
-        fc_duration = 1.0
-        cue_duration = trial_duration - fc_duration
-
         self.fc = PosnerComponent(
             circle.Circle(
                 win=self.win,
@@ -103,7 +172,7 @@ class PosnerTask:
                 fillColor='black',
                 lineColor='black'
             ),
-            duration=fc_duration,
+            duration=self.fc_duration,
             start_time=0.0)
 
         self.left_probe = PosnerComponent(
@@ -111,14 +180,14 @@ class PosnerTask:
                 win=self.win,
                 name='left_probe',
                 units="deg",
-                radius=3.5,
+                radius=3.5/2,
                 fillColor='blue',
                 lineColor='white',
                 lineWidth=8,
                 edges=128,
-                pos=[-5, -1]
+                pos=[-5, -1],
             ),
-            duration=trial_duration,
+            duration=self.trial_duration,
             start_time=0.0)
 
         self.right_probe = PosnerComponent(
@@ -126,15 +195,43 @@ class PosnerTask:
                 win=self.win,
                 name='right_probe',
                 units="deg",
-                radius=3.5,
+                radius=3.5/2,
                 fillColor='blue',
                 lineColor='white',
                 lineWidth=8,
                 edges=256,
-                pos=[5, -1]
+                pos=[5, -1],
             ),
-            duration=trial_duration,
+            duration=self.trial_duration,
             start_time=0.0)
+
+        self.left_stim = PosnerComponent(
+            circle.Circle(
+                win=self.win,
+                name='left_stim',
+                units="deg",
+                radius=0.5,
+                fillColor='white',
+                lineColor='white',
+                edges=256,
+                pos=[-5, -1],
+            ),
+            duration=self.stim_duration,
+            start_time=self.probe_start_time)
+
+        self.right_stim = PosnerComponent(
+            circle.Circle(
+                win=self.win,
+                name='right_stim',
+                units="deg",
+                radius=0.5,
+                fillColor='white',
+                lineColor='white',
+                edges=256,
+                pos=[5, -1],
+            ),
+            duration=self.stim_duration,
+            start_time=self.probe_start_time)
 
         self.left_cue = PosnerComponent(
             ShapeStim(
@@ -143,8 +240,8 @@ class PosnerTask:
             ori=-90.0, pos=(0, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=1.0, interpolate=True),
-            duration=cue_duration,
-            start_time=fc_duration)
+            duration=self.cue_duration,
+            start_time=self.fc_duration)
 
         self.right_cue = PosnerComponent(
             ShapeStim(
@@ -153,8 +250,8 @@ class PosnerTask:
             ori=90.0, pos=(0, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=0.0, interpolate=True),
-            duration=cue_duration,
-            start_time=fc_duration)
+            duration=self.cue_duration,
+            start_time=self.fc_duration)
 
         self.centre_cue1 = PosnerComponent(
             ShapeStim(
@@ -163,8 +260,8 @@ class PosnerTask:
             ori=90.0, pos=(0.375, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=0.0, interpolate=True),
-            duration=cue_duration,
-            start_time=fc_duration)
+            duration=self.cue_duration,
+            start_time=self.fc_duration)
 
         self.centre_cue2 = PosnerComponent(
             ShapeStim(
@@ -173,20 +270,22 @@ class PosnerTask:
             ori=-90.0, pos=(-0.375, 0), anchor='center',
             lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
             opacity=0.0, interpolate=True),
-            duration=cue_duration,
-            start_time=fc_duration)
+            duration=self.cue_duration,
+            start_time=self.fc_duration)
 
         self.trial_components = [self.fc,
                                  self.left_probe,
                                  self.right_probe,
-                                 self.left_cue]#,
-                                 # self.right_cue,
-                                 # self.centre_cue1,
-                                 # self.centre_cue2]
+                                 self.left_cue,
+                                 self.right_cue,
+                                 self.centre_cue1,
+                                 self.centre_cue2,
+                                 self.left_stim,
+                                 self.right_stim]
 
-    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, start_time=0, duration=1):
+    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, duration=1):
         # Handle both the probes
-        if pcomp.component.status == NOT_STARTED and tThisFlip >= start_time - self.frameTolerance:
+        if pcomp.component.status == NOT_STARTED and tThisFlip >= pcomp.start_time - self.frameTolerance:
             # keep track of start time/frame for later
             pcomp.component.tStart = t  # local t and not account for scr refresh
             pcomp.component.tStartRefresh = tThisFlipGlobal  # on global time
@@ -215,6 +314,10 @@ class PosnerTask:
         # Do the trials
         for trial_index, thisTrial in enumerate(trials):
             print(f'STARTING TRIAL: {trials.thisN} OF BLOCK: {name}')
+            
+            # Calculate the side of the cue
+            self.calculate_cue_side()
+
             currentLoop = trials
             # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
             if thisTrial != None:
@@ -242,7 +345,7 @@ class PosnerTask:
 
                 # Handle both the probes
                 for thisComponent in component_list:
-                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t, start_time=0,
+                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t,
                                           duration=thisComponent.duration)
                     # check for blocking end (typically the Space key)
                     if self.kb.getKeys(keyList=["space"]):
