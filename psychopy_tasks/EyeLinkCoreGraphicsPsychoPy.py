@@ -29,7 +29,7 @@ from psychopy import visual, event, core, logging, prefs, monitors
 from psychopy.tools.coordinatetools import pol2cart
 from math import sin, cos, pi
 from PIL import Image, ImageDraw
-from psychopy.sound import Sound
+# from psychopy.sound import Sound
 
 
 #allow to disable sound, or if we failed to initialize pygame.mixer or failed to load audio file
@@ -146,18 +146,18 @@ class EyeLinkCoreGraphicsPsychoPy(pylink.EyeLinkCustomDisplay):
         self._pictureTarget = None
 
         # Configure calibration sounds (beeps), use ".wav" files
-        if not DISABLE_AUDIO:
-            try:
-                self._target_beep = Sound('type.wav', stereo=True)
-                self._error_beep = Sound('error.wav', stereo=True)
-                self._done_beep = Sound('qbeep.wav', stereo=True)
-            except Exception as e:
-                print ('Failed to load audio: '+ str(e))
-                #we failed to load audio, so disable it
-                #if the experiment is run with sudo/root user in Ubuntu, then audio will
-                #fail. The work around is either allow audio playback permission
-                #for root user or,  run the experiment with non root user.
-                DISABLE_AUDIO=True
+        # if not DISABLE_AUDIO:
+        #     try:
+        #         self._target_beep = Sound('type.wav', stereo=True)
+        #         self._error_beep = Sound('error.wav', stereo=True)
+        #         self._done_beep = Sound('qbeep.wav', stereo=True)
+        #     except Exception as e:
+        #         print ('Failed to load audio: '+ str(e))
+        #         #we failed to load audio, so disable it
+        #         #if the experiment is run with sudo/root user in Ubuntu, then audio will
+        #         #fail. The work around is either allow audio playback permission
+        #         #for root user or,  run the experiment with non root user.
+        #         DISABLE_AUDIO=True
 
         # A reference to the tracker connection
         self._tracker = tracker
