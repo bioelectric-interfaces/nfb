@@ -165,6 +165,7 @@ fsaverage/
 .surf
 
 psychopy_tasks/data
+psychopy_tasks/eye_track_data
 
 # Generated experiment config files
 experiment_config_output/
