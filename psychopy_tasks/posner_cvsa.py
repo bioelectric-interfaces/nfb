@@ -129,6 +129,7 @@ class PosnerTask:
                 elif neutral_side == 2:
                     stim_pos = (5, -1)
         self.stim.component.setPos(stim_pos)
+        return valid_cue
 
     def init_start_components(self):
         self.start_text = PosnerComponent(
@@ -250,6 +251,8 @@ class PosnerTask:
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
+        self.key_resp = Keyboard()
+
         self.trial_components = [self.fc,
                                  self.left_probe,
                                  self.right_probe,
@@ -257,7 +260,8 @@ class PosnerTask:
                                  self.right_cue,
                                  self.centre_cue1,
                                  self.centre_cue2,
-                                 self.stim]
+                                 self.stim,
+                                 self.key_resp]
 
     def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, duration=1):
         # Handle both the probes
@@ -279,7 +283,7 @@ class PosnerTask:
                     pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
 
-    def run_block(self, component_list, trial_reps, name='block'):
+    def run_block(self, component_list, trial_reps, block_name='block'):
         trials = TrialHandler(nReps=trial_reps, method='sequential',
                               extraInfo=self.exp_info, originPath=-1,
                               trialList=[None],
@@ -289,11 +293,11 @@ class PosnerTask:
 
         # Do the trials
         for trial_index, thisTrial in enumerate(trials):
-            print(f'STARTING TRIAL: {trials.thisN} OF BLOCK: {name}')
+            print(f'STARTING TRIAL: {trials.thisN} OF BLOCK: {block_name}')
 
             # Calculate the side of the cue and stim validity
             cue_dir = self.calculate_cue_side()
-            self.calculate_stim_validity(cue_dir=cue_dir)
+            valid_cue = self.calculate_stim_validity(cue_dir=cue_dir)
 
             currentLoop = trials
             # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
@@ -346,6 +350,12 @@ class PosnerTask:
             for thisComponent in component_list:
                 if hasattr(thisComponent.component, "setAutoDraw"):
                     thisComponent.component.setAutoDraw(False)
+
+            # Save extra data
+            self.thisExp.addData('block_name', block_name)
+            self.thisExp.addData('cue_dir', cue_dir)
+            self.thisExp.addData('valid_cue', valid_cue)
+
             self.thisExp.nextEntry()
 
     def show_start_dialog(self):
@@ -375,11 +385,15 @@ class PosnerTask:
         self.init_continue_components()
         self.init_end_components()
         self.init_trial_components()
-        self.run_block(self.start_components, 1, name='start')
-        self.run_block(self.trial_components, self.trial_reps[0], name='trials1')
-        self.run_block(self.continue_components, 1, name='continue')
-        self.run_block(self.trial_components, self.trial_reps[1], name='trials2')
-        self.run_block(self.end_components, 1, name='end')
+        self.run_block(self.start_components, 1, block_name='start')
+        self.run_block(self.trial_components, self.trial_reps[0], block_name='trials1')
+        self.run_block(self.continue_components, 1, block_name='continue')
+        self.run_block(self.trial_components, self.trial_reps[1], block_name='trials2')
+        self.run_block(self.continue_components, 1, block_name='continue')
+        self.run_block(self.trial_components, self.trial_reps[2], block_name='trials3')
+        self.run_block(self.continue_components, 1, block_name='continue')
+        self.run_block(self.trial_components, self.trial_reps[3], block_name='trials4')
+        self.run_block(self.end_components, 1, block_name='end')
 
 
 if __name__ == '__main__':
