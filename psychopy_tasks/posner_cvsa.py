@@ -81,63 +81,54 @@ class PosnerTask:
         cue probability is equal for left, right, and centre
         """
         self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
-        side = random.choice([1, 2, 3])  # 1=l, 2=r, 3=n
+        cue_dir = random.choice([1, 2, 3])  # 1=l, 2=r, 3=n
 
         self.left_cue.component.opacity = 0.0
         self.right_cue.component.opacity = 0.0
         self.centre_cue1.component.opacity = 0.0
         self.centre_cue2.component.opacity = 0.0
-        if side == 1:
+        if cue_dir == 1:
             self.left_cue.component.opacity = 1.0
-        elif side == 2:
+        elif cue_dir == 2:
             self.right_cue.component.opacity = 1.0
-        elif side == 3:
+        elif cue_dir == 3:
             self.centre_cue1.component.opacity = 1.0
             self.centre_cue2.component.opacity = 1.0
+        return cue_dir
 
-
-        # neutral_side = random.choice([1, 2])
-        # valid_cue_weight = 70
-        # stim_side = random.choices([10, 11], weights=(valid_cue_weight, 100 - valid_cue_weight))[0]
-        # if stim_side == 10:
-        #     # valid cue
-        #     if side == 1:
-        #         r_fill_color = (0, 0, 0, 0)
-        #         l_fill_color = (255, 255, 255)
-        #     elif side == 2:
-        #         r_fill_color = (255, 255, 255)
-        #         l_fill_color = (0, 0, 0, 0)
-        #     elif side == 3:
-        #         # 50% chance left or right
-        #         if neutral_side == 1:
-        #             r_fill_color = (0, 0, 0, 0)
-        #             l_fill_color = (255, 255, 255)
-        #         elif neutral_side == 2:
-        #             r_fill_color = (255, 255, 255)
-        #             l_fill_color = (0, 0, 0, 0)
-        # elif stim_side == 11:
-        #     # invalid cue
-        #     if side == 1:
-        #         l_fill_color = (0, 0, 0, 0)
-        #         r_fill_color = (255, 255, 255)
-        #     elif side == 2:
-        #         l_fill_color = (255, 255, 255)
-        #         r_fill_color = (0, 0, 0, 0)
-        #     elif side == 3:
-        #         # 50% chance left or right
-        #         if neutral_side == 1:
-        #             r_fill_color = (0, 0, 0, 0)
-        #             l_fill_color = (255, 255, 255)
-        #         elif neutral_side == 2:
-        #             r_fill_color = (255, 255, 255)
-        #             l_fill_color = (0, 0, 0, 0)
-
-        # probe_location = (random.choice([-5, 5]), 0)
-        # # reset 'positions'
-        # positions = copy.deepcopy(master_positions)
-        #
-        # # randomise this for each trial
-        # random.shuffle(positions)
+    def calculate_stim_validity(self, cue_dir, valid_cue_weight=70):
+        """
+        Calculate if a stimulation is valid or not
+        cue_dir: direction of cue
+        valid_cue_weight: chance the stim is valid
+        """
+        neutral_side = random.choice([1, 2]) # side to display stim in case of neutral/centre cue
+        valid_cue = random.choices([True, False], weights=(valid_cue_weight, 100 - valid_cue_weight))[0]
+        if valid_cue:
+            # valid cue
+            if cue_dir == 1:
+                stim_pos = (-5, -1)
+            elif cue_dir == 2:
+                stim_pos = (5, -1)
+            elif cue_dir == 3:
+                # 50% chance left or right
+                if neutral_side == 1:
+                    stim_pos = (-5, -1)
+                elif neutral_side == 2:
+                    stim_pos = (5, -1)
+        else:
+            # invalid cue
+            if cue_dir == 1:
+                stim_pos = (5, -1)
+            elif cue_dir == 2:
+                stim_pos = (-5, -1)
+            elif cue_dir == 3:
+                # 50% chance left or right
+                if neutral_side == 1:
+                    stim_pos = (-5, -1)
+                elif neutral_side == 2:
+                    stim_pos = (5, -1)
+        self.stim.component.setPos(stim_pos)
 
     def init_start_components(self):
         self.start_text = PosnerComponent(
@@ -205,30 +196,16 @@ class PosnerTask:
             duration=self.trial_duration,
             start_time=0.0)
 
-        self.left_stim = PosnerComponent(
+        self.stim = PosnerComponent(
             circle.Circle(
                 win=self.win,
-                name='left_stim',
+                name='stim',
                 units="deg",
                 radius=0.5,
                 fillColor='white',
                 lineColor='white',
                 edges=256,
                 pos=[-5, -1],
-            ),
-            duration=self.stim_duration,
-            start_time=self.probe_start_time)
-
-        self.right_stim = PosnerComponent(
-            circle.Circle(
-                win=self.win,
-                name='right_stim',
-                units="deg",
-                radius=0.5,
-                fillColor='white',
-                lineColor='white',
-                edges=256,
-                pos=[5, -1],
             ),
             duration=self.stim_duration,
             start_time=self.probe_start_time)
@@ -280,8 +257,7 @@ class PosnerTask:
                                  self.right_cue,
                                  self.centre_cue1,
                                  self.centre_cue2,
-                                 self.left_stim,
-                                 self.right_stim]
+                                 self.stim]
 
     def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, duration=1):
         # Handle both the probes
@@ -314,9 +290,10 @@ class PosnerTask:
         # Do the trials
         for trial_index, thisTrial in enumerate(trials):
             print(f'STARTING TRIAL: {trials.thisN} OF BLOCK: {name}')
-            
-            # Calculate the side of the cue
-            self.calculate_cue_side()
+
+            # Calculate the side of the cue and stim validity
+            cue_dir = self.calculate_cue_side()
+            self.calculate_stim_validity(cue_dir=cue_dir)
 
             currentLoop = trials
             # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
