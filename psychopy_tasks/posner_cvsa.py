@@ -12,6 +12,8 @@ import os
 import typing
 from dataclasses import dataclass
 
+from psychopy.visual.shape import ShapeStim
+
 
 @dataclass
 class PosnerComponent:
@@ -88,6 +90,10 @@ class PosnerTask:
         self.end_components = [self.end_text]
 
     def init_trial_components(self):
+        trial_duration = 6.6
+        fc_duration = 1.0
+        cue_duration = trial_duration - fc_duration
+
         self.fc = PosnerComponent(
             circle.Circle(
                 win=self.win,
@@ -97,7 +103,7 @@ class PosnerTask:
                 fillColor='black',
                 lineColor='black'
             ),
-            duration=1.0,
+            duration=fc_duration,
             start_time=0.0)
 
         self.left_probe = PosnerComponent(
@@ -112,7 +118,7 @@ class PosnerTask:
                 edges=128,
                 pos=[-5, -1]
             ),
-            duration=2.0,
+            duration=trial_duration,
             start_time=0.0)
 
         self.right_probe = PosnerComponent(
@@ -127,10 +133,56 @@ class PosnerTask:
                 edges=256,
                 pos=[5, -1]
             ),
-            duration=2.0,
-            start_time=1.0)
+            duration=trial_duration,
+            start_time=0.0)
 
-        self.trial_components = [self.fc, self.left_probe, self.right_probe]
+        self.left_cue = PosnerComponent(
+            ShapeStim(
+            win=self.win, name='left_cue', units='deg',
+            size=(0.75, 0.75), vertices='triangle',
+            ori=-90.0, pos=(0, 0), anchor='center',
+            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+            opacity=1.0, interpolate=True),
+            duration=cue_duration,
+            start_time=fc_duration)
+
+        self.right_cue = PosnerComponent(
+            ShapeStim(
+            win=self.win, name='right_cue', units='deg',
+            size=(0.75, 0.75), vertices='triangle',
+            ori=90.0, pos=(0, 0), anchor='center',
+            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+            opacity=0.0, interpolate=True),
+            duration=cue_duration,
+            start_time=fc_duration)
+
+        self.centre_cue1 = PosnerComponent(
+            ShapeStim(
+            win=self.win, name='centre_cue1', units='deg',
+            size=(0.75, 0.75), vertices='triangle',
+            ori=90.0, pos=(0.375, 0), anchor='center',
+            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+            opacity=0.0, interpolate=True),
+            duration=cue_duration,
+            start_time=fc_duration)
+
+        self.centre_cue2 = PosnerComponent(
+            ShapeStim(
+            win=self.win, name='centre_cue2', units='deg',
+            size=(0.75, 0.75), vertices='triangle',
+            ori=-90.0, pos=(-0.375, 0), anchor='center',
+            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+            opacity=0.0, interpolate=True),
+            duration=cue_duration,
+            start_time=fc_duration)
+
+        self.trial_components = [self.fc,
+                                 self.left_probe,
+                                 self.right_probe,
+                                 self.left_cue]#,
+                                 # self.right_cue,
+                                 # self.centre_cue1,
+                                 # self.centre_cue2]
 
     def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, start_time=0, duration=1):
         # Handle both the probes
@@ -215,15 +267,6 @@ class PosnerTask:
                 if hasattr(thisComponent.component, "setAutoDraw"):
                     thisComponent.component.setAutoDraw(False)
             self.thisExp.nextEntry()
-
-    def run_start_block(self):
-        pass
-
-    def run_continue_block(self):
-        pass
-
-    def run_end_block(self):
-        pass
 
     def show_start_dialog(self):
         dlg = DlgFromDict(self.exp_info)
