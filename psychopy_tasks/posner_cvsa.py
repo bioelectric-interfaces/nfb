@@ -31,7 +31,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [4, 2, 2, 2]
+        self.trial_reps = [2, 2, 2, 2]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -46,11 +46,11 @@ class PosnerTask:
         self.win = Window(fullscr=True, monitor=self.mon, screen=1)
         self.scn_width, self.scn_height = self.win.size
 
-        # init the trial component lists
-        self.start_components = []
-        self.trial_components = []
-        self.continue_components = []
-        self.end_components = []
+        # init the trial component dicts
+        self.start_components = {}
+        self.trial_components = {}
+        self.continue_components = {}
+        self.end_components = {}
 
         # init the global keyboard
         self.kb = Keyboard()
@@ -69,6 +69,9 @@ class PosnerTask:
         # init the results paths
         self.session_folder = "results"
         self.edf_file = 'eye_data'
+
+        # Init stuff for response keys
+        self._key_resp_allKeys = []
 
     def init_eye_link(self):
         dummy_mode = False
@@ -190,8 +193,8 @@ class PosnerTask:
         """ Show task instructions on screen"""
 
         msg = TextStim(win, text,
-                              color=genv.getForegroundColor(),
-                              wrapWidth=self.scn_width / 2)
+                       color=genv.getForegroundColor(),
+                       wrapWidth=self.scn_width / 2)
         self.clear_screen(win, genv)
         msg.draw()
         win.flip()
@@ -251,7 +254,7 @@ class PosnerTask:
         cue_dir: direction of cue
         valid_cue_weight: chance the stim is valid
         """
-        neutral_side = random.choice([1, 2]) # side to display stim in case of neutral/centre cue
+        neutral_side = random.choice([1, 2])  # side to display stim in case of neutral/centre cue
         valid_cue = random.choices([True, False], weights=(valid_cue_weight, 100 - valid_cue_weight))[0]
         if valid_cue:
             # valid cue
@@ -284,27 +287,24 @@ class PosnerTask:
         self.start_text = PosnerComponent(
             TextStim(self.win, text="""Welcome to this experiment!
                                                  Press SPACE to start"""),
-            name='start_text',
             duration=0.0,
             blocking=True)
-        self.start_components = [self.start_text]
+        self.start_components = {'start_text':self.start_text}
 
     def init_continue_components(self):
         self.continue_text = PosnerComponent(
             TextStim(self.win, text="""you've finished X blocks
                                                  Press SPACE to continue"""),
-            name='continue_text',
             duration=0.0,
             blocking=True)
-        self.continue_components = [self.continue_text]
+        self.continue_components = {'continue_text':self.continue_text}
 
     def init_end_components(self):
         self.end_text = PosnerComponent(
             TextStim(self.win, text="""you've finished!"""),
-            name='end_text',
             duration=0.0,
             blocking=True)
-        self.end_components = [self.end_text]
+        self.end_components = {'end_text': self.end_text}
 
     def init_trial_components(self):
         self.fc = PosnerComponent(
@@ -315,7 +315,6 @@ class PosnerTask:
                 fillColor='black',
                 lineColor='black'
             ),
-            name='fc',
             duration=self.fc_duration,
             start_time=0.0)
 
@@ -323,14 +322,13 @@ class PosnerTask:
             circle.Circle(
                 win=self.win,
                 units="deg",
-                radius=3.5/2,
+                radius=3.5 / 2,
                 fillColor='blue',
                 lineColor='white',
                 lineWidth=8,
                 edges=128,
                 pos=[-5, -1],
             ),
-            name='left_probe',
             duration=self.trial_duration,
             start_time=0.0)
 
@@ -338,14 +336,13 @@ class PosnerTask:
             circle.Circle(
                 win=self.win,
                 units="deg",
-                radius=3.5/2,
+                radius=3.5 / 2,
                 fillColor='blue',
                 lineColor='white',
                 lineWidth=8,
                 edges=256,
                 pos=[5, -1],
             ),
-            name='right_probe',
             duration=self.trial_duration,
             start_time=0.0)
 
@@ -359,92 +356,104 @@ class PosnerTask:
                 edges=256,
                 pos=[-5, -1],
             ),
-            name='stim',
             duration=self.stim_duration,
             start_time=self.probe_start_time)
 
         self.left_cue = PosnerComponent(
             ShapeStim(
-            win=self.win, units='deg',
-            size=(0.75, 0.75), vertices='triangle',
-            ori=-90.0, pos=(0, 0), anchor='center',
-            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
-            opacity=1.0, interpolate=True),
-            name='left_cue',
+                win=self.win, units='deg',
+                size=(0.75, 0.75), vertices='triangle',
+                ori=-90.0, pos=(0, 0), anchor='center',
+                lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+                opacity=1.0, interpolate=True),
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
         self.right_cue = PosnerComponent(
             ShapeStim(
-            win=self.win, units='deg',
-            size=(0.75, 0.75), vertices='triangle',
-            ori=90.0, pos=(0, 0), anchor='center',
-            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
-            opacity=0.0, interpolate=True),
+                win=self.win, units='deg',
+                size=(0.75, 0.75), vertices='triangle',
+                ori=90.0, pos=(0, 0), anchor='center',
+                lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+                opacity=0.0, interpolate=True),
             duration=self.cue_duration,
-            name = 'right_cue',
             start_time=self.fc_duration)
 
         self.centre_cue1 = PosnerComponent(
             ShapeStim(
-            win=self.win, units='deg',
-            size=(0.75, 0.75), vertices='triangle',
-            ori=90.0, pos=(0.375, 0), anchor='center',
-            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
-            opacity=0.0, interpolate=True),
-            name='centre_cue1',
+                win=self.win, units='deg',
+                size=(0.75, 0.75), vertices='triangle',
+                ori=90.0, pos=(0.375, 0), anchor='center',
+                lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+                opacity=0.0, interpolate=True),
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
         self.centre_cue2 = PosnerComponent(
             ShapeStim(
-            win=self.win, units='deg',
-            size=(0.75, 0.75), vertices='triangle',
-            ori=-90.0, pos=(-0.375, 0), anchor='center',
-            lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
-            opacity=0.0, interpolate=True),
-            name='centre_cue2',
+                win=self.win, units='deg',
+                size=(0.75, 0.75), vertices='triangle',
+                ori=-90.0, pos=(-0.375, 0), anchor='center',
+                lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
+                opacity=0.0, interpolate=True),
             duration=self.cue_duration,
             start_time=self.fc_duration)
 
         self.key_resp = PosnerComponent(
             Keyboard(),
-            name='key_resp',
             duration=self.trial_duration,
-            start_time=0.0) # TODO: fix this duration and start time
+            start_time=0.0)  # TODO: fix this duration and start time
 
-        self.trial_components = [self.fc,
-                                 self.left_probe,
-                                 self.right_probe,
-                                 self.left_cue,
-                                 self.right_cue,
-                                 self.centre_cue1,
-                                 self.centre_cue2,
-                                 self.stim]#,
-                                 # self.key_resp]
+        self.trial_components = {'fc': self.fc,
+                                 'left_probe': self.left_probe,
+                                 'right_probe': self.right_probe,
+                                 'left_cue': self.left_cue,
+                                 'right_cue': self.right_cue,
+                                 'centre_cue1': self.centre_cue1,
+                                 'centre_cue2': self.centre_cue2,
+                                 'stim': self.stim,
+                                 'key_resp': self.key_resp}
 
-    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, start_time, trial_id, duration=1):
+    def handle_component(self, pcomp, pcomp_name, tThisFlip, tThisFlipGlobal, t, trial_id, duration=1):
         # Handle both the probes
         # el_tracker.sendMessage( f'TTHISFLIP {tThisFlip}, TTHISFLIPGLOBAL {tThisFlipGlobal} {pcomp.name}_START_TIME {pcomp.start_time}')
-        if pcomp.component.status == NOT_STARTED and tThisFlip >= pcomp.start_time - self.frameTolerance: # TODO: it's possible that the start_time doesn't take into account the flip which is where the descrepency comes from
+        waitOnFlip = False
+        if pcomp.component.status == NOT_STARTED and tThisFlip >= pcomp.start_time - self.frameTolerance:  # TODO: it's possible that the start_time doesn't take into account the flip which is where the descrepency comes from
             # keep track of start time/frame for later
             pcomp.component.tStart = t  # local t and not account for scr refresh
             pcomp.component.tStartRefresh = tThisFlipGlobal  # on global time
             self.win.timeOnFlip(pcomp.component, 'tStartRefresh')  # time at next scr refresh
             # add timestamp to datafile
-            self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.started')
-            pcomp.component.setAutoDraw(True)
-            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_START')
+            self.thisExp.timestampOnFlip(self.win, f'{pcomp_name}.started')
+            if hasattr(pcomp.component, "setAutoDraw"):
+                pcomp.component.setAutoDraw(True)
+            if isinstance(pcomp.component, Keyboard):
+                pcomp.component.status = STARTED
+                # keyboard checking is just starting
+                waitOnFlip = True
+                self.win.callOnFlip(pcomp.component.clock.reset)  # t=0 on next screen flip
+                self.win.callOnFlip(pcomp.component.clearEvents, eventType='keyboard')  # clear events on next screen flip
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_START')
         if pcomp.component.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
             if tThisFlipGlobal > pcomp.component.tStartRefresh + duration - self.frameTolerance:
                 if not pcomp.blocking:
                     pcomp.component.tStop = t  # not accounting for scr refresh
                     # add timestamp to datafile
-                    self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.stopped')
-                    pcomp.component.setAutoDraw(False)
+                    self.thisExp.timestampOnFlip(self.win, f'{pcomp_name}.stopped')
+                    if hasattr(pcomp.component, "setAutoDraw"):
+                        pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
-                    self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_END')
+                    self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
+        if isinstance(pcomp.component, Keyboard):
+            if pcomp.component.status == STARTED and not waitOnFlip:
+                theseKeys = pcomp.component.getKeys(keyList=['right', 'left'], waitRelease=False)
+                self._key_resp_allKeys.extend(theseKeys)
+                if len(self._key_resp_allKeys):
+                    pcomp.component.keys = [key.name for key in self._key_resp_allKeys]  # storing all keys
+                    pcomp.component.rt = [key.rt for key in self._key_resp_allKeys]
+                    # print(pcomp.component.keys)
+                    # print(pcomp.component.rt)
 
     def eye_tracker_trial_setup(self):
         # get a reference to the currently active EyeLink connection
@@ -457,7 +466,7 @@ class PosnerTask:
         el_tracker.sendCommand('clear_screen 0')
 
         # OPTIONAL: draw landmarks and texts on the Host screen
-        left = int(self.scn_width / 2.0) - 60 #TODO: make this appropriate to the posner task
+        left = int(self.scn_width / 2.0) - 60  # TODO: make this appropriate to the posner task
         top = int(self.scn_height / 2.0) - 60
         right = int(self.scn_width / 2.0) + 60
         bottom = int(self.scn_height / 2.0) + 60
@@ -476,7 +485,7 @@ class PosnerTask:
             el_tracker.startRecording(1, 1, 1, 1)
         except RuntimeError as error:
             print("ERROR:", error)
-            el_tracker.sendMessage( f'ERROR {error}')
+            el_tracker.sendMessage(f'ERROR {error}')
             self.abort_trial(el_tracker)
             return pylink.TRIAL_ERROR
         # Allocate some time for the tracker to cache some samples
@@ -502,7 +511,7 @@ class PosnerTask:
 
         return pylink.TRIAL_ERROR
 
-    def run_block(self, component_list, trial_reps, block_name='block', block_id=0):
+    def run_block(self, component_dict, trial_reps, block_name='block', block_id=0):
         trials = TrialHandler(nReps=trial_reps, method='sequential',
                               extraInfo=self.exp_info, originPath=-1,
                               trialList=[None],
@@ -533,18 +542,19 @@ class PosnerTask:
 
             continueRoutine = True
 
-            for thisComponent in component_list:
-                thisComponent.component.tStart = None
-                thisComponent.component.tStop = None
-                thisComponent.component.tStartRefresh = None
-                thisComponent.component.tStopRefresh = None
-                if hasattr(thisComponent.component, 'status'):
-                    thisComponent.component.status = NOT_STARTED
+            for component_name, component in component_dict.items():
+                component.component.tStart = None
+                component.component.tStop = None
+                component.component.tStartRefresh = None
+                component.component.tStopRefresh = None
+                if hasattr(component.component, 'status'):
+                    component.component.status = NOT_STARTED
 
-            # Setup key response
-            key_resp.keys = []
-            key_resp.rt = []
-            _key_resp_allKeys = []
+                if isinstance(component.component, Keyboard):
+                  # Setup key response
+                    component.keys = []
+                    component.rt = []
+                    self._key_resp_allKeys = []
 
             # send a "TRIALID" message to mark the start of a trial, see Data
             self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_BLOCK:{block_name}_START')
@@ -559,22 +569,21 @@ class PosnerTask:
                 tThisFlipGlobal = self.win.getFutureFlipTime(clock=None)
 
                 # Handle the components
-                for thisComponent in component_list:
-
-                    # self.win.callOnFlip(el_tracker.sendMessage, f'HCL tThisFlip {tThisFlip} tThisFlipGlobal {tThisFlipGlobal}')
-                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t, start_time=tThisFlipStart, trial_id=trial_id,
-                                          duration=thisComponent.duration)
+                for component_name, component in component_dict.items():
+                    self.handle_component(pcomp=component, pcomp_name=component_name, tThisFlip=tThisFlip, tThisFlipGlobal=tThisFlipGlobal, t=t,
+                                          trial_id=trial_id,
+                                          duration=component.duration)
                     # check for blocking end (typically the Space key)
                     if self.kb.getKeys(keyList=["space"]):
-                        thisComponent.blocking = False
+                        component.blocking = False
 
                 # check for quit (typically the Esc key)
                 if self.kb.getKeys(keyList=["escape"]):
                     self.end_experiment()
 
                 continueRoutine = False  # will revert to True if at least one component still running
-                for thisComponent in component_list:
-                    if hasattr(thisComponent.component, "status") and thisComponent.component.status != FINISHED:
+                for component_name, component in component_dict.items():
+                    if hasattr(component.component, "status") and component.component.status != FINISHED:
                         continueRoutine = True
                         break  # at least one component has not yet finished
 
@@ -583,9 +592,18 @@ class PosnerTask:
                     self.win.flip()
 
             # --- Ending Routine "cue" ---
-            for thisComponent in component_list:
-                if hasattr(thisComponent.component, "setAutoDraw"):
-                    thisComponent.component.setAutoDraw(False)
+            for component_name,  component in component_dict.items():
+                if hasattr(component.component, "setAutoDraw"):
+                    component.component.setAutoDraw(False)
+                if isinstance(component.component, Keyboard):
+                    # check responses
+                    print(f'{component_name}: {component.component.keys}')
+                    print(f'{component_name}: {component.component.rt}')
+                    if component.component.keys in ['', [], None]:  # No response was made
+                        component.component.keys = None
+                    trials.addData(f'{component_name}.keys', component.component.keys)
+                    if component.component.keys != None:  # we had a response
+                        trials.addData(f'{component_name}.rt', component.component.rt)
 
             # Save extra data
             self.thisExp.addData('block_name', block_name)
@@ -637,7 +655,8 @@ class PosnerTask:
 
             # Download the EDF data file from the Host PC to a local data folder
             # parameters: source_file_on_the_host, destination_file_on_local_drive
-            local_edf = os.path.join(self.session_folder + '.EDF') # TODO: make sure this filename is ok (without the session_identifier)
+            local_edf = os.path.join(
+                self.session_folder + '.EDF')  # TODO: make sure this filename is ok (without the session_identifier)
             print(f'EDF FILE PATH: {local_edf}')
             try:
                 el_tracker.receiveDataFile(self.edf_file, local_edf)
