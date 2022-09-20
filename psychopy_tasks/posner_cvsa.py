@@ -31,7 +31,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [2, 2, 2, 2]
+        self.trial_reps = [4, 2, 2, 2]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -401,8 +401,8 @@ class PosnerTask:
 
         self.key_resp = PosnerComponent(
             Keyboard(),
-            duration=self.trial_duration,
-            start_time=0.0)  # TODO: fix this duration and start time
+            duration=1.0,
+            start_time=self.probe_start_time)  # TODO: fix this duration and start time
 
         self.trial_components = {'fc': self.fc,
                                  'left_probe': self.left_probe,
@@ -527,6 +527,13 @@ class PosnerTask:
             # Calculate the side of the cue and stim validity
             cue_dir = self.calculate_cue_side()
             valid_cue = self.calculate_stim_validity(cue_dir=cue_dir)
+
+            # Set the keyboard response duration
+            if 'key_resp' in component_dict:
+                print(f'PROBE START: {self.probe_start_time}')
+                component_dict['key_resp'].duration = self.trial_duration - self.probe_start_time # TODO: make sure this time is correct - currently this component doesn't finish on time. Maybe, if we know we have 1 second to respond - just make this 1 second
+                print(f'TRIAL DURATION: {self.trial_duration}')
+                print(f"KEY DURATION: {component_dict['key_resp'].duration}")
 
             # record_status_message : show some info on the Host PC
             # here we show how many trial has been tested
