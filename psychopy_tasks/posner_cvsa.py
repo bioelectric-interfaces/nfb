@@ -423,10 +423,10 @@ class PosnerTask:
                                  self.stim]#,
                                  # self.key_resp]
 
-    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, start_time, el_tracker, trial_id, duration=1):
+    def handle_component(self, pcomp, tThisFlip, tThisFlipGlobal, t, start_time, trial_id, duration=1):
         # Handle both the probes
         # el_tracker.sendMessage( f'TTHISFLIP {tThisFlip}, TTHISFLIPGLOBAL {tThisFlipGlobal} {pcomp.name}_START_TIME {pcomp.start_time}')
-        if pcomp.component.status == NOT_STARTED and tThisFlip >= start_time + pcomp.start_time - self.frameTolerance:
+        if pcomp.component.status == NOT_STARTED and tThisFlip >= pcomp.start_time - self.frameTolerance: # TODO: it's possible that the start_time doesn't take into account the flip which is where the descrepency comes from
             # keep track of start time/frame for later
             pcomp.component.tStart = t  # local t and not account for scr refresh
             pcomp.component.tStartRefresh = tThisFlipGlobal  # on global time
@@ -434,7 +434,7 @@ class PosnerTask:
             # add timestamp to datafile
             self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.started')
             pcomp.component.setAutoDraw(True)
-            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_START')
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_START')
         if pcomp.component.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
             if tThisFlipGlobal > pcomp.component.tStartRefresh + duration - self.frameTolerance:
@@ -444,7 +444,7 @@ class PosnerTask:
                     self.thisExp.timestampOnFlip(self.win, f'{pcomp.name}.stopped')
                     pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
-                    self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_END')
+                    self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp.name}_END')
 
     def eye_tracker_trial_setup(self):
         # get a reference to the currently active EyeLink connection
@@ -476,10 +476,12 @@ class PosnerTask:
             el_tracker.startRecording(1, 1, 1, 1)
         except RuntimeError as error:
             print("ERROR:", error)
+            el_tracker.sendMessage( f'ERROR {error}')
             self.abort_trial(el_tracker)
             return pylink.TRIAL_ERROR
         # Allocate some time for the tracker to cache some samples
         pylink.pumpDelay(100)
+        return el_tracker
 
     def abort_trial(self, el_tracker):
         """Ends eyetracker recording """
@@ -508,8 +510,6 @@ class PosnerTask:
         self.thisExp.addLoop(trials)  # add the loop to the experiment
         thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
 
-        el_tracker = self.eye_tracker_trial_setup()
-
         # Do the trials
         for trial_index, thisTrial in enumerate(trials):
             trial_id = f'{block_id}-{trial_index}'
@@ -523,7 +523,7 @@ class PosnerTask:
             # here we show how many trial has been tested
             cue_dict = {1: 'LEFT', 2: 'RIGHT', 3: 'CENTRE'}
             status_msg = f'TRIAL {block_name}_{trial_id}: {cue_dict[cue_dir]}'
-            el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+            self.el_tracker.sendCommand("record_status_message '%s'" % status_msg)
 
             currentLoop = trials
             # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
@@ -541,10 +541,13 @@ class PosnerTask:
                 if hasattr(thisComponent.component, 'status'):
                     thisComponent.component.status = NOT_STARTED
 
-            self.start_eye_tracker_recording(el_tracker)
+            # Setup key response
+            key_resp.keys = []
+            key_resp.rt = []
+            _key_resp_allKeys = []
+
             # send a "TRIALID" message to mark the start of a trial, see Data
-            # el_tracker.sendMessage(f'TRIAL_{block_name}_{trial_id}_START (no flipwait)')
-            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_START')
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_BLOCK:{block_name}_START')
 
             # Reset the trial clock
             self.trial_clock.reset()
@@ -557,7 +560,9 @@ class PosnerTask:
 
                 # Handle the components
                 for thisComponent in component_list:
-                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t, start_time=tThisFlipStart, el_tracker=el_tracker, trial_id=trial_id,
+
+                    # self.win.callOnFlip(el_tracker.sendMessage, f'HCL tThisFlip {tThisFlip} tThisFlipGlobal {tThisFlipGlobal}')
+                    self.handle_component(thisComponent, tThisFlip, tThisFlipGlobal, t, start_time=tThisFlipStart, trial_id=trial_id,
                                           duration=thisComponent.duration)
                     # check for blocking end (typically the Space key)
                     if self.kb.getKeys(keyList=["space"]):
@@ -590,7 +595,7 @@ class PosnerTask:
 
             self.thisExp.nextEntry()
 
-            self.win.callOnFlip(el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_END')
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_BLOCK:{block_name}_END')
 
     def show_start_dialog(self):
         dlg = DlgFromDict(self.exp_info)
@@ -659,6 +664,8 @@ class PosnerTask:
         self.init_trial_components()
         self.init_eye_link()
         self.calibrate_eyelink()
+        el_tracker = self.eye_tracker_trial_setup()
+        self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.start_components, 1, block_name='start')
         self.run_block(self.trial_components, self.trial_reps[0], block_name='trials', block_id=0)
         self.run_block(self.continue_components, 1, block_name='continue')
