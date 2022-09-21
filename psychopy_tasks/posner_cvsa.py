@@ -35,7 +35,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [2, 2, 2, 2]
+        self.trial_reps = [1, 1, 1, 1]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -655,8 +655,8 @@ class PosnerTask:
 
                 if isinstance(component.component, Keyboard):
                     # Setup key response
-                    component.keys = []
-                    component.rt = []
+                    component.component.keys = []
+                    component.component.rt = []
                     component.allKeys = []
                     self._key_resp_allKeys = []
                     self._key_log_allKeys = []
