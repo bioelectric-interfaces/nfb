@@ -29,11 +29,12 @@ class PosnerComponent:
     name: str = 'component'
     allKeys: list = None
     keyList: list = None
+    input_component: bool = False
 
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [4, 2, 2, 2]
+        self.trial_reps = [2, 2, 2, 2]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -71,7 +72,6 @@ class PosnerTask:
         # init the results paths
         self.session_folder = "results"
         self.edf_file = 'eye_data'
-
 
     def init_eye_link(self):
         dummy_mode = False
@@ -288,22 +288,25 @@ class PosnerTask:
             TextStim(self.win, text="""Welcome to this experiment!
                                                  Press SPACE to start"""),
             duration=0.0,
-            blocking=True)
-        self.start_components = {'start_text':self.start_text}
+            blocking=True,
+            input_component=True)
+        self.start_components = {'start_text': self.start_text}
 
     def init_continue_components(self):
         self.continue_text = PosnerComponent(
             TextStim(self.win, text="""you've finished X blocks
                                                  Press SPACE to continue"""),
             duration=0.0,
-            blocking=True)
-        self.continue_components = {'continue_text':self.continue_text}
+            blocking=True,
+            input_component=True)
+        self.continue_components = {'continue_text': self.continue_text}
 
     def init_end_components(self):
         self.end_text = PosnerComponent(
             TextStim(self.win, text="""you've finished!"""),
             duration=0.0,
-            blocking=True)
+            blocking=True,
+            input_component=True)
         self.end_components = {'end_text': self.end_text}
 
     def init_trial_components(self):
@@ -442,7 +445,8 @@ class PosnerTask:
                 # keyboard checking is just starting
                 waitOnFlip = True
                 self.win.callOnFlip(pcomp.component.clock.reset)  # t=0 on next screen flip
-                self.win.callOnFlip(pcomp.component.clearEvents, eventType='keyboard')  # clear events on next screen flip
+                self.win.callOnFlip(pcomp.component.clearEvents,
+                                    eventType='keyboard')  # clear events on next screen flip
             self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_START')
         if pcomp.component.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
@@ -503,6 +507,48 @@ class PosnerTask:
         pylink.pumpDelay(100)
         return el_tracker
 
+    def eye_tracker_drift_correction(self, el_tracker, dummy_mode=False):
+        # drift check
+        # we recommend drift-check at the beginning of each trial
+        # the doDriftCorrect() function requires target position in integers
+        # the last two arguments:
+        # draw_target (1-default, 0-draw the target then call doDriftCorrect)
+        # allow_setup (1-press ESCAPE to recalibrate, 0-not allowed)
+        #
+        # Skip drift-check if running the script in Dummy Mode
+        if el_tracker.isConnected():
+            # Terminate the current trial first if the task terminated prematurely
+            error = el_tracker.isRecording()
+            if error == pylink.TRIAL_OK:
+                _, el_tracker = self.abort_trial(el_tracker)
+
+            # Put tracker in Offline mode
+            el_tracker.setOfflineMode()
+
+            # Clear the Host PC screen and wait for 500 ms
+            el_tracker.sendCommand('clear_screen 0')
+            pylink.msecDelay(500)
+        while not dummy_mode:
+            # terminate the task if no longer connected to the tracker or
+            # user pressed Ctrl-C to terminate the task
+            if (not el_tracker.isConnected()) or el_tracker.breakPressed():
+                # self.terminate_task()
+                return pylink.ABORT_EXPT
+
+            # drift-check and re-do camera setup if ESCAPE is pressed
+            try:
+                print('DRIFT STARTED')
+                error = el_tracker.doDriftCorrect(int(self.scn_width / 2.0),
+                                                  int(self.scn_height / 2.0), 1, 0)
+                # break following a success drift-check
+                print('DRIFT FINISHED')
+                if error is not pylink.ESC_KEY:
+                    print('DRIFT BREAK')
+                    break
+            except:
+                pass
+        return el_tracker
+
     def abort_trial(self, el_tracker):
         """Ends eyetracker recording """
         el_tracker = pylink.getEYELINK()
@@ -520,7 +566,7 @@ class PosnerTask:
         # send a message to mark trial end
         el_tracker.sendMessage('TRIAL_RESULT %d' % pylink.TRIAL_ERROR)
 
-        return pylink.TRIAL_ERROR
+        return pylink.TRIAL_ERROR, el_tracker
 
     def run_block(self, component_dict, trial_reps, block_name='block', block_id=0):
         trials = TrialHandler(nReps=trial_reps, method='sequential',
@@ -547,7 +593,8 @@ class PosnerTask:
             if 'key_resp' in component_dict:
                 print(f'PROBE START: {self.probe_start_time}')
                 component_dict['key_resp'].start_time = self.probe_start_time
-                component_dict['key_resp'].duration = self.trial_duration - self.probe_start_time # TODO: make sure this time is correct - currently this component doesn't finish on time. Maybe, if we know we have 1 second to respond - just make this 1 second
+                component_dict[
+                    'key_resp'].duration = self.trial_duration - self.probe_start_time  # TODO: make sure this time is correct - currently this component doesn't finish on time. Maybe, if we know we have 1 second to respond - just make this 1 second
                 print(f'TRIAL DURATION: {self.trial_duration}')
                 print(f"KEY DURATION: {component_dict['key_resp'].duration}")
 
@@ -572,9 +619,11 @@ class PosnerTask:
                 component.component.tStopRefresh = None
                 if hasattr(component.component, 'status'):
                     component.component.status = NOT_STARTED
+                if component.input_component:
+                    component.blocking = True
 
                 if isinstance(component.component, Keyboard):
-                  # Setup key response
+                    # Setup key response
                     component.keys = []
                     component.rt = []
                     component.allKeys = []
@@ -595,7 +644,8 @@ class PosnerTask:
 
                 # Handle the components
                 for component_name, component in component_dict.items():
-                    self.handle_component(pcomp=component, pcomp_name=component_name, tThisFlip=tThisFlip, tThisFlipGlobal=tThisFlipGlobal, t=t,
+                    self.handle_component(pcomp=component, pcomp_name=component_name, tThisFlip=tThisFlip,
+                                          tThisFlipGlobal=tThisFlipGlobal, t=t,
                                           trial_id=trial_id,
                                           duration=component.duration)
                     # check for blocking end (typically the Space key)
@@ -617,7 +667,7 @@ class PosnerTask:
                     self.win.flip()
 
             # --- Ending Routine "cue" ---
-            for component_name,  component in component_dict.items():
+            for component_name, component in component_dict.items():
                 if hasattr(component.component, "setAutoDraw"):
                     component.component.setAutoDraw(False)
                 if isinstance(component.component, Keyboard):
@@ -699,6 +749,7 @@ class PosnerTask:
         quit()
 
     def run_experiment(self):
+        dummy_mode = True
         self.show_start_dialog()
         self.update_exp_info()
         self.set_experiment()
@@ -713,6 +764,8 @@ class PosnerTask:
         self.run_block(self.start_components, 1, block_name='start')
         self.run_block(self.trial_components, self.trial_reps[0], block_name='trials', block_id=0)
         self.run_block(self.continue_components, 1, block_name='continue')
+        # self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
+        # self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.trial_components, self.trial_reps[1], block_name='trials', block_id=1)
         self.run_block(self.continue_components, 1, block_name='continue')
         self.run_block(self.trial_components, self.trial_reps[2], block_name='trials', block_id=2)
