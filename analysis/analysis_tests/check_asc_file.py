@@ -3,7 +3,7 @@ import pandas as pd
 from pprint import pprint
 
 ascFile = r"C:\Users\Chris\Documents\GitHub\nfb\psychopy_tasks\eye_track_data\99_psnr_2022_09_19_19_18.asc"
-ascFile = r'C:\Users\Chris\Documents\GitHub\nfb\psychopy_tasks\eye_track_data\99_psnr_2022_09_21_11_02.asc'
+ascFile = r'C:\Users\Chris\Documents\GitHub\nfb\psychopy_tasks\eye_track_data\99_psnr_2022_09_21_17_23.asc'
 
 file1 = open(ascFile, 'r')
 Lines = file1.readlines()
@@ -25,7 +25,8 @@ component_list = ['fc',
                   'centre_cue1',
                   'centre_cue2',
                   'stim',
-                  'key_resp']
+                  'key_resp',
+                  'key_log']
 # Strips the newline character
 for line in Lines:
     count += 1
