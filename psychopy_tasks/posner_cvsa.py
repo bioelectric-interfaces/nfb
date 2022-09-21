@@ -286,7 +286,7 @@ class PosnerTask:
     def init_start_components(self):
         self.start_text = PosnerComponent(
             TextStim(self.win, text="""Welcome to this experiment!
-                                                 Press SPACE to start"""),
+                                                 Press SPACE to start"""), # TODO: fix this text
             duration=0.0,
             blocking=True,
             input_component=True)
@@ -295,7 +295,7 @@ class PosnerTask:
     def init_continue_components(self):
         self.continue_text = PosnerComponent(
             TextStim(self.win, text="""you've finished X blocks
-                                                 Press SPACE to continue"""),
+                                                 Press SPACE to continue"""), # TODO: fix this text (space, and number of blocks)
             duration=0.0,
             blocking=True,
             input_component=True)
@@ -516,6 +516,7 @@ class PosnerTask:
         # allow_setup (1-press ESCAPE to recalibrate, 0-not allowed)
         #
         # Skip drift-check if running the script in Dummy Mode
+        print('STARTING DRIFT CORRECTION') # TODO: add logging for this experiment
         if el_tracker.isConnected():
             # Terminate the current trial first if the task terminated prematurely
             error = el_tracker.isRecording()
@@ -764,12 +765,16 @@ class PosnerTask:
         self.run_block(self.start_components, 1, block_name='start')
         self.run_block(self.trial_components, self.trial_reps[0], block_name='trials', block_id=0)
         self.run_block(self.continue_components, 1, block_name='continue')
-        # self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
-        # self.el_tracker = self.start_eye_tracker_recording(el_tracker)
+        self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
+        self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.trial_components, self.trial_reps[1], block_name='trials', block_id=1)
         self.run_block(self.continue_components, 1, block_name='continue')
+        self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
+        self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.trial_components, self.trial_reps[2], block_name='trials', block_id=2)
         self.run_block(self.continue_components, 1, block_name='continue')
+        self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
+        self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.trial_components, self.trial_reps[3], block_name='trials', block_id=3)
         self.run_block(self.end_components, 1, block_name='end')
         self.end_experiment()
