@@ -16,6 +16,7 @@ import time
 from dataclasses import dataclass
 import pylink
 import sys
+import logging
 
 from EyeLinkCoreGraphicsPsychoPy import EyeLinkCoreGraphicsPsychoPy
 
@@ -73,15 +74,18 @@ class PosnerTask:
         self.session_folder = "results"
         self.edf_file = 'eye_data'
 
+        # timestamp the start of the whole thing
+        self.time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
+        # timestamp_str = datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M-%S')
+
     def init_eye_link(self):
         dummy_mode = False
-        edf_fname = f"{self.exp_info['participant']}_psnr"
+        edf_fname = f"{self.exp_info['participant']}_psnr" # TODO: fix the data folders so everything is convinently located
         results_folder = 'eye_track_data'
         eyelink_ip = "100.1.1.1"
         if not os.path.exists(results_folder):
             os.makedirs(results_folder)
-        time_str = time.strftime("_%Y_%m_%d_%H_%M", time.localtime())
-        session_identifier = edf_fname + time_str
+        session_identifier = edf_fname + self.time_str
         self.session_folder = os.path.join(results_folder, session_identifier)
         if not os.path.exists(self.session_folder):
             os.makedirs(self.session_folder)
@@ -94,6 +98,7 @@ class PosnerTask:
                 self.el_tracker = pylink.EyeLink(eyelink_ip)
             except RuntimeError as error:
                 print('ERROR:', error)
+                logging.error(error)
                 quit()
                 sys.exit()
 
@@ -103,6 +108,7 @@ class PosnerTask:
             self.el_tracker.openDataFile(self.edf_file)
         except RuntimeError as err:
             print('ERROR:', err)
+            logging.error(err)
             # close the link if we have one open
             if self.el_tracker.isConnected():
                 self.el_tracker.close()
@@ -119,8 +125,10 @@ class PosnerTask:
             eyelink_ver = int(vstr.split()[-1].split('.')[0])
             # print out some version info in the shell
             print('Running experiment on %s, version %d' % (vstr, eyelink_ver))
+            logging.info('Running experiment on %s, version %d' % (vstr, eyelink_ver))
         else:
             print(f'Running experiment in dummy mode')
+            logging.info(f'Running experiment in dummy mode')
 
         # File and Link data control
         # what eye events to save in the EDF file, include everything by default
@@ -157,6 +165,7 @@ class PosnerTask:
         # Configure a graphics environment (genv) for tracker calibration
         genv = EyeLinkCoreGraphicsPsychoPy(self.el_tracker, self.win)
         print(genv)  # print out the version number of the CoreGraphics library
+        logging.info(genv)
 
         # Set background and foreground colors for the calibration target
         foreground_color = (-1, -1, -1)
@@ -169,6 +178,7 @@ class PosnerTask:
 
         # Request Pylink to use the PsychoPy window we opened above for calibration
         print(f"STARTING CALIBRARION")
+        logging.info(f"STARTING CALIBRARION")
         pylink.openGraphicsEx(genv)
 
         # Step 5: Set up the camera and calibrate the tracker
@@ -186,8 +196,10 @@ class PosnerTask:
                 self.el_tracker.doTrackerSetup()
             except RuntimeError as err:
                 print('ERROR:', err)
+                logging.error('ERROR:', err)
                 self.el_tracker.exitCalibration()
         print(f"CALIBRARION DONE")
+        logging.info(f"CALIBRARION DONE")
 
     def show_msg(self, win, text, genv, wait_for_keypress=True):
         """ Show task instructions on screen"""
@@ -217,14 +229,24 @@ class PosnerTask:
     def set_experiment(self):
         _thisDir = os.path.dirname(os.path.abspath(__file__))
         os.chdir(_thisDir)
-        filename = _thisDir + os.sep + u'data/%s_%s_%s' % (
-            self.exp_info['participant'], self.expName, self.exp_info['date'])
+        # setup logging
+        output_dir = 'data'
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        filename = os.path.join(_thisDir, output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}")
+        # filename = _thisDir + os.sep + u'data/%s_%s_%s' % (
+        #     self.exp_info['participant'], self.expName, self.exp_info['date'])
         # An ExperimentHandler isn't essential but helps with data saving
         self.thisExp = ExperimentHandler(name=self.expName, version='',
                                          extraInfo=self.exp_info, runtimeInfo=None,
                                          originPath='C:\\Users\\2354158T\\Documents\\GitHub\\nfb\\psychopy\\posner_eyelink.py',
                                          savePickle=True, saveWideText=True,
                                          dataFileName=filename)
+        logging.basicConfig(filename=os.path.join(output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}.log"), level=logging.INFO,
+                            filemode='w')
+        logging.info(f"log created at: {self.time_str}")
+        log_file = os.path.join(output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}.log")
+        print(f"LOG CREATED: {log_file}")
 
     def calculate_cue_side(self):
         """
@@ -500,6 +522,7 @@ class PosnerTask:
             el_tracker.startRecording(1, 1, 1, 1)
         except RuntimeError as error:
             print("ERROR:", error)
+            logging.error(error)
             el_tracker.sendMessage(f'ERROR {error}')
             self.abort_trial(el_tracker)
             return pylink.TRIAL_ERROR
@@ -517,6 +540,7 @@ class PosnerTask:
         #
         # Skip drift-check if running the script in Dummy Mode
         print('STARTING DRIFT CORRECTION') # TODO: add logging for this experiment
+        logging.info('STARTING DRIFT CORRECTION')
         if el_tracker.isConnected():
             # Terminate the current trial first if the task terminated prematurely
             error = el_tracker.isRecording()
@@ -539,12 +563,15 @@ class PosnerTask:
             # drift-check and re-do camera setup if ESCAPE is pressed
             try:
                 print('DRIFT STARTED')
+                logging.info('DRIFT STARTED')
                 error = el_tracker.doDriftCorrect(int(self.scn_width / 2.0),
                                                   int(self.scn_height / 2.0), 1, 0)
                 # break following a success drift-check
                 print('DRIFT FINISHED')
+                logging.info('DRIFT FINISHED')
                 if error is not pylink.ESC_KEY:
                     print('DRIFT BREAK')
+                    logging.info('DRIFT BREAK')
                     break
             except:
                 pass
@@ -580,7 +607,8 @@ class PosnerTask:
         # Do the trials
         for trial_index, thisTrial in enumerate(trials):
             trial_id = f'{block_id}-{trial_index}'
-            print(f'STARTING TRIAL: {trials.thisN} OF BLOCK: {block_name}')
+            print(f'STARTING TRIAL: {trial_id}, thisN: {trials.thisN} OF BLOCK: {block_name}')
+            logging.info(f'STARTING TRIAL: {trial_id}, thisN: {trials.thisN} OF BLOCK: {block_name}')
 
             # Calculate the side of the cue and stim validity
             cue_dir = self.calculate_cue_side()
@@ -592,12 +620,9 @@ class PosnerTask:
 
             # Set the keyboard response duration
             if 'key_resp' in component_dict:
-                print(f'PROBE START: {self.probe_start_time}')
                 component_dict['key_resp'].start_time = self.probe_start_time
                 component_dict[
                     'key_resp'].duration = self.trial_duration - self.probe_start_time  # TODO: make sure this time is correct - currently this component doesn't finish on time. Maybe, if we know we have 1 second to respond - just make this 1 second
-                print(f'TRIAL DURATION: {self.trial_duration}')
-                print(f"KEY DURATION: {component_dict['key_resp'].duration}")
 
             # record_status_message : show some info on the Host PC
             # here we show how many trial has been tested
@@ -704,6 +729,8 @@ class PosnerTask:
             else:  # let's star the experiment!
                 print(f"Started experiment for participant {self.exp_info['participant']} "
                       f"in session {self.exp_info['session']}.")
+                logging.info(f"Started experiment for participant {self.exp_info['participant']} "
+                      f"in session {self.exp_info['session']}.")
 
     def end_experiment(self):
         """ Terminate the task gracefully and retrieve the EDF data file
@@ -728,22 +755,27 @@ class PosnerTask:
             # Show a file transfer message on the screen
             msg = 'EDF data is transferring from EyeLink Host PC...'
             print(msg)
+            logging.info(msg)
 
             # Download the EDF data file from the Host PC to a local data folder
             # parameters: source_file_on_the_host, destination_file_on_local_drive
             local_edf = os.path.join(
                 self.session_folder + '.EDF')  # TODO: make sure this filename is ok (without the session_identifier)
             print(f'EDF FILE PATH: {local_edf}')
+            logging.info(f'EDF FILE PATH: {local_edf}')
             try:
                 el_tracker.receiveDataFile(self.edf_file, local_edf)
             except RuntimeError as error:
                 print('ERROR:', error)
+                logging.error('ERROR:', error)
 
             # Close the link to the tracker.
             el_tracker.close()
 
         # close the PsychoPy window
         self.win.close()
+
+        logging.shutdown()
 
         # Finish experiment by closing window and quitting
         self.win.close()
