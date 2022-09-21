@@ -27,6 +27,7 @@ class PosnerComponent:
     duration: float = 1.0
     blocking: bool = False
     name: str = 'component'
+    allKeys: list = None
 
 
 class PosnerTask:
@@ -357,7 +358,7 @@ class PosnerTask:
                 pos=[-5, -1],
             ),
             duration=self.stim_duration,
-            start_time=self.probe_start_time)
+            start_time=0)
 
         self.left_cue = PosnerComponent(
             ShapeStim(
@@ -402,7 +403,14 @@ class PosnerTask:
         self.key_resp = PosnerComponent(
             Keyboard(),
             duration=1.0,
-            start_time=self.probe_start_time)  # TODO: fix this duration and start time
+            start_time=0.0,
+            allKeys=[])
+
+        self.key_log = PosnerComponent(
+            Keyboard(),
+            duration=self.trial_duration,
+            start_time=0.0,
+            allKeys=[])
 
         self.trial_components = {'fc': self.fc,
                                  'left_probe': self.left_probe,
@@ -412,7 +420,8 @@ class PosnerTask:
                                  'centre_cue1': self.centre_cue1,
                                  'centre_cue2': self.centre_cue2,
                                  'stim': self.stim,
-                                 'key_resp': self.key_resp}
+                                 'key_resp': self.key_resp,
+                                 'key_log': self.key_log}
 
     def handle_component(self, pcomp, pcomp_name, tThisFlip, tThisFlipGlobal, t, trial_id, duration=1):
         # Handle both the probes
@@ -448,10 +457,11 @@ class PosnerTask:
         if isinstance(pcomp.component, Keyboard):
             if pcomp.component.status == STARTED and not waitOnFlip:
                 theseKeys = pcomp.component.getKeys(keyList=['right', 'left'], waitRelease=False)
-                self._key_resp_allKeys.extend(theseKeys)
-                if len(self._key_resp_allKeys):
-                    pcomp.component.keys = [key.name for key in self._key_resp_allKeys]  # storing all keys
-                    pcomp.component.rt = [key.rt for key in self._key_resp_allKeys]
+                # self._key_resp_allKeys.extend(theseKeys)
+                pcomp.allKeys.extend(theseKeys)
+                if len(pcomp.allKeys):
+                    pcomp.component.keys = [key.name for key in pcomp.allKeys]  # storing all keys
+                    pcomp.component.rt = [key.rt for key in pcomp.allKeys]
                     # print(pcomp.component.keys)
                     # print(pcomp.component.rt)
 
@@ -528,9 +538,14 @@ class PosnerTask:
             cue_dir = self.calculate_cue_side()
             valid_cue = self.calculate_stim_validity(cue_dir=cue_dir)
 
+            # Set the stim start time
+            if 'stim' in component_dict:
+                component_dict['stim'].start_time = self.probe_start_time
+
             # Set the keyboard response duration
             if 'key_resp' in component_dict:
                 print(f'PROBE START: {self.probe_start_time}')
+                component_dict['key_resp'].start_time = self.probe_start_time
                 component_dict['key_resp'].duration = self.trial_duration - self.probe_start_time # TODO: make sure this time is correct - currently this component doesn't finish on time. Maybe, if we know we have 1 second to respond - just make this 1 second
                 print(f'TRIAL DURATION: {self.trial_duration}')
                 print(f"KEY DURATION: {component_dict['key_resp'].duration}")
@@ -561,7 +576,9 @@ class PosnerTask:
                   # Setup key response
                     component.keys = []
                     component.rt = []
+                    component.allKeys = []
                     self._key_resp_allKeys = []
+                    self._key_log_allKeys = []
 
             # send a "TRIALID" message to mark the start of a trial, see Data
             self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_BLOCK:{block_name}_START')
