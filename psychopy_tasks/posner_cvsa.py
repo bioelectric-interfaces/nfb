@@ -28,6 +28,7 @@ class PosnerComponent:
     blocking: bool = False
     name: str = 'component'
     allKeys: list = None
+    keyList: list = None
 
 
 class PosnerTask:
@@ -71,8 +72,6 @@ class PosnerTask:
         self.session_folder = "results"
         self.edf_file = 'eye_data'
 
-        # Init stuff for response keys
-        self._key_resp_allKeys = []
 
     def init_eye_link(self):
         dummy_mode = False
@@ -404,13 +403,15 @@ class PosnerTask:
             Keyboard(),
             duration=1.0,
             start_time=0.0,
-            allKeys=[])
+            allKeys=[],
+            keyList=['left', 'right'])
 
         self.key_log = PosnerComponent(
             Keyboard(),
             duration=self.trial_duration,
             start_time=0.0,
-            allKeys=[])
+            allKeys=[],
+            keyList=['left', 'right', 'up', 'down'])
 
         self.trial_components = {'fc': self.fc,
                                  'left_probe': self.left_probe,
@@ -456,7 +457,7 @@ class PosnerTask:
                     self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
         if isinstance(pcomp.component, Keyboard):
             if pcomp.component.status == STARTED and not waitOnFlip:
-                theseKeys = pcomp.component.getKeys(keyList=['right', 'left'], waitRelease=False)
+                theseKeys = pcomp.component.getKeys(keyList=pcomp.keyList, waitRelease=False)
                 # self._key_resp_allKeys.extend(theseKeys)
                 pcomp.allKeys.extend(theseKeys)
                 if len(pcomp.allKeys):
@@ -598,7 +599,7 @@ class PosnerTask:
                                           trial_id=trial_id,
                                           duration=component.duration)
                     # check for blocking end (typically the Space key)
-                    if self.kb.getKeys(keyList=["space"]):
+                    if self.kb.getKeys(keyList=["space", 'down']):
                         component.blocking = False
 
                 # check for quit (typically the Esc key)
