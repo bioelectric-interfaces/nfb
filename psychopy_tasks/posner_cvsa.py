@@ -243,7 +243,7 @@ class PosnerTask:
                                          savePickle=True, saveWideText=True,
                                          dataFileName=filename)
         logging.basicConfig(filename=os.path.join(output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}.log"), level=logging.INFO,
-                            filemode='w')
+                            filemode='w') # TODO: fix log file not saving
         logging.info(f"log created at: {self.time_str}")
         log_file = os.path.join(output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}.log")
         print(f"LOG CREATED: {log_file}")
@@ -539,7 +539,7 @@ class PosnerTask:
         # allow_setup (1-press ESCAPE to recalibrate, 0-not allowed)
         #
         # Skip drift-check if running the script in Dummy Mode
-        print('STARTING DRIFT CORRECTION') # TODO: add logging for this experiment
+        print('STARTING DRIFT CORRECTION')
         logging.info('STARTING DRIFT CORRECTION')
         if el_tracker.isConnected():
             # Terminate the current trial first if the task terminated prematurely
@@ -627,7 +627,7 @@ class PosnerTask:
             if 'key_resp' in component_dict:
                 component_dict['key_resp'].start_time = self.probe_start_time
                 component_dict[
-                    'key_resp'].duration = self.trial_duration - self.probe_start_time  # TODO: make sure this time is correct - currently this component doesn't finish on time. Maybe, if we know we have 1 second to respond - just make this 1 second
+                    'key_resp'].duration = self.trial_duration - self.probe_start_time
 
             # record_status_message : show some info on the Host PC
             # here we show how many trial has been tested
