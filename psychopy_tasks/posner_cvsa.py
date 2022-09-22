@@ -35,7 +35,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [25, 1, 1, 1]
+        self.trial_reps = [2, 1, 1, 1]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -71,7 +71,8 @@ class PosnerTask:
         self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
 
         # init the results paths
-        self.session_folder = "results"
+        self.results_folder = 'data'
+        self.session_folder = "session"
         self.edf_file = 'eye_data'
 
         # timestamp the start of the whole thing
@@ -80,15 +81,15 @@ class PosnerTask:
 
     def init_eye_link(self):
         dummy_mode = False
-        edf_fname = f"{self.exp_info['participant']}_psnr" # TODO: fix the data folders so everything is convinently located
-        results_folder = 'eye_track_data'
+        logging.info(f'Dummy mode: {dummy_mode}')
+        edf_fname = f"{self.exp_info['participant']}_{self.exp_info['session']}_psnr"
         eyelink_ip = "100.1.1.1"
-        if not os.path.exists(results_folder):
-            os.makedirs(results_folder)
-        session_identifier = edf_fname + self.time_str
-        self.session_folder = os.path.join(results_folder, session_identifier)
-        if not os.path.exists(self.session_folder):
-            os.makedirs(self.session_folder)
+        # if not os.path.exists(self.results_folder):
+        #     os.makedirs(self.results_folder)
+        session_identifier = edf_fname + self.exp_info['date']
+        self.eye_session_folder = os.path.join(self.session_folder, session_identifier)
+        # if not os.path.exists(self.session_folder):
+        #     os.makedirs(self.session_folder)
 
         # Step 1: Connect to the EyeLink Host PC
         if dummy_mode:
@@ -230,22 +231,21 @@ class PosnerTask:
         _thisDir = os.path.dirname(os.path.abspath(__file__))
         os.chdir(_thisDir)
         # setup logging
-        output_dir = 'data'
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-        filename = os.path.join(_thisDir, output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}")
-        # filename = _thisDir + os.sep + u'data/%s_%s_%s' % (
-        #     self.exp_info['participant'], self.expName, self.exp_info['date'])
+        if not os.path.exists(self.results_folder):
+            os.makedirs(self.results_folder)
+        self.session_folder = os.path.join(self.results_folder, f"{self.exp_info['participant']}_{self.exp_info['session']}_{self.expName}_{self.exp_info['date']}")
+        if not os.path.exists(self.session_folder):
+            os.makedirs(self.session_folder)
+        filename = os.path.join(_thisDir, self.session_folder, f"{self.exp_info['participant']}_{self.exp_info['session']}_{self.expName}_{self.exp_info['date']}")
         # An ExperimentHandler isn't essential but helps with data saving
         self.thisExp = ExperimentHandler(name=self.expName, version='',
                                          extraInfo=self.exp_info, runtimeInfo=None,
-                                         originPath='C:\\Users\\2354158T\\Documents\\GitHub\\nfb\\psychopy\\posner_eyelink.py',
                                          savePickle=True, saveWideText=True,
                                          dataFileName=filename)
-        logging.basicConfig(filename=os.path.join(output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}.log"), level=logging.INFO,
-                            filemode='w') # TODO: fix log file not saving
+        log_file = f"{filename}.log"
+        logging.basicConfig(filename=log_file, level=logging.DEBUG,
+                            filemode='w')
         logging.info(f"log created at: {self.time_str}")
-        log_file = os.path.join(output_dir, f"{self.exp_info['participant']}_{self.expName}_{self.exp_info['date']}.log")
         print(f"LOG CREATED: {log_file}")
 
     def calculate_cue_side(self):
@@ -512,7 +512,7 @@ class PosnerTask:
         el_tracker.sendCommand(draw_cmd)
 
         # draw the left target
-        left = int(self.scn_width / 2.0) - 230  
+        left = int(self.scn_width / 2.0) - 230
         top = int(self.scn_height / 2.0) - 17
         right = int(self.scn_width / 2.0) - 108
         bottom = int(self.scn_height / 2.0) + 105
@@ -535,6 +535,7 @@ class PosnerTask:
         # Start recording
         # arguments: sample_to_file, events_to_file, sample_over_link,
         # event_over_link (1-yes, 0-no)
+        logging.info('ATTEMPTING TO START EYE TRACKER RECORDING')
         try:
             el_tracker.startRecording(1, 1, 1, 1)
         except RuntimeError as error:
@@ -545,6 +546,7 @@ class PosnerTask:
             return pylink.TRIAL_ERROR
         # Allocate some time for the tracker to cache some samples
         pylink.pumpDelay(100)
+        logging.info('EYE TRACKING RECORDING ON')
         return el_tracker
 
     def eye_tracker_drift_correction(self, el_tracker, dummy_mode=False):
@@ -751,8 +753,8 @@ class PosnerTask:
             else:  # let's star the experiment!
                 print(f"Started experiment for participant {self.exp_info['participant']} "
                       f"in session {self.exp_info['session']}.")
-                logging.info(f"Started experiment for participant {self.exp_info['participant']} "
-                      f"in session {self.exp_info['session']}.")
+                #logging.info(f"Started experiment for participant {self.exp_info['participant']} "
+                      # f"in session {self.exp_info['session']}.")
 
     def end_experiment(self):
         """ Terminate the task gracefully and retrieve the EDF data file
@@ -782,7 +784,7 @@ class PosnerTask:
             # Download the EDF data file from the Host PC to a local data folder
             # parameters: source_file_on_the_host, destination_file_on_local_drive
             local_edf = os.path.join(
-                self.session_folder + '.EDF')  # TODO: make sure this filename is ok (without the session_identifier)
+                self.eye_session_folder + '.EDF')
             print(f'EDF FILE PATH: {local_edf}')
             logging.info(f'EDF FILE PATH: {local_edf}')
             try:
@@ -796,8 +798,6 @@ class PosnerTask:
 
         # close the PsychoPy window
         self.win.close()
-
-        logging.shutdown()
 
         # Finish experiment by closing window and quitting
         self.win.close()
