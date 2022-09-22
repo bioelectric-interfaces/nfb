@@ -35,7 +35,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [1, 1, 1, 1]
+        self.trial_reps = [25, 1, 1, 1]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -503,10 +503,27 @@ class PosnerTask:
         el_tracker.sendCommand('clear_screen 0')
 
         # OPTIONAL: draw landmarks and texts on the Host screen
-        left = int(self.scn_width / 2.0) - 60  # TODO: make this appropriate to the posner task
-        top = int(self.scn_height / 2.0) - 60
-        right = int(self.scn_width / 2.0) + 60
-        bottom = int(self.scn_height / 2.0) + 60
+        # Draw the centre cue area (roughly)
+        left = int(self.scn_width / 2.0) - 33
+        top = int(self.scn_height / 2.0) - 33
+        right = int(self.scn_width / 2.0) + 33
+        bottom = int(self.scn_height / 2.0) + 33
+        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        el_tracker.sendCommand(draw_cmd)
+
+        # draw the left target
+        left = int(self.scn_width / 2.0) - 230  
+        top = int(self.scn_height / 2.0) - 17
+        right = int(self.scn_width / 2.0) - 108
+        bottom = int(self.scn_height / 2.0) + 105
+        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        el_tracker.sendCommand(draw_cmd)
+
+        # draw the right target
+        left = int(self.scn_width / 2.0) + 108
+        top = int(self.scn_height / 2.0) - 17
+        right = int(self.scn_width / 2.0) +230
+        bottom = int(self.scn_height / 2.0) + 105
         draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
         el_tracker.sendCommand(draw_cmd)
         return el_tracker
