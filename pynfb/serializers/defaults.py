@@ -28,6 +28,7 @@ vectors_defaults = OrderedDict([
     ('sRawDataFilePath', ''),
     ('sFTHostnamePort', 'localhost:1972'),
     ('bPlotRaw', 1),
+    ('bUseEyeTracking', 0),
     ('bPlotSignals', 1),
     ('bPlotSourceSpace', 0),
     ('bShowSubjectWindow', 1),

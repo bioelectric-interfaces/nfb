@@ -79,6 +79,7 @@ class Experiment():
         self.block_score_right = {}
         self.dir_name = "results_data"
         self.eye_session_folder = "eye_data"
+        self.dummy_mode = not self.params['bUseEyeTracking']
         self.restart()
         self.el_tracker = self.init_eyelink()
         logging.info(f"{__name__}: ")
@@ -87,7 +88,6 @@ class Experiment():
     def init_eyelink(self):
         print(f'INIT EYELINK')
         # Set this variable to True to run the script in "Dummy Mode"
-        dummy_mode = False
 
         # get the screen resolution natively supported by the monitor
         scn_width, scn_height = 0, 0
@@ -114,7 +114,7 @@ class Experiment():
             os.makedirs(self.eye_session_folder)
             print(f"CREATED SESSION FOLDER")
 
-        if dummy_mode:
+        if self.dummy_mode:
             el_tracker = pylink.EyeLink(None)
         else:
             try:
@@ -137,7 +137,7 @@ class Experiment():
 
         el_tracker.setOfflineMode()
         eyelink_ver = 0  # set version to 0, in case running in Dummy mode
-        if not dummy_mode:
+        if not self.dummy_mode:
             vstr = el_tracker.getTrackerVersionString()
             eyelink_ver = int(vstr.split()[-1].split('.')[0])
             # print out some version info in the shell

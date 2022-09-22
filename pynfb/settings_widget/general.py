@@ -71,10 +71,16 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.reference_sub.textChanged.connect(self.reference_sub_changed_event)
         self.form_layout.addRow('&    Subtract channel from other:', self.reference_sub)
 
+        # use eye tracker flag
+        self.use_eye_tracking = QtWidgets.QCheckBox()
+        self.use_eye_tracking.clicked.connect(self.use_eye_tracking_checkbox_event)
+        self.form_layout.addRow('&Use eye tracking:', self.use_eye_tracking)
+
         # plot raw flag
         self.plot_raw_check = QtWidgets.QCheckBox()
         self.plot_raw_check.clicked.connect(self.plot_raw_checkbox_event)
         self.form_layout.addRow('&Plot raw:', self.plot_raw_check)
+
         # plot signals flag
         self.plot_signals_check = QtWidgets.QCheckBox()
         self.plot_signals_check.clicked.connect(self.plot_signals_checkbox_event)
@@ -178,6 +184,9 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
     def plot_raw_checkbox_event(self):
         self.params['bPlotRaw'] = int(self.plot_raw_check.isChecked())
 
+    def use_eye_tracking_checkbox_event(self):
+        self.params['bUseEyeTracking'] = int(self.use_eye_tracking.isChecked())
+
     def plot_signals_checkbox_event(self):
         self.params['bPlotSignals'] = int(self.plot_signals_check.isChecked())
 
@@ -206,6 +215,7 @@ class GeneralSettingsWidget(QtWidgets.QWidget):
         self.reference.setText(self.params['sReference'])
         self.reference_sub.setText(self.params['sReferenceSub'])
         self.plot_raw_check.setChecked(self.params['bPlotRaw'])
+        self.use_eye_tracking.setChecked(self.params['bUseEyeTracking'])
         self.plot_signals_check.setChecked(self.params['bPlotSignals'])
         self.plot_source_space_check.setChecked(self.params['bPlotSourceSpace'])
         self.show_subject_window_check.setChecked(self.params['bShowSubjectWindow'])

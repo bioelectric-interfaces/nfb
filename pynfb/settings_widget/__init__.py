@@ -45,20 +45,24 @@ class SettingsWidget(QtWidgets.QWidget):
         layout.addWidget(self.protocols_list)
         layout.addWidget(self.protocol_groups_list)
         layout.addWidget(self.protocols_sequence_list)
-        eye_calibrate_button = QtWidgets.QPushButton('Calibrate eye-link')
-        eye_calibrate_button.clicked.connect(self.calibrateEyeLink)
+        self.eye_calibrate_button = QtWidgets.QPushButton('Calibrate eye-link')
+        self.eye_calibrate_button.setEnabled(False)
+        self.general_settings.use_eye_tracking.clicked.connect(self.set_calibrate_eye_vis)
+        self.eye_calibrate_button.clicked.connect(self.calibrateEyeLink)
         start_button = QtWidgets.QPushButton('Start')
         start_button.setIcon(QtGui.QIcon(static_path + '/imag/power-button.png'))
         start_button.setMinimumHeight(50)
         start_button.setMinimumWidth(300)
         start_button.clicked.connect(self.onClicked)
         name_layout = QtWidgets.QHBoxLayout()
-        v_layout.addWidget(eye_calibrate_button, alignment=QtCore.Qt.AlignCenter)
+        v_layout.addWidget(self.eye_calibrate_button, alignment=QtCore.Qt.AlignCenter)
         v_layout.addWidget(start_button, alignment=QtCore.Qt.AlignCenter)
         self.setLayout(v_layout)
         self.setMinimumSize(self.layout().minimumSize())
 
-    def sizeHint(self):
+    def set_calibrate_eye_vis(self):
+        self.eye_calibrate_button.setEnabled(self.general_settings.use_eye_tracking.isChecked())
+
         return self.minimumSize()
 
     def reset_parameters(self):
@@ -311,6 +315,7 @@ class SettingsWidget(QtWidgets.QWidget):
             except RuntimeError as err:
                 print('ERROR DOING SETUP:', err)
                 el_tracker.exitCalibration()
+            print("CALIBRATION FINISHED")
 
     def show_message(self,message, fg_color, bg_color):
         """ show messages on the screen
@@ -383,6 +388,7 @@ class SettingsWidget(QtWidgets.QWidget):
         """
 
         # disconnect from the tracker if there is an active connection
+        print('TERMINATING')
         el_tracker = pylink.getEYELINK()
 
         # if el_tracker.isConnected():

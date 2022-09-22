@@ -6,6 +6,7 @@
 	<dAAIThresholdMax>{{aai_threshold_max}}</dAAIThresholdMax>
 	<dAAIThresholdMean>{{aai_threshold_mean}}</dAAIThresholdMean>
 	<bUseAAIThreshold>{{use_aai_threshold}}</bUseAAIThreshold>
+	<bUseEyeTracking>1</bUseEyeTracking>
 	<sPrefilterBand>None None</sPrefilterBand>
 	<sExperimentName>{{ experiment }}</sExperimentName>
 	<sInletType>lsl</sInletType>
