@@ -326,8 +326,8 @@ class Experiment():
             if self.main.player_panel.start.isChecked():
                 if self.samples_counter == 0:
                     # ------------- MORE EYE TRACKER STUFF -----------------------------------------
-                    self.el_tracker.sendMessage(
-                        f'PROTOCOL START {self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}')
+
+                    self.el_tracker.sendMessage(f'PROTOCOL_{self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}_START')
 
                     # record_status_message : show some info on the Host PC
                     # here we show how many trial has been tested
@@ -622,8 +622,7 @@ class Experiment():
                     self.cum_score = self.reward.get_score()
                     logging.debug(
                         f"!! END !! - SAMP: {self.samples_counter}, fBSCORE: {self.fb_score}, CUMSCORE: {self.cum_score}, SELF.REWARD: {self.reward.get_score()}")
-                    self.el_tracker.sendMessage(
-                        f'PROTOCOL END {self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}')
+                    self.el_tracker.sendMessage(f'PROTOCOL_{self.current_protocol_index}-{self.protocols_sequence[self.current_protocol_index].name}_END')
                     self.next_protocol()
 
     def enable_trouble_catching(self, widget):
