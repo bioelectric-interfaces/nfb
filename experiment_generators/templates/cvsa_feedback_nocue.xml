@@ -290,7 +290,7 @@
 			<tFixationCrossColour>None</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
-			<sProtocolName>fc</sProtocolName>
+			<sProtocolName>tacs</sProtocolName>
 			<bUpdateStatistics>0</bUpdateStatistics>
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
@@ -331,7 +331,7 @@
 			<tFixationCrossColour>White</tFixationCrossColour>
 		</FeedbackProtocol>
 		<FeedbackProtocol>
-			<sProtocolName>fc_b</sProtocolName>
+			<sProtocolName>fcb</sProtocolName>
 			<bUpdateStatistics>0</bUpdateStatistics>
 			<sStatisticsType>meanstd</sStatisticsType>
 			<iDropOutliers>0</iDropOutliers>
@@ -416,7 +416,7 @@
 	<vPGroups>
 		<PGroup>
 			<sName>fb_group</sName>
-			<sList>fc fc_b nfb</sList>
+			<sList>tacs fcb nfb</sList>
 			<sNumberList>1 1 1</sNumberList>
 			<bShuffle>0</bShuffle>
 			<sSplitBy></sSplitBy>
