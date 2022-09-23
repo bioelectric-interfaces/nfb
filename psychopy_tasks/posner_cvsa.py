@@ -527,8 +527,10 @@ class PosnerTask:
                     if hasattr(pcomp.component, "opacity"):
                         if pcomp.component.opacity > 0 and pcomp.id > 0:
                             self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
-                            self.win.callOnFlip(self.p_port.setData, pcomp.id+1)
-                            self.win.callOnFlip(self.outlet.push_sample, [pcomp.id+1])
+                            if pcomp_name == "stim":
+                                # Send out an end message for the stim because this is unique - some of the other ends might happen at the same time so won't be sent
+                                self.win.callOnFlip(self.p_port.setData, pcomp.id+1)
+                                self.win.callOnFlip(self.outlet.push_sample, [pcomp.id+1])
         if isinstance(pcomp.component, Keyboard):
             if pcomp.component.status == STARTED and not waitOnFlip:
                 theseKeys = pcomp.component.getKeys(keyList=pcomp.keyList, waitRelease=False)
