@@ -160,7 +160,8 @@ class SettingsWidget(QtWidgets.QWidget):
                 el_tracker = pylink.EyeLink("100.1.1.1")
             except RuntimeError as error:
                 print('ERROR CONNECTING:', error)
-                pygame.quit()
+                # pygame.quit()
+                pygame.display.quit()
                 # sys.exit()
 
         # Step 2: Open an EDF data file on the Host PC
@@ -172,7 +173,8 @@ class SettingsWidget(QtWidgets.QWidget):
             # close the link if we have one open
             if el_tracker.isConnected():
                 el_tracker.close()
-            pygame.quit()
+            # pygame.quit()
+            pygame.display.quit()
             # sys.exit()
 
         # Add a header text to the EDF file to identify the current experiment name
@@ -424,7 +426,9 @@ class SettingsWidget(QtWidgets.QWidget):
 
         # quit pygame and python
         print('QUITTING CALIBRATION')
-        pygame.quit()
+        # pygame.quit()
+        pygame.display.quit()
+        pygame.init()
         # sys.exit()
 
 if __name__ == "__main__":
