@@ -54,7 +54,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [2, 1, 1, 1]
+        self.trial_reps = [5, 5, 5, 5]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -483,7 +483,7 @@ class PosnerTask:
                                  'right_probe': self.right_probe,
                                  'left_cue': self.left_cue,
                                  'right_cue': self.right_cue,
-                                 'centre_cue1': self.centre_cue1,
+                                 'centre_cue': self.centre_cue1,
                                  'centre_cue2': self.centre_cue2,
                                  'stim': self.stim,
                                  'key_resp': self.key_resp,
@@ -731,7 +731,7 @@ class PosnerTask:
                     self._key_log_allKeys = []
 
             # send a "TRIALID" message to mark the start of a trial, see Data
-            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_BLOCK:{block_name}:{cue_dict[cue_dir]}_START')
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_START')
             self.win.callOnFlip(self.p_port.setData, 1)
             self.win.callOnFlip(self.outlet.push_sample, [1])
             logging.info(f'TRIAL START: PUSHING SAMPLE: {1}')
@@ -757,7 +757,9 @@ class PosnerTask:
                         component.blocking = False
 
                 # check for quit (typically the Esc key)
-                if self.kb.getKeys(keyList=["escape"]):
+                if self.kb.getKeys(keyList=["backspace"
+                                            ""
+                                            ]):
                     self.end_experiment()
 
                 continueRoutine = False  # will revert to True if at least one component still running
@@ -786,7 +788,7 @@ class PosnerTask:
                     if component.component.keys != None:  # we had a response
                         trials.addData(f'{component_name}.rt', component.component.rt)
 
-            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_BLOCK:{block_name}_END')
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_END')
             self.win.callOnFlip(self.p_port.setData, 101)
             self.win.callOnFlip(self.outlet.push_sample, [101])
             logging.info(f'TRIAL END: PUSHING SAMPLE: {101}')
@@ -866,7 +868,7 @@ class PosnerTask:
         quit()
 
     def run_experiment(self):
-        dummy_mode = True
+        dummy_mode = False
         self.show_start_dialog()
         self.update_exp_info()
         self.set_experiment()
@@ -879,10 +881,11 @@ class PosnerTask:
         el_tracker = self.eye_tracker_trial_setup()
         self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.start_components, 1, block_name='start')
-        for blockN in range(4):
-            self.run_block(self.trial_components, self.trial_reps[0], block_name='trials', block_id=blockN)
-            self.run_block(self.continue_components, 1, block_name='continue', block_id=blockN)
+        for idx, blockN in enumerate(self.trial_reps):
+            self.run_block(self.trial_components, blockN, block_name='trials', block_id=idx)
+            self.run_block(self.continue_components, 1, block_name='continue', block_id=idx)
             self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
+            el_tracker = self.eye_tracker_trial_setup()
             self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.end_components, 1, block_name='end')
         self.end_experiment()
