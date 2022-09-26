@@ -9,6 +9,8 @@ from PyQt5 import QtCore
 from itertools import zip_longest, chain
 import time
 
+from PyQt5.QtWidgets import QDesktopWidget
+
 from pynfb.inlets.montage import Montage
 from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
 from pynfb.widgets.channel_trouble import ChannelTroubleWarning
@@ -90,7 +92,7 @@ class Experiment():
         # Set this variable to True to run the script in "Dummy Mode"
 
         # get the screen resolution natively supported by the monitor
-        scn_width, scn_height = 0, 0
+        scn_width, scn_height = 1280, 1024
 
         edf_fname = 'eye_nfb'
 
@@ -186,12 +188,30 @@ class Experiment():
         # as landmarks. For illustration purpose, here we draw some texts and a box
         # For a list of supported draw commands, see the "COMMANDS.INI" file on the
         # Host PC (under /elcl/exe)
-        # left = int(scn_width / 2.0) - 60
-        # top = int(scn_height / 2.0) - 60
-        # right = int(scn_width / 2.0) + 60
-        # bottom = int(scn_height / 2.0) + 60
-        # draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
-        # el_tracker.sendCommand(draw_cmd)
+        # OPTIONAL: draw landmarks and texts on the Host screen
+        # Draw the centre cue area (roughly)
+        left = int(scn_width / 2.0) - 33
+        top = int(scn_height / 2.0) - 33
+        right = int(scn_width / 2.0) + 33
+        bottom = int(scn_height / 2.0) + 33
+        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        el_tracker.sendCommand(draw_cmd)
+
+        # draw the left target
+        left = int(scn_width / 2.0) - 230
+        top = int(scn_height / 2.0) - 17
+        right = int(scn_width / 2.0) - 108
+        bottom = int(scn_height / 2.0) + 105
+        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        el_tracker.sendCommand(draw_cmd)
+
+        # draw the right target
+        left = int(scn_width / 2.0) + 108
+        top = int(scn_height / 2.0) - 17
+        right = int(scn_width / 2.0) +230
+        bottom = int(scn_height / 2.0) + 105
+        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        el_tracker.sendCommand(draw_cmd)
         # put tracker in idle/offline mode before recording
         el_tracker.setOfflineMode()
 
