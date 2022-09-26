@@ -249,6 +249,7 @@ class SettingsWidget(QtWidgets.QWidget):
         # Data Viewer needs this piece of info for proper visualization, see Data
         # Viewer User Manual, "Protocol for EyeLink Data to Viewer Integration"
         dv_coords = "DISPLAY_COORDS  0 0 %d %d" % (scn_width - 1, scn_height - 1)
+        print(dv_coords)
         el_tracker.sendMessage(dv_coords)
 
         # Configure a graphics environment (genv) for tracker calibration
@@ -392,6 +393,7 @@ class SettingsWidget(QtWidgets.QWidget):
         # disconnect from the tracker if there is an active connection
         print('TERMINATING')
         el_tracker = pylink.getEYELINK()
+        el_tracker.setOfflineMode()
 
         # if el_tracker.isConnected():
         #     # Terminate the current trial first if the task terminated prematurely
