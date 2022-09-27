@@ -94,7 +94,7 @@ if __name__ == "__main__":
     # NOTE!!: don't forget to freeze these once generated (so as to not loose randomisation
     tasks = {"baseline": "baseline.xml",
              "nfb_task": nfb_template,
-             "test_task": nfb_template,
+             "practice_task": nfb_template,
              "posner_task": "posner_psychopy.xml"}
 
     task_info = {}
@@ -120,7 +120,7 @@ if __name__ == "__main__":
             muscle_signal = ''
         for task, template in tasks.items():
             if template:
-                if task == "test_task":
+                if task == "practice_task":
                     number_nfb_tasks = 3
                     posner_test = 0
                     stim_duration = 11
