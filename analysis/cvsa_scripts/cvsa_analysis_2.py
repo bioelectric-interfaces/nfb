@@ -735,17 +735,17 @@ def psychopy_rt(csvfile):
     """
     df_rt = pd.read_csv(csvfile)
     # df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt']]
-    df_rt = df_rt[['cue', 'stim_side', 'key_resp.rt', 'key_resp.keys', 'key_log.keys']]
+    df_rt = df_rt[['cue_dir', 'valid_cue', 'key_resp.rt', 'key_resp.keys', 'key_log.keys']]
 
-    conditions = [
-        df_rt['stim_side'].eq(10) & df_rt['cue'].isin([1,2]),
-        df_rt['stim_side'].eq(11) & df_rt['cue'].isin([1,2]),
-        df_rt['cue'].isin([3]),
-    ]
+    # conditions = [
+    #     df_rt['stim_side'].eq(10) & df_rt['cue_dir'].isin([1,2]),
+    #     df_rt['stim_side'].eq(11) & df_rt['cue_dir'].isin([1,2]),
+    #     df_rt['cue_dir'].isin([3]),
+    # ]
 
-    choices = [True, False, 'N/A']
+    # choices = [True, False, 'N/A']
 
-    df_rt['valid_cue'] = np.select(conditions, choices, default=0)
+    # df_rt['valid_cue'] = np.select(conditions, choices, default=0)
 
     df_rt = df_rt.iloc[1:, :] # remove the first row
     df_rt = df_rt.reset_index(drop=True)
@@ -759,17 +759,17 @@ def psychopy_rt(csvfile):
     print('done')
 
 def check_correct_key_response(row):
-    if row['valid_cue'] == 'True':
-        if row['cue'] == 1 and ast.literal_eval(row['key_resp.keys'])[0] == 'left':
+    if row['valid_cue']:
+        if row['cue_dir'] == 1 and ast.literal_eval(row['key_resp.keys'])[0] == 'left':
             return True
-        elif row['cue'] == 2 and ast.literal_eval(row['key_resp.keys'])[0] == 'right':
+        elif row['cue_dir'] == 2 and ast.literal_eval(row['key_resp.keys'])[0] == 'right':
             return True
         else:
             return False
-    elif row['valid_cue'] == 'False':
-        if row['cue'] == 2 and ast.literal_eval(row['key_resp.keys'])[0] == 'left':
+    elif not row['valid_cue']:
+        if row['cue_dir'] == 2 and ast.literal_eval(row['key_resp.keys'])[0] == 'left':
             return True
-        elif row['cue'] == 1 and ast.literal_eval(row['key_resp.keys'])[0] == 'right':
+        elif row['cue_dir'] == 1 and ast.literal_eval(row['key_resp.keys'])[0] == 'right':
             return True
         else:
             return False
@@ -792,8 +792,11 @@ if __name__ == "__main__":
     # TODO:
     # get all NFB and sham data files in participant directory
 
-    psychopy_csv = "/Users/Chris/Documents/GitHub/nfb/psychopy/data/2_posner_task_2022-08-19_14h50.27.575.csv"
+    # -----------------------
+    # DRY RUN ALESSIO/ROSE/REBECCA
+    psychopy_csv = r"C:\Users\2354158T\OneDrive - University of Glasgow\Documents\dry_run_data_20220928\2_1_posner_task_2022-09-28_10h32.06.631\2_1_posner_task_2022-09-28_10h32.06.631.csv"
     psychopy_rt(psychopy_csv)
+    h5file = '/Users/christopherturner/Downloads/0-nfb_task_ksenia_test_08-09_14-07-09/experiment_data.h5'
     if platform.system() == "Windows":
         userdir = "2354158T"
     else:
@@ -894,11 +897,7 @@ if __name__ == "__main__":
         score = None
 
 
-        #-----------------------
-        # TACS CHECKING
-        psychopy_csv = "/Users/christopherturner/Downloads/1_posner_cedrus_2022-08-12_16h57.51.767.csv"
-        psychopy_rt(psychopy_csv)
-        h5file = '/Users/christopherturner/Downloads/0-nfb_task_ksenia_test_08-09_14-07-09/experiment_data.h5'
+
 
         #-----------------------
         # h1 = df1.groupby("block_number").first()
