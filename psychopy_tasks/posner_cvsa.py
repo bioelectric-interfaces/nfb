@@ -54,7 +54,7 @@ class PosnerComponent:
 
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [5, 5, 5, 5]
+        self.trial_reps = [25, 5, 5, 5]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -284,17 +284,25 @@ class PosnerTask:
         self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
         cue_dir = random.choice([1, 2, 3])  # 1=l, 2=r, 3=n
 
-        self.left_cue.component.opacity = 0.0
-        self.right_cue.component.opacity = 0.0
+        self.left_cue.component.fillColor = None
+        self.right_cue.component.fillColor = None
+        self.left_cue.component.lineColor = 'black'
+        self.right_cue.component.lineColor = 'black'
         self.centre_cue1.component.opacity = 0.0
         self.centre_cue2.component.opacity = 0.0
         if cue_dir == 1:
-            self.left_cue.component.opacity = 1.0
+            # self.left_cue.component.fillColor = 'white'
+            self.left_cue.component.lineColor = 'white'
         elif cue_dir == 2:
-            self.right_cue.component.opacity = 1.0
+            # self.right_cue.component.fillColor = 'white'
+            self.right_cue.component.lineColor = 'white'
         elif cue_dir == 3:
-            self.centre_cue1.component.opacity = 1.0
-            self.centre_cue2.component.opacity = 1.0
+            # self.left_cue.component.fillColor = 'white'
+            # self.right_cue.component.fillColor = 'white'
+            self.left_cue.component.lineColor = 'white'
+            self.right_cue.component.lineColor = 'white'
+            # self.centre_cue1.component.opacity = 1.0
+            # self.centre_cue2.component.opacity = 1.0
         return cue_dir
 
     def calculate_stim_validity(self, cue_dir, valid_cue_weight=70):
@@ -374,6 +382,18 @@ class PosnerTask:
             start_time=0.0,
             id=40)
 
+        self.fc2 = PosnerComponent(
+            circle.Circle(
+                win=self.win,
+                units="deg",
+                radius=0.1,
+                fillColor='black',
+                lineColor='black'
+            ),
+            duration=self.trial_duration,
+            start_time=self.fc_duration,
+            id=40)
+
         self.left_probe = PosnerComponent(
             circle.Circle(
                 win=self.win,
@@ -421,8 +441,8 @@ class PosnerTask:
         self.left_cue = PosnerComponent(
             ShapeStim(
                 win=self.win, units='deg',
-                size=(0.75, 0.75), vertices='triangle',
-                ori=-90.0, pos=(0, 0), anchor='center',
+                size=(0.75, 0.50), vertices='triangle',
+                ori=-90.0, pos=(-0.3, 0), anchor='center',
                 lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
                 opacity=1.0, interpolate=True),
             duration=self.cue_duration,
@@ -432,10 +452,10 @@ class PosnerTask:
         self.right_cue = PosnerComponent(
             ShapeStim(
                 win=self.win, units='deg',
-                size=(0.75, 0.75), vertices='triangle',
-                ori=90.0, pos=(0, 0), anchor='center',
+                size=(0.75, 0.50), vertices='triangle',
+                ori=90.0, pos=(0.3, 0), anchor='center',
                 lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
-                opacity=0.0, interpolate=True),
+                opacity=1.0, interpolate=True),
             duration=self.cue_duration,
             start_time=self.fc_duration,
             id=70)
@@ -487,7 +507,8 @@ class PosnerTask:
                                  'centre_cue2': self.centre_cue2,
                                  'stim': self.stim,
                                  'key_resp': self.key_resp,
-                                 'key_log': self.key_log}
+                                 'key_log': self.key_log,
+                                 'fc2': self.fc2}
 
     def handle_component(self, pcomp, pcomp_name, tThisFlip, tThisFlipGlobal, t, trial_id, duration=1):
         # Handle both the probes
