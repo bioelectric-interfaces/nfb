@@ -284,25 +284,29 @@ class PosnerTask:
         self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
         cue_dir = random.choice([1, 2, 3])  # 1=l, 2=r, 3=n
 
-        self.left_cue.component.fillColor = None
-        self.right_cue.component.fillColor = None
-        self.left_cue.component.lineColor = 'black'
-        self.right_cue.component.lineColor = 'black'
+        # self.left_cue.component.fillColor = None
+        # self.right_cue.component.fillColor = None
+        # self.left_cue.component.lineColor = 'black'
+        # self.right_cue.component.lineColor = 'black'
         self.centre_cue1.component.opacity = 0.0
         self.centre_cue2.component.opacity = 0.0
+        self.left_cue.component.opacity = 0.0
+        self.right_cue.component.opacity = 0.0
         if cue_dir == 1:
             # self.left_cue.component.fillColor = 'white'
-            self.left_cue.component.lineColor = 'white'
+            # self.left_cue.component.lineColor = 'white'
+            self.left_cue.component.opacity = 1.0
         elif cue_dir == 2:
             # self.right_cue.component.fillColor = 'white'
-            self.right_cue.component.lineColor = 'white'
+            # self.right_cue.component.lineColor = 'white'
+            self.right_cue.component.opacity = 1.0
         elif cue_dir == 3:
             # self.left_cue.component.fillColor = 'white'
             # self.right_cue.component.fillColor = 'white'
-            self.left_cue.component.lineColor = 'white'
-            self.right_cue.component.lineColor = 'white'
-            # self.centre_cue1.component.opacity = 1.0
-            # self.centre_cue2.component.opacity = 1.0
+            # self.left_cue.component.lineColor = 'white'
+            # self.right_cue.component.lineColor = 'white'
+            self.centre_cue1.component.opacity = 1.0
+            self.centre_cue2.component.opacity = 1.0
         return cue_dir
 
     def calculate_stim_validity(self, cue_dir, valid_cue_weight=70):
@@ -441,8 +445,8 @@ class PosnerTask:
         self.left_cue = PosnerComponent(
             ShapeStim(
                 win=self.win, units='deg',
-                size=(0.75, 0.50), vertices='triangle',
-                ori=-90.0, pos=(-0.3, 0), anchor='center',
+                size=(0.5, 0.5), vertices='triangle',
+                ori=-90.0, pos=(-0.125, 0), anchor='center',
                 lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
                 opacity=1.0, interpolate=True),
             duration=self.cue_duration,
@@ -452,8 +456,8 @@ class PosnerTask:
         self.right_cue = PosnerComponent(
             ShapeStim(
                 win=self.win, units='deg',
-                size=(0.75, 0.50), vertices='triangle',
-                ori=90.0, pos=(0.3, 0), anchor='center',
+                size=(0.5, 0.5), vertices='triangle',
+                ori=90.0, pos=(0.125, 0), anchor='center',
                 lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
                 opacity=1.0, interpolate=True),
             duration=self.cue_duration,
@@ -463,8 +467,8 @@ class PosnerTask:
         self.centre_cue1 = PosnerComponent(
             ShapeStim(
                 win=self.win, units='deg',
-                size=(0.75, 0.75), vertices='triangle',
-                ori=90.0, pos=(0.375, 0), anchor='center',
+                size=(0.5, 0.375), vertices='triangle',
+                ori=90.0, pos=(0.1875, 0), anchor='centre',
                 lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
                 opacity=0.0, interpolate=True),
             duration=self.cue_duration,
@@ -474,8 +478,8 @@ class PosnerTask:
         self.centre_cue2 = PosnerComponent(
             ShapeStim(
                 win=self.win, units='deg',
-                size=(0.75, 0.75), vertices='triangle',
-                ori=-90.0, pos=(-0.375, 0), anchor='center',
+                size=(0.5, 0.375), vertices='triangle',
+                ori=-90.0, pos=(-0.1875, 0), anchor='centre',
                 lineWidth=1.0, colorSpace='rgb', lineColor='white', fillColor='white',
                 opacity=0.0, interpolate=True),
             duration=self.cue_duration,
