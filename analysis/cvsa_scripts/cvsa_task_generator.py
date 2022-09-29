@@ -117,11 +117,11 @@ if __name__ == "__main__":
             left_spatial_filter_scalp = "P5=1"#;P5=1;01=1"
             right_spatial_filter_scalp = "P6=1"#;P6=1;02=1"
             mock_file = mock_file_path
-            muscle_signal = ''
+            muscle_signal = 'EYE_TRACK'
         for task, template in tasks.items():
             if template:
                 if task == "practice_task":
-                    number_nfb_tasks = 3
+                    number_nfb_tasks = 10
                     posner_test = 0
                     stim_duration = 11
                     nfb_duration = 15
