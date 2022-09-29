@@ -166,6 +166,7 @@ fsaverage/
 
 psychopy_tasks/data
 psychopy_tasks/eye_track_data
+*.ini
 
 # Generated experiment config files
 experiment_config_output/
