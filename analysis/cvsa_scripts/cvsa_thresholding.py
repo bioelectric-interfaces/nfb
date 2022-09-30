@@ -54,15 +54,14 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     # create and fill in the task_dir column (task_dir = 1: left, 2: right)
     task_dir = 0
     df1["task_dir"] = 0
-    df1["cue_dir"] = 0
     cue_dir = 0
     for idx, row in df1.copy().iterrows():
-        if row.EVENTS in [1, 2, 3, 22, 55]:
+        if row.EVENTS in [60, 70, 80]:
             task_dir = row.EVENTS
-            if row.EVENTS in [1, 2, 3]:
-                cue_dir = row.EVENTS
+        if row.EVENTS > 100 or row.EVENTS == 30 or row.EVENTS == 40:
+            task_dir = 0
         df1.at[idx, 'task_dir'] = task_dir
-        df1.at[idx, 'cue_dir'] = cue_dir
+
 
     # Just get the actual task blocks
     # EVENT: 1,2 = start of LEFT/RIGHT cue block. 22 = start of task block
@@ -129,11 +128,11 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     chunksize = df1[df1.chunk_n > 0]['chunk_n'].median()
 
     mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
-                                                                 channel_labels=eeg_data.columns, chs=["PO7=1"],
+                                                                 channel_labels=eeg_data.columns, chs=["P5=1"],
                                                                  fft_samps=fs, chunksize=chunksize)
 
     mean_raw_r, std1_raw_r, pwr_raw_r = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
-                                                                 channel_labels=eeg_data.columns, chs=["PO8=1"],
+                                                                 channel_labels=eeg_data.columns, chs=["P6=1"],
                                                                  fft_samps=fs, chunksize=chunksize)
     aai_raw_left = (pwr_raw_l - pwr_raw_r) / (pwr_raw_l + pwr_raw_r)
 
@@ -141,11 +140,13 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     df1['raw_aai'] = aai_raw_left
 
     # Get number of left and right events
-    print(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
-    print(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
-    logging.info(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[1]}")
-    logging.info(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[2]}")
-    # print(f"No. NFB EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[22]}")
+    print(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[60]}")
+    print(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[70]}")
+    print(f"No. CENTRAL EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[80]}")
+    logging.info(f"No. LEFT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[60]}")
+    logging.info(f"No. RIGHT EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[70]}")
+    logging.info(f"No. CENTRAL EVENTS (NFB LSL): {df1[df1.EVENTS > 0].groupby('EVENTS').count()['sample'].loc[80]}")
+
 
     # Replicate the moving average smoother
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
@@ -202,7 +203,7 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     """
 
     # Load the brainvision data
-    raw = mne.io.read_raw_brainvision(bv_file)
+    raw = mne.io.read_raw_brainvision(bv_file, eog=['EOG', 'ECG'], misc=['AFz'])
 
     # Epoch the data
     events_from_annot, event_dict = mne.events_from_annotations(raw)
@@ -304,9 +305,9 @@ if __name__ == "__main__":
     # h5file = f"/Users/christopherturner/Documents/GitHub/nfb/pynfb/results/0-test_task_cvsa_test_04-16_17-00-25/experiment_data.h5"
     # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
     # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
-    h5file = "/Users/christopherturner/Documents/EEG_Data/posner_trig_test_20220809/0-posner_task_bethel_20220812_08-19_16-50-15/experiment_data.h5"
-
-    # mu, std = cvsa_threshold(h5file, plot=True)
+    h5file = r"C:\Users\2354158T\OneDrive - University of Glasgow\Documents\dry_run_data_20220928\0-nfb_task_dry_run_20220928_09-28_10-20-07\experiment_data.h5"
+    h5file = r"C:\Users\2354158T\OneDrive - University of Glasgow\Documents\rose_test30092022\0-posner_task_rose_30092022_09-30_11-57-35\experiment_data.h5"
+    mu, std = cvsa_threshold(h5file, plot=True)
 
     # bv_file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/brainvision_posner/posner_testing_20221614.vhdr"
     bv_file = r"C:\Users\2354158T\OneDrive - University of Glasgow\Documents\dry_run_data_20220928\brainvision\alessio_dry_run.vhdr"
