@@ -396,7 +396,7 @@ class PosnerTask:
             ),
             duration=self.trial_duration,
             start_time=self.fc_duration,
-            id=40)
+            id=0)
 
         self.left_probe = PosnerComponent(
             circle.Circle(
