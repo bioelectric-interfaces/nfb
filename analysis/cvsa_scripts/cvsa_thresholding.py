@@ -306,7 +306,7 @@ if __name__ == "__main__":
     # h5file = f"/Users/christopherturner/Documents/EEG_Data/cvsa_pilot_testing/lab_test_20220428/0-test_task_ct_test_04-28_16-56-03/experiment_data.h5"
     # h5file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/0-posner_task_test_psychopy_06-14_16-55-03/experiment_data.h5"
     h5file = r"C:\Users\2354158T\OneDrive - University of Glasgow\Documents\dry_run_data_20220928\0-nfb_task_dry_run_20220928_09-28_10-20-07\experiment_data.h5"
-    h5file = r"C:\Users\2354158T\OneDrive - University of Glasgow\Documents\rose_test30092022\0-posner_task_rose_30092022_09-30_11-57-35\experiment_data.h5"
+    h5file = r"C:\Users\Chris\Documents\GitHub\nfb\pynfb\results\0-posner_task_rose_30092022_10-03_15-36-38\experiment_data.h5"
     mu, std = cvsa_threshold(h5file, plot=True)
 
     # bv_file = "/Users/christopherturner/Documents/EEG_Data/testing_20220614/brainvision_posner/posner_testing_20221614.vhdr"
