@@ -48,10 +48,11 @@ if __name__ == "__main__":
     if config['FILES']['aai_test']:
         # GENERATE the AAI thresholds
         aai_thresholds = True
+        old_caps = False
         if config['FILES']['aai_test'].endswith('vhdr'):
-            mu, std = cvsa_threshold_bv(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
+            mu, std = cvsa_threshold_bv(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high), old_caps=old_caps)
         else:
-            mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high))
+            mu, std = cvsa_threshold(config['FILES']['aai_test'], plot=True, alpha_band=(band_low, band_high), old_caps=old_caps)
         aai_threshold_max = 2 * std
         threshold_extra = 0.20 * (aai_threshold_max - mu)
         aai_threshold_mean = mu + threshold_extra

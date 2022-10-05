@@ -44,11 +44,10 @@ else:
     userdir = "christopherturner"
 
 
-def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
+def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12), old_caps=False):
     """
     Thresholding script using NFBLab EVENTS to separate left, right, and neutral cases
     """
-    old_caps = False
     df1, fs, channels, p_names = load_data(h5file)
     df1['sample'] = df1.index
 
@@ -181,11 +180,10 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     return mu_raw, std_raw
 
 
-def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
+def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12), old_caps=False):
     """
     csva thresholding function that uses markers from a brainvision file
     """
-    old_caps = False
     # Load the brainvision data
     if old_caps:
         raw = mne.io.read_raw_brainvision(bv_file, eog=['EOG', 'ECG'])
