@@ -48,6 +48,7 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     """
     Thresholding script using NFBLab EVENTS to separate left, right, and neutral cases
     """
+    old_caps = False
     df1, fs, channels, p_names = load_data(h5file)
     df1['sample'] = df1.index
 
@@ -62,33 +63,14 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
             task_dir = 0
         df1.at[idx, 'task_dir'] = task_dir
 
-
-    # Just get the actual task blocks
-    # EVENT: 1,2 = start of LEFT/RIGHT cue block. 22 = start of task block
-
-
-    # df1[df1.cue > 0].groupby("block_number", as_index=True).first()
-
     # Drop everthing not relevant
-    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n', 'task_dir', 'cue_dir']]
+    df1_aai = df1[['signal_AAI', 'signal_left', 'signal_right', 'block_name', 'block_number', 'sample', 'chunk_n', 'task_dir']]
 
     # Extract all of the AAI blocks
-    # df1_aai = df1_aai[df1_aai['block_name'].str.contains("nfb")]
-    df1_aai = df1_aai[df1_aai['cue_dir'].isin( [1,2,3])]
-
-    # # Just look at the left cues
-    # df1_aai = df1_aai[df1_aai['cue_dir'] == 1]
-
-    # Just look at the left cues
-    # df1_aai = df1_aai[df1_aai['cue_dir'] == 2]
+    df1_aai = df1_aai[df1_aai['task_dir'] > 0]
 
     # only include finite values
     df1_aai = df1_aai[np.isfinite(df1_aai.signal_AAI)]
-
-    # look at left and right for /Users/2354158T/Documents/EEG_Data/mac_testing_20220527/0-nfb_task_posner_test_mac_off_05-27_17-15-46/experiment_data.h5
-    # left_blocks = [4,7,10,19,28,34,37,40,49,52,58,61]
-    # right_blocks = [13,16,22,25,31,43,46,55]
-    # df1 = df1[df1.block_number.isin(right_blocks)]
 
     # Calculate mean of all AAI blocks
     # block_means = df1.groupby('block_number', as_index=False)['signal_AAI'].mean()
@@ -117,7 +99,11 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
 
     # Drop non eeg data
     drop_cols = [x for x in df1.columns if x not in channels]
-    drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    if old_caps:
+        drop_cols.extend(['MKIDX', 'EOG', 'ECG', 'signal_AAI'])
+    else:
+        drop_cols.extend(['MKIDX', 'signal_AAI'])
+
     eeg_data = df1.drop(columns=drop_cols)
 
     # Rescale the data (units are microvolts - i.e. x10^-6
@@ -152,9 +138,7 @@ def cvsa_threshold(h5file, plot=False, alpha_band=(8, 12)):
     df1['raw_smoothed'] = df1['raw_aai'].rolling(window=int(fs/10)).mean()
 
     # Extract all of the AAI blocks
-    # df1 = df1[df1['block_name'].str.contains("nfb")]
-    # df1 = df1[df1['task_dir'] == 22]
-    df1 = df1[df1['cue_dir'].isin([1, 2, 3])]
+    df1 = df1[df1['task_dir'].isin([60, 70, 80])]
 
     fig1 = go.Figure()
     fig1.add_trace(go.Scatter(x=df1.index, y=df1['raw_aai'],
@@ -201,9 +185,12 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     """
     csva thresholding function that uses markers from a brainvision file
     """
-
+    old_caps = False
     # Load the brainvision data
-    raw = mne.io.read_raw_brainvision(bv_file, eog=['EOG', 'ECG'], misc=['AFz'])
+    if old_caps:
+        raw = mne.io.read_raw_brainvision(bv_file, eog=['EOG', 'ECG'])
+    else:
+        raw = mne.io.read_raw_brainvision(bv_file, eog=['ECG'], misc=['AFz'])
 
     # Epoch the data
     events_from_annot, event_dict = mne.events_from_annotations(raw)
@@ -235,7 +222,7 @@ def cvsa_threshold_bv(bv_file, plot=False, alpha_band=(8, 12)):
     chunksize = 20 # This is arbitrary
 
     drop_cols = [x for x in df1.columns if x not in raw.info.ch_names]
-    drop_cols.extend(['EOG', 'ECG', 'task_dir', 'EVENTS'])
+    drop_cols.extend(['task_dir', 'EVENTS'])
     eeg_data = df1.drop(columns=drop_cols)
 
     mean_raw_l, std1_raw_l, pwr_raw_l = af.get_nfblab_power_stats_pandas(eeg_data[0:aai_duration_samps], fband=alpha_band, fs=fs,
