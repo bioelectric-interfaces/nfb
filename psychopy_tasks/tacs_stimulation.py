@@ -1,13 +1,15 @@
 """
 todo
     [ ] make basic setup to cycle through videos in a given directory
-        [ ]make sure the videos are displayed for the duriation that they are
+        [ ]get enough videos (maybe compress them?)
+        [ ]figure out how to display the videos smoothly - compression?
+        [ ]decide if to display each video for fixed length or the actual length they are
         [ ]make sure the videos are displayed at the same size
         [ ]randomise the video order
         [ ]have (some) different videos for each session
     [ ]fix eye tracker drawing stuff
     [ ]fix eye tracker markers (each video can be the same)
-    [ ]enable all eye tracker stuff and test with eye tracker (looking at EDF file)
+    [ ]enable all eye tracker, parallel, and lsl stuff and test with eye tracker (looking at EDF file)
 """
 from psychopy.gui import DlgFromDict
 from psychopy.visual import Window, TextStim, circle, MovieStim
@@ -19,9 +21,10 @@ from psychopy.data import TrialHandler, getDateStr, ExperimentHandler
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 from psychopy.visual.shape import ShapeStim
-from psychopy import parallel
+# from psychopy import parallel
 import psychopy
 import os
+import cv2
 import typing
 import random
 import time
@@ -50,6 +53,7 @@ class PosnerComponent:
 class StimTask:
     def __init__(self):
         self.trial_reps = [2]
+        self.movie_dir = r'C:\Users\christ\Desktop\tacs_videos'
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
@@ -91,6 +95,21 @@ class StimTask:
         # setup the LSL triggers
         info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')
         self.outlet = StreamOutlet(info)
+
+    def get_video_lengths(self, dir_path, file_list):
+        video_lengths = {}
+        for f in file_list:
+            data_path = os.path.join(dir_path, f)
+            data = cv2.VideoCapture(data_path)
+
+            # count the number of frames
+            frames = data.get(cv2.CAP_PROP_FRAME_COUNT)
+            fps = data.get(cv2.CAP_PROP_FPS)
+
+            # calculate duration of the video
+            seconds = round(frames / fps)
+            video_lengths[data_path] = (seconds)
+        return video_lengths
 
     def init_eye_link(self):
         dummy_mode = False
@@ -282,25 +301,57 @@ class StimTask:
         self.end_components = {'end_text': self.end_text}
 
     def init_trial_components(self):
-        self.movie1 = PosnerComponent(
-            MovieStim(
-                self.win, name='movie1',
-                filename=r'C:\Users\christ\Desktop\tacs_videos\stim_vid_0001.mp4', movieLib='ffpyplayer',
-                loop=False,
-                volume=1.0,
-                pos=(0, 0),
-                size=[5, 5],
-                units='deg',
-                ori=0.0,
-                anchor='center',
-                opacity=None,
-                contrast=1.0,),
-        duration=5.0,
-        start_time=0.0,
-        id=40)
 
-        self.trial_components = {'movie1': self.movie1
-                                 }
+        # get list of movie files
+        file_list = os.listdir(self.movie_dir)
+
+        # get the lengths of all the videos
+        movie_lengths = self.get_video_lengths(self.movie_dir, file_list)
+
+
+        idx = 0
+        start_time = 0
+        for m, l in movie_lengths.items():
+            idx += 1
+            self.trial_components[f'movie{idx}'] = PosnerComponent(
+                MovieStim(
+                    self.win,
+                    name=f'movie{idx}',
+                    filename=m,
+                    movieLib='ffpyplayer',
+                    loop=False,
+                    volume=1.0,
+                    pos=(0, 0),
+                    size=[5, 5],
+                    units='deg',
+                    ori=0.0,
+                    anchor='center',
+                    opacity=None,
+                    contrast=1.0, ),
+                duration=l,
+                start_time=start_time + l,
+                id=40)
+
+
+        # self.movie1 = PosnerComponent(
+        #     MovieStim(
+        #         self.win, name='movie1',
+        #         filename=r'C:\Users\christ\Desktop\tacs_videos\stim_vid_0001.mp4', movieLib='ffpyplayer',
+        #         loop=False,
+        #         volume=1.0,
+        #         pos=(0, 0),
+        #         size=[5, 5],
+        #         units='deg',
+        #         ori=0.0,
+        #         anchor='center',
+        #         opacity=None,
+        #         contrast=1.0,),
+        # duration=5.0,
+        # start_time=0.0,
+        # id=40)
+        #
+        # self.trial_components = {'movie1': self.movie1
+        #                          }
 
     def handle_component(self, pcomp, pcomp_name, tThisFlip, tThisFlipGlobal, t, trial_id, duration=1):
         # Handle both the probes
