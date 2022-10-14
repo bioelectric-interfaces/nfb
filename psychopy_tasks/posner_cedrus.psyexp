@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" ?>
-<PsychoPy2experiment encoding="utf-8" version="2022.1.4">
+<PsychoPy2experiment encoding="utf-8" version="2022.2.1">
   <Settings>
     <Param val="use prefs" valType="str" updates="None" name="Audio latency priority"/>
     <Param val="use prefs" valType="str" updates="None" name="Audio lib"/>
@@ -9,7 +9,7 @@
     <Param val="True" valType="bool" updates="None" name="Enable Escape"/>
     <Param val="{'participant': '', 'session': '001'}" valType="code" updates="None" name="Experiment info"/>
     <Param val="True" valType="bool" updates="None" name="Force stereo"/>
-    <Param val="True" valType="bool" updates="None" name="Full-screen window"/>
+    <Param val="False" valType="bool" updates="None" name="Full-screen window"/>
     <Param val="" valType="str" updates="None" name="HTML path"/>
     <Param val="" valType="str" updates="None" name="Incomplete URL"/>
     <Param val="eprime" valType="str" updates="None" name="Monitor"/>
@@ -25,7 +25,7 @@
     <Param val="False" valType="bool" updates="None" name="Show mouse"/>
     <Param val="deg" valType="str" updates="None" name="Units"/>
     <Param val="" valType="str" updates="None" name="Use version"/>
-    <Param val="[1280, 1024]" valType="list" updates="None" name="Window size (pixels)"/>
+    <Param val="[1920, 1080]" valType="list" updates="None" name="Window size (pixels)"/>
     <Param val="avg" valType="str" updates="None" name="blendMode"/>
     <Param val="$[0,0,0]" valType="color" updates="None" name="color"/>
     <Param val="rgb" valType="str" updates="None" name="colorSpace"/>
@@ -444,7 +444,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="blue" valType="color" updates="set every frame" name="fillColor"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
-        <Param val="black" valType="color" updates="set every frame" name="lineColor"/>
+        <Param val="white" valType="color" updates="set every frame" name="lineColor"/>
         <Param val="8" valType="num" updates="constant" name="lineWidth"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="probe_l_cue" valType="code" updates="None" name="name"/>
@@ -471,7 +471,7 @@
         <Param val="" valType="code" updates="None" name="durationEstim"/>
         <Param val="blue" valType="color" updates="constant" name="fillColor"/>
         <Param val="linear" valType="str" updates="constant" name="interpolate"/>
-        <Param val="black" valType="color" updates="constant" name="lineColor"/>
+        <Param val="white" valType="color" updates="constant" name="lineColor"/>
         <Param val="8" valType="num" updates="constant" name="lineWidth"/>
         <Param val="4" valType="int" updates="constant" name="nVertices"/>
         <Param val="probe_r_cue" valType="code" updates="None" name="name"/>
