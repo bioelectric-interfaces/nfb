@@ -326,6 +326,11 @@ class StimTask:
                 # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_START')
                 # self.win.callOnFlip(self.p_port.setData, pcomp.id)
                 self.win.callOnFlip(self.outlet.push_sample, [pcomp.id])
+
+            logging.info(f'try playing {type(pcomp.component)}')
+            if isinstance(pcomp.component, psychopy.visual.movies.MovieStim):
+                logging.info('playing')
+                pcomp.component.play()
         if pcomp.component.status == STARTED:
             # is it time to stop? (based on global clock, using actual start)
             if tThisFlipGlobal > pcomp.component.tStartRefresh + duration - self.frameTolerance:
@@ -335,7 +340,9 @@ class StimTask:
                     self.thisExp.timestampOnFlip(self.win, f'{pcomp_name}.stopped')
                     if hasattr(pcomp.component, "setAutoDraw"):
                         pcomp.component.setAutoDraw(False)
-                    pcomp.component.status = FINISHED
+                    pcomp.component.status = FINISHED            
+                    if isinstance(pcomp.component, MovieStim):
+                        pcomp.component.stop()
                     # if pcomp.id > 0:
                         # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
 
