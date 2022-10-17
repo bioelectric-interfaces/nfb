@@ -7,11 +7,9 @@ images are from
     Chiffi, K., Diana, L., Hartmann, M., Cazzoli, D., Bassetti, C. L., Müri, R. M., & Eberhard-Moscicka, A. K. (2021). Spatial asymmetries (“pseudoneglect”) in free visual exploration—Modulation of age and relationship to line bisection. Experimental Brain Research, 239(9), 2693–2700. https://doi.org/10.1007/s00221-021-06165-x
 
 todo
+    [ ]enable all eye tracker, parallel, and lsl stuff and test with eye tracker (looking at EDF file)
     [ ] add drift correction
     [ ]fix eye tracker drawing stuff
-    [ ]fix eye tracker markers (each video can be the same)
-    [ ]enable all eye tracker, parallel, and lsl stuff and test with eye tracker (looking at EDF file)
-    [ ]get logging working
 """
 from psychopy.gui import DlgFromDict
 from psychopy.visual import Window, TextStim, circle, ImageStim
@@ -23,7 +21,7 @@ from psychopy.data import TrialHandler, getDateStr, ExperimentHandler
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
 from psychopy.visual.shape import ShapeStim
-# from psychopy import parallel
+from psychopy import parallel
 import psychopy
 import os
 import cv2
@@ -57,7 +55,7 @@ class StimTask:
         n_images = 3 # total number of original images (not including mirrored so half the complete image set total)
         self.trial_reps = [n_images*2]
         self.image_duration = 1
-        image_dir = r'C:\Users\2354158T\Documents\Experimental_Stimuli'
+        image_dir = r'C:\Users\Chris\Documents\Experimental_Stimuli'
         self.image_list = self.get_image_list(image_dir, n_images)
 
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
@@ -96,7 +94,7 @@ class StimTask:
         # timestamp_str = datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M-%S')
 
         # setup parallel port for bv trigs
-        # self.p_port = parallel.ParallelPort(address=0x2010)  # set up parallel port for sendign tACS triggers
+        self.p_port = parallel.ParallelPort(address=0x2010)  # set up parallel port for sendign tACS triggers
 
         # setup the LSL triggers
         info = StreamInfo('PosnerMarkers', 'Markers', 1, 0, 'float32', 'posner_marker')
@@ -361,8 +359,8 @@ class StimTask:
                 self.win.callOnFlip(pcomp.component.clearEvents,
                                     eventType='keyboard')  # clear events on next screen flip
             if pcomp.id > 0:
-                # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_START')
-                # self.win.callOnFlip(self.p_port.setData, pcomp.id)
+                self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_START')
+                self.win.callOnFlip(self.p_port.setData, pcomp.id)
                 self.win.callOnFlip(self.outlet.push_sample, [pcomp.id])
 
             logging.info(f'try playing {type(pcomp.component)}')
@@ -376,8 +374,8 @@ class StimTask:
                     if hasattr(pcomp.component, "setAutoDraw"):
                         pcomp.component.setAutoDraw(False)
                     pcomp.component.status = FINISHED
-                    # if pcomp.id > 0:
-                        # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
+                    if pcomp.id > 0:
+                        self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
 
     def eye_tracker_trial_setup(self):
         # get a reference to the currently active EyeLink connection
@@ -519,7 +517,7 @@ class StimTask:
             # record_status_message : show some info on the Host PC
             # here we show how many trial has been tested
             status_msg = f'TRIAL {block_name}_{trial_id}'
-            # self.el_tracker.sendCommand("record_status_message '%s'" % status_msg)
+            self.el_tracker.sendCommand("record_status_message '%s'" % status_msg)
 
             currentLoop = trials
             # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
@@ -540,9 +538,9 @@ class StimTask:
                     component.blocking = True
 
             # send a "TRIALID" message to mark the start of a trial, see Data
-            # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_START')
-            # self.win.callOnFlip(self.p_port.setData, 1)
-            # self.win.callOnFlip(self.outlet.push_sample, [1])
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_START')
+            self.win.callOnFlip(self.p_port.setData, 1)
+            self.win.callOnFlip(self.outlet.push_sample, [1])
             logging.info(f'TRIAL START: PUSHING SAMPLE: {1}')
 
             # set the image path in the image component
@@ -587,15 +585,15 @@ class StimTask:
                 if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
                     self.win.flip()
                 # Reset the bv trigger after each flip (so the trigger lasts 10ms)
-                # self.win.callOnFlip(self.p_port.setData, 0)
+                self.win.callOnFlip(self.p_port.setData, 0)
 
             # --- Ending Routine ---
             for component_name, component in component_dict.items():
                 if hasattr(component.component, "setAutoDraw"):
                     component.component.setAutoDraw(False)
 
-            # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_END')
-            # self.win.callOnFlip(self.p_port.setData, 101)
+            self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{block_name}_END')
+            self.win.callOnFlip(self.p_port.setData, 101)
             self.win.callOnFlip(self.outlet.push_sample, [101])
             logging.info(f'TRIAL END: PUSHING SAMPLE: {101}')
             # self.win.callOnFlip(logging.info, f'TRIAL END: PUSHING SAMPLE: {[trial_index+cue_dir*500]} - noflip')
@@ -630,39 +628,39 @@ class StimTask:
         file_to_retrieve: The EDF on the Host that we would like to download
         win: the current window used by the experimental script
         """
-        # el_tracker = pylink.getEYELINK()
-        # if el_tracker.isConnected():
-        #     # Terminate the current trial first if the task terminated prematurely
-        #     error = el_tracker.isRecording()
-        #     if error == pylink.TRIAL_OK:
-        #         self.abort_trial(el_tracker)
-        #     # Put tracker in Offline mode
-        #     el_tracker.setOfflineMode()
-        #     # Clear the Host PC screen and wait for 500 ms
-        #     el_tracker.sendCommand('clear_screen 0')
-        #     pylink.msecDelay(500)
-        #     # Close the edf data file on the Host
-        #     el_tracker.closeDataFile()
-        #
-        #     # Show a file transfer message on the screen
-        #     msg = 'EDF data is transferring from EyeLink Host PC...'
-        #     print(msg)
-        #     logging.info(msg)
-        #
-        #     # Download the EDF data file from the Host PC to a local data folder
-        #     # parameters: source_file_on_the_host, destination_file_on_local_drive
-        #     local_edf = os.path.join(
-        #         self.eye_session_folder + '.EDF')
-        #     print(f'EDF FILE PATH: {local_edf}')
-        #     logging.info(f'EDF FILE PATH: {local_edf}')
-        #     try:
-        #         el_tracker.receiveDataFile(self.edf_file, local_edf)
-        #     except RuntimeError as error:
-        #         print('GET EDF ERROR:', error)
-        #         logging.error(f' GET EDF ERROR: {error}')
-        #
-        #     # Close the link to the tracker.
-        #     el_tracker.close()
+        el_tracker = pylink.getEYELINK()
+        if el_tracker.isConnected():
+            # Terminate the current trial first if the task terminated prematurely
+            error = el_tracker.isRecording()
+            if error == pylink.TRIAL_OK:
+                self.abort_trial(el_tracker)
+            # Put tracker in Offline mode
+            el_tracker.setOfflineMode()
+            # Clear the Host PC screen and wait for 500 ms
+            el_tracker.sendCommand('clear_screen 0')
+            pylink.msecDelay(500)
+            # Close the edf data file on the Host
+            el_tracker.closeDataFile()
+
+            # Show a file transfer message on the screen
+            msg = 'EDF data is transferring from EyeLink Host PC...'
+            print(msg)
+            logging.info(msg)
+
+            # Download the EDF data file from the Host PC to a local data folder
+            # parameters: source_file_on_the_host, destination_file_on_local_drive
+            local_edf = os.path.join(
+                self.eye_session_folder + '.EDF')
+            print(f'EDF FILE PATH: {local_edf}')
+            logging.info(f'EDF FILE PATH: {local_edf}')
+            try:
+                el_tracker.receiveDataFile(self.edf_file, local_edf)
+            except RuntimeError as error:
+                print('GET EDF ERROR:', error)
+                logging.error(f' GET EDF ERROR: {error}')
+
+            # Close the link to the tracker.
+            el_tracker.close()
 
         # close the PsychoPy window
         self.win.close()
@@ -679,16 +677,16 @@ class StimTask:
         self.init_start_components()
         self.init_end_components()
         self.init_trial_components()
-        # self.init_eye_link()
-        # self.calibrate_eyelink()
-        # el_tracker = self.eye_tracker_trial_setup()
-        # self.el_tracker = self.start_eye_tracker_recording(el_tracker)
+        self.init_eye_link()
+        self.calibrate_eyelink()
+        el_tracker = self.eye_tracker_trial_setup()
+        self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.start_components, 1, block_name='start')
         for idx, blockN in enumerate(self.trial_reps):
-            self.run_block(self.trial_components, blockN, block_name='trials', block_id=idx)
             # self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
-            # el_tracker = self.eye_tracker_trial_setup()
-            # self.el_tracker = self.start_eye_tracker_recording(el_tracker)
+            el_tracker = self.eye_tracker_trial_setup()
+            self.el_tracker = self.start_eye_tracker_recording(el_tracker)
+            self.run_block(self.trial_components, blockN, block_name='trials', block_id=idx)
         self.run_block(self.end_components, 1, block_name='end')
         self.end_experiment()
 
