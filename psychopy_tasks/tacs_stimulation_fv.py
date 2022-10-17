@@ -9,7 +9,6 @@ images are from
 todo
     [ ] check parallel, and lsl stuff and check times against EDF file
     [ ] add drift correction
-    [ ] fix eye tracker drawing stuff
 """
 from psychopy.gui import DlgFromDict
 from psychopy.visual import Window, TextStim, circle, ImageStim
@@ -53,11 +52,11 @@ class PosnerComponent:
 
 class StimTask:
     def __init__(self):
-        n_images = 3 # total number of original images (not including mirrored so half the complete image set total)
-        self.trial_reps = [n_images*2]
+        n_images = 2 # total number of original images per block (not including mirrored so half the complete image set total)
+        self.trial_reps = [n_images*2, n_images*2, n_images*2, n_images*2]
         self.image_duration = 1
         image_dir = r'C:\Users\Chris\Documents\Experimental_Stimuli'
-        self.image_list = self.get_image_list(image_dir, n_images)
+        self.block_paths = self.get_image_list(image_dir, self.trial_reps)
 
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
@@ -103,18 +102,33 @@ class StimTask:
 
     def get_image_list(self, dir_path, n_images):
         # get list of image files - make sure to include an original and mirrored pair
-        file_list = os.listdir(os.path.join(dir_path, 'original'))
-        random.shuffle(file_list)
+        original_file_list = os.listdir(os.path.join(dir_path, 'original'))
+        random.shuffle(original_file_list)
+
+        # Select the appropriate number of images for the entire experiment
+        original_file_list = original_file_list[0:int(sum(n_images)/2)]
+
+        # Get the image paths for original and mirrored images
+        orig_images_paths = [os.path.join(dir_path, 'original', x) for x in original_file_list]
+        mirr_images_paths = [os.path.join(dir_path, 'mirrored', x) for x in original_file_list]
+        image_paths = orig_images_paths + mirr_images_paths
+        random.shuffle(image_paths)
+        print(f'IMGS {image_paths}')
 
         # Select desired number of images
-        file_list = file_list[0:n_images]
-
-        orig_images_paths = [os.path.join(dir_path, 'original', x) for x in file_list]
-        mirr_images_paths = [os.path.join(dir_path, 'mirrored', x) for x in file_list]
-        image_paths = orig_images_paths + mirr_images_paths
-        # shuffle all the images
-        random.shuffle(image_paths)
-        return image_paths
+        block_paths = []
+        idx = 0
+        for i, x in enumerate(n_images):
+            if i == 0:
+                print(0, idx)
+                block_paths.append(image_paths[0:n_images[0]])
+            else:
+                block_paths.append(image_paths[idx: idx + x])
+                print(x)
+                print(idx, idx + x)
+            idx += x
+        print(block_paths)
+        return block_paths
 
     def init_eye_link(self):
         dummy_mode = False
@@ -324,7 +338,7 @@ class StimTask:
             ImageStim(
                 self.win,
                 name=f'image',
-                image=self.image_list[0],
+                image=self.block_paths[0][0],
                 pos=(0, 0),
                 size=[scn_width/2, scn_height/2],
                 units='pix',
@@ -549,7 +563,7 @@ class StimTask:
             logging.info(f'TRIAL START: PUSHING SAMPLE: {1}')
 
             # set the image path in the image component
-            current_image = self.image_list[trial_index]
+            current_image = self.block_paths[block_id][trial_index]
             logging.info(f'current image: {current_image}')
             if 'image' in component_dict:
                 component_dict['image'].component.image = current_image
@@ -687,7 +701,7 @@ class StimTask:
         self.el_tracker = self.start_eye_tracker_recording(el_tracker)
         self.run_block(self.start_components, 1, block_name='start')
         for idx, blockN in enumerate(self.trial_reps):
-            # self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
+            self.el_tracker = self.eye_tracker_drift_correction(self.el_tracker, dummy_mode=dummy_mode)
             el_tracker = self.eye_tracker_trial_setup()
             self.el_tracker = self.start_eye_tracker_recording(el_tracker)
             self.run_block(self.trial_components, blockN, block_name='trials', block_id=idx)
