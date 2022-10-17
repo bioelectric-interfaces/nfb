@@ -7,7 +7,6 @@ images are from
     Chiffi, K., Diana, L., Hartmann, M., Cazzoli, D., Bassetti, C. L., Müri, R. M., & Eberhard-Moscicka, A. K. (2021). Spatial asymmetries (“pseudoneglect”) in free visual exploration—Modulation of age and relationship to line bisection. Experimental Brain Research, 239(9), 2693–2700. https://doi.org/10.1007/s00221-021-06165-x
 
 todo
-    [ ] Get running to show desired amount of images (and make sure have all mirorred versions)
     [ ] add drift correction
     [ ]fix eye tracker drawing stuff
     [ ]fix eye tracker markers (each video can be the same)
@@ -15,7 +14,7 @@ todo
     [ ]get logging working
 """
 from psychopy.gui import DlgFromDict
-from psychopy.visual import Window, TextStim, circle, MovieStim, ImageStim
+from psychopy.visual import Window, TextStim, circle, ImageStim
 from psychopy.core import Clock, quit
 from psychopy.event import Mouse
 from psychopy.hardware.keyboard import Keyboard
@@ -55,9 +54,9 @@ class PosnerComponent:
 
 class StimTask:
     def __init__(self):
-        n_images = 10 # total number of original images (not including mirrored so half the complete image set total)
+        n_images = 3 # total number of original images (not including mirrored so half the complete image set total)
         self.trial_reps = [n_images*2]
-        self.image_duration = 7
+        self.image_duration = 1
         image_dir = r'C:\Users\2354158T\Documents\Experimental_Stimuli'
         self.image_list = self.get_image_list(image_dir, n_images)
 
@@ -376,9 +375,7 @@ class StimTask:
                     self.thisExp.timestampOnFlip(self.win, f'{pcomp_name}.stopped')
                     if hasattr(pcomp.component, "setAutoDraw"):
                         pcomp.component.setAutoDraw(False)
-                    pcomp.component.status = FINISHED            
-                    if isinstance(pcomp.component, MovieStim):
-                        pcomp.component.stop()
+                    pcomp.component.status = FINISHED
                     # if pcomp.id > 0:
                         # self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
 
@@ -550,6 +547,7 @@ class StimTask:
 
             # set the image path in the image component
             current_image = self.image_list[trial_index]
+            logging.info(f'current image: {current_image}')
             if 'image' in component_dict:
                 component_dict['image'].component.image = current_image
 
