@@ -7,9 +7,9 @@ images are from
     Chiffi, K., Diana, L., Hartmann, M., Cazzoli, D., Bassetti, C. L., Müri, R. M., & Eberhard-Moscicka, A. K. (2021). Spatial asymmetries (“pseudoneglect”) in free visual exploration—Modulation of age and relationship to line bisection. Experimental Brain Research, 239(9), 2693–2700. https://doi.org/10.1007/s00221-021-06165-x
 
 todo
-    [ ]enable all eye tracker, parallel, and lsl stuff and test with eye tracker (looking at EDF file)
+    [ ] check parallel, and lsl stuff and check times against EDF file
     [ ] add drift correction
-    [ ]fix eye tracker drawing stuff
+    [ ] fix eye tracker drawing stuff
 """
 from psychopy.gui import DlgFromDict
 from psychopy.visual import Window, TextStim, circle, ImageStim
@@ -25,6 +25,7 @@ from psychopy import parallel
 import psychopy
 import os
 import cv2
+from PIL import Image
 import typing
 import random
 import time
@@ -377,7 +378,7 @@ class StimTask:
                     if pcomp.id > 0:
                         self.win.callOnFlip(self.el_tracker.sendMessage, f'TRIAL_{trial_id}_{pcomp_name}_END')
 
-    def eye_tracker_trial_setup(self):
+    def eye_tracker_trial_setup(self, pic=None):
         # get a reference to the currently active EyeLink connection
         el_tracker = pylink.getEYELINK()
 
@@ -386,6 +387,18 @@ class StimTask:
 
         # clear the host screen before we draw the backdrop
         el_tracker.sendCommand('clear_screen 0')
+
+        # Draw the background image
+        if pic:
+            scn_width, scn_height = self.win.size
+            im = Image.open('images' + os.sep + pic)  # read image with PIL
+            im = im.resize((scn_width/2, scn_height/2))
+            img_pixels = im.load()  # access the pixel data of the image
+            pixels = [[img_pixels[i, j] for i in range(scn_width)]
+                      for j in range(scn_height)]
+            el_tracker.bitmapBackdrop(scn_width, scn_height, pixels,
+                                      0, 0, scn_width, scn_height,
+                                      0, 0, pylink.BX_MAXCONTRAST)
 
         # OPTIONAL: draw landmarks and texts on the Host screen
         # Draw the centre cue area (roughly)
@@ -396,20 +409,12 @@ class StimTask:
         draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
         el_tracker.sendCommand(draw_cmd)
 
-        # draw the left target
-        left = int(self.scn_width / 2.0) - 230
-        top = int(self.scn_height / 2.0) - 17
-        right = int(self.scn_width / 2.0) - 108
-        bottom = int(self.scn_height / 2.0) + 105
-        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
-        el_tracker.sendCommand(draw_cmd)
-
-        # draw the right target
-        left = int(self.scn_width / 2.0) + 108
-        top = int(self.scn_height / 2.0) - 17
-        right = int(self.scn_width / 2.0) +230
-        bottom = int(self.scn_height / 2.0) + 105
-        draw_cmd = 'draw_filled_box %d %d %d %d 1' % (left, top, right, bottom)
+        # Draw the image area
+        left = int(self.scn_width / 2.0) - int(self.scn_width / 4.0)
+        top = int(self.scn_height / 2.0) - int(self.scn_height / 4.0)
+        right = int(self.scn_width / 2.0) + int(self.scn_width / 4.0)
+        bottom = int(self.scn_height / 2.0) + int(self.scn_height / 4.0)
+        draw_cmd = 'draw_box %d %d %d %d 1' % (left, top, right, bottom)
         el_tracker.sendCommand(draw_cmd)
         return el_tracker
 
@@ -548,7 +553,6 @@ class StimTask:
             logging.info(f'current image: {current_image}')
             if 'image' in component_dict:
                 component_dict['image'].component.image = current_image
-
 
             # Reset the trial clock
             self.trial_clock.reset()
