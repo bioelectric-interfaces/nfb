@@ -122,10 +122,10 @@ if __name__ == "__main__":
         for task, template in tasks.items():
             if template:
                 if task == "practice_task":
-                    number_nfb_tasks = 10
+                    number_nfb_tasks = 8
                     posner_test = 0
-                    stim_duration = 11
-                    nfb_duration = 15
+                    stim_duration = 5
+                    nfb_duration = 30
                     show_score = 0
                     enable_posner = 0
                 if task == "posner_task":
@@ -136,10 +136,10 @@ if __name__ == "__main__":
                     show_score = 0
                     enable_posner = 1
                 elif task == "nfb_task":
-                    number_nfb_tasks = 20
+                    number_nfb_tasks = 4
                     posner_test = 0
-                    stim_duration = 11
-                    nfb_duration = 15
+                    stim_duration = 5
+                    nfb_duration = 120
                     show_score = 0
                     enable_posner = 0
 
