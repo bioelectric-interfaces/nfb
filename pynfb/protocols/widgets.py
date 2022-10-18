@@ -646,7 +646,7 @@ class FixationCrossProtocolWidgetPainter(Painter):
 
         self.send_tacs_trig = False  # TODO: make this a param available on the protocol settings window
         if platform.system() == "Windows":
-            self.send_tacs_trig = True
+            self.send_tacs_trig = False
         self.p_port = parallel.ParallelPort(address=0x2010)  # set up parallel port for sendign tACS triggers
 
     def prepare_widget(self, widget):
