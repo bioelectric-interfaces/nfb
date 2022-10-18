@@ -52,9 +52,9 @@ class PosnerComponent:
 
 class StimTask:
     def __init__(self):
-        n_images = 2 # total number of original images per block (not including mirrored so half the complete image set total)
+        n_images = 65 # total number of original images per block (not including mirrored so half the complete image set total)
         self.trial_reps = [n_images*2, n_images*2, n_images*2, n_images*2]
-        self.image_duration = 1
+        self.image_duration = 7
         image_dir = r'C:\Users\Chris\Documents\Experimental_Stimuli'
         self.block_paths = self.get_image_list(image_dir, self.trial_reps)
 
