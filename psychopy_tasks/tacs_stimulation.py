@@ -53,7 +53,8 @@ class PosnerComponent:
 class StimTask:
     def __init__(self):
         self.trial_reps = [2]
-        self.movie_dir = r'C:\Users\christ\Desktop\tacs_videos'
+        # self.movie_dir = r'C:\Users\christ\Desktop\tacs_videos'
+        self.movie_dir = r'C:\Users\Default\Desktop\tacs_videos'
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
