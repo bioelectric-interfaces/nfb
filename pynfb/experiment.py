@@ -796,11 +796,11 @@ class Experiment():
 
             # Get the start of the test signal (random value between 0 and 100000-cur protocol length - buffer(1000)
             logging.debug(f"test_sig start: {0}, test_sig end: {100000-self.current_protocol_n_samples}, cur samps: {self.current_protocol_n_samples}")
-            if isinstance(current_protocol, BaselineProtocol):
-                self.test_start = 0
-            else:
-                #TODO: fix this test signal
-                self.test_start = r.randrange(0, 100000 - self.current_protocol_n_samples, 1)
+            # if isinstance(current_protocol, BaselineProtocol):
+            #     self.test_start = 0
+            # else:
+            #     #TODO: fix this test signal
+            #     self.test_start = r.randrange(0, 100000 - self.current_protocol_n_samples, 1)
 
             # Update the posner cue side
             if isinstance(current_protocol.widget_painter, PosnerCueProtocolWidgetPainter):
