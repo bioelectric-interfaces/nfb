@@ -57,7 +57,7 @@ class StimTask:
         self.block_paths = self.get_image_list(image_dir, self.trial_reps)
 
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
-        self.expName = 'posner_task'
+        self.expName = 'tacs_fv_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
         self.thisExp = None
 
