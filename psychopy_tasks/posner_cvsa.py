@@ -52,9 +52,14 @@ class PosnerComponent:
     id: int = 0
 
 
+PRACTICE = False
+
+
 class PosnerTask:
     def __init__(self):
-        self.trial_reps = [25, 5, 5, 5]
+        self.trial_reps = [25, 25, 25, 25]
+        if PRACTICE:
+            self.trial_reps = [5, 5, 5, 5]
         self.frameTolerance = 0.001  # how close to onset before 'same' frame
         self.expName = 'posner_task'
         self.exp_info = {'participant': "99", 'session': 'x'}
