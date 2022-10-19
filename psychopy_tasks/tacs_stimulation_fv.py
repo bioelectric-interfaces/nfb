@@ -6,9 +6,7 @@ drift correction run before each image
 images are from
     Chiffi, K., Diana, L., Hartmann, M., Cazzoli, D., Bassetti, C. L., Müri, R. M., & Eberhard-Moscicka, A. K. (2021). Spatial asymmetries (“pseudoneglect”) in free visual exploration—Modulation of age and relationship to line bisection. Experimental Brain Research, 239(9), 2693–2700. https://doi.org/10.1007/s00221-021-06165-x
 
-todo
-    [ ] check parallel, and lsl stuff and check times against EDF file
-    [ ] add drift correction
+
 """
 from psychopy.gui import DlgFromDict
 from psychopy.visual import Window, TextStim, circle, ImageStim
