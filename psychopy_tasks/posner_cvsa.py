@@ -89,10 +89,10 @@ class PosnerTask:
 
         # init component start times
         self.trial_duration = 6.5
-        self.fc_duration = 1.0
+        self.fc_duration = 1.5
         self.cue_duration = self.trial_duration - self.fc_duration
         self.stim_duration = 0.1
-        self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
+        self.probe_start_time = random.uniform(self.fc_duration + 2.5, self.trial_duration - self.stim_duration - 1)
 
         # init the results paths
         self.results_folder = 'data'
@@ -286,7 +286,7 @@ class PosnerTask:
         side: direction of the cue (1 = left, 2 = right, 3 = centre
         cue probability is equal for left, right, and centre
         """
-        self.probe_start_time = random.uniform(self.fc_duration + 3, self.trial_duration - self.stim_duration - 1)
+        self.probe_start_time = random.uniform(self.fc_duration + 2.5, self.trial_duration - self.stim_duration - 1)
         cue_dir = random.choice([1, 2, 3])  # 1=l, 2=r, 3=n
 
         # self.left_cue.component.fillColor = None
@@ -399,7 +399,7 @@ class PosnerTask:
                 fillColor='black',
                 lineColor='black'
             ),
-            duration=self.trial_duration,
+            duration=self.trial_duration-self.fc_duration,
             start_time=self.fc_duration,
             id=0)
 
