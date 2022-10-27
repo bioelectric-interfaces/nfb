@@ -668,12 +668,14 @@ class PosnerTask:
                 # break following a success drift-check
                 print('DRIFT FINISHED')
                 logging.info('DRIFT FINISHED')
-                if error:# is not pylink.ESC_KEY:
-                    print('DRIFT BREAK')
+                if error is not pylink.ESC_KEY:
+                    print(f'DRIFT BREAK {error}')
                     logging.info('DRIFT BREAK')
                     break
-            except:
-                pass
+            except Exception as e:
+                print('DRIFT BREAK')
+                logging.error(f'exception: {repr(e)}')
+                break
         return el_tracker
 
     def abort_trial(self, el_tracker):

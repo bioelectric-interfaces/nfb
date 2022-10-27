@@ -494,8 +494,10 @@ class StimTask:
                     print('DRIFT BREAK')
                     logging.info('DRIFT BREAK')
                     break
-            except:
-                pass
+            except Exception as e:
+                print('DRIFT BREAK')
+                logging.error(f'exception: {repr(e)}')
+                break
         return el_tracker
 
     def abort_trial(self, el_tracker):
