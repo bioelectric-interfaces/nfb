@@ -88,11 +88,11 @@ class PosnerTask:
         self.trial_clock = Clock()
 
         # init component start times
-        self.trial_duration = 5
-        self.fc_duration = 1
+        self.trial_duration = 6.5
+        self.fc_duration = 1.5
         self.cue_duration = self.trial_duration - self.fc_duration
         self.stim_duration = 0.1
-        self.probe_start_time = random.uniform(self.fc_duration + 2, self.trial_duration - self.stim_duration - 1)
+        self.probe_start_time = random.uniform(self.fc_duration + 2.5, self.trial_duration - self.stim_duration - 1)
 
         # init the results paths
         self.results_folder = 'data'
