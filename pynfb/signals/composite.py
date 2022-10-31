@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 import sympy
+import logging
 
 from ..signal_processing.filters import Coherence
 
@@ -49,18 +50,24 @@ class CompositeSignal:
         if self.enable_smoothing:
             if len(self.buffer) < self.avg_window:
                 # print(f"ADDING TO BUFFER: {len(self.buffer)}/{self.avg_window}")
-                self.buffer = np.append(self.buffer, self.current_sample)
+                # Just select the last samples (size of the avg window) to append - otherwise can append a large array
+                self.buffer = np.append(self.buffer, self.current_sample[-self.avg_window:])
             if len(self.buffer) >= self.avg_window:
-                # print(f"ROLLING BUFFER")
+                logging.info(f"ROLLING BUFFER")
                 try:
                     for i in enumerate(self.current_sample):
                         self.buffer = np.delete(self.buffer, 0)
                     self.buffer = np.append(self.buffer, self.current_sample)
+                    # print(f"LEN NEW BUFF: {len(self.buffer)}: LEN CUR SAMP: {len(self.current_sample)}")
+                    logging.info(f"LEN NEW BUFF: {len(self.buffer)}: LEN CUR SAMP: {len(self.current_sample)}")
                 except IndexError as e:
                     print(f"NO BUFFER TO DELETE: {e}")
+                    logging.debug(f"NO BUFFER TO DELETE: {e}")
                 except Exception as e:
                     print(f"ERROR: {e}")
-            # print(f"AVGING BUFFER LEN {len(self.buffer)}, AVG: {self.buffer.mean()}")
+                    logging.debug(f"ERROR: {e}")
+            # print(f"AVGING BUFFER LEN {len(self.buffer)}, AVG WINDOW:{self.avg_window}")
+            logging.info(f"AVGING BUFFER LEN {len(self.buffer)}, AVG WINDOW:{self.avg_window}")
             self.current_sample = self.buffer.mean()
         if self.scaling_flag and self.std>0:
             self.current_sample = (self.current_sample - self.mean) / self.std
