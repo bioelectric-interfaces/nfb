@@ -347,7 +347,7 @@ class PosnerTask:
                 elif neutral_side == 2:
                     stim_pos = (5, -1)
         self.stim.component.setPos(stim_pos)
-        return valid_cue
+        return valid_cue, stim_pos
 
     def init_start_components(self):
         self.start_text = PosnerComponent(
@@ -718,7 +718,7 @@ class PosnerTask:
 
             # Calculate the side of the cue and stim validity
             cue_dir = self.calculate_cue_side()
-            valid_cue = self.calculate_stim_validity(cue_dir=cue_dir)
+            valid_cue, stim_pos = self.calculate_stim_validity(cue_dir=cue_dir)
 
             # Set the stim start time
             if 'stim' in component_dict:
@@ -831,6 +831,7 @@ class PosnerTask:
             self.thisExp.addData('bloack_id', block_id)
             self.thisExp.addData('cue_dir', cue_dir)
             self.thisExp.addData('valid_cue', valid_cue)
+            self.thisExp.addData('stim_pos', stim_pos)
 
             self.thisExp.nextEntry()
 
