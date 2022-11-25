@@ -62,7 +62,6 @@ def get_roi_by_name(name):
 def get_fwd_solution():
     import os
     path = os.path.dirname(os.path.realpath(__file__))
-    mne.datasets.fetch_fsaverage(path)
     mne.utils.set_config("SUBJECTS_DIR", path, set_env=True)
     file_path = os.path.join(path, 'fsaverage-fwd-1005-2.fif')
     if not os.path.isfile(file_path):
@@ -76,6 +75,8 @@ def get_fwd_solution():
         with zipfile.ZipFile(zipfile_path, 'r') as f:
             f.extractall(path)
         print('Extracted')
+
+    mne.datasets.fetch_fsaverage(path)
     fwd = mne.read_forward_solution(file_path)
     fwd = mne.convert_forward_solution(fwd, surf_ori=True)
     return fwd
