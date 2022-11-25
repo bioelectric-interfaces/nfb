@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 from PyQt5 import QtCore
 from itertools import zip_longest, chain
+import random #/////////
 
 from pynfb.inlets.montage import Montage
 from pynfb.postprocessing.plot_all_fb_bars import plot_fb_dynamic
@@ -22,6 +23,8 @@ from .protocols import BaselineProtocol, FeedbackProtocol, ThresholdBlinkFeedbac
 from .signals import DerivedSignal, CompositeSignal, BCISignal
 from .windows import MainWindow
 from ._titles import WAIT_BAR_MESSAGES
+
+from .signal_processing.filters import ExponentialSmoother, ButterBandEnvelopeDetector
 import mne
 
 
@@ -66,7 +69,7 @@ class Experiment():
             # record data
             if self.main.player_panel.start.isChecked():
                 if self.params['bShowSubjectWindow']:
-                    self.subject.figure.update_reward(self.reward.get_score())
+                    self.subject.figure.update_reward(self.reward.get_score()) # работает ок
                 if self.samples_counter < self.experiment_n_samples:
                     chunk_slice = slice(self.samples_counter, self.samples_counter + chunk.shape[0])
                     self.raw_recorder[chunk_slice] = chunk[:, :self.n_channels]
@@ -108,20 +111,24 @@ class Experiment():
                 samples = [signal.current_chunk[-1] for signal in current_protocol.mock]
             elif current_protocol.mock_samples_file_path is not None:
                 samples = self.mock_signals_buffer[self.samples_counter % self.mock_signals_buffer.shape[0]]
+                samples = [[samples]] #########
+                samples = (samples - self.mock_mean) / self.mock_std
+
+
+                #samples = (random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1))
             else:
                 samples = sample[-1]
 
-            # self.reward.update(samples[self.reward.signal_ind], chunk.shape[0])
+            self.reward.update(samples, chunk.shape[0]) #[self.reward.signal_ind], chunk.shape[0]) - почему это под комментом????
             if (self.main.player_panel.start.isChecked() and
                     self.samples_counter - chunk.shape[0] < self.experiment_n_samples):
-                self.reward_recorder[
-                self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
+                self.reward_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = self.reward.get_score()
 
             if self.main.player_panel.start.isChecked():
                 # subject update
                 if self.params['bShowSubjectWindow']:
                     mark = self.subject.update_protocol_state(samples, self.reward, chunk_size=chunk.shape[0],
-                                                              is_half_time=is_half_time)
+                                                              is_half_time=is_half_time)  # здесь изменяется размер!
                 else:
                     mark = None
                 self.mark_recorder[self.samples_counter - chunk.shape[0]:self.samples_counter] = 0
@@ -137,7 +144,7 @@ class Experiment():
     def start_test_protocol(self, protocol):
         print('Experiment: test')
         if not self.main_timer.isActive():
-            self.main_timer.start(1000 * 1. / self.freq)
+            self.main_timer.start(int(1000 * 1. / self.freq))
         self.samples_counter = 0
         self.main.signals_buffer *= 0
         self.test_mode = True
@@ -242,9 +249,17 @@ class Experiment():
             if self.params['bShowSubjectWindow']:
                 self.subject.change_protocol(current_protocol)
             if current_protocol.mock_samples_file_path is not None:
-                self.mock_signals_buffer = load_h5py_protocol_signals(
-                    current_protocol.mock_samples_file_path,
-                    current_protocol.mock_samples_protocol)
+                smoother = ExponentialSmoother(0.99) ########
+                butter_filter = ButterBandEnvelopeDetector((8, 12), 250, smoother, 1) ########
+                data = load_h5py_protocol_signals(current_protocol.mock_samples_file_path,
+                                                                      current_protocol.mock_samples_protocol)
+                data = data[:, 0]
+                data = np.hstack([butter_filter.apply(data[k * 8:(k + 1) * 8]) for k in range(len(data) // 8)])
+                self.mock_signals_buffer = data # load_h5py_protocol_signals(current_protocol.mock_samples_file_path, current_protocol.mock_samples_protocol)
+
+                self.mock_mean = self.mock_signals_buffer.mean() #####
+                self.mock_std = self.mock_signals_buffer.std() ########
+
             self.main.status.update()
 
             self.reward.threshold = current_protocol.reward_threshold
@@ -473,12 +488,17 @@ class Experiment():
                              rate_of_increase=self.params['fRewardPeriodS'],
                              fs=self.freq)
 
+        #self.mock_reward = Reward(self.protocols[0].reward_signal_id,
+         #                    threshold=0,
+         #                    rate_of_increase=0.5,
+          #                   fs=self.freq)
+
         self.reward.set_enabled(isinstance(self.protocols_sequence[0], FeedbackProtocol))
 
         # timer
         # self.main_timer = QtCore.QTimer(self.app)
         self.main_timer.timeout.connect(self.update)
-        self.main_timer.start(1000 * 1. / self.freq)
+        self.main_timer.start(int(1000 * 1. / self.freq))
 
         # current protocol number of samples ('frequency' * 'protocol duration')
         self.current_protocol_n_samples = self.freq * (self.protocols_sequence[self.current_protocol_index].duration +
