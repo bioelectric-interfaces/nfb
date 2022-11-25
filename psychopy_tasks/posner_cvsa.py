@@ -324,6 +324,7 @@ class PosnerTask:
         valid_cue = random.choices([True, False], weights=(valid_cue_weight, 100 - valid_cue_weight))[0]
         if valid_cue:
             # valid cue
+            print("VALID")
             if cue_dir == 1:
                 stim_pos = (-5, -1)
             elif cue_dir == 2:
@@ -336,6 +337,7 @@ class PosnerTask:
                     stim_pos = (5, -1)
         else:
             # invalid cue
+            print("INVALID")
             if cue_dir == 1:
                 stim_pos = (5, -1)
             elif cue_dir == 2:
